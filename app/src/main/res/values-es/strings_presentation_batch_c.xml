@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">Error al cargar canciones</string>
+    <string name="library_error_loading_albums">Error al cargar álbumes</string>
+    <string name="library_error_loading_artists">Error al cargar artistas</string>
+    <string name="library_retry">Reintentar</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">No se encontraron canciones en tu biblioteca.</string>
+    <string name="library_no_songs_rescan_hint">Prueba a volver a analizar la biblioteca en ajustes si tienes música en el dispositivo.</string>
+    <string name="cd_no_songs_in_library">No hay canciones</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">Nuevo</string>
+    <string name="cd_create_new_playlist">Crear lista nueva</string>
+    <string name="cd_import_m3u_playlist">Importar lista M3U</string>
+    <string name="cd_locate_current_song">Ir a la canción actual</string>
+    <string name="library_storage_filter_all_songs">Todas las canciones</string>
+    <string name="library_storage_filter_online">En línea</string>
+    <string name="library_storage_filter_offline">Sin conexión</string>
+    <string name="cd_sort_options">Opciones de orden</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">SINCRONIZADAS</string>
+    <string name="song_field_artist_optional">Artista (opcional)</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">Añadir canciones</string>
+    <string name="cd_confirm_add_songs">Confirmar canciones seleccionadas</string>
+    <string name="song_picker_action_add">Añadir</string>
+    <string name="song_picker_search_label">Buscar canciones…</string>
+    <string name="song_picker_error_load_failed">No se pudieron cargar las canciones</string>
+    <string name="song_picker_load_more">Cargar más</string>
+
+    
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">Aún no hay canciones</string>
+    <string name="lib_empty_songs_all_subtitle">Añade música a tu dispositivo o sincroniza una fuente en la nube para empezar a escuchar.</string>
+    <string name="lib_empty_songs_offline_title">No se encontraron canciones locales</string>
+    <string name="lib_empty_songs_offline_subtitle">Prueba con otro filtro de fuente o vuelve a escanear la biblioteca del dispositivo.</string>
+    <string name="lib_empty_songs_online_title">No se encontraron canciones en la nube</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">No hay álbumes disponibles</string>
+    <string name="lib_empty_albums_all_subtitle">Los álbumes aparecerán aquí en cuanto tu biblioteca tenga pistas agrupadas.</string>
+    <string name="lib_empty_albums_offline_title">No se encontraron álbumes locales</string>
+    <string name="lib_empty_albums_offline_subtitle">Se necesitan canciones locales para crear grupos de álbumes locales.</string>
+    <string name="lib_empty_albums_online_title">No se encontraron álbumes en la nube</string>
+    <string name="lib_empty_albums_online_subtitle">Las canciones en la nube con datos de álbum aparecerán aquí tras la sincronización.</string>
+    <string name="lib_empty_artists_all_title">No hay artistas disponibles</string>
+    <string name="lib_empty_artists_all_subtitle">Los artistas se muestran después de que las canciones se indexen desde cualquier fuente.</string>
+    <string name="lib_empty_artists_offline_title">No se encontraron artistas locales</string>
+    <string name="lib_empty_artists_offline_subtitle">No hay metadatos de artista disponibles para las canciones locales en este momento.</string>
+    <string name="lib_empty_artists_online_title">No se encontraron artistas en la nube</string>
+    <string name="lib_empty_artists_online_subtitle">Las entradas de artistas en la nube aparecerán cuando se sincronicen las canciones remotas.</string>
+    <string name="lib_empty_liked_all_title">Aún no hay canciones favoritas</string>
+    <string name="lib_empty_liked_all_subtitle">Toca el icono del corazón mientras escuchas una canción para guardarla aquí.</string>
+    <string name="lib_empty_liked_offline_title">No hay canciones favoritas locales</string>
+    <string name="lib_empty_liked_offline_subtitle">Cambia el filtro de fuente o marca canciones de tu dispositivo como favoritas.</string>
+    <string name="lib_empty_liked_online_title">No hay canciones favoritas en la nube</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">No se encontraron carpetas</string>
+    <string name="lib_empty_folders_subtitle">Las carpetas de almacenamiento interno con música aparecerán aquí.</string>
+    <string name="lib_empty_playlists_title">Aún no hay listas de reproducción</string>
+    <string name="lib_empty_playlists_subtitle">Crea tu primera lista de reproducción para organizar tu biblioteca.</string>
+</resources>

@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">Очередь пуста.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Действия с очередью</string>
+    <string name="presentation_batch_e_action_clear_queue">Очистить очередь</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Сохранить как плейлист</string>
+    <string name="presentation_batch_e_queue_named_suffix">Очередь: %1$s</string>
+    <string name="presentation_batch_e_queue_current">Текущая очередь</string>
+    <string name="presentation_batch_e_removed">удалено</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Очистить очередь</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Вы уверены, что хотите удалить все песни из очереди, кроме текущей?</string>
+    <string name="presentation_batch_e_next_up">Далее</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Очередь пока пуста.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Очередь</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Перемешать</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Повтор</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Таймер сна</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Сохранить как плейлист</string>
+    <string name="presentation_batch_e_deselect_all">Снять выделение</string>
+    <string name="presentation_batch_e_playlist_name_label">Название плейлиста</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Поиск песен для добавления…</string>
+    <string name="presentation_batch_e_save_as_format">Сохранить как: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Введите название плейлиста</string>
+    <string name="presentation_batch_e_no_songs_match_query">Песни «%1$s» не найдены</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Убрать песню</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Удалить из плейлиста</string>
+    <string name="presentation_batch_e_more_options_for_song">Параметры для %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">В очереди %d трек.</item>
+        <item quantity="few">%d трека в очереди.</item>
+        <item quantity="many">%d треков в очереди.</item>
+        <item quantity="other">%d трека в очереди.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">Выбрана %d песня</item>
+        <item quantity="few">Выбрано %d песни</item>
+        <item quantity="many">Выбрано %d песен</item>
+        <item quantity="other">Выбрано %d песни</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">Плейлисты не созданы.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Нажмите кнопку «Новый плейлист», чтобы начать.</string>
+
+    <!-- PlaylistCreationDialogs: create flow -->
+    <string name="presentation_batch_e_create_playlist_title">Создать плейлист</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Выберите способ создания.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Вручную</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Настройте обложку, иконку, форму и выберите песни сами.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">Сбросить пресеты</string>
+    <string name="presentation_batch_e_reset_presets_message">Это восстановит стандартный порядок и видимость пресетов. Продолжить?</string>
+    <string name="presentation_batch_e_manage_presets_title">Управление пресетами</string>
+    <string name="presentation_batch_e_presets_drag_hint">Перетаскивайте для порядка • Нажмите на иконку глаза для скрытия</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Сброс по умолчанию</string>
+    <string name="presentation_batch_e_cd_visible">Видимый</string>
+    <string name="presentation_batch_e_cd_hidden">Скрытый</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">Как строится ваш Daily Mix</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Ваш Daily Mix создается на основе ваших любимых и наиболее часто прослушиваемых песен. Мы также добавляем треки исполнителей и жанров, которые вам нравятся, чтобы вы могли открывать для себя новую музыку.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">Мы используем небольшую выборку для экономии токенов</string>
+    <string name="presentation_batch_e_daily_mix_updating">Обновление…</string>
+    <string name="presentation_batch_e_daily_mix_update">Обновить Daily Mix</string>
+    <string name="presentation_batch_e_action_locate_current_song">Найти текущий трек</string>
+</resources>

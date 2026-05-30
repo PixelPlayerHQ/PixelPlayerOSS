@@ -1,0 +1,196 @@
+<resources>
+    <string name="app_name">PixelPlayerOSS</string>
+    <string name="app_name_change_title">Neuer App-Name</string>
+    <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
+    <string name="do_not_show_again">Nicht mehr anzeigen</string>
+    <string name="dismiss">Schließen</string>
+    <string name="all_files_access_title">Berechtigung erforderlich</string>
+    <string name="all_files_access_description">Song-Tags bearbeiten? Dafür braucht PixelPlayerOSS Zugriff auf alle Dateien. Berechtigung im nächsten Schritt erteilen.</string>
+    <string name="grant_permission_button">Berechtigung erteilen</string>
+    <string name="all_files_access_setting">Zugriff auf alle Dateien</string>
+    <string name="error">Fehler</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="import_file">Importieren</string>
+    <string name="search">Suchen</string>
+
+    <string name="lyrics">Lyrics</string>
+    <string name="close_lyrics_sheet">Lyrics schließen</string>
+    <string name="loading_lyrics">Lyrics laden…</string>
+    <string name="cant_find_lyrics">Keine Lyrics für diesen Song gefunden.</string>
+    <string name="lyrics_provided_by">Lyrics von</string>
+    <string name="lrclib_uri">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Keine Lyrics gefunden</string>
+    <string name="search_lyrics_online_prompt">Online nach Lyrics suchen?</string>
+    <string name="lyrics_custom_search_hint">Nichts gefunden. Titel oder Künstler anpassen und nochmal suchen.</string>
+    <string name="failed_to_search_for_lyrics">Lyrics-Suche fehlgeschlagen</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Lyrics konnten nicht geladen werden</string>
+    <string name="lyrics_fetch_timeout">Verbindung unterbrochen – Internetverbindung prüfen.</string>
+    <string name="lyrics_network_error">Netzwerkfehler – Internetverbindung prüfen.</string>
+    <string name="lyrics_server_error">Serverfehler (Code %d) – später nochmal versuchen.</string>
+    <string name="found_n_matches_format">%d Treffer</string>
+    <string name="searched_for_x_format">Gesucht nach \"%s\"</string>
+    <string name="searching_lyrics">Lyrics suchen…</string>
+    <string name="lyrics_already_available">Lyrics bereits vorhanden – Online-Abruf übersprungen.</string>
+    <string name="lyrics_embedded_already_available">Eingebettete Lyrics gefunden – Online-Abruf übersprungen.</string>
+    <string name="local_lrc_already_available">Lokale .lrc-Datei gefunden – Online-Abruf übersprungen.</string>
+    <string name="fetch_lyrics_show_options_title">Trefferauswahl anzeigen</string>
+    <string name="fetch_lyrics_show_options_subtitle">Immer Auswahl öffnen statt automatisch den ersten Treffer zu nehmen</string>
+    <string name="save_lyrics_as_lrc">Als .lrc speichern</string>
+    <string name="save_lyrics_dialog_title">Lyrics speichern</string>
+    <string name="save_lyrics_dialog_message">Version wählen:</string>
+    <string name="save_synced_lyrics">Synchronisiert (mit Timestamps)</string>
+    <string name="save_plain_lyrics">Nur Text</string>
+    <string name="lyrics_saved_successfully">Lyrics gespeichert</string>
+    <string name="lyrics_save_failed">Lyrics konnten nicht gespeichert werden</string>
+    <string name="no_lyrics_to_save">Keine Lyrics zum Speichern</string>
+    <string name="reset_imported_lyrics">Importierte Lyrics zurücksetzen</string>
+    <string name="lyrics_sync_offset">Lyrics-Offset</string>
+    <string name="lyrics_sync_offset_format">%+.1fs</string>
+    <string name="lyrics_sync_offset_reset">Zurücksetzen</string>
+    <string name="lyrics_earlier">Früher</string>
+    <string name="lyrics_later">Später</string>
+
+    <string name="sync_scanning">Musikdateien werden gescannt…</string>
+    <string name="sync_processing">Dateien werden verarbeitet…</string>
+    <string name="sync_files_progress">%1$d von %2$d Dateien</string>
+    <string name="sync_in_progress">Bibliothek wird synchronisiert…</string>
+    <string name="sync_complete">Sync abgeschlossen</string>
+    <string name="sync_pending">Warten…</string>
+    <string name="syncing_library">Bibliothek wird synchronisiert…</string>
+    <string name="library_background_sync">Wird im Hintergrund abgeschlossen…</string>
+    <string name="library_background_sync_lyrics">Lyrics werden gescannt…</string>
+    <string name="library_background_sync_cache">Cover-Cache wird bereinigt…</string>
+    <string name="library_background_sync_cloud">Cloud-Quellen werden synchronisiert…</string>
+    <string name="unknown_song_title">Unbekannter Titel</string>
+    <string name="unknown_artist">Unbekannter Künstler</string>
+    <string name="unknown_album">Unbekanntes Album</string>
+    <string name="artist_picker_title">Künstler wählen</string>
+    <string name="artist_picker_supporting_text">Einen Künstler dieses Titels öffnen</string>
+    <string name="artist_picker_count_single">1 Künstler</string>
+    <string name="artist_picker_count_multiple">%1$d Künstler</string>
+    <string name="artist_picker_primary_label">Hauptkünstler</string>
+    <string name="artist_picker_shortcut_label">Künstlerseite</string>
+    <string name="external_queue_label">Schnellwiedergabe</string>
+    <string name="external_playback_error">Audiodatei konnte nicht geöffnet werden.</string>
+    <string name="open_full_player">Player öffnen</string>
+    <string name="close_external_player">Schwebenden Player schließen</string>
+    <string name="close_notification_player">Player schließen</string>
+    <string name="previous_track">Vorheriger Titel</string>
+    <string name="next_track">Nächster Titel</string>
+    <string name="pause_playback">Pause</string>
+    <string name="play_playback">Abspielen</string>
+    <string name="playlist_not_found">Playlist nicht gefunden.</string>
+    <string name="disc_number_header">Disc %d</string>
+
+
+    <string name="shortcut_shuffle_short">Shuffle</string>
+    <string name="shortcut_shuffle_long">Alle Songs mischen</string>
+    <string name="shortcut_playlist_short">Playlist</string>
+    <string name="shortcut_playlist_long">Zuletzt gespielte Playlist</string>
+
+    <string name="tile_shuffle_all">Alle mischen</string>
+    <string name="tile_last_playlist">Letzte Playlist</string>
+    <string name="tile_last_playlist_unavailable">Keine Playlist verfügbar</string>
+
+    <string name="invalid_album_id">Ungültige Album-ID</string>
+    <string name="album_id_not_found">Album-ID nicht gefunden</string>
+    <string name="error_loading_album">Fehler beim Laden des Albums: %s</string>
+    <string name="album_not_found">Album nicht gefunden</string>
+    <string name="could_not_update">Konnte nicht aktualisiert werden: %s</string>
+    <string name="invalid_artist_id">Ungültige Künstler-ID</string>
+    <string name="artist_id_not_found">Künstler-ID nicht gefunden</string>
+    <string name="error_loading_artist">Fehler beim Laden des Künstlers: %s</string>
+    <string name="could_not_find_artist">Künstler nicht gefunden</string>
+    <string name="no_valid_songs">Keine abspielbaren Songs gefunden</string>
+
+    <string name="glance_widget_description">Anpassungsfähiges Widget</string>
+    <string name="widget_bar_4x1_desc">Kompakte Player-Leiste</string>
+    <string name="widget_control_4x2_desc">Volle Steuerung mit Shuffle und Repeat</string>
+    <string name="widget_grid_2x2_desc">Minimalistischer quadratischer Player</string>
+    <string name="service_processing_action">Wiedergabe wird vorbereitet…</string>
+
+    <!-- Playlist bulk actions -->
+    <string name="playlist_none_to_share">Keine Playlists zum Teilen</string>
+    <string name="playlist_share_chooser_title">Playlists teilen</string>
+    <string name="playlist_share_failed">Teilen fehlgeschlagen: %1$s</string>
+    <string name="playlist_none_to_export">Keine Playlists zum Exportieren</string>
+    <string name="playlist_export_failed">Export fehlgeschlagen: %1$s</string>
+    <string name="playlist_export_folder_display">Musik/PixelPlayerOSS Exporte</string>
+    <string name="error_unknown">Unbekannter Fehler</string>
+
+
+
+    <!-- Backup / data transfer -->
+    <string name="backup_invalid_format">Ungültiges Backup: %1$s</string>
+    <string name="backup_progress_preparing_restore">Wiederherstellung wird vorbereitet</string>
+    <string name="backup_progress_starting_task">Aufgabe wird gestartet.</string>
+    <string name="backup_progress_preparing_backup">Backup wird vorbereitet</string>
+    <string name="backup_progress_starting_backup_task">Backup-Aufgabe wird gestartet.</string>
+    <string name="restore_completed_success">Backup erfolgreich wiederhergestellt</string>
+    <string name="restore_completed_partial_issues">Wiederherstellung mit einigen Problemen abgeschlossen.</string>
+    <string name="restore_could_not_complete">Wiederherstellung fehlgeschlagen: %1$s</string>
+    <string name="restore_failed_format">Wiederherstellung fehlgeschlagen: %1$s</string>
+    <string name="data_exported_successfully">Daten erfolgreich exportiert</string>
+    <string name="export_failed_format">Export fehlgeschlagen: %1$s</string>
+    <string name="data_restored_successfully">Daten erfolgreich wiederhergestellt</string>
+    <string name="restore_partial_unresolved_format">Wiederherstellung mit offenen Problemen. Fehlgeschlagen: %1$s</string>
+    <string name="dev_test_crash_message">Test-Absturz aus den Entwickleroptionen – dient zum Testen des Crash-Reportings</string>
+
+    <!-- PlayerViewModel -->
+    <string name="player_song_not_found_in_list">Song nicht in der aktuellen Liste</string>
+    <string name="player_could_not_locate_song">Song nicht gefunden</string>
+    <string name="player_no_songs_in_library_toast">Keine Songs in der Bibliothek</string>
+    <string name="player_playback_stopped_eot">Wiedergabe beendet: %1$s abgeschlossen.</string>
+    <string name="player_default_track_title">Titel</string>
+    <string name="player_no_songs_to_shuffle">Keine Songs zum Mischen.</string>
+    <string name="player_queue_name_selected_albums">Ausgewählte Alben</string>
+    <string name="player_no_playable_songs_in_albums">Keine abspielbaren Songs in den gewählten Alben</string>
+    <string name="player_only_first_n_albums_queued">Nur die ersten %1$d Alben wurden hinzugefügt</string>
+    <string name="player_albums_queued_format">%1$d Alben in der Queue (%2$d Songs)</string>
+    <string name="player_could_not_queue_albums">Alben konnten nicht zur Queue hinzugefügt werden</string>
+    <string name="player_all_songs_already_in_favorites">Alle Songs bereits in den Favoriten</string>
+    <string name="player_no_songs_were_in_favorites">Keine Songs in den Favoriten</string>
+    <string name="player_creating_zip">ZIP-Datei wird erstellt…</string>
+    <string name="player_share_zip_failed_format">Teilen fehlgeschlagen: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Aktuell gespielter Song kann nicht gelöscht werden</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">%1$d Dateien gelöscht (%2$d übersprungen – läuft gerade)</string>
+    <string name="player_batch_delete_partial_format">%1$d von %2$d Dateien gelöscht</string>
+    <string name="player_delete_files_failed">Dateien konnten nicht gelöscht werden</string>
+    <string name="player_file_deleted">Datei gelöscht</string>
+    <string name="player_delete_file_not_found">Datei nicht gefunden oder nicht löschbar</string>
+    <string name="player_deletion_cancelled">Löschen abgebrochen</string>
+    <string name="player_permission_denied_edit_files">Keine Berechtigung – Dateien können nicht bearbeitet werden</string>
+    <string name="player_permission_denied_save_lyrics">Keine Berechtigung – Lyrics können nicht gespeichert werden</string>
+    <string name="player_permission_denied_edit_this_file">Keine Berechtigung – Datei kann nicht bearbeitet werden</string>
+    <string name="metadata_updated_successfully">Metadaten aktualisiert</string>
+    <string name="player_updating_n_songs">%1$d Songs werden aktualisiert…</string>
+    <string name="player_batch_genre_updated_all">%1$d Songs erfolgreich aktualisiert!</string>
+    <string name="player_batch_genre_updated_partial">%1$d Songs aktualisiert. Fehlgeschlagen: %2$d</string>
+    <string name="playlist_restored_toast">Playlist wiederhergestellt</string>
+    <string name="delete_songs_permanent_message">Diese Songs werden dauerhaft gelöscht – das lässt sich nicht rückgängig machen.</string>
+    <string name="delete_action">Löschen</string>
+
+    <!-- Sleep timer -->
+    <string name="sleep_timer_n_minutes_format">%1$d Minuten</string>
+    <string name="sleep_timer_display_eot">Ende des Titels</string>
+    <string name="sleep_timer_set_for_minutes_toast">Timer für %1$d Minuten gesetzt.</string>
+    <string name="sleep_timer_cancelled_toast">Timer abgebrochen.</string>
+    <string name="sleep_timer_eot_no_song_toast">Kein aktiver Song – Titelsende nicht verfügbar.</string>
+    <string name="sleep_timer_eot_song_changed_toast">Titelsende-Timer deaktiviert – Song wechselte von %1$s zu %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">Wiedergabe stoppt am Ende des Titels.</string>
+    <string name="sleep_timer_label_previous_track">Vorheriger Titel</string>
+    <string name="sleep_timer_label_current_track">Aktueller Titel</string>
+    <string name="sleep_timer_ui_title">Sleep Timer</string>
+    <string name="sleep_timer_ui_slider_label_timer">Timer</string>
+    <string name="sleep_timer_ui_end_of_current_track">Ende des aktuellen Titels</string>
+    <string name="sleep_timer_ui_custom_time">Eigene Zeit</string>
+    <string name="sleep_timer_ui_cancel_timer">Timer abbrechen</string>
+    <string name="sleep_timer_ui_set_custom_duration">Eigene Dauer festlegen</string>
+    <string name="sleep_timer_ui_play_count_label">Wiedergaben: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 Mal</string>
+    <string name="cd_switch_on">Schalter an</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+</resources>

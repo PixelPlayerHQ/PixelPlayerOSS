@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">加载歌曲时出错</string>
+    <string name="library_error_loading_albums">加载专辑时出错</string>
+    <string name="library_error_loading_artists">加载艺术家时出错</string>
+    <string name="library_retry">重试</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">你的媒体库中没有找到歌曲。</string>
+    <string name="library_no_songs_rescan_hint">如果你的设备上有音乐，请尝试在设置中重新扫描媒体库。</string>
+    <string name="cd_no_songs_in_library">未找到歌曲</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">新建</string>
+    <string name="cd_create_new_playlist">创建新播放列表</string>
+    <string name="cd_import_m3u_playlist">导入 M3U 播放列表</string>
+    <string name="cd_locate_current_song">定位当前歌曲</string>
+    <string name="library_storage_filter_all_songs">全部歌曲</string>
+    <string name="library_storage_filter_online">云端</string>
+    <string name="library_storage_filter_offline">本地</string>
+    <string name="cd_sort_options">排序选项</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">已同步</string>
+    <string name="song_field_artist_optional">艺术家（可选）</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">添加歌曲</string>
+    <string name="cd_confirm_add_songs">添加所选歌曲</string>
+    <string name="song_picker_action_add">添加</string>
+    <string name="song_picker_search_label">搜索或筛选歌曲……</string>
+    <string name="song_picker_filter_favorites">喜爱的歌曲</string>
+    <string name="song_picker_error_load_failed">加载歌曲失败</string>
+    <string name="song_picker_load_more">加载更多</string>
+
+
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">暂无歌曲</string>
+    <string name="lib_empty_songs_all_subtitle">向设备中添加音乐或同步云端来源以开始聆听。</string>
+    <string name="lib_empty_songs_offline_title">未找到本地歌曲</string>
+    <string name="lib_empty_songs_offline_subtitle">尝试其他来源筛选或重新扫描设备媒体库。</string>
+    <string name="lib_empty_songs_online_title">未找到云端歌曲</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">暂无专辑</string>
+    <string name="lib_empty_albums_all_subtitle">当媒体库中有已分组的曲目时，专辑会显示在这里。</string>
+    <string name="lib_empty_albums_offline_title">未找到本地专辑</string>
+    <string name="lib_empty_albums_offline_subtitle">构建本地专辑分组需要本地歌曲。</string>
+    <string name="lib_empty_albums_online_title">未找到云端专辑</string>
+    <string name="lib_empty_albums_online_subtitle">同步后，带有专辑数据的云端歌曲会显示在这里。</string>
+    <string name="lib_empty_artists_all_title">暂无艺术家</string>
+    <string name="lib_empty_artists_all_subtitle">歌曲从任何来源索引后都会显示艺术家。</string>
+    <string name="lib_empty_artists_offline_title">未找到本地艺术家</string>
+    <string name="lib_empty_artists_offline_subtitle">目前没有本地歌曲的艺术家元数据。</string>
+    <string name="lib_empty_artists_online_title">未找到云端艺术家</string>
+    <string name="lib_empty_artists_online_subtitle">远程歌曲同步后，云端艺术家条目会显示在这里。</string>
+    <string name="lib_empty_liked_all_title">暂无收藏歌曲</string>
+    <string name="lib_empty_liked_all_subtitle">播放歌曲时点击爱心图标即可将其保存到这里。</string>
+    <string name="lib_empty_liked_offline_title">未找到本地收藏歌曲</string>
+    <string name="lib_empty_liked_offline_subtitle">切换来源筛选或收藏设备中的歌曲。</string>
+    <string name="lib_empty_liked_online_title">未找到云端收藏歌曲</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">未找到文件夹</string>
+    <string name="lib_empty_folders_subtitle">包含音乐的内部存储文件夹将显示在这里。</string>
+    <string name="lib_empty_playlists_title">暂无播放列表</string>
+    <string name="lib_empty_playlists_subtitle">创建你的第一个播放列表以整理媒体库。</string>
+</resources>

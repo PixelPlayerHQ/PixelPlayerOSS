@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation / misc -->
+    <string name="nav_error_genre_id_missing">Error: falta el ID del género</string>
+    <string name="easter_egg_thank_you">¡Gracias por usar PixelPlayerOSS!</string>
+
+    <!-- Word delimiter config -->
+    <string name="word_delimiter_section_title">Delimitadores de palabra actuales</string>
+    <string name="word_delimiter_section_subtitle">Estas palabras clave dividen nombres de artista cuando están rodeadas de espacios. Coinciden sin distinguir mayúsculas. Toca para quitar.</string>
+    <string name="word_delimiter_empty">No hay delimitadores de palabra configurados</string>
+    <string name="word_delimiter_add_title">Añadir delimitador de palabra</string>
+    <string name="word_delimiter_hint">p. ej., feat. o ft.</string>
+    <string name="word_delimiter_help_title">Cómo funcionan los delimitadores de palabra</string>
+    <string name="word_delimiter_help_body">Los delimitadores de palabra coinciden sin distinguir mayúsculas con espacios alrededor.\n\nLos delimitadores de un solo carácter (como \"x\") requieren espacios a ambos lados para evitar coincidencias erróneas.\n\nEjemplos:\n  \"Drake feat. Rihanna\" -&gt; Drake, Rihanna\n  \"Marshmello x Bastille\" -&gt; Marshmello, Bastille\n  \"A vs. B\" -&gt; A, B</string>
+    <string name="word_delimiters_screen_title">Delimitadores de palabra</string>
+    <string name="word_delimiter_reset_title">¿Restablecer delimitadores de palabra?</string>
+    <string name="word_delimiter_reset_message">Se borrarán todos los delimitadores personalizados y se restaurarán las palabras clave predeterminadas. Esta acción no se puede deshacer.</string>
+    <string name="word_delimiter_toast_added">Delimitador de palabra añadido</string>
+    <string name="word_delimiter_toast_invalid">Ya existe o no es válido</string>
+    <string name="word_delimiter_toast_reset">Delimitadores de palabra restablecidos</string>
+    <string name="action_reset">Restablecer</string>
+
+    <!-- Delimiter config (path separators) -->
+    <string name="delimiter_section_title">Delimitadores actuales</string>
+    <string name="delimiter_section_subtitle">Toca un delimitador para quitarlo. Se requiere al menos uno.</string>
+    <string name="delimiter_add_title">Añadir delimitador</string>
+    <string name="delimiter_hint">p. ej., / o ;</string>
+    <string name="delimiter_defaults_title">Delimitadores predeterminados</string>
+    <string name="delimiter_reset_title">¿Restablecer delimitadores?</string>
+    <string name="delimiter_reset_message">Se borrarán todos los delimitadores personalizados y se restaurarán los predeterminados. Esta acción no se puede deshacer.</string>
+    <string name="delimiter_toast_reset">Delimitadores restablecidos</string>
+    <string name="delimiter_toast_at_least_one">Se requiere al menos un delimitador</string>
+    <string name="delimiter_toast_added">Delimitador añadido</string>
+    <string name="delimiter_toast_invalid">El delimitador ya existe o no es válido</string>
+    <string name="path_delimiters_toolbar_title">Delimitadores</string>
+    <string name="delimiter_label_space">Espacio</string>
+    <string name="cd_add_path_delimiter">Añadir delimitador</string>
+
+    <!-- Accounts -->
+    <string name="accounts_unable_open_screen">No se puede abrir esta pantalla ahora.</string>
+
+    <!-- Setup -->
+    <string name="setup_welcome_prefix">Bienvenido a </string>
+    <string name="setup_beta_symbol">β</string>
+    <string name="setup_beta_label">Beta</string>
+    <string name="setup_intro_body">Vamos a dejar todo listo para ti.</string>
+    <string name="setup_checking_backup">Comprobando copia de seguridad…</string>
+    <string name="setup_theme_title">Tema de la app</string>
+    <string name="setup_theme_subtitle">Elige el aspecto antes de explorar tu biblioteca.</string>
+    <string name="setup_theme_footer">Puedes cambiarlo después en Ajustes &gt; Apariencia &gt; Tema de la app.</string>
+    <string name="setup_recommended">Recomendado</string>
+    <string name="setup_library_layout_title">Disposición de la biblioteca</string>
+    <string name="setup_library_layout_subtitle">Elige cómo quieres navegar por tu biblioteca.</string>
+    <string name="setup_compact_mode">Modo compacto</string>
+    <string name="setup_library_layout_footer">Puedes cambiarlo después en Ajustes &gt; Apariencia &gt; Navegación de la biblioteca.</string>
+    <string name="tab_library">Biblioteca</string>
+    <string name="tab_songs">CANCIONES</string>
+    <string name="tab_albums">ÁLBUMES</string>
+    <string name="tab_artists">ARTISTAS</string>
+    <string name="setup_all_set_title">¡Todo listo!</string>
+    <string name="setup_all_set_body">Ya puedes disfrutar de tu música.</string>
+    <string name="setup_restore_backup_title">Restaurar copia</string>
+    <string name="setup_restore_backup_subtitle">Revisa qué quieres importar antes de terminar la configuración.</string>
+    <string name="setup_modules_selected_format">%1$d de %2$d módulos seleccionados</string>
+    <string name="setup_backup_created_format">Creada el %1$s</string>
+    <string name="setup_backup_from_version">Copia desde %1$s</string>
+    <string name="unknown_version">Versión desconocida</string>
+    <string name="setup_lets_go">¡Vamos!</string>
+    <string name="setup_step_format">Paso %1$d de %2$d</string>
+    <string name="setup_app_navigation_title">Navegación de la app</string>
+    <string name="setup_app_navigation_subtitle">Elige el estilo de la barra inferior.</string>
+    <string name="setup_navbar_default_style">Estilo predeterminado</string>
+    <string name="setup_navbar_footer">Puedes cambiarlo después en Ajustes &gt; Apariencia &gt; Estilo de la barra.</string>
+    <string name="skip_for_now">Omitir por ahora</string>
+    <string name="skip_not_now">Omitir / Ahora no</string>
+    <string name="restoring">Restaurando</string>
+    <string name="restore_selected">Restaurar selección</string>
+    <string name="customize_corner_radius">Personalizar radio de esquinas</string>
+    <string name="toast_grant_permission_first">Concede primero el permiso necesario.</string>
+    <string name="toast_grant_all_permissions">Concede todos los permisos necesarios.</string>
+    <string name="toast_grant_storage_first">Concede primero los permisos de almacenamiento</string>
+    <string name="toast_battery_settings_unavailable">No se pudo abrir los ajustes de batería</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_expand_menu">Expandir menú</string>
+    <string name="cd_next_step">Siguiente</string>
+    <string name="cd_finish">Finalizar</string>
+    <string name="cd_close">Cerrar</string>
+    <string name="cd_remove">Quitar</string>
+    <string name="cd_add_word_delimiter">Añadir delimitador de palabra</string>
+    <string name="cd_reset_defaults">Restablecer valores predeterminados</string>
+
+    <!-- Setup (additional literals) -->
+    <string name="setup_excluded_folders_title">Carpetas excluidas</string>
+    <string name="setup_excluded_folders_description">Por defecto se escanean todas las carpetas. Elige ubicaciones que quieras ignorar al crear la biblioteca.</string>
+    <string name="setup_choose_folders_ignore">Elegir carpetas a ignorar</string>
+    <string name="setup_permission_media_title">Permiso de medios</string>
+    <string name="setup_permission_media_description">PixelPlayerOSS necesita acceso a tus archivos de audio para crear tu biblioteca musical.</string>
+    <string name="setup_permission_granted">Permiso concedido</string>
+    <string name="setup_grant_media_permission">Conceder permiso de medios</string>
+    <string name="setup_permission_notifications_title">Notificaciones</string>
+    <string name="setup_permission_notifications_description">Activa las notificaciones para controlar la música desde la pantalla de bloqueo y el panel.</string>
+    <string name="setup_enable_notifications">Activar notificaciones</string>
+    <string name="setup_permission_alarms_title">Alarmas y recordatorios</string>
+    <string name="setup_permission_alarms_description">Opcional, pero recomendado si usas el temporizador de sueño y quieres que PixelPlayerOSS detenga la reproducción a la hora exacta.</string>
+    <string name="setup_grant_permission_generic">Conceder permiso</string>
+    <string name="setup_backup_have_title">¿Tienes una copia de seguridad?</string>
+    <string name="setup_backup_have_description">Si ya tienes una copia de PixelPlayerOSS, restáurala ahora y omite la mayor parte del resto de la configuración en este dispositivo.</string>
+    <string name="setup_inspecting_backup">Inspeccionando copia</string>
+    <string name="setup_restoring_backup">Restaurando copia</string>
+    <string name="setup_import_backup">Importar copia</string>
+    <string name="setup_theme_dark_title">Oscuro</string>
+    <string name="setup_theme_dark_description">El aspecto oscuro Material 3 predeterminado de PixelPlayerOSS.</string>
+    <string name="setup_theme_light_title">Claro</string>
+    <string name="setup_theme_light_description">Un aspecto Material 3 más luminoso en toda la app.</string>
+    <string name="setup_theme_follow_title">Seguir el sistema</string>
+    <string name="setup_theme_follow_description">Coincidir con el tema del teléfono.</string>
+    <string name="setup_compact_mode_pill_hint">Navegación en píldora mínima</string>
+    <string name="setup_compact_mode_tab_hint">Fila de pestañas estándar</string>
+    <string name="setup_preview_songs_label">Canciones</string>
+    <string name="setup_battery_optimization_title">Optimización de batería</string>
+    <string name="setup_battery_optimization_description">Algunos dispositivos cierran apps en segundo plano con fuerza. Desactiva la optimización de batería para PixelPlayerOSS y evita cortes inesperados.</string>
+    <string name="setup_disable_battery_optimization">Desactivar optimización</string>
+    <string name="setup_nav_floating_pill_description">Píldora flotante con esquinas redondeadas</string>
+    <string name="setup_nav_full_width_description">Barra estándar a todo el ancho</string>
+
+    <string name="dialog_delete_song_title">¿Eliminar canción?</string>
+    <string name="dialog_delete_song_message">\"%1$s\" de %2$s\n\nEsta canción se eliminará permanentemente del dispositivo y no podrá recuperarse.</string>
+
+    <string name="home_your_mix_title">Tu\nMix</string>
+    <string name="home_empty_placeholder_title">Aun no hay datos para mostrar</string>
+    <string name="home_empty_placeholder_subtitle">Tu mix aparecera aqui cuando PixelPlayerOSS encuentre canciones o sincronice una fuente.</string>
+    <string name="home_empty_placeholder_refresh">Actualizar</string>
+    <string name="cd_shuffle_play">Reproducción aleatoria</string>
+    <string name="cd_album_art_for_title">Carátula de %1$s</string>
+    <string name="cd_options">Opciones</string>
+    <string name="genre_quick_fill">Rellenar género rápido</string>
+    <string name="cd_generic_artist">Artista genérico</string>
+    <string name="cd_play_album">Reproducir álbum</string>
+    <string name="cd_shuffle_play_album">Reproducir álbum en aleatorio</string>
+    <string name="album_cover_for">Portada de %1$s</string>
+    <string name="album_detail_meta_line">%1$s · %2$s</string>
+    <string name="mashup_cd_play_pause">Reproducir/Pausa</string>
+    <string name="cd_song_cover">Portada de la canción</string>
+
+    <string name="crash_report_title">¡Vaya! Algo salió mal</string>
+    <string name="crash_report_subtitle">La app se cerró en la última sesión. Ayúdanos a solucionarlo compartiendo el informe de error.</string>
+    <string name="crash_report_date_line">Fecha: %1$s</string>
+    <string name="crash_report_error_label">Error:</string>
+    <string name="crash_report_stack_preview_label">Pila de llamadas (vista previa):</string>
+    <string name="crash_report_clipboard_label">Registro de error</string>
+    <string name="toast_crash_log_copied">Registro copiado al portapapeles</string>
+    <string name="crash_report_share_subject">Informe de error de PixelPlayerOSS</string>
+    <string name="crash_report_share_chooser">Compartir informe de error</string>
+    <string name="action_copy">Copiar</string>
+    <string name="action_share">Compartir</string>
+
+    <string name="search_placeholder">Buscar…</string>
+    <string name="cd_search_icon">Buscar</string>
+    <string name="cd_clear_search_query">Borrar búsqueda</string>
+    <string name="recent_searches">Búsquedas recientes</string>
+    <string name="clear_all">Borrar todo</string>
+    <string name="cd_search_history_icon">Historial</string>
+    <string name="cd_delete_search_history_item">Eliminar elemento del historial</string>
+    <string name="cd_no_search_results">Sin resultados</string>
+    <string name="search_no_results_for_query">Sin resultados para \"%1$s\"</string>
+    <string name="search_nothing_found">No se encontró nada</string>
+    <string name="search_try_different_or_filters">Prueba otro término o revisa los filtros.</string>
+    <string name="search_no_results_found">No se encontraron resultados.</string>
+
+    <string name="browse_by_genre">Explorar por género</string>
+    <string name="no_genres_available">No hay géneros disponibles.</string>
+
+    <string name="about_no_contributors">No hay colaboradores por ahora. Inténtalo más tarde.</string>
+    <string name="about_app_name">PixelPlayerOSS</string>
+    <string name="about_tagline">Reproductor de música open source construido con su comunidad.</string>
+    <string name="about_version_format">Versión v%1$s</string>
+    <string name="about_contributions_format">%1$d contrib.</string>
+    <string name="screen_about">Acerca de</string>
+    <string name="about_maintainer_title">Mantenedor</string>
+    <string name="about_maintainer_subtitle">La persona detrás de PixelPlayerOSS.</string>
+    <string name="about_spotlight_title">Destacados de la comunidad</string>
+    <string name="about_spotlight_subtitle">Reconocimiento a colaboradores con gran impacto.</string>
+    <string name="about_contributors_section_title">Colaboradores open source</string>
+    <string name="about_contributors_section_subtitle">Lista en vivo desde GitHub.</string>
+    <string name="about_signal_open_source">Código abierto</string>
+    <string name="about_signal_community_first">Comunidad primero</string>
+    <string name="about_signal_material3">Material 3 expresivo</string>
+    <string name="cd_open_github_profile">Abrir perfil de GitHub</string>
+    <string name="cd_contributor_avatar">Avatar de %1$s</string>
+    <string name="cd_contributor_icon">Icono de %1$s</string>
+
+    <string name="screen_subsonic_dashboard_title">Subsonic</string>
+    <string name="dash_playlists_synced_count">%1$d listas sincronizadas</string>
+    <string name="dash_folders_synced_count">%1$d carpetas sincronizadas</string>
+    <string name="dash_title_playlists">Listas</string>
+    <string name="dash_music_folders">Carpetas de música</string>
+    <string name="dash_action_sync">Sincronizar</string>
+    <string name="dash_playlists_empty_title">Aún no hay listas sincronizadas</string>
+    <string name="dash_playlists_empty_hint_subsonic">Toca sincronizar para obtener tus listas</string>
+    <string name="dash_playlists_empty_hint_jellyfin">Toca sincronizar para obtener tus listas de Jellyfin</string>
+    <string name="dash_no_folders_yet">No hay carpetas añadidas</string>
+    <string name="dash_quick_actions">Acciones rápidas</string>
+    <string name="dash_quick_actions_subsonic_subtitle">Gestiona Navidrome, Airsonic y otros servidores compatibles con Subsonic.</string>
+    <string name="dash_quick_actions_jellyfin_subtitle">Gestiona la conexión a tu servidor Jellyfin.</string>
+    <string name="dash_status_syncing">Sincronizando</string>
+    <string name="dash_action_sync_library">Sincronizar biblioteca</string>
+    <string name="dash_action_disconnect">Desconectar</string>
+    <string name="dash_song_count">%1$d canciones</string>
+    <string name="cd_sync">Sincronizar</string>
+    <string name="cd_sync_all">Sincronizar todo</string>
+    <string name="cd_logout">Cerrar sesión</string>
+    <string name="cd_sync_all_playlists">Sincronizar todas las listas</string>
+    <string name="error_with_message_format">Error: %1$s</string>
+    <string name="sync_status_syncing_ellipsis">Sincronizando…</string>
+    <string name="cd_user_avatar">Avatar del usuario</string>
+    <string name="toast_playlist_created">Lista creada correctamente</string>
+    <string name="toast_added_to_queue">Añadida a la cola</string>
+    <string name="toast_playing_next">Siguiente en reproducir</string>
+    <string name="error_share_song_format">No se pudo compartir la canción: %1$s</string>
+</resources>

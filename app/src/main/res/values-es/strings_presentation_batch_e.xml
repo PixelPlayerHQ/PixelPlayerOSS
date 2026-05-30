@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">La cola está vacía.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Acciones de la cola</string>
+    <string name="presentation_batch_e_action_clear_queue">Vaciar cola</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Guardar como lista</string>
+    <string name="presentation_batch_e_queue_named_suffix">Cola de %1$s</string>
+    <string name="presentation_batch_e_queue_current">Cola actual</string>
+    <string name="presentation_batch_e_removed">quitado</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Vaciar cola</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">¿Seguro que quieres quitar todas las canciones de la cola excepto la actual?</string>
+    <string name="presentation_batch_e_next_up">A continuación</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">La cola está vacía por ahora.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Cola</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Activar o desactivar aleatorio</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Activar o desactivar repetición</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Temporizador de apagado</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Guardar como lista</string>
+    <string name="presentation_batch_e_deselect_all">Quitar selección</string>
+    <string name="presentation_batch_e_playlist_name_label">Nombre de la lista</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Buscar canciones para incluir…</string>
+    <string name="presentation_batch_e_save_as_format">Guardar como: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Escribe un nombre de lista</string>
+    <string name="presentation_batch_e_no_songs_match_query">Ninguna canción coincide con \"%1$s\"</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Descartar canción</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Quitar de la lista</string>
+    <string name="presentation_batch_e_more_options_for_song">Más opciones para %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 tema en cola.</item>
+        <item quantity="other">%d temas en cola.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d canción seleccionada</item>
+        <item quantity="other">%d canciones seleccionadas</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">No se ha creado ninguna lista de reproducción.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Toca el botón \'Nueva lista\' para empezar.</string>
+
+    <!-- PlaylistCreationDialogs -->
+    <string name="presentation_batch_e_create_playlist_title">Crear lista</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Elige cómo quieres crearla.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manual</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Diseña portada, icono, forma y elige canciones tú mismo.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">Restablecer preajustes</string>
+    <string name="presentation_batch_e_reset_presets_message">Se restaurará el orden y la visibilidad predeterminados de los preajustes. ¿Continuar?</string>
+    <string name="presentation_batch_e_manage_presets_title">Gestionar preajustes</string>
+    <string name="presentation_batch_e_presets_drag_hint">Arrastra para reordenar • Toca el ojo para mostrar u ocultar</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Restablecer valores por defecto</string>
+    <string name="presentation_batch_e_cd_visible">Visible</string>
+    <string name="presentation_batch_e_cd_hidden">Oculto</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">Cómo se crea tu Daily Mix</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Tu Daily Mix se crea a partir de tus canciones favoritas y las que más escuchas. También añadimos temas de artistas y géneros que te gustan para que descubras música nueva.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">Usamos una muestra pequeña para mantener los costes bajos</string>
+    <string name="presentation_batch_e_daily_mix_updating">Actualizando…</string>
+    <string name="presentation_batch_e_daily_mix_update">Actualizar Daily Mix</string>
+</resources>

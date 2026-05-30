@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_h_artist_example_bullet">♪</string>
+    <string name="presentation_batch_h_mashup_speed_multiplier">x%1$.2f</string>
+    <string name="presentation_batch_h_beta_glyph">β</string>
+    <string name="presentation_batch_h_transfer_bytes_progress">%1$s / %2$s</string>
+</resources>

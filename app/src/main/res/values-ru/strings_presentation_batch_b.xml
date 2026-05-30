@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AccountsScreen -->
+    <string name="presentation_batch_b_accounts_linked_services">Связанные сервисы</string>
+    <string name="presentation_batch_b_accounts_connected_hero_title">Подключенные аккаунты</string>
+    <string name="presentation_batch_b_accounts_connected_hero_body">Управляйте связанными поставщиками и держите каждую интеграцию под своим контролем.</string>
+    <string name="presentation_batch_b_accounts_stat_active">Активно</string>
+    <string name="presentation_batch_b_accounts_stat_available">Доступно</string>
+    <string name="presentation_batch_b_accounts_status_soon">Скоро</string>
+    <string name="presentation_batch_b_accounts_status_connected">Подключено</string>
+    <string name="presentation_batch_b_accounts_open_service">Открыть сервис</string>
+    <string name="presentation_batch_b_accounts_coming_soon_short">Скоро</string>
+    <string name="presentation_batch_b_accounts_logging_out">Выход…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Нет связанных аккаунтов</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Подключите поставщика, чтобы управлять им с этого экрана.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Подключить %1$s</string>
+    <string name="presentation_batch_b_accounts_service_paren_coming_soon">%1$s (Скоро)</string>
+
+    <!-- PlaylistDetailScreen -->
+    <string name="presentation_batch_b_sort_songs">Сортировать песни</string>
+    <string name="presentation_batch_b_more_options">Дополнительно</string>
+    <string name="presentation_batch_b_play_it">Играть</string>
+    <string name="presentation_batch_b_add_songs">Добавить песни</string>
+    <string name="presentation_batch_b_add">Добавить</string>
+    <string name="presentation_batch_b_remove_songs">Удалить песни</string>
+    <string name="presentation_batch_b_reorder_songs">Изменить порядок</string>
+    <string name="presentation_batch_b_reorder">Порядок</string>
+    <string name="presentation_batch_b_reorder_song">Изменить порядок песни</string>
+    <string name="presentation_batch_b_playlist_empty_title">Этот плейлист пуст.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">В этой папке нет песен.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Нажмите «Добавить песни», чтобы начать.</string>
+    <string name="presentation_batch_b_playlist_options_title">Параметры плейлиста</string>
+    <string name="presentation_batch_b_edit_playlist">Редактировать плейлист</string>
+    <string name="presentation_batch_b_delete_playlist">Удалить плейлист</string>
+    <string name="presentation_batch_b_set_default_transition">Переход по умолчанию</string>
+    <string name="presentation_batch_b_export_playlist">Экспортировать плейлист</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Удалить плейлист?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Вы уверены, что хотите удалить этот плейлист?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Переименовать плейлист</string>
+    <string name="presentation_batch_b_new_name">Новое название</string>
+
+    <!-- DailyMixScreen -->
+    <string name="presentation_batch_b_daily_mix_title">Daily Mix</string>
+
+    <!-- QuickFillScreen -->
+    <string name="presentation_batch_b_quick_fill_select_songs">Выберите песни</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Выберите жанр</string>
+    <string name="presentation_batch_b_search_songs_label">Поиск песен</string>
+    <string name="presentation_batch_b_select_all">Выбрать все</string>
+    <string name="presentation_batch_b_clear">Очистить</string>
+    <string name="presentation_batch_b_genre_label_format">Жанр: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Выберите жанр</string>
+    <string name="presentation_batch_b_quick_fill">Quick Fill</string>
+    <string name="presentation_batch_b_add_custom_genre">Свой жанр</string>
+    <string name="presentation_batch_b_new_genre">Новый жанр</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Добавить свой жанр</string>
+    <string name="presentation_batch_b_genre_name_label">Название жанра</string>
+    <string name="presentation_batch_b_select_icon">Выберите иконку</string>
+
+    <!-- RecentlyPlayedScreen -->
+    <string name="presentation_batch_b_recently_played_title">Недавно прослушано</string>
+    <string name="presentation_batch_b_play_latest">Играть последние</string>
+    <string name="presentation_batch_b_recent_empty_title">Нет недавних воспроизведений в %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Измените диапазон или слушайте больше песен, чтобы заполнить этот список.</string>
+    <string name="presentation_batch_b_queue_recently_played">Недавно прослушано</string>
+    <string name="presentation_batch_b_date_today">Сегодня</string>
+    <string name="presentation_batch_b_date_yesterday">Вчера</string>
+
+    <!-- NavBarCornerRadiusScreen -->
+    <string name="presentation_batch_b_navbar_adjust_title">Настройка радиуса углов</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Настройте углы панели навигации в соответствии с физическими углами вашего устройства.</string>
+    <string name="presentation_batch_b_corner_radius_label">Радиус углов</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <!-- GenreDetailScreen -->
+    <string name="presentation_batch_b_genre_shuffle_label">Перемешать %1$s</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d песня • %2$s</item>
+        <item quantity="few">%1$d песни • %2$s</item>
+        <item quantity="many">%1$d песен • %2$s</item>
+        <item quantity="other">%1$d песни • %2$s</item>
+    </plurals>
+</resources>

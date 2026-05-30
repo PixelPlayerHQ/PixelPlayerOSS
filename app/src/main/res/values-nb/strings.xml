@@ -1,0 +1,196 @@
+<resources>
+    <string name="app_name">PixelPlayerOSS</string>
+    <string name="app_name_change_title">Endring av app-navn</string>
+    <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
+    <string name="do_not_show_again">Ikke vis igjen</string>
+    <string name="dismiss">Lukk</string>
+    <string name="all_files_access_title">Spesiell tillatelse kreves</string>
+    <string name="all_files_access_description">For å redigere sang-metadata (.mp3-filer) trenger PixelPlayerOSS spesiell tilgang til alle filer. Dette lar oss endre spor-tagger direkte. Vennligst gi denne tillatelsen på neste skjerm for å aktivere redigering av metadata.</string>
+    <string name="grant_permission_button">Gi tillatelse</string>
+    <string name="all_files_access_setting">Tilgang til alle filer</string>
+    <string name="error">Feil</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Avbryt</string>
+    <string name="import_file">Importer</string>
+    <string name="search">Søk</string>
+
+    <string name="lyrics">Sangtekster</string>
+    <string name="close_lyrics_sheet">Lukk sangtekst-panel</string>
+    <string name="loading_lyrics">Laster sangtekster…</string>
+    <string name="cant_find_lyrics">Kunne ikke finne sangtekster for denne sangen.</string>
+    <string name="lyrics_provided_by">Sangtekster levert av</string>
+    <string name="lrclib_uri">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Sangtekster ikke funnet</string>
+    <string name="search_lyrics_online_prompt">Vil du søke etter sangtekster på nettet?</string>
+    <string name="lyrics_custom_search_hint">Vi fant ikke sangtekster automatisk. Du kan redigere tittel eller artist og prøve å søke manuelt.</string>
+    <string name="failed_to_search_for_lyrics">Kunne ikke søke etter sangtekster</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Kunne ikke hente sangtekster fra serveren</string>
+    <string name="lyrics_fetch_timeout">Tilkoblingen ble tidsavbrutt. Vennligst sjekk internettforbindelsen din.</string>
+    <string name="lyrics_network_error">Nettverksfeil. Vennligst sjekk internettforbindelsen din.</string>
+    <string name="lyrics_server_error">Serverfeil (kode %d). Vennligst prøv igjen senere.</string>
+    <string name="found_n_matches_format">Fant %d treff</string>
+    <string name="searched_for_x_format">Søkte etter \"%s\"</string>
+    <string name="searching_lyrics">Søker etter sangtekster…</string>
+    <string name="lyrics_already_available">Sangtekster allerede tilgjengelig. Hoppet over netthenting.</string>
+    <string name="lyrics_embedded_already_available">Innebygde sangtekster allerede funnet. Hoppet over netthenting.</string>
+    <string name="local_lrc_already_available">Lokale (.lrc) sangtekster allerede funnet. Hoppet over netthenting.</string>
+    <string name="fetch_lyrics_show_options_title">Vis alternativer for sangtekst</string>
+    <string name="fetch_lyrics_show_options_subtitle">Åpne alltid velgeren i stedet for å bruke første treff automatisk</string>
+    <string name="save_lyrics_as_lrc">Lagre sangtekster som .lrc</string>
+    <string name="save_lyrics_dialog_title">Lagre sangtekster</string>
+    <string name="save_lyrics_dialog_message">Velg versjon som skal lagres:</string>
+    <string name="save_synced_lyrics">Synkronisert (med tidsstempler)</string>
+    <string name="save_plain_lyrics">Vanlig (kun tekst)</string>
+    <string name="lyrics_saved_successfully">Sangtekster lagret</string>
+    <string name="lyrics_save_failed">Kunne ikke lagre sangtekster</string>
+    <string name="no_lyrics_to_save">Ingen sangtekster tilgjengelig for lagring</string>
+    <string name="reset_imported_lyrics">Nullstill importerte sangtekster</string>
+    <string name="lyrics_sync_offset">Synkroniseringsforskyvning for sangtekst</string>
+    <string name="lyrics_sync_offset_format">%+.1fs</string>
+    <string name="lyrics_sync_offset_reset">Nullstill</string>
+    <string name="lyrics_earlier">Tidligere</string>
+    <string name="lyrics_later">Senere</string>
+
+    <string name="sync_scanning">Skanner musikkfiler…</string>
+    <string name="sync_processing">Behandler filer…</string>
+    <string name="sync_files_progress">%1$d av %2$d filer</string>
+    <string name="sync_in_progress">Synkroniserer bibliotek…</string>
+    <string name="sync_complete">Synkronisering fullført</string>
+    <string name="sync_pending">Venter…</string>
+    <string name="syncing_library">Synkroniserer bibliotek…</string>
+    <string name="library_background_sync">Fullfører i bakgrunnen…</string>
+    <string name="library_background_sync_lyrics">Skanner sangtekster…</string>
+    <string name="library_background_sync_cache">Renser cache for albumkunst…</string>
+    <string name="library_background_sync_cloud">Synkroniserer skykilder…</string>
+    <string name="unknown_song_title">Ukjent spor</string>
+    <string name="unknown_artist">Ukjent artist</string>
+    <string name="unknown_album">Ukjent album</string>
+    <string name="artist_picker_title">Velg en artist</string>
+    <string name="artist_picker_supporting_text">Åpne artist-siden for dette sporet.</string>
+    <string name="artist_picker_count_single">1 artist</string>
+    <string name="artist_picker_count_multiple">%1$d artister</string>
+    <string name="artist_picker_primary_label">Hovedartist</string>
+    <string name="artist_picker_shortcut_label">Artist-side</string>
+    <string name="external_queue_label">Hurtigspilling</string>
+    <string name="external_playback_error">Kunne ikke åpne lydfilen.</string>
+    <string name="open_full_player">Åpne full spiller</string>
+    <string name="close_external_player">Lukk flytende spiller</string>
+    <string name="close_notification_player">Lukk spiller</string>
+    <string name="previous_track">Forrige spor</string>
+    <string name="next_track">Neste spor</string>
+    <string name="pause_playback">Pause</string>
+    <string name="play_playback">Spill av</string>
+    <string name="playlist_not_found">Spilleliste ikke funnet.</string>
+    <string name="disc_number_header">Disk %d</string>
+
+
+    <string name="shortcut_shuffle_short">Bland</string>
+    <string name="shortcut_shuffle_long">Bland alle sanger</string>
+    <string name="shortcut_playlist_short">Spilleliste</string>
+    <string name="shortcut_playlist_long">Sist spilte spilleliste</string>
+
+    <string name="tile_shuffle_all">Bland alle</string>
+    <string name="tile_last_playlist">Siste spilleliste</string>
+    <string name="tile_last_playlist_unavailable">Ingen spilleliste tilgjengelig for åpning</string>
+
+    <string name="invalid_album_id">Ugyldig album-ID</string>
+    <string name="album_id_not_found">Album-ID ikke funnet</string>
+    <string name="error_loading_album">Feil ved lasting av albumdata: %s</string>
+    <string name="album_not_found">Album ikke funnet</string>
+    <string name="could_not_update">Kunne ikke oppdatere: %s</string>
+    <string name="invalid_artist_id">Ugyldig artist-ID</string>
+    <string name="artist_id_not_found">Artist-ID ikke funnet</string>
+    <string name="error_loading_artist">Feil ved lasting av artistdata: %s</string>
+    <string name="could_not_find_artist">Kunne ikke finne artisten</string>
+    <string name="no_valid_songs">Fant ingen spillbare sanger</string>
+
+    <string name="glance_widget_description">Responsiv widget som tilpasser seg størrelsen</string>
+    <string name="widget_bar_4x1_desc">Kompakt spillerlinje</string>
+    <string name="widget_control_4x2_desc">Full kontroll med blanding og repetisjon</string>
+    <string name="widget_grid_2x2_desc">Minimalistisk kvadratisk spiller</string>
+    <string name="service_processing_action">Behandler handling…</string>
+
+    <!-- Playlist bulk actions -->
+    <string name="playlist_none_to_share">Ingen spillelister å dele</string>
+    <string name="playlist_share_chooser_title">Del spillelister</string>
+    <string name="playlist_share_failed">Deling feilet: %1$s</string>
+    <string name="playlist_none_to_export">Ingen spillelister å eksportere</string>
+    <string name="playlist_export_failed">Eksport feilet: %1$s</string>
+    <string name="playlist_export_folder_display">Musikk/PixelPlayerOSS Exports</string>
+    <string name="error_unknown">Ukjent feil</string>
+
+
+
+    <!-- Backup / data transfer (ViewModels) -->
+    <string name="backup_invalid_format">Ugyldig sikkerhetskopi: %1$s</string>
+    <string name="backup_progress_preparing_restore">Forbereder gjenoppretting</string>
+    <string name="backup_progress_starting_task">Starter gjenoppretting.</string>
+    <string name="backup_progress_preparing_backup">Forbereder sikkerhetskopi</string>
+    <string name="backup_progress_starting_backup_task">Starter sikkerhetskopiering.</string>
+    <string name="restore_completed_success">Sikkerhetskopi gjenopprettet</string>
+    <string name="restore_completed_partial_issues">Gjenoppretting fullført med noen uløste problemer.</string>
+    <string name="restore_could_not_complete">Gjenoppretting kunne ikke fullføres: %1$s</string>
+    <string name="restore_failed_format">Gjenoppretting feilet: %1$s</string>
+    <string name="data_exported_successfully">Data eksportert</string>
+    <string name="export_failed_format">Eksport feilet: %1$s</string>
+    <string name="data_restored_successfully">Data gjenopprettet</string>
+    <string name="restore_partial_unresolved_format">Gjenoppretting fullført med uløste problemer. Feilet: %1$s</string>
+    <string name="dev_test_crash_message">Test-krasj utløst fra utvikleralternativer – dette er for testing av krasjrapporteringssystemet</string>
+
+    <!-- PlayerViewModel -->
+    <string name="player_song_not_found_in_list">Sangen ble ikke funnet i gjeldende liste</string>
+    <string name="player_could_not_locate_song">Kunne ikke finne sangen</string>
+    <string name="player_no_songs_in_library_toast">Ingen sanger funnet i biblioteket</string>
+    <string name="player_playback_stopped_eot">Avspilling stoppet: %1$s ferdig (Slutt på spor).</string>
+    <string name="player_default_track_title">Spor</string>
+    <string name="player_no_songs_to_shuffle">Ingen sanger å blande.</string>
+    <string name="player_queue_name_selected_albums">Valgte album</string>
+    <string name="player_no_playable_songs_in_albums">Ingen spillbare sanger i valgte album</string>
+    <string name="player_only_first_n_albums_queued">Kun de første %1$d albumene ble lagt i kø</string>
+    <string name="player_albums_queued_format">%1$d album lagt i kø (%2$d sanger)</string>
+    <string name="player_could_not_queue_albums">Kunne ikke legge valgte album i kø</string>
+    <string name="player_all_songs_already_in_favorites">Alle sanger er allerede i favoritter</string>
+    <string name="player_no_songs_were_in_favorites">Ingen sanger var i favoritter</string>
+    <string name="player_creating_zip">Oppretter ZIP-fil…</string>
+    <string name="player_share_zip_failed_format">Deling feilet: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Kan ikke slette sangen som spilles nå</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">%1$d filer slettet (%2$d hoppet over - spilles nå)</string>
+    <string name="player_batch_delete_partial_format">%1$d av %2$d filer slettet</string>
+    <string name="player_delete_files_failed">Kunne ikke slette filer</string>
+    <string name="player_file_deleted">Fil slettet</string>
+    <string name="player_delete_file_not_found">Kan ikke slette filen, eller filen ble ikke funnet</string>
+    <string name="player_deletion_cancelled">Sletting avbrutt</string>
+    <string name="player_permission_denied_edit_files">Tillatelse avvist – kan ikke redigere filer</string>
+    <string name="player_permission_denied_save_lyrics">Tillatelse avvist – kan ikke lagre sangtekster</string>
+    <string name="player_permission_denied_edit_this_file">Tillatelse avvist – kan ikke redigere denne filen</string>
+    <string name="metadata_updated_successfully">Metadata oppdatert</string>
+    <string name="player_updating_n_songs">Oppdaterer %1$d sanger…</string>
+    <string name="player_batch_genre_updated_all">Oppdaterte %1$d sanger!</string>
+    <string name="player_batch_genre_updated_partial">Oppdaterte %1$d sanger. Feilet: %2$d</string>
+    <string name="playlist_restored_toast">Spilleliste gjenopprettet</string>
+    <string name="delete_songs_permanent_message">Disse sangene vil bli slettet permanent fra enheten din og kan ikke gjenopprettes.</string>
+    <string name="delete_action">Slett</string>
+
+    <!-- Sleep timer (SleepTimerStateHolder + TimerOptionsBottomSheet) -->
+    <string name="sleep_timer_n_minutes_format">%1$d minutter</string>
+    <string name="sleep_timer_display_eot">Slutt på spor</string>
+    <string name="sleep_timer_set_for_minutes_toast">Tidtaker satt til %1$d minutter.</string>
+    <string name="sleep_timer_cancelled_toast">Tidtaker avbrutt.</string>
+    <string name="sleep_timer_eot_no_song_toast">Kan ikke aktivere slutt på spor: ingen aktiv sang.</string>
+    <string name="sleep_timer_eot_song_changed_toast">Tidtaker for slutt på spor deaktivert: sang endret fra %1$s til %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">Avspillingen vil stoppe ved slutten av sporet.</string>
+    <string name="sleep_timer_label_previous_track">Forrige spor</string>
+    <string name="sleep_timer_label_current_track">Gjeldende spor</string>
+    <string name="sleep_timer_ui_title">Sleep timer</string>
+    <string name="sleep_timer_ui_slider_label_timer">Tidtaker</string>
+    <string name="sleep_timer_ui_end_of_current_track">Slutt på gjeldende spor</string>
+    <string name="sleep_timer_ui_custom_time">Egendefinert tid</string>
+    <string name="sleep_timer_ui_cancel_timer">Avbryt tidtaker</string>
+    <string name="sleep_timer_ui_set_custom_duration">Angi egendefinert varighet</string>
+    <string name="sleep_timer_ui_play_count_label">Antall spillinger: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 gang</string>
+    <string name="cd_switch_on">Slå på</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+</resources>

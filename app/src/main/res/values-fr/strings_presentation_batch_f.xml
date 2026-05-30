@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SettingsComponents -->
+    <string name="presentation_batch_f_cd_selected">Sélectionné</string>
+    <string name="presentation_batch_f_refresh_library_title">Actualiser la bibliothèque</string>
+    <string name="presentation_batch_f_refresh_library_subtitle">Analyser toute la bibliothèque pour trouver les fichiers nouveaux et modifiés.</string>
+    <string name="presentation_batch_f_full_rescan">Analyse complète</string>
+    <string name="presentation_batch_f_rebuild_database">Reconstruire la base de données</string>
+    <string name="presentation_batch_f_sync_phase_preparing">Préparation de la synchronisation</string>
+    <string name="presentation_batch_f_sync_phase_reading_mediastore">Lecture du MediaStore</string>
+    <string name="presentation_batch_f_sync_phase_processing_tracks">Traitement des pistes</string>
+    <string name="presentation_batch_f_sync_phase_saving_db">Enregistrement dans la base de données</string>
+    <string name="presentation_batch_f_sync_phase_scanning_lrc">Analyse des fichiers de paroles</string>
+    <string name="presentation_batch_f_sync_phase_completing">Fin de la synchronisation</string>
+    <string name="presentation_batch_f_sync_progress_detailed">%1$s • %2$d%% (%3$d/%4$d)</string>
+    <string name="presentation_batch_f_sync_progress_indeterminate">%1$s…</string>
+    <string name="presentation_batch_f_refresh_lyrics_title">Actualiser les paroles</string>
+    <string name="presentation_batch_f_refresh_lyrics_subtitle">Récupérer automatiquement les paroles pour toutes les chansons via lrclib.</string>
+    <string name="presentation_batch_f_cd_refresh_lyrics">Actualiser les paroles</string>
+    <string name="presentation_batch_f_refresh_lyrics_processing">Traitement de %1$d sur %2$d chansons</string>
+    <string name="presentation_batch_f_enter_api_key">Entrer la clé API</string>
+    <string name="presentation_batch_f_save">Enregistrer</string>
+    <string name="presentation_batch_f_saved">Enregistré !</string>
+    <string name="presentation_batch_f_preset_prompts">Instructions prédéfinies</string>
+    <string name="presentation_batch_f_enter_system_prompt_placeholder">Entrer l\'instruction système…</string>
+    <string name="presentation_batch_f_reset">Réinitialiser</string>
+
+    <!-- Create playlist -->
+    <string name="presentation_batch_f_new_smart_playlist">Nouvelle liste de lecture intelligente</string>
+    <string name="presentation_batch_f_new_playlist">Nouvelle liste de lecture</string>
+    <string name="presentation_batch_f_add_songs">Ajouter des chansons</string>
+    <string name="presentation_batch_f_cd_back_or_cancel">Retour ou Annuler</string>
+    <string name="presentation_batch_f_next">Suivant</string>
+    <string name="presentation_batch_f_create">Créer</string>
+    <string name="presentation_batch_f_edit_playlist">Modifier la liste de lecture</string>
+    <string name="presentation_batch_f_cd_close">Fermer</string>
+    <string name="presentation_batch_f_cd_confirm_crop">Confirmer le recadrage</string>
+    <string name="presentation_batch_f_auto_generated_collage">Collage généré automatiquement</string>
+    <string name="presentation_batch_f_cd_add_photo">Ajouter une photo</string>
+    <string name="presentation_batch_f_pick_image">Choisir une image</string>
+    <string name="presentation_batch_f_playlist_name_label">Nom de la liste de lecture</string>
+    <string name="presentation_batch_f_playlist_name_placeholder">Mon super mix</string>
+    <string name="presentation_batch_f_creation_mode_manual">Manuel</string>
+    <string name="presentation_batch_f_creation_mode_smart">Intelligent</string>
+    <string name="presentation_batch_f_smart_rule">Règle intelligente</string>
+    <string name="presentation_batch_f_tab_default">Par défaut</string>
+    <string name="presentation_batch_f_tab_image">Image</string>
+    <string name="presentation_batch_f_tab_icon">Icône</string>
+    <string name="presentation_batch_f_background_color">Couleur d\'arrière-plan</string>
+    <string name="presentation_batch_f_icon_symbol">Symbole de l\'icône</string>
+    <string name="presentation_batch_f_shape_style">Style de forme</string>
+    <string name="presentation_batch_f_shape_parameters">Paramètres de forme</string>
+    <string name="presentation_batch_f_corner_radius">Rayon des coins</string>
+    <string name="presentation_batch_f_smoothness">Lissage</string>
+    <string name="presentation_batch_f_sides">Côtés</string>
+    <string name="presentation_batch_f_curve">Courbe</string>
+    <string name="presentation_batch_f_rotation">Rotation</string>
+    <string name="presentation_batch_f_scale">Échelle</string>
+    <string name="presentation_batch_f_smart_rule_top_played_title">Le plus écouté</string>
+    <string name="presentation_batch_f_smart_rule_top_played_subtitle">Vos pistes les plus écoutées.</string>
+    <string name="presentation_batch_f_smart_rule_recently_played_title">Écouté récemment</string>
+    <string name="presentation_batch_f_smart_rule_recently_played_subtitle">Chansons que vous avez écoutées le plus récemment.</string>
+    <string name="presentation_batch_f_smart_rule_forgotten_favorites_title">Favoris oubliés</string>
+    <string name="presentation_batch_f_smart_rule_forgotten_favorites_subtitle">Pistes favorites que vous n\'avez pas écoutées depuis un moment.</string>
+    <string name="presentation_batch_f_smart_rule_new_gems_title">Nouvelles pépites</string>
+    <string name="presentation_batch_f_smart_rule_new_gems_subtitle">Pistes récemment ajoutées avec peu d\'écoutes.</string>
+
+    <!-- Palette style -->
+    <string name="presentation_batch_f_palette_style_heading">Style de palette</string>
+    <string name="presentation_batch_f_palette_style_subtitle">Choisissez les couleurs de l\'album pour l\'interface du lecteur.</string>
+    <string name="presentation_batch_f_colors_title">Couleurs</string>
+    <string name="presentation_batch_f_apply">Appliquer</string>
+    <string name="presentation_batch_f_palette_style_tonal_spot_desc">Équilibré et calme.</string>
+    <string name="presentation_batch_f_palette_style_vibrant_desc">Accents à haute saturation.</string>
+    <string name="presentation_batch_f_palette_style_expressive_desc">Changements de teintes audacieux et contraste.</string>
+    <string name="presentation_batch_f_palette_style_fruit_salad_desc">Accents rotatifs ludiques.</string>
+    <string name="presentation_batch_f_palette_label_tonal_spot">Point tonal</string>
+    <string name="presentation_batch_f_palette_label_vibrant">Vibrant</string>
+    <string name="presentation_batch_f_palette_label_expressive">Expressif</string>
+    <string name="presentation_batch_f_palette_label_fruit_salad">Salade de fruits</string>
+    <string name="presentation_batch_f_color_accuracy_title">Précision des couleurs</string>
+    <string name="presentation_batch_f_color_accuracy_subtitle">0 conserve le réglage actuel. Des valeurs plus élevées restent plus proches de la teinte dominante de la pochette d\'album.</string>
+    <string name="presentation_batch_f_accuracy_current">Actuel</string>
+    <string name="presentation_batch_f_accuracy_more_accurate">Plus précis</string>
+    <string name="presentation_batch_f_accuracy_summary_current">0 • Actuel</string>
+    <string name="presentation_batch_f_accuracy_summary_subtle">%1$d • Subtil</string>
+    <string name="presentation_batch_f_accuracy_summary_balanced">%1$d • Équilibré</string>
+    <string name="presentation_batch_f_accuracy_summary_precise">%1$d • Précis</string>
+
+    <!-- Experimental settings -->
+    <string name="presentation_batch_f_exp_player_ui_tweaks_section">Optimisations de chargement de l\'interface</string>
+    <string name="presentation_batch_f_exp_animated_lyrics_title">Paroles animées (Appareils puissants)</string>
+    <string name="presentation_batch_f_exp_animated_lyrics_subtitle">Utilise des animations à ressort et des effets visuels pour les paroles. Peut causer des chutes de FPS sur les appareils moins puissants.</string>
+    <string name="presentation_batch_f_exp_lyric_blur_title">Effet de flou des paroles</string>
+    <string name="presentation_batch_f_exp_lyric_blur_subtitle">Applique un flou de profondeur de champ aux paroles inactives.</string>
+    <string name="presentation_batch_f_exp_blur_strength">Intensité du flou</string>
+    <string name="presentation_batch_f_exp_blur_strength_subtitle">Ajuster l\'intensité de l\'effet de flou.</string>
+    <string name="presentation_batch_f_exp_blur_strength_value">%1$.1fx</string>
+    <string name="presentation_batch_f_exp_step1_delay_header">Étape 1 · Choisir quoi retarder</string>
+    <string name="presentation_batch_f_exp_delay_everything_title">Retarder tout</string>
+    <string name="presentation_batch_f_exp_delay_everything_subtitle">Maintenir tout le contenu du lecteur jusqu\'à ce que l\'arrière-plan soit complètement étendu.</string>
+    <string name="presentation_batch_f_exp_album_carousel_title">Carrousel d\'albums</string>
+    <string name="presentation_batch_f_exp_album_carousel_subtitle">Retarder la pochette d\'album et le carrousel jusqu\'à ce que le volet soit étendu.</string>
+    <string name="presentation_batch_f_exp_song_metadata_title">Métadonnées de la chanson</string>
+    <string name="presentation_batch_f_exp_song_metadata_subtitle">Retarder le titre, l\'artiste et les actions de paroles/file d\'attente.</string>
+    <string name="presentation_batch_f_exp_progress_bar_title">Barre de progression</string>
+    <string name="presentation_batch_f_exp_progress_bar_subtitle">Retarder la chronologie et les libellés de temps jusqu\'à la fin de l\'extension.</string>
+    <string name="presentation_batch_f_exp_playback_controls_title">Commandes de lecture</string>
+    <string name="presentation_batch_f_exp_playback_controls_subtitle">Retarder lecture/pause, recherche et commandes de favoris.</string>
+    <string name="presentation_batch_f_exp_delay_all_active_hint">Tous les composants retardés sont actifs. Désactivez « Retarder tout » pour personnaliser chaque partie.</string>
+    <string name="presentation_batch_f_exp_step2_placeholders_header">Étape 2 · Configurer le comportement des espaces réservés</string>
+    <string name="presentation_batch_f_exp_use_placeholders_title">Utiliser des espaces réservés pour les éléments retardés</string>
+    <string name="presentation_batch_f_exp_use_placeholders_subtitle">Maintenir la stabilité de la mise en page en affichant des espaces réservés légers pendant l\'attente de l\'extension.</string>
+    <string name="presentation_batch_f_exp_step3_trigger_header">Étape 3 · Choisir quand les espaces réservés deviennent le contenu réel</string>
+    <string name="presentation_batch_f_exp_trigger_mode_unlocked">Sélectionnez un mode. Le mode Seuil utilise des curseurs ; le mode Relâchement du glissement attend que vous relâchiez le geste sur le volet.</string>
+    <string name="presentation_batch_f_exp_trigger_mode_locked">Activez au moins un composant retardé pour débloquer le mode de déclenchement.</string>
+    <string name="presentation_batch_f_exp_threshold_title">Seuil</string>
+    <string name="presentation_batch_f_exp_threshold_subtitle">Utilise le pourcentage d\'extension.</string>
+    <string name="presentation_batch_f_exp_drag_release_title">Relâchement du glissement</string>
+    <string name="presentation_batch_f_exp_drag_release_subtitle">Bascule seulement après le relâchement du geste.</string>
+    <string name="presentation_batch_f_exp_expand_threshold_title">Seuil d\'extension</string>
+    <string name="presentation_batch_f_exp_expand_threshold_subtitle">Niveau d\'extension nécessaire du volet avant que les composants retardés ne deviennent visibles.</string>
+    <string name="presentation_batch_f_exp_content_appears_at">Le contenu apparaît à %1$d%% d\'extension</string>
+    <string name="presentation_batch_f_exp_apply_on_close_title">Appliquer aussi à la fermeture du lecteur</string>
+    <string name="presentation_batch_f_exp_apply_on_close_subtitle">Utiliser le seuil de fermeture pour revenir aux espaces réservés pendant la réduction.</string>
+    <string name="presentation_batch_f_exp_close_threshold_title">Seuil de fermeture</string>
+    <string name="presentation_batch_f_exp_close_threshold_subtitle">Niveau de réduction nécessaire avant que les espaces réservés ne reprennent leur place.</string>
+    <string name="presentation_batch_f_exp_placeholders_after_collapse">Les espaces réservés apparaissent après %1$d%% de réduction</string>
+    <string name="presentation_batch_f_exp_drag_release_bypass">Le mode Relâchement du glissement ignore les seuils et le comportement de fermeture. Le remplacement ne se produit que lorsque le geste de glissement du volet se termine.</string>
+    <string name="presentation_batch_f_exp_transparent_placeholders_title">Rendre les espaces réservés transparents</string>
+    <string name="presentation_batch_f_exp_transparent_placeholders_subtitle">Les espaces réservés conservent leur espace dans la mise en page mais deviennent invisibles.</string>
+    <string name="presentation_batch_f_exp_visual_quality">Qualité visuelle</string>
+    <string name="presentation_batch_f_exp_album_art_resolution">Résolution des pochettes d\'album</string>
+    <string name="presentation_batch_f_exp_screen_title">Expérimental</string>
+    <string name="presentation_batch_f_album_art_quality_low_line">Basse (256px) - Meilleure performance</string>
+    <string name="presentation_batch_f_album_art_quality_medium_line">Moyenne (512px) - Équilibrée</string>
+    <string name="presentation_batch_f_album_art_quality_high_line">Haute (800px) - Meilleure qualité</string>
+    <string name="presentation_batch_f_album_art_quality_original_line">Originale - Qualité maximale</string>
+
+    <!-- Settings category screen (composables) -->
+    <string name="presentation_batch_f_percent">%1$d%%</string>
+    <string name="presentation_batch_f_status_bullet_step">%1$s • %2$s</string>
+    <string name="presentation_batch_f_dot_space_suffix"> · %1$s</string>
+    <string name="presentation_batch_f_unknown_short">\?</string>
+
+</resources>

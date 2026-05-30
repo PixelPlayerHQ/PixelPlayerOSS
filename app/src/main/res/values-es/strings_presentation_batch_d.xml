@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LibraryScreen -->
+    <string name="presentation_batch_d_library_title">Biblioteca</string>
+    <string name="presentation_batch_d_open_settings_cd">Ajustes</string>
+    <string name="presentation_batch_d_edit_library_tabs_cd">Editar</string>
+    <string name="presentation_batch_d_reorder_tabs_cd">Reordenar pestañas</string>
+    <string name="presentation_batch_d_sort_by">Ordenar por</string>
+    <string name="presentation_batch_d_view_section_cloud">Nube</string>
+    <string name="presentation_batch_d_view_section_view">Vista</string>
+    <string name="presentation_batch_d_playlist_view">Vista de listas</string>
+    <string name="presentation_batch_d_view_grid">Cuadrícula</string>
+    <string name="presentation_batch_d_view_list">Lista</string>
+    <string name="presentation_batch_d_storage_internal">Interno</string>
+    <string name="presentation_batch_d_storage_sd_card">Tarjeta SD</string>
+    <string name="presentation_batch_d_sd_card_unavailable">La tarjeta SD no está disponible ahora.</string>
+    <string name="presentation_batch_d_topics_display">Visualización de temas</string>
+    <string name="presentation_batch_d_topic_mode_channels">Canales</string>
+    <string name="presentation_batch_d_topic_mode_topics">Temas</string>
+    <string name="presentation_batch_d_topic_mode_both">Ambos</string>
+    <string name="presentation_batch_d_cloud_sources_heading">Nube</string>
+    <string name="presentation_batch_d_cloud_only">Solo nube</string>
+    <string name="presentation_batch_d_max_albums_selection">Puedes seleccionar hasta %1$d álbumes</string>
+    <string name="presentation_batch_d_folder_name_fallback">Carpeta</string>
+    <string name="presentation_batch_d_expand_tab_menu_cd">Expandir menú</string>
+    <string name="presentation_batch_d_library_tabs_sheet_title">Pestañas de la biblioteca</string>
+    <string name="presentation_batch_d_library_tabs_sheet_subtitle">Salta a cualquier pestaña o reordénalas.</string>
+    <string name="presentation_batch_d_reorder_tabs_label">Reordenar pestañas</string>
+    <string name="presentation_batch_d_cd_folder">Carpeta</string>
+
+
+    <!-- LibraryScreen — merge playlists -->
+    <string name="presentation_batch_d_merge_playlists_title">Fusionar listas</string>
+    <string name="presentation_batch_d_merge_playlists_prompt">Introduce un nombre para la lista fusionada:</string>
+    <string name="presentation_batch_d_merge_playlists_placeholder">Lista fusionada</string>
+    <string name="presentation_batch_d_merge_playlists_body">Esto fusionará %1$d listas seleccionadas en una.</string>
+
+    <!-- MashupScreen -->
+    <string name="presentation_batch_d_mashup_title">Espacio DJ</string>
+    <string name="presentation_batch_d_loading">Cargando…</string>
+    <string name="presentation_batch_d_mashup_deck_n">Plato %1$d</string>
+    <string name="presentation_batch_d_mashup_load_song_cd">Cargar canción</string>
+    <string name="presentation_batch_d_mashup_no_song_loaded">Sin canción</string>
+    <string name="presentation_batch_d_mashup_artist_placeholder">…</string>
+    <string name="presentation_batch_d_mashup_stem_separation_unavailable">La separación de stems aún no está disponible.</string>
+    <string name="presentation_batch_d_mashup_volume">Volumen</string>
+    <string name="presentation_batch_d_mashup_speed">Velocidad</string>
+    <string name="presentation_batch_d_mashup_crossfader">Crossfader</string>
+    <string name="presentation_batch_d_mashup_deck_1">Plato 1</string>
+    <string name="presentation_batch_d_mashup_deck_2">Plato 2</string>
+    <string name="presentation_batch_d_mashup_select_song_title">Elegir una canción</string>
+
+    <!-- EqualizerScreen -->
+    <string name="presentation_batch_d_eq_change_view_mode_cd">Cambiar modo de vista</string>
+    <string name="presentation_batch_d_eq_disable_cd">Desactivar ecualizador</string>
+    <string name="presentation_batch_d_eq_enable_cd">Activar ecualizador</string>
+    <string name="presentation_batch_d_eq_edit_tab_title">Editar</string>
+    <string name="presentation_batch_d_eq_edit_presets_cd">Editar preajustes</string>
+    <string name="presentation_batch_d_eq_custom_preset_cd">Preajuste personalizado</string>
+    <string name="presentation_batch_d_eq_presets_cd">Preajustes</string>
+    <string name="presentation_batch_d_action_update">Actualizar</string>
+    <string name="presentation_batch_d_eq_bass_boost">Refuerzo de graves</string>
+    <string name="presentation_batch_d_eq_virtualizer">Virtualizador</string>
+    <string name="presentation_batch_d_eq_loudness">Sonoridad</string>
+    <string name="presentation_batch_d_eq_effect_not_supported">No compatible</string>
+    <string name="presentation_batch_d_eq_effect_not_supported_device">No compatible con este dispositivo</string>
+    <string name="presentation_batch_d_eq_volume">Volumen</string>
+    <string name="presentation_batch_d_eq_frequency_response">Respuesta en frecuencia</string>
+    <string name="presentation_batch_d_eq_unit_hz">Hz</string>
+    <string name="presentation_batch_d_eq_band_bass">Graves</string>
+    <string name="presentation_batch_d_eq_band_low_mids">Medios graves</string>
+    <string name="presentation_batch_d_eq_band_high_mids">Medios agudos</string>
+    <string name="presentation_batch_d_eq_band_treble">Agudos</string>
+    <string name="presentation_batch_d_eq_band_bass_low">Graves / bajos</string>
+    <string name="presentation_batch_d_eq_band_mid_high">Medios / agudos</string>
+    <string name="presentation_batch_d_eq_page_n">Página %1$d</string>
+    <string name="presentation_batch_d_eq_reset_duration_cd">Restablecer duración</string>
+
+    <!-- EditTransitionScreen -->
+    <string name="presentation_batch_d_transition_snackbar_using_global">Usando valores globales</string>
+    <string name="presentation_batch_d_transition_snackbar_saved">Cambios guardados</string>
+    <string name="presentation_batch_d_transition_title_playlist_rules">Reglas de la lista</string>
+    <string name="presentation_batch_d_transition_title_global">Transiciones globales</string>
+    <string name="presentation_batch_d_transition_save_cd">Guardar</string>
+    <string name="presentation_batch_d_transition_intro_playlist">Configura el comportamiento predeterminado para esta lista.</string>
+    <string name="presentation_batch_d_transition_intro_global">Esta configuración se aplica a todas las fuentes salvo que se anule.</string>
+    <string name="presentation_batch_d_transition_active_status">Estado activo</string>
+    <string name="presentation_batch_d_transition_status_global_default">Predeterminado global</string>
+    <string name="presentation_batch_d_transition_status_following_global">Siguiendo lo global</string>
+    <string name="presentation_batch_d_transition_status_custom_override">Anulación personalizada</string>
+    <string name="presentation_batch_d_transition_status_playlist_default">Predeterminado de la lista</string>
+    <string name="presentation_batch_d_transition_custom_override_title">Anulación personalizada</string>
+    <string name="presentation_batch_d_transition_custom_override_body">Actívala para reglas específicas de esta lista.</string>
+    <string name="presentation_batch_d_transition_style_title">Estilo de transición</string>
+    <string name="presentation_batch_d_transition_style_subtitle">Cómo se mezclan las pistas</string>
+    <string name="presentation_batch_d_transition_mode_crossfade">Fundido cruzado</string>
+    <string name="presentation_batch_d_transition_mode_none">Ninguno</string>
+    <string name="presentation_batch_d_transition_duration_title">Duración de la transición</string>
+    <string name="presentation_batch_d_transition_duration_subtitle_format">%1$ds de solapamiento total</string>
+    <string name="presentation_batch_d_transition_reset_cd">Restablecer</string>
+    <string name="presentation_batch_d_transition_visualizer_current">Canción actual</string>
+    <string name="presentation_batch_d_transition_visualizer_next">Siguiente canción</string>
+    <string name="presentation_batch_d_transition_overlap_explanation_format">Las pistas se solapan durante %1$ds</string>
+    <string name="presentation_batch_d_transition_curves_title">Curvas de volumen</string>
+    <string name="presentation_batch_d_transition_curves_subtitle">Ajusta la pendiente del audio</string>
+    <string name="presentation_batch_d_transition_fade_out">Fade out</string>
+    <string name="presentation_batch_d_transition_fade_in">Fade in</string>
+
+    <!-- ArtistDetailScreen -->
+    <string name="presentation_batch_d_cd_play_title">Reproducir %1$s</string>
+    <string name="presentation_batch_d_cd_collapse_title">Contraer %1$s</string>
+    <string name="presentation_batch_d_cd_expand_title">Expandir %1$s</string>
+    <string name="presentation_batch_d_edit_artist_image_cd">Editar imagen del artista</string>
+    <string name="presentation_batch_d_change_photo">Cambiar foto</string>
+    <string name="presentation_batch_d_reset_to_default">Restablecer predeterminado</string>
+    <string name="presentation_batch_d_cd_shuffle_play_artist">Aleatorio del artista</string>
+    <string name="presentation_batch_d_cd_artist">Artista</string>
+</resources>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LibraryScreen -->
+    <string name="presentation_batch_d_library_title">Bibliotek</string>
+    <string name="presentation_batch_d_open_settings_cd">Innstillinger</string>
+    <string name="presentation_batch_d_edit_library_tabs_cd">Rediger</string>
+    <string name="presentation_batch_d_reorder_tabs_cd">Endre rekkefølge på faner</string>
+    <string name="presentation_batch_d_sort_by">Sorter etter</string>
+    <string name="presentation_batch_d_view_section_cloud">Sky</string>
+    <string name="presentation_batch_d_view_section_view">Visning</string>
+    <string name="presentation_batch_d_playlist_view">Spillelistevisning</string>
+    <string name="presentation_batch_d_view_grid">Rutenett</string>
+    <string name="presentation_batch_d_view_list">Liste</string>
+    <string name="presentation_batch_d_storage_internal">Intern</string>
+    <string name="presentation_batch_d_storage_sd_card">SD-kort</string>
+    <string name="presentation_batch_d_sd_card_unavailable">SD-kort er ikke tilgjengelig akkurat nå.</string>
+    <string name="presentation_batch_d_topics_display">Emnevisning</string>
+    <string name="presentation_batch_d_topic_mode_channels">Kanaler</string>
+    <string name="presentation_batch_d_topic_mode_topics">Emner</string>
+    <string name="presentation_batch_d_topic_mode_both">Begge</string>
+    <string name="presentation_batch_d_cloud_sources_heading">Sky</string>
+    <string name="presentation_batch_d_cloud_only">Kun sky</string>
+    <string name="presentation_batch_d_max_albums_selection">Du kan velge opptil %1$d album</string>
+    <string name="presentation_batch_d_folder_name_fallback">Mappe</string>
+    <string name="presentation_batch_d_expand_tab_menu_cd">Utvid meny</string>
+    <string name="presentation_batch_d_library_tabs_sheet_title">Biblioteksfaner</string>
+    <string name="presentation_batch_d_library_tabs_sheet_subtitle">Gå direkte til en fane eller endre rekkefølgen.</string>
+    <string name="presentation_batch_d_reorder_tabs_label">Endre rekkefølge på faner</string>
+    <string name="presentation_batch_d_cd_folder">Mappe</string>
+
+
+    <!-- LibraryScreen — merge playlists -->
+    <string name="presentation_batch_d_merge_playlists_title">Slå sammen spillelister</string>
+    <string name="presentation_batch_d_merge_playlists_prompt">Skriv inn et navn for den sammenslåtte spillelisten:</string>
+    <string name="presentation_batch_d_merge_playlists_placeholder">Sammenslått spilleliste</string>
+    <string name="presentation_batch_d_merge_playlists_body">Dette vil slå sammen %1$d valgte spillelister til én.</string>
+
+    <!-- MashupScreen -->
+    <string name="presentation_batch_d_mashup_title">DJ Space</string>
+    <string name="presentation_batch_d_loading">Laster…</string>
+    <string name="presentation_batch_d_mashup_deck_n">Deck %1$d</string>
+    <string name="presentation_batch_d_mashup_load_song_cd">Last sang</string>
+    <string name="presentation_batch_d_mashup_no_song_loaded">Ingen sang lastet</string>
+    <string name="presentation_batch_d_mashup_artist_placeholder">…</string>
+    <string name="presentation_batch_d_mashup_stem_separation_unavailable">Stems-separasjon er ikke tilgjengelig ennå.</string>
+    <string name="presentation_batch_d_mashup_volume">Volum</string>
+    <string name="presentation_batch_d_mashup_speed">Hastighet</string>
+    <string name="presentation_batch_d_mashup_crossfader">Crossfader</string>
+    <string name="presentation_batch_d_mashup_deck_1">Deck 1</string>
+    <string name="presentation_batch_d_mashup_deck_2">Deck 2</string>
+    <string name="presentation_batch_d_mashup_select_song_title">Velg en sang</string>
+
+    <!-- EqualizerScreen -->
+    <string name="presentation_batch_d_eq_change_view_mode_cd">Endre visningsmodus</string>
+    <string name="presentation_batch_d_eq_disable_cd">Deaktiver equalizer</string>
+    <string name="presentation_batch_d_eq_enable_cd">Aktiver equalizer</string>
+    <string name="presentation_batch_d_eq_edit_tab_title">Rediger</string>
+    <string name="presentation_batch_d_eq_edit_presets_cd">Rediger forhåndsinnstillinger</string>
+    <string name="presentation_batch_d_eq_custom_preset_cd">Egendefinert forhåndsinnstilling</string>
+    <string name="presentation_batch_d_eq_presets_cd">Forhåndsinnstillinger</string>
+    <string name="presentation_batch_d_action_update">Oppdater</string>
+    <string name="presentation_batch_d_eq_bass_boost">Bass Boost</string>
+    <string name="presentation_batch_d_eq_virtualizer">Virtualizer</string>
+    <string name="presentation_batch_d_eq_loudness">Loudness</string>
+    <string name="presentation_batch_d_eq_effect_not_supported">Ikke støttet</string>
+    <string name="presentation_batch_d_eq_effect_not_supported_device">Ikke støttet på denne enheten</string>
+    <string name="presentation_batch_d_eq_volume">Volum</string>
+    <string name="presentation_batch_d_eq_frequency_response">Frekvensrespons</string>
+    <string name="presentation_batch_d_eq_unit_hz">Hz</string>
+    <string name="presentation_batch_d_eq_band_bass">Bass</string>
+    <string name="presentation_batch_d_eq_band_low_mids">Lav mellomtone</string>
+    <string name="presentation_batch_d_eq_band_high_mids">Høy mellomtone</string>
+    <string name="presentation_batch_d_eq_band_treble">Diskant</string>
+    <string name="presentation_batch_d_eq_band_bass_low">Bass / Lav</string>
+    <string name="presentation_batch_d_eq_band_mid_high">Midt / Høy</string>
+    <string name="presentation_batch_d_eq_page_n">Side %1$d</string>
+    <string name="presentation_batch_d_eq_reset_duration_cd">Nullstill varighet</string>
+
+    <!-- EditTransitionScreen -->
+    <string name="presentation_batch_d_transition_snackbar_using_global">Bruker globale standardverdier</string>
+    <string name="presentation_batch_d_transition_snackbar_saved">Endringer lagret</string>
+    <string name="presentation_batch_d_transition_title_playlist_rules">Spillelisteregler</string>
+    <string name="presentation_batch_d_transition_title_global">Globale overganger</string>
+    <string name="presentation_batch_d_transition_save_cd">Lagre</string>
+    <string name="presentation_batch_d_transition_intro_playlist">Konfigurer standardatferd for denne spesifikke spillelisten.</string>
+    <string name="presentation_batch_d_transition_intro_global">Denne konfigurasjonen gjelder for alle avspillingskilder med mindre den overstyres.</string>
+    <string name="presentation_batch_d_transition_active_status">Aktiv status</string>
+    <string name="presentation_batch_d_transition_status_global_default">Global standard</string>
+    <string name="presentation_batch_d_transition_status_following_global">Følger global</string>
+    <string name="presentation_batch_d_transition_status_custom_override">Egendefinert overstyring</string>
+    <string name="presentation_batch_d_transition_status_playlist_default">Spilleliste-standard</string>
+    <string name="presentation_batch_d_transition_custom_override_title">Egendefinert overstyring</string>
+    <string name="presentation_batch_d_transition_custom_override_body">Aktiver for å angi spesifikke regler for denne spillelisten.</string>
+    <string name="presentation_batch_d_transition_style_title">Overgangsstil</string>
+    <string name="presentation_batch_d_transition_style_subtitle">Hvordan spor tones inn i hverandre</string>
+    <string name="presentation_batch_d_transition_mode_crossfade">Crossfade</string>
+    <string name="presentation_batch_d_transition_mode_none">Ingen</string>
+    <string name="presentation_batch_d_transition_duration_title">Overgangsvarighet</string>
+    <string name="presentation_batch_d_transition_duration_subtitle_format">%1$ds total overlapp</string>
+    <string name="presentation_batch_d_transition_reset_cd">Nullstill</string>
+    <string name="presentation_batch_d_transition_visualizer_current">Gjeldende sang</string>
+    <string name="presentation_batch_d_transition_visualizer_next">Neste sang</string>
+    <string name="presentation_batch_d_transition_overlap_explanation_format">Spor vil overlappe i %1$ds</string>
+    <string name="presentation_batch_d_transition_curves_title">Volumkurver</string>
+    <string name="presentation_batch_d_transition_curves_subtitle">Finjuster lydstigningen</string>
+    <string name="presentation_batch_d_transition_fade_out">Fade Out</string>
+    <string name="presentation_batch_d_transition_fade_in">Fade In</string>
+
+    <!-- ArtistDetailScreen -->
+    <string name="presentation_batch_d_cd_play_title">Spill %1$s</string>
+    <string name="presentation_batch_d_cd_collapse_title">Slå sammen %1$s</string>
+    <string name="presentation_batch_d_cd_expand_title">Utvid %1$s</string>
+    <string name="presentation_batch_d_edit_artist_image_cd">Rediger artistbilde</string>
+    <string name="presentation_batch_d_change_photo">Endre bilde</string>
+    <string name="presentation_batch_d_reset_to_default">Nullstill til standard</string>
+    <string name="presentation_batch_d_cd_shuffle_play_artist">Bland artist</string>
+    <string name="presentation_batch_d_cd_artist">Artist</string>
+</resources>

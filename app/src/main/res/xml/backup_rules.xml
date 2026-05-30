@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude all credential/token stores from backup (pre-API 31 devices) -->
+    <exclude domain="sharedpref" path="jellyfin_prefs.xml"/>
+    <exclude domain="sharedpref" path="navidrome_prefs.xml"/>
+
+    <!-- Also exclude the plaintext fallback files written when
+         EncryptedSharedPreferences fails to initialize. -->
+    <exclude domain="sharedpref" path="jellyfin_prefs_plain.xml"/>
+    <exclude domain="sharedpref" path="navidrome_prefs_plain.xml"/>
+
+    <!-- Exclude DataStore preferences that may contain API keys/sensitive settings -->
+    <exclude domain="file" path="datastore/settings.preferences_pb"/>
+</full-backup-content>

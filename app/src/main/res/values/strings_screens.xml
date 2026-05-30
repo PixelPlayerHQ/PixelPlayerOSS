@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation / misc -->
+    <string name="nav_error_genre_id_missing">Error: Genre ID missing</string>
+    <string name="easter_egg_thank_you">Thank you for using PixelPlayerOSS!</string>
+
+    <!-- Word delimiter config -->
+    <string name="word_delimiter_section_title">Current Word Delimiters</string>
+    <string name="word_delimiter_section_subtitle">These keywords split artist names when surrounded by spaces. Matched case-insensitively. Tap to remove.</string>
+    <string name="word_delimiter_empty">No word delimiters configured</string>
+    <string name="word_delimiter_add_title">Add New Word Delimiter</string>
+    <string name="word_delimiter_hint">e.g., feat. or ft.</string>
+    <string name="word_delimiter_help_title">How Word Delimiters Work</string>
+    <string name="word_delimiter_help_body">Word delimiters are matched case-insensitively with spaces around them.\n\nSingle-character delimiters (like \"x\") require spaces on both sides to avoid false matches.\n\nExamples:\n  \"Drake feat. Rihanna\" -&gt; Drake, Rihanna\n  \"Marshmello x Bastille\" -&gt; Marshmello, Bastille\n  \"A vs. B\" -&gt; A, B</string>
+    <string name="word_delimiters_screen_title">Word Delimiters</string>
+    <string name="word_delimiter_reset_title">Reset Word Delimiters?</string>
+    <string name="word_delimiter_reset_message">This will clear all your custom word delimiters and restore the default keywords. This action cannot be undone.</string>
+    <string name="word_delimiter_toast_added">Word delimiter added</string>
+    <string name="word_delimiter_toast_invalid">Already exists or is invalid</string>
+    <string name="word_delimiter_toast_reset">Word delimiters reset to defaults</string>
+    <string name="action_reset">Reset</string>
+
+    <!-- Delimiter config (path separators) -->
+    <string name="delimiter_section_title">Current Delimiters</string>
+    <string name="delimiter_section_subtitle">Tap a delimiter to remove it. At least one delimiter is required.</string>
+    <string name="delimiter_add_title">Add New Delimiter</string>
+    <string name="delimiter_hint">e.g., / or ;</string>
+    <string name="delimiter_defaults_title">Default Delimiters</string>
+    <string name="delimiter_reset_title">Reset Delimiters?</string>
+    <string name="delimiter_reset_message">This will clear all your custom delimiters and restore the defaults. This action cannot be undone.</string>
+    <string name="delimiter_toast_reset">Delimiters reset to defaults</string>
+    <string name="delimiter_toast_at_least_one">At least one delimiter is required</string>
+    <string name="delimiter_toast_added">Delimiter added</string>
+    <string name="delimiter_toast_invalid">Delimiter already exists or is invalid</string>
+    <string name="path_delimiters_toolbar_title">Delimiters</string>
+    <string name="delimiter_label_space">Space</string>
+    <string name="cd_add_path_delimiter">Add delimiter</string>
+
+    <!-- Accounts -->
+    <string name="accounts_unable_open_screen">Unable to open this screen right now.</string>
+
+    <!-- Setup (subset; more keys follow in same file) -->
+    <string name="setup_welcome_prefix">Welcome to </string>
+    <string name="setup_beta_symbol">β</string>
+    <string name="setup_beta_label">Beta</string>
+    <string name="setup_intro_body">Let\'s get everything set up for you.</string>
+    <string name="setup_checking_backup">Checking backup package…</string>
+    <string name="setup_theme_title">App Theme</string>
+    <string name="setup_theme_subtitle">Pick the look you want before you start exploring your library.</string>
+    <string name="setup_theme_footer">You can change this later in Settings &gt; Appearance &gt; App Theme.</string>
+    <string name="setup_recommended">Recommended</string>
+    <string name="setup_library_layout_title">Library Layout</string>
+    <string name="setup_library_layout_subtitle">Choose your preferred way to navigate your library.</string>
+    <string name="setup_compact_mode">Compact Mode</string>
+    <string name="setup_library_layout_footer">You can change this later in Settings &gt; Appearance &gt; Library Navigation.</string>
+    <string name="tab_library">Library</string>
+    <string name="tab_songs">SONGS</string>
+    <string name="tab_albums">ALBUMS</string>
+    <string name="tab_artists">ARTISTS</string>
+    <string name="setup_all_set_title">All Set!</string>
+    <string name="setup_all_set_body">You\'re ready to enjoy your music.</string>
+    <string name="setup_restore_backup_title">Restore Backup</string>
+    <string name="setup_restore_backup_subtitle">Review what you want to import before finishing setup.</string>
+    <string name="setup_modules_selected_format">%1$d of %2$d modules selected</string>
+    <string name="setup_backup_created_format">Created %1$s</string>
+    <string name="setup_backup_from_version">Backup from %1$s</string>
+    <string name="unknown_version">Unknown version</string>
+    <string name="setup_lets_go">Let\'s Go!</string>
+    <string name="setup_step_format">Step %1$d of %2$d</string>
+    <string name="setup_app_navigation_title">App Navigation</string>
+    <string name="setup_app_navigation_subtitle">Choose the style of the bottom navigation bar.</string>
+    <string name="setup_navbar_default_style">Default Style</string>
+    <string name="setup_navbar_footer">You can change this later in Settings &gt; Appearance &gt; Navbar Style.</string>
+    <string name="skip_for_now">Skip for now</string>
+    <string name="skip_not_now">Skip / Not now</string>
+    <string name="restoring">Restoring</string>
+    <string name="restore_selected">Restore selected</string>
+    <string name="customize_corner_radius">Customize Corner Radius</string>
+    <string name="toast_grant_permission_first">Please grant the required permission first.</string>
+    <string name="toast_grant_all_permissions">Please grant all required permissions.</string>
+    <string name="toast_grant_storage_first">Grant storage permissions first</string>
+    <string name="toast_battery_settings_unavailable">Could not open battery settings</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_expand_menu">Expand menu</string>
+    <string name="cd_next_step">Next</string>
+    <string name="cd_finish">Finish</string>
+    <string name="cd_close">Close</string>
+    <string name="cd_remove">Remove</string>
+    <string name="cd_add_word_delimiter">Add word delimiter</string>
+    <string name="cd_reset_defaults">Reset defaults</string>
+
+    <!-- Setup (additional literals) -->
+    <string name="setup_excluded_folders_title">Excluded folders</string>
+    <string name="setup_excluded_folders_description">All folders are scanned by default. Pick any locations you want to ignore when building your library.</string>
+    <string name="setup_choose_folders_ignore">Choose folders to ignore</string>
+    <string name="setup_permission_media_title">Media Permission</string>
+    <string name="setup_permission_media_description">PixelPlayerOSS needs access to your audio files to build your music library.</string>
+    <string name="setup_permission_granted">Permission Granted</string>
+    <string name="setup_grant_media_permission">Grant Media Permission</string>
+    <string name="setup_permission_notifications_title">Notifications</string>
+    <string name="setup_permission_notifications_description">Enable notifications to control your music from the lock screen and notification shade.</string>
+    <string name="setup_enable_notifications">Enable Notifications</string>
+    <string name="setup_permission_alarms_title">Alarms &amp; Reminders</string>
+    <string name="setup_permission_alarms_description">Optional, but recommended if you use Sleep Timer and want PixelPlayerOSS to stop playback exactly on time.</string>
+    <string name="setup_grant_permission_generic">Grant Permission</string>
+    <string name="setup_backup_have_title">Do you have a backup?</string>
+    <string name="setup_backup_have_description">If you already have a PixelPlayerOSS backup, restore it now and skip most of the remaining setup on this device.</string>
+    <string name="setup_inspecting_backup">Inspecting backup</string>
+    <string name="setup_restoring_backup">Restoring backup</string>
+    <string name="setup_import_backup">Import backup</string>
+    <string name="setup_theme_dark_title">Dark</string>
+    <string name="setup_theme_dark_description">The default Material 3 dark look for PixelPlayerOSS.</string>
+    <string name="setup_theme_light_title">Light</string>
+    <string name="setup_theme_light_description">A brighter Material 3 look across the app.</string>
+    <string name="setup_theme_follow_title">Follow system</string>
+    <string name="setup_theme_follow_description">Match your phone\'s current appearance setting.</string>
+    <string name="setup_compact_mode_pill_hint">Using minimal pill navigation</string>
+    <string name="setup_compact_mode_tab_hint">Using standard tab row</string>
+    <string name="setup_preview_songs_label">Songs</string>
+    <string name="setup_battery_optimization_title">Battery Optimization</string>
+    <string name="setup_battery_optimization_description">Some Android devices aggressively kill background apps. Disable battery optimization for PixelPlayerOSS to prevent unexpected playback interruptions.</string>
+    <string name="setup_disable_battery_optimization">Disable Optimization</string>
+    <string name="setup_nav_floating_pill_description">Floating pill with rounded corners</string>
+    <string name="setup_nav_full_width_description">Standard full-width bar</string>
+
+    <!-- Delete song (Material dialog from ViewModel) -->
+    <string name="dialog_delete_song_title">Delete song?</string>
+    <string name="dialog_delete_song_message">\"%1$s\" by %2$s\n\nThis song will be permanently deleted from your device and cannot be recovered.</string>
+
+    <!-- Home / detail shared -->
+    <string name="home_your_mix_title">Your\nMix</string>
+    <string name="home_empty_placeholder_title">No data to show yet</string>
+    <string name="home_empty_placeholder_subtitle">Your mix will appear here when PixelPlayerOSS finds songs or syncs a source.</string>
+    <string name="home_empty_placeholder_refresh">Refresh</string>
+    <string name="cd_shuffle_play">Shuffle Play</string>
+    <string name="cd_album_art_for_title">Album art for %1$s</string>
+    <string name="cd_options">Options</string>
+    <string name="genre_quick_fill">Quick Fill Genre</string>
+    <string name="cd_generic_artist">Generic artist</string>
+    <string name="cd_play_album">Play album</string>
+    <string name="cd_shuffle_play_album">Shuffle play album</string>
+    <string name="album_cover_for">Cover of %1$s</string>
+    <string name="album_detail_meta_line">%1$s · %2$s</string>
+    <string name="mashup_cd_play_pause">Play/Pause</string>
+    <string name="cd_song_cover">Song cover</string>
+
+    <!-- Crash report dialog -->
+    <string name="crash_report_title">Oops! Something went wrong</string>
+    <string name="crash_report_subtitle">The app crashed during your last session. Help us fix this by sharing the crash report.</string>
+    <string name="crash_report_date_line">Date: %1$s</string>
+    <string name="crash_report_error_label">Error:</string>
+    <string name="crash_report_stack_preview_label">Stack trace (preview):</string>
+    <string name="crash_report_clipboard_label">Crash log</string>
+    <string name="toast_crash_log_copied">Crash log copied to clipboard</string>
+    <string name="crash_report_share_subject">PixelPlayerOSS crash report</string>
+    <string name="crash_report_share_chooser">Share crash report</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_share">Share</string>
+
+    <!-- Search screen -->
+    <string name="search_placeholder">Search…</string>
+    <string name="cd_search_icon">Search</string>
+    <string name="cd_clear_search_query">Clear search</string>
+    <string name="recent_searches">Recent searches</string>
+    <string name="clear_all">Clear all</string>
+    <string name="cd_search_history_icon">History</string>
+    <string name="cd_delete_search_history_item">Delete search history item</string>
+    <string name="cd_no_search_results">No results</string>
+    <string name="search_no_results_for_query">No results for \"%1$s\"</string>
+    <string name="search_nothing_found">Nothing found</string>
+    <string name="search_try_different_or_filters">Try a different search term or check your filters.</string>
+    <string name="search_no_results_found">No results found.</string>
+
+    <!-- Genre browse -->
+    <string name="browse_by_genre">Browse by genre</string>
+    <string name="no_genres_available">No genres available.</string>
+
+    <!-- About -->
+    <string name="about_no_contributors">No contributors found right now. Please try again later.</string>
+    <string name="about_app_name">PixelPlayerOSS</string>
+    <string name="about_tagline">Open source music player built with its community.</string>
+    <string name="about_version_format">Version v%1$s</string>
+    <string name="about_contributions_format">%1$d contrib.</string>
+    <string name="screen_about">About</string>
+    <string name="about_maintainer_title">Maintainer</string>
+    <string name="about_maintainer_subtitle">The person behind PixelPlayerOSS.</string>
+    <string name="about_spotlight_title">Community spotlight</string>
+    <string name="about_spotlight_subtitle">Recognition for collaborators with major impact.</string>
+    <string name="about_contributors_section_title">Open source contributors</string>
+    <string name="about_contributors_section_subtitle">Live contributor list from GitHub.</string>
+    <string name="about_signal_open_source">Open source</string>
+    <string name="about_signal_community_first">Community-first</string>
+    <string name="about_signal_material3">Material 3 expressive</string>
+    <string name="cd_open_github_profile">Open GitHub profile</string>
+    <string name="cd_contributor_avatar">Avatar of %1$s</string>
+    <string name="cd_contributor_icon">Icon of %1$s</string>
+
+    <!-- Streaming / cloud dashboards -->
+    <string name="screen_subsonic_dashboard_title">Subsonic</string>
+    <string name="dash_playlists_synced_count">%1$d playlists synced</string>
+    <string name="dash_folders_synced_count">%1$d folders synced</string>
+    <string name="dash_title_playlists">Playlists</string>
+    <string name="dash_music_folders">Music folders</string>
+    <string name="dash_action_sync">Sync</string>
+    <string name="dash_playlists_empty_title">No playlists synced yet</string>
+    <string name="dash_playlists_empty_hint_subsonic">Tap sync to fetch your playlists</string>
+    <string name="dash_playlists_empty_hint_jellyfin">Tap sync to fetch your Jellyfin playlists</string>
+    <string name="dash_no_folders_yet">No folders added yet</string>
+    <string name="dash_quick_actions">Quick actions</string>
+    <string name="dash_quick_actions_subsonic_subtitle">Manage Navidrome, Airsonic and other Subsonic-compatible servers.</string>
+    <string name="dash_quick_actions_jellyfin_subtitle">Manage your Jellyfin server connection.</string>
+    <string name="dash_status_syncing">Syncing</string>
+    <string name="dash_action_sync_library">Sync library</string>
+    <string name="dash_action_disconnect">Disconnect</string>
+    <string name="dash_status_syncing_library">Syncing library…</string>
+    <string name="dash_status_fetching_playlists">Fetching playlists…</string>
+    <string name="dash_status_syncing_playlist_format">Syncing playlist: %1$s</string>
+    <string name="dash_status_updating_local">Updating local library…</string>
+    <string name="dash_status_sync_complete">Sync complete</string>
+    <string name="dash_status_fetching_albums">Fetching album list…</string>
+    <string name="dash_status_fetching_songs_from_format">Fetching songs from %1$s…</string>
+    <string name="dash_status_saving_songs_format">Saving %1$d songs to database…</string>
+    <string name="dash_status_no_songs_found">No library songs found</string>
+    <string name="dash_status_library_sync_complete">Library sync complete</string>
+    <string name="dash_song_count">%1$d songs</string>
+    <string name="cd_sync">Sync</string>
+    <string name="cd_sync_all">Sync all</string>
+    <string name="cd_logout">Log out</string>
+    <string name="cd_sync_all_playlists">Sync all playlists</string>
+    <string name="error_with_message_format">Error: %1$s</string>
+    <string name="sync_status_syncing_ellipsis">Syncing…</string>
+    <string name="cd_user_avatar">User avatar</string>
+    <string name="toast_playlist_created">Playlist created successfully</string>
+    <string name="toast_added_to_queue">Added to queue</string>
+    <string name="toast_playing_next">Playing next</string>
+    <string name="error_share_song_format">Could not share song: %1$s</string>
+</resources>

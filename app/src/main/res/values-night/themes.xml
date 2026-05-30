@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.PixelPlay" parent="Theme.Material3.DynamicColors.DayNight">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- Splash screen theme can still extend Theme.SplashScreen, but ensure it transitions to the correct base theme -->
+    <!-- For dark mode, postSplashScreenTheme should ideally point to a dark version of Theme.PixelPlay if specific overrides are needed -->
+    <!-- However, since Theme.PixelPlay itself will be resolved from values-night, this setup should work. -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+<!--        <item name="windowSplashScreenBackground">@color/pixel_play_purple_dark</item>-->
+<!--        &lt;!&ndash; icon and animation can be the same or specific for dark theme &ndash;&gt;-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>-->
+<!--        <item name="postSplashScreenTheme">@style/Theme.PixelPlay</item>-->
+    </style>
+</resources>

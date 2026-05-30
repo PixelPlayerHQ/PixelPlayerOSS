@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_g_stats_range_today">Oggi</string>
+    <string name="presentation_batch_g_stats_range_week_to_date">Settimana in corso</string>
+    <string name="presentation_batch_g_stats_range_month_to_date">Mese in corso</string>
+    <string name="presentation_batch_g_stats_range_year_to_date">Anno in corso</string>
+    <string name="presentation_batch_g_stats_range_all_time">Sempre</string>
+    <string name="presentation_batch_g_stats_title">Statistiche di ascolto</string>
+    <string name="presentation_batch_g_stats_cd_refresh">Aggiorna statistiche di ascolto</string>
+    <string name="presentation_batch_g_stats_hero_listening">Ascolto</string>
+    <string name="presentation_batch_g_stats_hero_plays">Riproduzioni</string>
+    <string name="presentation_batch_g_stats_em_dash">—</string>
+    <string name="presentation_batch_g_stats_section_listening_habits">Abitudini di ascolto</string>
+    <string name="presentation_batch_g_stats_empty_no_habits_title">Ancora nessuna abitudine</string>
+    <string name="presentation_batch_g_stats_empty_no_habits_subtitle">Mostreremo le tue abitudini di ascolto non appena ti conosceremo meglio.</string>
+    <string name="presentation_batch_g_stats_habit_total_sessions">Sessioni totali</string>
+    <string name="presentation_batch_g_stats_habit_avg_session">Media sessione</string>
+    <string name="presentation_batch_g_stats_habit_longest_session">Sessione più lunga</string>
+    <string name="presentation_batch_g_stats_habit_sessions_per_day">Sessioni/giorno</string>
+    <string name="presentation_batch_g_stats_habit_most_active_day">Giorno più attivo</string>
+    <string name="presentation_batch_g_stats_habit_no_playback_yet">Ancora nessuna riproduzione</string>
+    <string name="presentation_batch_g_stats_habit_peak_timeline_slot">Fascia oraria di picco</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time">Tempo di ascolto</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time_desc">Ascolto totale catturato nell\'intervallo selezionato.</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count">Conteggio riproduzioni</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count_desc">Quante sessioni hai completato per segmento.</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session">Media sessione</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session_desc">Durata media di ascolto per ogni segmento.</string>
+    <string name="presentation_batch_g_stats_n_plays">%1$d riproduzioni</string>
+    <string name="presentation_batch_g_stats_section_listening_timeline">Cronologia ascolto</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_title">Ancora nessun dato di ascolto</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_subtitle">Premi play per iniziare a costruire la tua cronologia di ascolto</string>
+    <string name="presentation_batch_g_stats_rhythm_daily">Ritmo giornaliero</string>
+    <string name="presentation_batch_g_stats_rhythm_weekly">Ritmo settimanale</string>
+    <string name="presentation_batch_g_stats_rhythm_monthly">Ritmo mensile</string>
+    <string name="presentation_batch_g_stats_rhythm_year">Panoramica annuale</string>
+    <string name="presentation_batch_g_stats_rhythm_all_time">Progressione complessiva</string>
+    <string name="presentation_batch_g_stats_grouped_4h">Raggruppato in segmenti di 4 ore</string>
+    <string name="presentation_batch_g_stats_grouped_dow">Raggruppato per giorno della settimana</string>
+    <string name="presentation_batch_g_stats_grouped_week_of_month">Raggruppato per settimana del mese</string>
+    <string name="presentation_batch_g_stats_grouped_by_month">Raggruppato per mese</string>
+    <string name="presentation_batch_g_stats_grouped_by_year">Raggruppato per anno</string>
+    <string name="presentation_batch_g_stats_peak_segment">Segmento di picco</string>
+    <string name="presentation_batch_g_stats_timeline_support_day">Diviso in finestre di 4 ore per rivelare il tuo ritmo giornaliero.</string>
+    <string name="presentation_batch_g_stats_timeline_support_week">Le barre giornaliere rendono facile confrontare le abitudini settimana per settimana.</string>
+    <string name="presentation_batch_g_stats_timeline_support_month">Le barre settimanali mostrano l\'andamento del mese.</string>
+    <string name="presentation_batch_g_stats_timeline_support_year">Le barre mensili mostrano la stagionalità durante l\'anno.</string>
+    <string name="presentation_batch_g_stats_timeline_support_all">Le barre annuali riassumono la tua intera storia.</string>
+    <string name="presentation_batch_g_stats_section_top_categories">Categorie principali</string>
+    <string name="presentation_batch_g_stats_top_categories_subtitle">Confronta come ascolti tra generi, artisti, album e brani.</string>
+    <string name="presentation_batch_g_stats_plays_artists">%1$d riproduzioni • %2$d artisti</string>
+    <string name="presentation_batch_g_stats_plays_tracks">%1$d riproduzioni • %2$d tracce</string>
+    <string name="presentation_batch_g_stats_dim_genre">Genere</string>
+    <string name="presentation_batch_g_stats_dim_artist">Artista</string>
+    <string name="presentation_batch_g_stats_dim_album">Album</string>
+    <string name="presentation_batch_g_stats_dim_song">Brano</string>
+    <string name="presentation_batch_g_stats_card_listening_by_genre">Ascolto per genere</string>
+    <string name="presentation_batch_g_stats_card_listening_by_artist">Ascolto per artista</string>
+    <string name="presentation_batch_g_stats_card_listening_by_album">Ascolto per album</string>
+    <string name="presentation_batch_g_stats_card_listening_by_song">Ascolto per brano</string>
+    <string name="presentation_batch_g_stats_empty_no_category_title">Ancora nessun dato categoria</string>
+    <string name="presentation_batch_g_stats_empty_no_category_subtitle">Premi play per mostrare i tuoi highlight di ascolto</string>
+    <string name="presentation_batch_g_stats_section_top_artists">Artisti principali</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_title">Nessun artista principale</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_subtitle">Continua ad ascoltare e i tuoi artisti preferiti appariranno qui.</string>
+    <string name="presentation_batch_g_stats_ranked_artist">%1$d. %2$s</string>
+    <string name="presentation_batch_g_stats_section_top_albums">Album principali</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_title">Nessun album principale</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_subtitle">Gli album che ascolti più spesso appariranno qui.</string>
+    <string name="presentation_batch_g_stats_ranked_album">%1$d. %2$s</string>
+    <string name="presentation_batch_g_stats_tracks_in_range_title">Brani in questo intervallo</string>
+    <string name="presentation_batch_g_stats_tracks_in_range_subtitle">Brani più riprodotti per l\'intervallo temporale selezionato.</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_title">Nessun brano principale</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_subtitle">Ascolta i tuoi preferiti per vederli evidenziati qui.</string>
+    <string name="presentation_batch_g_stats_collapse_tracks">Comprimi brani</string>
+    <string name="presentation_batch_g_stats_show_all_tracks">Mostra tutti i brani</string>
+    <string name="presentation_batch_g_stats_track_concentration_title">Concentrazione brani</string>
+    <string name="presentation_batch_g_stats_track_concentration_subtitle">Come il tuo tempo di ascolto è distribuito tra i tuoi brani principali.</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_title">Ancora nessun dato di concentrazione</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_subtitle">Riproduci più brani per vedere quanto è focalizzato il tuo ascolto.</string>
+    <string name="presentation_batch_g_stats_slice_top_1">Top 1</string>
+    <string name="presentation_batch_g_stats_slice_top_2_3">Top 2-3</string>
+    <string name="presentation_batch_g_stats_slice_others">Altri</string>
+    <string name="presentation_batch_g_stats_percent">%1$d%%</string>
+    <string name="presentation_batch_g_stats_listening_concentration_title">Concentrazione ascolto</string>
+    <string name="presentation_batch_g_stats_top_three_share_line">I top 3 brani rappresentano il %1$d%% del tuo tempo di ascolto.</string>
+    <string name="presentation_batch_g_stats_avg_plays_per_track">Media riproduzioni/brano</string>
+    <string name="presentation_batch_g_stats_unique_tracks">Brani unici</string>
+    <string name="presentation_batch_g_stats_top_three_share_label">Quota top 3</string>
+    <string name="presentation_batch_g_stats_avatar_placeholder">\?</string>
+    <string name="presentation_batch_g_device_info_title">Info dispositivo</string>
+    <string name="presentation_batch_g_device_supported_codecs_title">Codec audio supportati</string>
+    <string name="presentation_batch_g_device_section_audio_output">Uscita audio</string>
+    <string name="presentation_batch_g_device_section_exoplayer">Motore ExoPlayer</string>
+    <string name="presentation_batch_g_device_label_sample_rate">Frequenza di campionamento</string>
+    <string name="presentation_batch_g_device_label_frames_per_buffer">Frame per buffer</string>
+    <string name="presentation_batch_g_device_label_low_latency">Supporto bassa latenza</string>
+    <string name="presentation_batch_g_device_label_pro_audio">Supporto audio professionale</string>
+    <string name="presentation_batch_g_device_label_version">Versione</string>
+    <string name="presentation_batch_g_device_label_active_renderers">Renderer attivi</string>
+    <string name="presentation_batch_g_device_label_decoder_counters">Contatori decoder</string>
+    <string name="presentation_batch_g_device_value_hz">%1$d Hz</string>
+    <string name="presentation_batch_g_yes">Sì</string>
+    <string name="presentation_batch_g_no">No</string>
+    <string name="presentation_batch_g_device_cd_hw_accelerated">Accelerazione hardware</string>
+    <string name="presentation_batch_g_device_key_manufacturer">Produttore</string>
+    <string name="presentation_batch_g_device_key_model">Modello</string>
+    <string name="presentation_batch_g_device_key_brand">Marca</string>
+    <string name="presentation_batch_g_device_key_device">Dispositivo</string>
+    <string name="presentation_batch_g_device_key_android_version">Versione Android</string>
+    <string name="presentation_batch_g_device_key_sdk_version">Versione SDK</string>
+    <string name="presentation_batch_g_device_key_hardware">Hardware</string>
+    <string name="device_capabilities_unknown_device">Questo dispositivo</string>
+    <string name="device_capabilities_unknown_short">--</string>
+    <string name="device_capabilities_ready_title">Pronto per la riproduzione</string>
+    <string name="device_capabilities_review_title">Riproduzione da rivedere</string>
+    <string name="device_capabilities_metric_formats">Formati</string>
+    <string name="device_capabilities_metric_hw_decoders">Decoder HW</string>
+    <string name="device_capabilities_metric_local_music">Musica locale</string>
+    <string name="device_capabilities_storage_title">Archivio musica locale</string>
+    <string name="device_capabilities_storage_music_size">Dimensione musica</string>
+    <string name="device_capabilities_storage_music_count">%1$d brani locali</string>
+    <string name="device_capabilities_storage_available">Disponibile</string>
+    <string name="device_capabilities_storage_total">%1$s totali</string>
+    <string name="device_capabilities_storage_music_footprint">Impronta musica</string>
+    <string name="device_capabilities_storage_device_used">Dispositivo usato</string>
+    <string name="device_capabilities_storage_percent">%1$d%%</string>
+    <string name="device_capabilities_storage_less_than_one_percent">&lt;1%</string>
+    <string name="device_capabilities_storage_cloud_count">%1$d brani cloud</string>
+    <string name="device_capabilities_storage_unavailable_count">%1$d file non leggibili</string>
+    <string name="device_capabilities_playback_path_title">Percorso riproduzione</string>
+    <string name="device_capabilities_buffer_frames">%1$d frame per buffer</string>
+    <string name="device_capabilities_hifi_pcm_float">Hi-Fi PCM Float</string>
+    <string name="device_capabilities_hifi_pcm_float_supporting">Percorso uscita 32-bit float</string>
+    <string name="device_capabilities_memory_title">Memoria</string>
+    <string name="device_capabilities_memory_available_of">disponibili di %1$s</string>
+    <string name="device_capabilities_offload_title">Formati pronti per offload</string>
+    <string name="device_capabilities_offload_empty">Nessun formato compresso ha segnalato supporto hardware offload.</string>
+    <string name="device_capabilities_outputs_title">Uscite rilevate</string>
+    <string name="device_capabilities_outputs_empty">Nessun percorso di uscita è stato riportato da Android.</string>
+    <string name="device_capabilities_renderers_count">%1$s renderer</string>
+    <string name="device_capabilities_formats_title">Compatibilità formati</string>
+    <string name="device_capabilities_formats_supported_count">%1$d tracce supportate</string>
+    <string name="device_capabilities_formats_unknown_count">%1$d formato sconosciuto</string>
+    <string name="device_capabilities_format_unsupported">Nessun decoder riportato</string>
+    <string name="device_capabilities_format_hardware">Decoder hardware</string>
+    <string name="device_capabilities_format_software">Decoder software</string>
+    <string name="device_capabilities_format_offload">Offload</string>
+    <string name="device_capabilities_format_library_count">%1$d in libreria</string>
+    <string name="device_capabilities_findings_title">Risultati compatibilità</string>
+    <string name="device_capabilities_finding_clear_title">Nessuna incompatibilità maggiore</string>
+    <string name="device_capabilities_finding_clear_body">Le tue tracce indicizzate corrispondono ai decoder che Android riporta su questo dispositivo.</string>
+    <string name="device_capabilities_finding_unsupported_title">%1$d tracce potrebbero non decodificarsi nativamente</string>
+    <string name="device_capabilities_finding_unsupported_body">Formati da rivedere: %1$s.</string>
+    <string name="device_capabilities_finding_resample_title">%1$d tracce locali potrebbero essere ricampionate</string>
+    <string name="device_capabilities_finding_resample_body">La libreria raggiunge %1$d Hz, sopra la frequenza di campionamento di uscita attuale.</string>
+    <string name="device_capabilities_finding_unknown_title">%1$d tracce hanno metadati sconosciuti</string>
+    <string name="device_capabilities_finding_unknown_body">Una scansione completa della libreria può compilare dati MIME, bitrate e frequenza di campionamento mancanti.</string>
+    <string name="device_capabilities_more_count">+%1$d altri</string>
+    <string name="device_capabilities_output_builtin">Uscita integrata</string>
+    <string name="device_capabilities_output_bluetooth">Audio Bluetooth</string>
+    <string name="device_capabilities_output_usb">Audio USB</string>
+    <string name="device_capabilities_output_wired">Audio cablato</string>
+    <string name="device_capabilities_output_digital">Uscita digitale</string>
+    <string name="device_capabilities_output_other">Altra uscita</string>
+    <string name="presentation_batch_g_artist_section_multi_parsing">Parsing multi-artista</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters">Delimitatori carattere</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters_current">Attuali: %1$s</string>
+    <string name="presentation_batch_g_artist_item_word_delimiters">Delimitatori parola</string>
+    <string name="presentation_batch_g_artist_word_none">Nessuno</string>
+    <string name="presentation_batch_g_artist_word_current_prefix">Attuale: %1$s</string>
+    <string name="presentation_batch_g_artist_word_ellipsis">…</string>
+    <string name="presentation_batch_g_artist_cd_configure">Configura</string>
+    <string name="presentation_batch_g_artist_extract_from_title">Estrai artisti dal titolo</string>
+    <string name="presentation_batch_g_artist_extract_from_title_sub">Rileva feat., ft., with nei titoli dei brani</string>
+    <string name="presentation_batch_g_artist_section_library_org">Organizzazione libreria</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist">Raggruppa per album artist</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist_sub">Mostra album di collaborazione sotto l\'artista principale</string>
+    <string name="presentation_batch_g_artist_info_title">Informazioni parsing multi-artista</string>
+    <string name="presentation_batch_g_artist_info_body">PixelPlayerOSS divide i tag artista usando delimitatori carattere (/, ;, &amp;) e delimitatori parola (feat., ft., vs., x). I delimitatori parola corrispondono senza distinzione tra maiuscole e minuscole.
+
+"Estrai artisti dal titolo" rileva pattern come (feat. Artista) nei titoli dei brani.
+
+La barra rovesciata (\) può essere usata per sfuggire ai delimitatori carattere.</string>
+    <string name="presentation_batch_g_artist_example_arrow"> → </string>
+    <string name="presentation_batch_g_artist_examples_title">Esempi</string>
+    <string name="presentation_batch_g_artist_ex_1_in">"Artista1/Artista2"</string>
+    <string name="presentation_batch_g_artist_ex_1_out">Artista1, Artista2</string>
+    <string name="presentation_batch_g_artist_ex_2_in">"Drake feat. Rihanna"</string>
+    <string name="presentation_batch_g_artist_ex_2_out">Drake, Rihanna</string>
+    <string name="presentation_batch_g_artist_ex_3_in">"Marshmello x Bastille"</string>
+    <string name="presentation_batch_g_artist_ex_3_out">Marshmello, Bastille</string>
+    <string name="presentation_batch_g_artist_ex_4_in">"Brano (ft. B)" di A</string>
+    <string name="presentation_batch_g_artist_ex_4_out">A, B</string>
+    <string name="presentation_batch_g_artist_ex_5_in">"AC\\DC"</string>
+    <string name="presentation_batch_g_artist_ex_5_out">AC/DC (escaped)</string>
+    <string name="presentation_batch_g_artist_topbar_title">Artisti</string>
+    <string name="presentation_batch_g_artist_rescan_banner_title">Scansione richiesta</string>
+    <string name="presentation_batch_g_artist_rescan_banner_body">Le impostazioni artista sono cambiate. Riscansiona la tua libreria per applicarle.</string>
+    <string name="presentation_batch_g_artist_rescan_scanning">Scansione…</string>
+    <string name="presentation_batch_g_artist_rescan">Riscansiona</string>
+    <string name="presentation_batch_g_topbar_beta_letter">β</string>
+    <string name="presentation_batch_g_topbar_beta">Beta</string>
+    <string name="presentation_batch_g_topbar_cd_changelog">Changelog</string>
+    <string name="presentation_batch_g_topbar_cd_settings">Impostazioni</string>
+    <string name="presentation_batch_g_lyrics_mode_synced">Sincronizzato</string>
+    <string name="presentation_batch_g_lyrics_mode_static">Statico</string>
+    <string name="presentation_batch_g_lyrics_cd_options">Opzioni testi</string>
+    <string name="presentation_batch_g_streaming_title">Streaming cloud</string>
+    <string name="presentation_batch_g_streaming_subtitle">Riproduci musica dai tuoi account cloud</string>
+    <string name="presentation_batch_g_sort_source">Sorgente</string>
+    <string name="presentation_batch_g_sort_order">Ordine</string>
+    <string name="presentation_batch_g_sort_descending">Decrescente</string>
+    <string name="presentation_batch_g_sort_ascending">Crescente</string>
+    <string name="presentation_batch_g_sort_original_order">Ordine originale</string>
+    <string name="presentation_batch_g_sort_tap_ascending">Tocca per passare a crescente</string>
+    <string name="presentation_batch_g_sort_tap_descending">Tocca per passare a decrescente</string>
+    <string name="presentation_batch_g_sort_keeps_order">Questo ordinamento mantiene il suo ordine originale</string>
+    <string name="presentation_batch_g_cd_switch_on">Interruttore attivo</string>
+    <string name="presentation_batch_g_file_explorer_cd_close">Chiudi</string>
+    <string name="presentation_batch_g_file_explorer_cd_refresh">Aggiorna</string>
+    <string name="presentation_batch_g_file_explorer_cd_done">Fatto</string>
+    <string name="presentation_batch_g_file_explorer_done">Fatto</string>
+    <string name="presentation_batch_g_file_explorer_hint">Tutto è consentito per impostazione predefinita. Tocca una cartella per escluderla dalle scansioni.</string>
+    <string name="presentation_batch_g_file_explorer_empty_folders">Nessuna sottocartella qui</string>
+    <string name="presentation_batch_g_file_explorer_cd_navigate_up">Naviga su</string>
+    <string name="presentation_batch_g_file_explorer_cd_go_root">Vai alla radice</string>
+    <string name="presentation_batch_g_daily_mix_queue_name">Daily Mix</string>
+    <string name="presentation_batch_g_daily_mix_heading">DAILY MIX</string>
+    <string name="presentation_batch_g_daily_mix_based_on_history">Basato sulla cronologia</string>
+    <string name="presentation_batch_g_daily_mix_see_all">Vedi tutto il Daily Mix</string>
+    <string name="presentation_batch_g_selection_one_song">brano selezionato</string>
+    <string name="presentation_batch_g_selection_n_songs">brani selezionati</string>
+    <string name="presentation_batch_g_selection_cd_share">Condividi selezionati</string>
+    <string name="presentation_batch_g_selection_cd_like">Metti mi piace ai selezionati</string>
+    <string name="presentation_batch_g_selection_play">Riproduci</string>
+    <string name="presentation_batch_g_selection_all">Tutti</string>
+    <string name="presentation_batch_g_selection_deselect">Deseleziona</string>
+    <string name="presentation_batch_g_selection_cd_more">Altre opzioni</string>
+    <string name="presentation_batch_g_selection_options">Opzioni</string>
+    <string name="presentation_batch_g_selection_overflow_count">+%1$d</string>
+    <string name="presentation_batch_g_list_song_artist_album">%1$s • %2$s</string>
+    <string name="presentation_batch_g_list_cd_selected">Selezionato</string>
+    <string name="presentation_batch_g_list_cd_more_for_title">Altre opzioni per %1$s</string>
+    <string name="presentation_batch_g_list_cd_album_art_for">Copertina album per %1$s</string>
+    <string name="presentation_batch_g_list_cd_playing">In riproduzione</string>
+    <string name="presentation_batch_g_sync_percent">%1$d%%</string>
+    <string name="presentation_batch_g_stats_overview_title">Statistiche di ascolto</string>
+    <string name="presentation_batch_g_stats_overview_total_plays">Riproduzioni totali</string>
+    <string name="presentation_batch_g_stats_overview_avg_per_day">Media al giorno</string>
+    <string name="presentation_batch_g_stats_overview_top_track">Brano principale</string>
+    <string name="presentation_batch_g_stats_overview_top_track_line">%1$s • %2$d riproduzioni</string>
+    <string name="presentation_batch_g_recently_played_title">Riprodotte di recente</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_half">−.5</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_point_one">−.1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_point_one">+.1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_half">+.5</string>
+    <string name="presentation_batch_g_lyrics_offset_zero">0s</string>
+    <string name="presentation_batch_g_lyrics_offset_seconds_fmt">%1$+.1fs</string>
+    <string name="presentation_batch_g_genre_sort_title">Ordina e riproduci</string>
+    <string name="presentation_batch_g_genre_sort_shuffle">Shuffle</string>
+    <string name="presentation_batch_g_genre_sort_by">Ordina per</string>
+    <string name="presentation_batch_g_genre_sort_artist">Artista</string>
+    <string name="presentation_batch_g_genre_sort_album">Album</string>
+    <string name="presentation_batch_g_genre_sort_title_opt">Titolo</string>
+    <string name="presentation_batch_g_cd_selected">Selezionato</string>
+    <string name="presentation_batch_g_changelog_title">Changelog</string>
+    <string name="presentation_batch_g_changelog_view_github">Vedi su GitHub</string>
+    <string name="presentation_batch_g_presets_saved_title">Preset salvati</string>
+    <string name="presentation_batch_g_presets_empty">Ancora nessun preset personalizzato salvato.</string>
+    <string name="presentation_batch_g_presets_cd_unpin">Stacca</string>
+    <string name="presentation_batch_g_presets_cd_pin">Fissa</string>
+    <string name="presentation_batch_g_presets_cd_rename">Rinomina</string>
+    <string name="presentation_batch_g_presets_cd_delete">Elimina</string>
+    <string name="presentation_batch_g_beta_sheet_version">Beta 0.6.0</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_title">Benvenuto in PixelPlayerOSS 0.6.0-beta</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_body">Questa beta è ora focalizzata su stabilità, prestazioni e riproduzione cross-dispositivo, con nuove integrazioni importanti.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_title">Cosa aspettarsi</string>
+    <string name="presentation_batch_g_beta_sheet_expect_1">Uso quotidiano più veloce: avvio, navigazione e interazioni con il player più fluidi in tutta l\'app.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_2">Broader device support and reliability improvements.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_3">Beta builds may be more unstable than release versions.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_4">Passata affidabilità generale: logica coda/shuffle, comportamento riproduzione in background e molte correzioni UI.</string>
+    <string name="presentation_batch_g_beta_sheet_report_title">Segnala un problema</string>
+    <string name="presentation_batch_g_beta_sheet_report_body">Condividi i passaggi per riprodurre, il risultato atteso, il risultato effettivo e i dettagli del tuo dispositivo/SO. Un breve screen recording è molto utile.</string>
+    <string name="presentation_batch_g_beta_sheet_open_issues">Apri issue GitHub</string>
+    <string name="presentation_batch_g_beta_sheet_report_bug">Segnala un bug</string>
+    <string name="presentation_batch_g_beta05_title">Aggiornamento beta 0.5.0</string>
+    <string name="presentation_batch_g_beta05_clean_install_title">Installazione pulita consigliata</string>
+    <string name="presentation_batch_g_beta05_clean_install_body">Se provieni dalla beta 0.5.0, questo aggiornamento potrebbe richiedere dati libreria freschi invece dello stato cache precedente.</string>
+    <string name="presentation_batch_g_beta05_if_wrong_meta_title">Se i metadati o le voci libreria sembrano errati</string>
+    <string name="presentation_batch_g_beta05_if_wrong_meta_body">Metadati brano errati, artisti o album non corrispondenti, o voci che sembrano duplicate di solito significano che un\'installazione pulita è la soluzione.</string>
+    <string name="presentation_batch_g_beta05_dont_show">Non mostrare più</string>
+    <string name="presentation_batch_g_beta05_got_it">Ho capito</string>
+    <string name="presentation_batch_g_album_sel_count">%1$d ALBUM</string>
+    <string name="presentation_batch_g_album_sel_selected">selezionati</string>
+    <string name="presentation_batch_g_album_sel_queue_hint">Coda + riproduzione rispetta l\'ordine della tua selezione.</string>
+    <string name="presentation_batch_g_album_sel_limit">Limite: %1$d album per selezione.</string>
+    <string name="presentation_batch_g_album_sel_add_queue_play">Aggiungi alla coda e riproduci</string>
+    <string name="presentation_batch_g_app_name">PixelPlayerOSS</string>
+    <string name="presentation_batch_g_app_tagline">Lettore musicale</string>
+    <string name="presentation_batch_g_brick_high">HIGH %1$d</string>
+    <string name="presentation_batch_g_brick_cd_close">Chiudi</string>
+    <string name="presentation_batch_g_brick_stat_score">PUNTEGGIO</string>
+    <string name="presentation_batch_g_brick_stat_lvl">LVL %1$d</string>
+    <string name="presentation_batch_g_brick_stat_lives">VITE</string>
+    <string name="presentation_batch_g_brick_level_complete">LIVELLO COMPLETATO!</string>
+    <string name="presentation_batch_g_brick_game_over">GAME OVER</string>
+    <string name="presentation_batch_g_brick_score_line">Punteggio: %1$d</string>
+    <string name="presentation_batch_g_brick_try_again">Riprova?</string>
+    <string name="presentation_batch_g_brick_next_level">Livello successivo</string>
+    <string name="presentation_batch_g_brick_restart">Riavvia gioco</string>
+    <string name="presentation_batch_g_brick_tap_relaunch">TOCCA PER RILANCIARE</string>
+    <string name="presentation_batch_g_brick_play_random">Riproduci musica casuale</string>
+    <string name="presentation_batch_g_brick_title">Brick Breaker</string>
+    <string name="presentation_batch_g_brick_high_score">PUNTEGGIO MASSIMO  %1$d</string>
+    <string name="presentation_batch_g_brick_play">Gioca</string>
+    <string name="presentation_batch_g_brick_drag_paddle">Trascina per muovere il paddle</string>
+    <string name="presentation_batch_g_backup_restore_modules">Ripristina moduli</string>
+    <string name="presentation_batch_g_backup_restoring">Ripristino in corso</string>
+    <string name="presentation_batch_g_backup_restore_selected">Ripristina selezionati</string>
+    <string name="presentation_batch_g_backup_details">Dettagli backup</string>
+    <string name="presentation_batch_g_backup_created">Creato</string>
+    <string name="presentation_batch_g_backup_app_version">Versione app</string>
+    <string name="presentation_batch_g_backup_schema">Schema</string>
+    <string name="presentation_batch_g_backup_device">Dispositivo</string>
+    <string name="presentation_batch_g_backup_unknown">Sconosciuto</string>
+    <string name="presentation_batch_g_backup_modules_selected">%1$d di %2$d moduli selezionati</string>
+    <string name="presentation_batch_g_backup_transfer_progress">Trasferimento in corso…</string>
+    <string name="presentation_batch_g_backup_cd_select_all">Seleziona tutti</string>
+    <string name="presentation_batch_g_backup_cd_clear_selection">Cancella selezione</string>
+    <string name="presentation_batch_g_backup_entries_will_replace">%1$d voci · Sostituirà i dati attuali</string>
+    <string name="presentation_batch_g_player_cd_cloud_stream">Stream cloud</string>
+    <string name="presentation_batch_g_player_cd_collapse">Comprimi player</string>
+    <string name="presentation_batch_g_player_cd_bluetooth">Bluetooth</string>
+    <string name="presentation_batch_g_player_cd_local_playback">Riproduzione locale</string>
+    <string name="presentation_batch_g_player_connecting">Connessione…</string>
+    <string name="presentation_batch_g_player_cd_queue">Coda</string>
+    <string name="presentation_batch_g_player_cd_lyrics">Testi</string>
+
+    <string name="presentation_batch_g_changelog_sec_whats_new">Novità</string>
+    <string name="presentation_batch_g_changelog_sec_improvements">Miglioramenti</string>
+    <string name="presentation_batch_g_changelog_sec_fixes">Correzioni</string>
+    <string name="presentation_batch_g_changelog_sec_highlights">Highlights</string>
+    <string name="presentation_batch_g_changelog_sec_whats_new_lower">Novità</string>
+    <string name="presentation_batch_g_changelog_sec_added">Aggiunto</string>
+    <string name="presentation_batch_g_changelog_sec_changed">Modificato</string>
+    <string name="presentation_batch_g_changelog_sec_fixed">Corretto</string>
+    <string-array name="presentation_batch_g_changelog_060_whats_new">
+        <item>Riprodotte di recente e ripristino coda persistente mantengono la tua sessione di ascolto pronta.</item>
+        <item>Backup &amp; Restore v3 e strumenti di gestione account sono ora inclusi.</item>
+        <item>I testi sono diventati più intelligenti con ricerca manuale di fallback e miglioramenti archiviazione.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_improvements">
+        <item>Passata prestazioni generale su avvio, libreria, coda e interazioni con il player.</item>
+        <item>Flussi di navigazione e ricerca più affidabili, con gestione route più sicura.</item>
+        <item>Compatibilità riproduzione audio migliorata per più dispositivi e formati.</item>
+        <item>Flussi multi-selezione espansi tra brani, album e playlist.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_fixes">
+        <item>Il comportamento coda e shuffle è ora più stabile e prevedibile.</item>
+        <item>Sono stati corretti problemi con Sleep Timer, navigazione scheda File e crash album artist.</item>
+        <item>Caricamento widget e stabilità servizio sono stati migliorati per ridurre surriscaldamento/problemi memoria.</item>
+        <item>Correzioni bug generali e rifiniture UI in tutta l\'app.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_highlights">
+        <item>Aggiornamento UI Material 3 Expressive</item>
+        <item>Equalizzatore 10 bande ed effetti</item>
+        <item>Nuovo flusso sincronizzazione libreria</item>
+        <item>Importa/Esporta playlist M3U</item>
+        <item>Integrazione artwork artisti Deezer</item>
+        <item>Copertine playlist personalizzate</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_improvements">
+        <item>Rifattorizzazione architettura impostazioni</item>
+        <item>Animazioni coda e player</item>
+        <item>Profili baseline e prestazioni</item>
+        <item>Sistema testi migliorato con offset sincronizzazione</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_fixes">
+        <item>Stabilità foglio player</item>
+        <item>Correzioni bug generali e pulizia</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_040_highlights">
+        <item>Riprogettazione maggiore della navigazione</item>
+        <item>Nuovo esploratore file per scegliere le directory sorgente</item>
+        <item>Continuità senza soluzione di continuità tra dispositivi remoti</item>
+        <item>Transizione senza interruzioni tra brani</item>
+        <item>Controllo crossfade</item>
+        <item>Nuova funzione transizioni personalizzate (solo per playlist)</item>
+        <item>Continua a riprodurre dopo aver chiuso l\'app</item>
+        <item>Ottimizzazioni UI</item>
+        <item>Funzione statistiche migliorata</item>
+        <item>Controlli coda ridisegnati con più funzioni</item>
+        <item>Supporto tipi file diversi migliorato per riproduzione e modifica metadati</item>
+        <item>Controller permessi migliorato</item>
+        <item>Correzioni bug minori</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_whats_new">
+        <item>Introdotto un hub statistiche di ascolto più ricco con insight più approfonditi sulle tue sessioni.</item>
+        <item>Lanciato un quick player fluttuante per aprire e preascoltare istantaneamente file locali.</item>
+        <item>Aggiunta una scheda cartelle con navigatore ad albero e vista pronta per playlist.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_improvements">
+        <item>Raffinata l\'interfaccia utente generale Material 3 per un\'esperienza più pulita e coesa.</item>
+        <item>La modifica metadati ora supporta il cambio copertina.</item>
+        <item>Animazioni e transizioni più fluide in tutta l\'app per una navigazione più fluida.</item>
+        <item>Migliorato il layout schermata artista con dettagli più ricchi e rifiniture.</item>
+        <item>Aggiornata la generazione DailyMix e YourMix con selezioni più intelligenti e diverse.</item>
+        <item>Migliorata la rilevanza e presentazione della ricerca per scoperta più veloce.</item>
+        <item>Espanso il supporto per una gamma più ampia di formati file audio.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_fixes">
+        <item>Risolte stranezze metadati in modo che i dettagli brano restino accurati ovunque.</item>
+        <item>Ripristinati i collegamenti notifica in modo che saltino affidabilmente alla riproduzione.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_added">
+        <item>Changelog in-app per tenerti aggiornato sulle ultime funzioni.</item>
+        <item>Supporto per file .LRC, sia incorporati che esterni.</item>
+        <item>Supporto testi offline.</item>
+        <item>Testi sincronizzati (sincronizzati con il brano).</item>
+        <item>Nuova schermata per visualizzare la coda completa.</item>
+        <item>Riordina e rimuovi brani dalla coda.</item>
+        <item>Gesti mini-player (scorrimento verso il basso per chiudere).</item>
+        <item>Aggiunte altre animazioni material.</item>
+        <item>Nuove impostazioni per personalizzare l\'aspetto.</item>
+        <item>Nuove impostazioni per cancellare la cache.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_changed">
+        <item>Riprogettazione completa dell\'interfaccia utente.</item>
+        <item>Riprogettazione completa del player.</item>
+        <item>Miglioramenti prestazioni nella libreria.</item>
+        <item>Velocità avvio applicazione migliorata.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_fixed">
+        <item>Corretti vari bug nell\'editor tag.</item>
+        <item>Corretto un bug per cui la notifica di riproduzione non veniva cancellata.</item>
+        <item>Corretti diversi bug che causavano il crash dell\'app.</item>
+    </string-array>
+</resources>

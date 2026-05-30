@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation / misc -->
+    <string name="nav_error_genre_id_missing">Kesalahan: ID Genre hilang</string>
+    <string name="easter_egg_thank_you">Terima kasih telah menggunakan PixelPlayerOSS!</string>
+
+    <!-- Word delimiter config -->
+    <string name="word_delimiter_section_title">Pemisah Kata Saat Ini</string>
+    <string name="word_delimiter_section_subtitle">Kata kunci ini memisahkan nama artis jika dikelilingi spasi. Tidak peka huruf besar-kecil. Ketuk untuk menghapus.</string>
+    <string name="word_delimiter_empty">Tidak ada pemisah kata yang dikonfigurasi</string>
+    <string name="word_delimiter_add_title">Tambah Pemisah Kata Baru</string>
+    <string name="word_delimiter_hint">misalnya, feat. atau ft.</string>
+    <string name="word_delimiter_help_title">Cara Kerja Pemisah Kata</string>
+    <string name="word_delimiter_help_body">Pemisah kata dicocokkan tanpa peka huruf besar-kecil dengan spasi di sekelilingnya.\n\nPemisah satu karakter (seperti \"x\") memerlukan spasi di kedua sisi untuk menghindari pencocokan yang salah.\n\nContoh:\n  \"Drake feat. Rihanna\" -&gt; Drake, Rihanna\n  \"Marshmello x Bastille\" -&gt; Marshmello, Bastille\n  \"A vs. B\" -&gt; A, B</string>
+    <string name="word_delimiters_screen_title">Pemisah Kata</string>
+    <string name="word_delimiter_reset_title">Reset Pemisah Kata?</string>
+    <string name="word_delimiter_reset_message">Ini akan menghapus semua pemisah kata kustom Anda dan mengembalikan kata kunci default. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="word_delimiter_toast_added">Pemisah kata ditambahkan</string>
+    <string name="word_delimiter_toast_invalid">Sudah ada atau tidak valid</string>
+    <string name="word_delimiter_toast_reset">Pemisah kata direset ke default</string>
+    <string name="action_reset">Reset</string>
+
+    <!-- Delimiter config (path separators) -->
+    <string name="delimiter_section_title">Pemisah Saat Ini</string>
+    <string name="delimiter_section_subtitle">Ketuk pemisah untuk menghapusnya. Setidaknya satu pemisah diperlukan.</string>
+    <string name="delimiter_add_title">Tambah Pemisah Baru</string>
+    <string name="delimiter_hint">misalnya, / atau ;</string>
+    <string name="delimiter_defaults_title">Pemisah Default</string>
+    <string name="delimiter_reset_title">Reset Pemisah?</string>
+    <string name="delimiter_reset_message">Ini akan menghapus semua pemisah kustom Anda dan mengembalikan default. Tindakan ini tidak dapat dibatalkan.</string>
+    <string name="delimiter_toast_reset">Pemisah direset ke default</string>
+    <string name="delimiter_toast_at_least_one">Setidaknya satu pemisah diperlukan</string>
+    <string name="delimiter_toast_added">Pemisah ditambahkan</string>
+    <string name="delimiter_toast_invalid">Pemisah sudah ada atau tidak valid</string>
+    <string name="path_delimiters_toolbar_title">Pemisah</string>
+    <string name="delimiter_label_space">Spasi</string>
+    <string name="cd_add_path_delimiter">Tambah pemisah</string>
+
+    <!-- Accounts -->
+    <string name="accounts_unable_open_screen">Tidak dapat membuka layar ini sekarang.</string>
+
+    <!-- Setup (subset; more keys follow in same file) -->
+    <string name="setup_welcome_prefix">Selamat datang di </string>
+    <string name="setup_beta_symbol">β</string>
+    <string name="setup_beta_label">Beta</string>
+    <string name="setup_intro_body">Mari kita siapkan segalanya untuk Anda.</string>
+    <string name="setup_checking_backup">Memeriksa paket cadangan…</string>
+    <string name="setup_theme_title">Tema Aplikasi</string>
+    <string name="setup_theme_subtitle">Pilih tampilan yang Anda inginkan sebelum mulai menjelajahi pustaka Anda.</string>
+    <string name="setup_theme_footer">Anda dapat mengubah ini nanti di Pengaturan &gt; Tampilan &gt; Tema Aplikasi.</string>
+    <string name="setup_recommended">Direkomendasikan</string>
+    <string name="setup_library_layout_title">Tata Letak Pustaka</string>
+    <string name="setup_library_layout_subtitle">Pilih cara yang Anda sukai untuk menavigasi pustaka Anda.</string>
+    <string name="setup_compact_mode">Mode Ringkas</string>
+    <string name="setup_library_layout_footer">Anda dapat mengubah ini nanti di Pengaturan &gt; Tampilan &gt; Navigasi Pustaka.</string>
+    <string name="tab_library">Pustaka</string>
+    <string name="tab_songs">LAGU</string>
+    <string name="tab_albums">ALBUM</string>
+    <string name="tab_artists">ARTIS</string>
+    <string name="setup_all_set_title">Semua Sudah Siap!</string>
+    <string name="setup_all_set_body">Anda siap untuk menikmati musik Anda.</string>
+    <string name="setup_restore_backup_title">Pulihkan Cadangan</string>
+    <string name="setup_restore_backup_subtitle">Tinjau apa yang ingin Anda impor sebelum menyelesaikan penyiapan.</string>
+    <string name="setup_modules_selected_format">%1$d dari %2$d modul terpilih</string>
+    <string name="setup_backup_created_format">Dibuat %1$s</string>
+    <string name="setup_backup_from_version">Cadangan dari %1$s</string>
+    <string name="unknown_version">Versi tidak dikenal</string>
+    <string name="setup_lets_go">Mari Mulai!</string>
+    <string name="setup_step_format">Langkah %1$d dari %2$d</string>
+    <string name="setup_app_navigation_title">Navigasi Aplikasi</string>
+    <string name="setup_app_navigation_subtitle">Pilih gaya bilah navigasi bawah.</string>
+    <string name="setup_navbar_default_style">Gaya Default</string>
+    <string name="setup_navbar_footer">Anda dapat mengubah ini nanti di Pengaturan &gt; Tampilan &gt; Gaya Navbar.</string>
+    <string name="skip_for_now">Lewati untuk sekarang</string>
+    <string name="skip_not_now">Lewati / Tidak sekarang</string>
+    <string name="restoring">Memulihkan</string>
+    <string name="restore_selected">Pulihkan yang terpilih</string>
+    <string name="customize_corner_radius">Sesuaikan Radius Sudut</string>
+    <string name="toast_grant_permission_first">Mohon berikan izin yang diperlukan terlebih dahulu.</string>
+    <string name="toast_grant_all_permissions">Mohon berikan semua izin yang diperlukan.</string>
+    <string name="toast_grant_storage_first">Berikan izin penyimpanan terlebih dahulu</string>
+    <string name="toast_battery_settings_unavailable">Tidak dapat membuka pengaturan baterai</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_expand_menu">Perluas menu</string>
+    <string name="cd_next_step">Berikutnya</string>
+    <string name="cd_finish">Selesai</string>
+    <string name="cd_close">Tutup</string>
+    <string name="cd_remove">Hapus</string>
+    <string name="cd_add_word_delimiter">Tambah pemisah kata</string>
+    <string name="cd_reset_defaults">Reset default</string>
+
+    <!-- Setup (additional literals) -->
+    <string name="setup_excluded_folders_title">Folder yang dikecualikan</string>
+    <string name="setup_excluded_folders_description">Semua folder dipindai secara default. Pilih lokasi mana pun yang ingin Anda abaikan saat membangun pustaka.</string>
+    <string name="setup_choose_folders_ignore">Pilih folder untuk diabaikan</string>
+    <string name="setup_permission_media_title">Izin Media</string>
+    <string name="setup_permission_media_description">PixelPlayerOSS memerlukan akses ke file audio Anda untuk membangun pustaka musik Anda.</string>
+    <string name="setup_permission_granted">Izin Diberikan</string>
+    <string name="setup_grant_media_permission">Berikan Izin Media</string>
+    <string name="setup_permission_notifications_title">Notifikasi</string>
+    <string name="setup_permission_notifications_description">Aktifkan notifikasi untuk mengontrol musik Anda dari layar kunci dan panel notifikasi.</string>
+    <string name="setup_enable_notifications">Aktifkan Notifikasi</string>
+    <string name="setup_permission_alarms_title">Alarm &amp; Pengingat</string>
+    <string name="setup_permission_alarms_description">Opsional, tetapi direkomendasikan jika Anda menggunakan Timer Tidur dan ingin PixelPlayerOSS berhenti memutar tepat waktu.</string>
+    <string name="setup_grant_permission_generic">Berikan Izin</string>
+    <string name="setup_backup_have_title">Apakah Anda memiliki cadangan?</string>
+    <string name="setup_backup_have_description">Jika Anda sudah memiliki cadangan PixelPlayerOSS, pulihkan sekarang dan lewati sebagian besar penyiapan yang tersisa di perangkat ini.</string>
+    <string name="setup_inspecting_backup">Memeriksa cadangan</string>
+    <string name="setup_restoring_backup">Memulihkan cadangan</string>
+    <string name="setup_import_backup">Impor cadangan</string>
+    <string name="setup_theme_dark_title">Gelap</string>
+    <string name="setup_theme_dark_description">Tampilan gelap Material 3 default untuk PixelPlayerOSS.</string>
+    <string name="setup_theme_light_title">Terang</string>
+    <string name="setup_theme_light_description">Tampilan Material 3 yang lebih cerah di seluruh aplikasi.</string>
+    <string name="setup_theme_follow_title">Ikuti sistem</string>
+    <string name="setup_theme_follow_description">Cocokkan dengan pengaturan tampilan ponsel Anda saat ini.</string>
+    <string name="setup_compact_mode_pill_hint">Menggunakan navigasi pil minimal</string>
+    <string name="setup_compact_mode_tab_hint">Menggunakan baris tab standar</string>
+    <string name="setup_preview_songs_label">Lagu</string>
+    <string name="setup_battery_optimization_title">Optimalisasi Baterai</string>
+    <string name="setup_battery_optimization_description">Beberapa perangkat Android secara agresif mematikan aplikasi latar belakang. Nonaktifkan optimalisasi baterai untuk PixelPlayerOSS untuk mencegah gangguan pemutaran yang tidak terduga.</string>
+    <string name="setup_disable_battery_optimization">Nonaktifkan Optimalisasi</string>
+    <string name="setup_nav_floating_pill_description">Pil melayang dengan sudut membulat</string>
+    <string name="setup_nav_full_width_description">Bilah lebar penuh standar</string>
+
+    <!-- Delete song (Material dialog from ViewModel) -->
+    <string name="dialog_delete_song_title">Hapus lagu?</string>
+    <string name="dialog_delete_song_message">\"%1$s\" oleh %2$s\n\nLagu ini akan dihapus secara permanen dari perangkat Anda dan tidak dapat dipulihkan.</string>
+
+    <!-- Home / detail shared -->
+    <string name="home_your_mix_title">Your\nMix</string>
+    <string name="home_empty_placeholder_subtitle">Mix Anda akan muncul di sini saat PixelPlayerOSS menemukan lagu atau menyinkronkan sumber.</string>
+    <string name="home_empty_placeholder_refresh">Refresh</string>
+    <string name="cd_shuffle_play">Putar Acak</string>
+    <string name="cd_album_art_for_title">Sampul album untuk %1$s</string>
+    <string name="cd_options">Opsi</string>
+    <string name="genre_quick_fill">Isi Cepat Genre</string>
+    <string name="cd_generic_artist">Artis umum</string>
+    <string name="cd_play_album">Putar album</string>
+    <string name="cd_shuffle_play_album">Putar acak album</string>
+    <string name="album_cover_for">Sampul %1$s</string>
+    <string name="album_detail_meta_line">%1$s · %2$s</string>
+    <string name="mashup_cd_play_pause">Putar/Jeda</string>
+    <string name="cd_song_cover">Sampul lagu</string>
+
+    <!-- Crash report dialog -->
+    <string name="crash_report_title">Ups! Terjadi kesalahan</string>
+    <string name="crash_report_subtitle">Aplikasi berhenti mendadak selama sesi terakhir Anda. Bantu kami memperbaikinya dengan membagikan laporan crash.</string>
+    <string name="crash_report_date_line">Tanggal: %1$s</string>
+    <string name="crash_report_error_label">Kesalahan:</string>
+    <string name="crash_report_stack_preview_label">Stack trace (pratinjau):</string>
+    <string name="crash_report_clipboard_label">Log crash</string>
+    <string name="toast_crash_log_copied">Log crash disalin ke papan klip</string>
+    <string name="crash_report_share_subject">Laporan crash PixelPlayerOSS</string>
+    <string name="crash_report_share_chooser">Bagikan laporan crash</string>
+    <string name="action_copy">Salin</string>
+    <string name="action_share">Bagikan</string>
+
+    <!-- Search screen -->
+    <string name="search_placeholder">Cari…</string>
+    <string name="cd_search_icon">Cari</string>
+    <string name="cd_clear_search_query">Bersihkan pencarian</string>
+    <string name="recent_searches">Pencarian terbaru</string>
+    <string name="clear_all">Hapus semua</string>
+    <string name="cd_search_history_icon">Riwayat</string>
+    <string name="cd_delete_search_history_item">Hapus item riwayat pencarian</string>
+    <string name="cd_no_search_results">Tidak ada hasil</string>
+    <string name="search_no_results_for_query">Tidak ada hasil untuk \"%1$s\"</string>
+    <string name="search_nothing_found">Tidak ditemukan apa pun</string>
+    <string name="search_try_different_or_filters">Coba istilah pencarian yang berbeda atau periksa filter Anda.</string>
+    <string name="search_no_results_found">Tidak ditemukan hasil.</string>
+
+    <!-- Genre browse -->
+    <string name="browse_by_genre">Telusuri berdasarkan genre</string>
+    <string name="no_genres_available">Tidak ada genre yang tersedia.</string>
+
+    <!-- About -->
+    <string name="about_no_contributors">Tidak ditemukan kontributor saat ini. Silakan coba lagi nanti.</string>
+    <string name="about_app_name">PixelPlayerOSS</string>
+    <string name="about_tagline">Pemutar musik open source yang dibangun bersama komunitasnya.</string>
+    <string name="about_version_format">Versi v%1$s</string>
+    <string name="about_contributions_format">%1$d kontrib.</string>
+    <string name="screen_about">Tentang</string>
+    <string name="about_maintainer_title">Pemelihara</string>
+    <string name="about_maintainer_subtitle">Orang di balik PixelPlayerOSS.</string>
+    <string name="about_spotlight_title">Sorotan komunitas</string>
+    <string name="about_spotlight_subtitle">Penghargaan untuk kolaborator dengan dampak besar.</string>
+    <string name="about_contributors_section_title">Kontributor open source</string>
+    <string name="about_contributors_section_subtitle">Daftar kontributor langsung dari GitHub.</string>
+    <string name="about_signal_open_source">Open source</string>
+    <string name="about_signal_community_first">Community-first</string>
+    <string name="about_signal_material3">Material 3 expressive</string>
+    <string name="cd_open_github_profile">Buka profil GitHub</string>
+    <string name="cd_contributor_avatar">Avatar %1$s</string>
+    <string name="cd_contributor_icon">Ikon %1$s</string>
+
+    <!-- Streaming / cloud dashboards -->
+    <string name="screen_subsonic_dashboard_title">Subsonic</string>
+    <string name="dash_playlists_synced_count">%1$d playlist disinkronkan</string>
+    <string name="dash_folders_synced_count">%1$d folder disinkronkan</string>
+    <string name="dash_title_playlists">Playlist</string>
+    <string name="dash_music_folders">Folder musik</string>
+    <string name="dash_action_sync">Sinkronisasi</string>
+    <string name="dash_playlists_empty_title">Belum ada playlist yang disinkronkan</string>
+    <string name="dash_playlists_empty_hint_subsonic">Ketuk sinkronisasi untuk mengambil playlist Anda</string>
+    <string name="dash_playlists_empty_hint_jellyfin">Ketuk sinkronisasi untuk mengambil playlist Jellyfin Anda</string>
+    <string name="dash_no_folders_yet">Belum ada folder yang ditambahkan</string>
+    <string name="dash_quick_actions">Tindakan cepat</string>
+    <string name="dash_quick_actions_subsonic_subtitle">Kelola Navidrome, Airsonic, dan server lain yang kompatibel dengan Subsonic.</string>
+    <string name="dash_quick_actions_jellyfin_subtitle">Kelola koneksi server Jellyfin Anda.</string>
+    <string name="dash_status_syncing">Menyinkronkan</string>
+    <string name="dash_action_sync_library">Sinkronkan pustaka</string>
+    <string name="dash_action_disconnect">Putuskan sambungan</string>
+    <string name="dash_status_library_sync_complete">Sinkronisasi pustaka selesai</string>
+    <string name="dash_song_count">%1$d lagu</string>
+    <string name="cd_sync">Sinkronisasi</string>
+    <string name="cd_sync_all">Sinkronkan semua</string>
+    <string name="cd_logout">Keluar</string>
+    <string name="cd_sync_all_playlists">Sinkronkan semua playlist</string>
+    <string name="error_with_message_format">Kesalahan: %1$s</string>
+    <string name="sync_status_syncing_ellipsis">Menyinkronkan…</string>
+    <string name="cd_user_avatar">Avatar pengguna</string>
+    <string name="toast_playlist_created">Playlist berhasil dibuat</string>
+    <string name="toast_added_to_queue">Ditambahkan ke antrean</string>
+    <string name="toast_playing_next">Diputar berikutnya</string>
+    <string name="error_share_song_format">Tidak dapat membagikan lagu: %1$s</string>
+    <string name="dash_status_syncing_library">Menyinkronkan pustaka...</string>
+    <string name="home_empty_placeholder_title">Belum ada data untuk ditampilkan</string>
+    <string name="dash_status_fetching_playlists">Mengambil playlist...</string>
+    <string name="dash_status_syncing_playlist_format">Menyinkronkan playlist: %1$s</string>
+    <string name="dash_status_updating_local">Memperbarui pustaka lokal...</string>
+    <string name="dash_status_sync_complete">Sinkronisasi selesai</string>
+    <string name="dash_status_fetching_albums">Mengambil daftar album...</string>
+    <string name="dash_status_fetching_songs_from_format">Mengambil lagu dari %1$s...</string>
+    <string name="dash_status_saving_songs_format">Menyimpan %1$d lagu ke database...</string>
+    <string name="dash_status_no_songs_found">Tidak ada lagu pustaka ditemukan</string>
+</resources>

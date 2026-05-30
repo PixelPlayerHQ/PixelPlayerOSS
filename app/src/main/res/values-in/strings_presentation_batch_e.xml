@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">Antrean kosong.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Tindakan antrean</string>
+    <string name="presentation_batch_e_action_clear_queue">Bersihkan antrean</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Simpan sebagai playlist</string>
+    <string name="presentation_batch_e_action_locate_current_song">Temukan lagu saat ini</string>
+    <string name="presentation_batch_e_queue_named_suffix">Antrean %1$s</string>
+    <string name="presentation_batch_e_queue_current">Antrean saat ini</string>
+    <string name="presentation_batch_e_removed">dihapus</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Bersihkan antrean</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Apakah Anda yakin ingin menghapus semua lagu dari antrean kecuali yang sedang diputar?</string>
+    <string name="presentation_batch_e_next_up">Berikutnya</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Antrean saat ini kosong.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Antrean</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Alihkan acak</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Alihkan ulangi</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Sleep timer</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Simpan sebagai playlist</string>
+    <string name="presentation_batch_e_deselect_all">Batalkan pilihan semua</string>
+    <string name="presentation_batch_e_playlist_name_label">Nama playlist</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Cari lagu untuk disertakan…</string>
+    <string name="presentation_batch_e_save_as_format">Simpan sebagai: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Masukkan nama playlist</string>
+    <string name="presentation_batch_e_no_songs_match_query">Tidak ada lagu yang cocok dengan \"%1$s\"</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Tutup lagu</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Hapus dari playlist</string>
+    <string name="presentation_batch_e_more_options_for_song">Opsi lainnya untuk %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 trek telah siap.</item>
+        <item quantity="other">%d trek telah siap.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d lagu terpilih</item>
+        <item quantity="other">%d lagu terpilih</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">Belum ada playlist yang dibuat.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Sentuh tombol \'Playlist Baru\' untuk memulai.</string>
+
+    <!-- PlaylistCreationDialogs: create flow -->
+    <string name="presentation_batch_e_create_playlist_title">Buat playlist</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Pilih alur pembuatan.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manual</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Desain sampul, ikon, bentuk, dan pilih lagu sendiri.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">Reset preset</string>
+    <string name="presentation_batch_e_reset_presets_message">Ini akan mengembalikan urutan preset dan visibilitas default. Lanjutkan?</string>
+    <string name="presentation_batch_e_manage_presets_title">Kelola preset</string>
+    <string name="presentation_batch_e_presets_drag_hint">Seret untuk mengurutkan ulang • Ketuk mata untuk menampilkan atau menyembunyikan</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Reset ke default</string>
+    <string name="presentation_batch_e_cd_visible">Terlihat</string>
+    <string name="presentation_batch_e_cd_hidden">Tersembunyi</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">Bagaimana Daily Mix Anda dibuat</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Daily Mix Anda dibuat dari lagu-lagu favorit dan yang paling sering Anda putar. Kami juga menambahkan lagu dari artis dan genre yang Anda suka supaya Anda bisa menemukan musik baru.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">Kami menggunakan sampel kecil untuk menjaga biaya tetap rendah</string>
+    <string name="presentation_batch_e_daily_mix_updating">Memperbarui…</string>
+    <string name="presentation_batch_e_daily_mix_update">Perbarui Daily Mix</string>
+</resources>

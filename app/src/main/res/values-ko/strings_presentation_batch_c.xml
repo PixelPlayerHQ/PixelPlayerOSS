@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">곡을 불러오는 중 오류 발생</string>
+    <string name="library_error_loading_albums">앨범을 불러오는 중 오류 발생</string>
+    <string name="library_error_loading_artists">아티스트를 불러오는 중 오류 발생</string>
+    <string name="library_retry">재시도</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">라이브러리에 곡이 없습니다.</string>
+    <string name="library_no_songs_rescan_hint">기기에 음악이 있는 경우 설정에서 라이브러리를 다시 스캔해 보세요.</string>
+    <string name="cd_no_songs_in_library">곡을 찾을 수 없음</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">새로 만들기</string>
+    <string name="cd_create_new_playlist">새 플레이리스트 생성</string>
+    <string name="cd_import_m3u_playlist">M3U 플레이리스트 가져오기</string>
+    <string name="cd_locate_current_song">현재 곡 위치 찾기</string>
+    <string name="library_storage_filter_all_songs">모든 곡</string>
+    <string name="library_storage_filter_online">온라인</string>
+    <string name="library_storage_filter_offline">오프라인</string>
+    <string name="cd_sort_options">정렬 옵션</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">동기화됨</string>
+    <string name="song_field_artist_optional">아티스트 (선택 사항)</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">곡 추가</string>
+    <string name="cd_confirm_add_songs">선택한 곡 추가</string>
+    <string name="song_picker_action_add">추가</string>
+    <string name="song_picker_search_label">곡 검색…</string>
+    <string name="song_picker_error_load_failed">곡을 불러오지 못했습니다</string>
+    <string name="song_picker_load_more">더 불러오기</string>
+
+    
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">아직 곡이 없습니다</string>
+    <string name="lib_empty_songs_all_subtitle">기기에 음악을 추가하거나 클라우드 소스를 동기화하여 감상을 시작하세요.</string>
+    <string name="lib_empty_songs_offline_title">로컬 곡을 찾을 수 없음</string>
+    <string name="lib_empty_songs_offline_subtitle">다른 소스 필터를 시도하거나 기기 라이브러리를 다시 스캔하세요.</string>
+    <string name="lib_empty_songs_online_title">클라우드 곡을 찾을 수 없음</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">사용 가능한 앨범 없음</string>
+    <string name="lib_empty_albums_all_subtitle">라이브러리의 트랙이 그룹화되는 대로 앨범이 여기에 표시됩니다.</string>
+    <string name="lib_empty_albums_offline_title">로컬 앨범을 찾을 수 없음</string>
+    <string name="lib_empty_albums_offline_subtitle">로컬 앨범 그룹을 만들려면 로컬 곡이 필요합니다.</string>
+    <string name="lib_empty_albums_online_title">클라우드 앨범을 찾을 수 없음</string>
+    <string name="lib_empty_albums_online_subtitle">동기화 후 앨범 데이터가 있는 클라우드 곡이 여기에 표시됩니다.</string>
+    <string name="lib_empty_artists_all_title">사용 가능한 아티스트 없음</string>
+    <string name="lib_empty_artists_all_subtitle">소스에서 곡이 인덱싱된 후 아티스트가 표시됩니다.</string>
+    <string name="lib_empty_artists_offline_title">로컬 아티스트를 찾을 수 없음</string>
+    <string name="lib_empty_artists_offline_subtitle">현재 로컬 곡에 대한 아티스트 메타데이터를 사용할 수 없습니다.</string>
+    <string name="lib_empty_artists_online_title">클라우드 아티스트를 찾을 수 없음</string>
+    <string name="lib_empty_artists_online_subtitle">원격 곡이 동기화되면 클라우드 아티스트 항목이 나타납니다.</string>
+    <string name="lib_empty_liked_all_title">좋아요 표시한 곡이 없습니다</string>
+    <string name="lib_empty_liked_all_subtitle">곡을 재생하는 동안 하트 아이콘을 눌러 여기에 저장하세요.</string>
+    <string name="lib_empty_liked_offline_title">좋아요 표시한 로컬 곡 없음</string>
+    <string name="lib_empty_liked_offline_subtitle">소스 필터를 전환하거나 기기의 곡에 좋아요를 표시하세요.</string>
+    <string name="lib_empty_liked_online_title">좋아요 표시한 클라우드 곡 없음</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">폴더를 찾을 수 없음</string>
+    <string name="lib_empty_folders_subtitle">음악이 포함된 내부 저장소 폴더가 여기에 표시됩니다.</string>
+    <string name="lib_empty_playlists_title">플레이리스트가 아직 없습니다</string>
+    <string name="lib_empty_playlists_subtitle">첫 번째 플레이리스트를 만들어 라이브러리를 정리해 보세요.</string>
+</resources>

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SettingsComponents -->
+    <string name="presentation_batch_f_cd_selected">Ausgewählt</string>
+    <string name="presentation_batch_f_refresh_library_title">Bibliothek aktualisieren</string>
+    <string name="presentation_batch_f_refresh_library_subtitle">Bibliothek auf neue und geänderte Dateien scannen.</string>
+    <string name="presentation_batch_f_full_rescan">Vollständiger Rescan</string>
+    <string name="presentation_batch_f_rebuild_database">Datenbank neu aufbauen</string>
+    <string name="presentation_batch_f_sync_phase_preparing">Sync wird vorbereitet</string>
+    <string name="presentation_batch_f_sync_phase_reading_mediastore">MediaStore wird gelesen</string>
+    <string name="presentation_batch_f_sync_phase_processing_tracks">Titel werden verarbeitet</string>
+    <string name="presentation_batch_f_sync_phase_saving_db">In Datenbank speichern</string>
+    <string name="presentation_batch_f_sync_phase_scanning_lrc">Lyrics-Dateien scannen</string>
+    <string name="presentation_batch_f_sync_phase_cleaning_cache">Cover-Cache bereinigen</string>
+    <string name="presentation_batch_f_sync_phase_syncing_cloud">Cloud-Quellen synchronisieren</string>
+    <string name="presentation_batch_f_sync_phase_completing">Sync wird abgeschlossen</string>
+    <string name="presentation_batch_f_sync_progress_detailed">%1$s • %2$d%% (%3$d/%4$d)</string>
+    <string name="presentation_batch_f_sync_progress_indeterminate">%1$s…</string>
+    <string name="presentation_batch_f_refresh_lyrics_title">Lyrics aktualisieren</string>
+    <string name="presentation_batch_f_refresh_lyrics_subtitle">Lyrics für alle Songs automatisch über lrclib laden.</string>
+    <string name="presentation_batch_f_cd_refresh_lyrics">Lyrics aktualisieren</string>
+    <string name="presentation_batch_f_refresh_lyrics_processing">%1$d von %2$d Songs werden verarbeitet</string>
+    <string name="presentation_batch_f_enter_api_key">API Key eingeben</string>
+    <string name="presentation_batch_f_save">Speichern</string>
+    <string name="presentation_batch_f_saved">Gespeichert!</string>
+    <string name="presentation_batch_f_preset_prompts">Preset-Prompts</string>
+    <string name="presentation_batch_f_enter_system_prompt_placeholder">System-Prompt eingeben…</string>
+    <string name="presentation_batch_f_reset">Zurücksetzen</string>
+
+    <!-- Create playlist -->
+    <string name="presentation_batch_f_new_smart_playlist">Neue Smart-Playlist</string>
+    <string name="presentation_batch_f_new_playlist">Neue Playlist</string>
+    <string name="presentation_batch_f_add_songs">Songs hinzufügen</string>
+    <string name="presentation_batch_f_cd_back_or_cancel">Zurück oder Abbrechen</string>
+    <string name="presentation_batch_f_next">Weiter</string>
+    <string name="presentation_batch_f_create">Erstellen</string>
+    <string name="presentation_batch_f_edit_playlist">Playlist bearbeiten</string>
+    <string name="presentation_batch_f_cd_close">Schließen</string>
+    <string name="presentation_batch_f_cd_confirm_crop">Zuschnitt bestätigen</string>
+    <string name="presentation_batch_f_auto_generated_collage">Automatisch generierte Collage</string>
+    <string name="presentation_batch_f_cd_add_photo">Foto hinzufügen</string>
+    <string name="presentation_batch_f_pick_image">Bild auswählen</string>
+    <string name="presentation_batch_f_playlist_name_label">Playlist-Name</string>
+    <string name="presentation_batch_f_playlist_name_placeholder">Mein toller Mix</string>
+    <string name="presentation_batch_f_creation_mode_manual">Manuell</string>
+    <string name="presentation_batch_f_creation_mode_smart">Smart</string>
+    <string name="presentation_batch_f_smart_rule">Smart-Regel</string>
+    <string name="presentation_batch_f_tab_default">Standard</string>
+    <string name="presentation_batch_f_tab_image">Bild</string>
+    <string name="presentation_batch_f_tab_icon">Icon</string>
+    <string name="presentation_batch_f_background_color">Hintergrundfarbe</string>
+    <string name="presentation_batch_f_icon_symbol">Icon-Symbol</string>
+    <string name="presentation_batch_f_shape_style">Formstil</string>
+    <string name="presentation_batch_f_shape_parameters">Formparameter</string>
+    <string name="presentation_batch_f_corner_radius">Eckenradius</string>
+    <string name="presentation_batch_f_smoothness">Glätte</string>
+    <string name="presentation_batch_f_sides">Seiten</string>
+    <string name="presentation_batch_f_curve">Kurve</string>
+    <string name="presentation_batch_f_rotation">Rotation</string>
+    <string name="presentation_batch_f_scale">Skalierung</string>
+    <string name="presentation_batch_f_smart_rule_top_played_title">Meistgespielt</string>
+    <string name="presentation_batch_f_smart_rule_top_played_subtitle">Deine am häufigsten gespielten Titel.</string>
+    <string name="presentation_batch_f_smart_rule_recently_played_title">Zuletzt gespielt</string>
+    <string name="presentation_batch_f_smart_rule_recently_played_subtitle">Songs, die du zuletzt gehört hast.</string>
+    <string name="presentation_batch_f_smart_rule_forgotten_favorites_title">Vergessene Favoriten</string>
+    <string name="presentation_batch_f_smart_rule_forgotten_favorites_subtitle">Lieblingstitel, die du schon länger nicht mehr gespielt hast.</string>
+    <string name="presentation_batch_f_smart_rule_new_gems_title">Neue Perlen</string>
+    <string name="presentation_batch_f_smart_rule_new_gems_subtitle">Kürzlich hinzugefügte Titel mit wenig Wiedergaben.</string>
+
+    <!-- Palette style -->
+    <string name="presentation_batch_f_palette_style_heading">Palette-Stil</string>
+    <string name="presentation_batch_f_palette_style_subtitle">Farben aus dem Cover für den Player wählen.</string>
+    <string name="presentation_batch_f_colors_title">Farben</string>
+    <string name="presentation_batch_f_apply">Übernehmen</string>
+    <string name="presentation_batch_f_palette_style_tonal_spot_desc">Ausgewogen und ruhig.</string>
+    <string name="presentation_batch_f_palette_style_vibrant_desc">Kräftige, satte Akzente.</string>
+    <string name="presentation_batch_f_palette_style_expressive_desc">Starke Farbwechsel und Kontraste.</string>
+    <string name="presentation_batch_f_palette_style_fruit_salad_desc">Verspielte, gedrehte Akzente.</string>
+    <string name="presentation_batch_f_palette_label_tonal_spot">Tonal Spot</string>
+    <string name="presentation_batch_f_palette_label_vibrant">Vibrant</string>
+    <string name="presentation_batch_f_palette_label_expressive">Expressive</string>
+    <string name="presentation_batch_f_palette_label_fruit_salad">Fruit Salad</string>
+    <string name="presentation_batch_f_color_accuracy_title">Farbtreue</string>
+    <string name="presentation_batch_f_color_accuracy_subtitle">0 = aktuelle Einstellung. Höhere Werte = näher am dominanten Cover-Farbton.</string>
+    <string name="presentation_batch_f_accuracy_current">Aktuell</string>
+    <string name="presentation_batch_f_accuracy_more_accurate">Genauer</string>
+    <string name="presentation_batch_f_accuracy_summary_current">0 • Aktuell</string>
+    <string name="presentation_batch_f_accuracy_summary_subtle">%1$d • Subtil</string>
+    <string name="presentation_batch_f_accuracy_summary_balanced">%1$d • Ausgewogen</string>
+    <string name="presentation_batch_f_accuracy_summary_precise">%1$d • Präzise</string>
+
+    <!-- Experimental settings -->
+    <string name="presentation_batch_f_exp_player_ui_tweaks_section">PlayerUI-Lade-Tweaks</string>
+    <string name="presentation_batch_f_exp_animated_lyrics_title">Animierte Lyrics (High-End-Geräte)</string>
+    <string name="presentation_batch_f_exp_animated_lyrics_subtitle">Spring-Animationen und visuelle Effekte für Lyrics. Kann auf schwächeren Geräten Frames kosten.</string>
+    <string name="presentation_batch_f_exp_lyric_blur_title">Lyrics-Blur-Effekt</string>
+    <string name="presentation_batch_f_exp_lyric_blur_subtitle">Inaktive Lyrics mit Tiefenschärfe-Blur versehen.</string>
+    <string name="presentation_batch_f_exp_blur_strength">Blur-Stärke</string>
+    <string name="presentation_batch_f_exp_blur_strength_subtitle">Intensität des Blur-Effekts anpassen.</string>
+    <string name="presentation_batch_f_exp_blur_strength_value">%1$.1fx</string>
+    <string name="presentation_batch_f_exp_step1_delay_header">Schritt 1 · Was verzögert werden soll</string>
+    <string name="presentation_batch_f_exp_delay_everything_title">Alles verzögern</string>
+    <string name="presentation_batch_f_exp_delay_everything_subtitle">Gesamten Player-Inhalt zurückhalten, bis der Sheet-Hintergrund vollständig aufgeklappt ist.</string>
+    <string name="presentation_batch_f_exp_album_carousel_title">Album-Karussell</string>
+    <string name="presentation_batch_f_exp_album_carousel_subtitle">Cover und Karussell bis zum vollständigen Aufklappen verzögern.</string>
+    <string name="presentation_batch_f_exp_song_metadata_title">Song-Metadaten</string>
+    <string name="presentation_batch_f_exp_song_metadata_subtitle">Titel, Künstler und Lyrics-/Queue-Aktionen verzögern.</string>
+    <string name="presentation_batch_f_exp_progress_bar_title">Fortschrittsbalken</string>
+    <string name="presentation_batch_f_exp_progress_bar_subtitle">Zeitlinie und Zeitangaben bis zum vollständigen Aufklappen verzögern.</string>
+    <string name="presentation_batch_f_exp_playback_controls_title">Wiedergabe-Steuerung</string>
+    <string name="presentation_batch_f_exp_playback_controls_subtitle">Play/Pause, Suche und Favoriten-Steuerung verzögern.</string>
+    <string name="presentation_batch_f_exp_delay_all_active_hint">Alle verzögerten Komponenten sind aktiv. \"Alles verzögern\" deaktivieren, um einzelne Teile anzupassen.</string>
+    <string name="presentation_batch_f_exp_step2_placeholders_header">Schritt 2 · Platzhalter-Verhalten konfigurieren</string>
+    <string name="presentation_batch_f_exp_use_placeholders_title">Platzhalter für verzögerte Elemente</string>
+    <string name="presentation_batch_f_exp_use_placeholders_subtitle">Layout stabil halten, indem leichte Platzhalter gerendert werden, während Komponenten auf das Aufklappen warten.</string>
+    <string name="presentation_batch_f_exp_step3_trigger_header">Schritt 3 · Wann Platzhalter zu echtem Inhalt wechseln</string>
+    <string name="presentation_batch_f_exp_trigger_mode_unlocked">Einen Modus wählen. Schwellenmodus verwendet Slider; Drag-Release-Modus wartet bis zur Geste-Freigabe.</string>
+    <string name="presentation_batch_f_exp_trigger_mode_locked">Mindestens eine verzögerte Komponente aktivieren, um den Trigger-Modus freizuschalten.</string>
+    <string name="presentation_batch_f_exp_threshold_title">Schwelle</string>
+    <string name="presentation_batch_f_exp_threshold_subtitle">Verwendet den Aufklapp-Prozentsatz.</string>
+    <string name="presentation_batch_f_exp_drag_release_title">Drag-Release</string>
+    <string name="presentation_batch_f_exp_drag_release_subtitle">Wechselt erst nach dem Loslassen der Geste.</string>
+    <string name="presentation_batch_f_exp_expand_threshold_title">Aufklapp-Schwelle</string>
+    <string name="presentation_batch_f_exp_expand_threshold_subtitle">Wie weit das Sheet aufgeklappt sein muss, bevor verzögerte Komponenten sichtbar werden.</string>
+    <string name="presentation_batch_f_exp_content_appears_at">Inhalt erscheint bei %1$d%% Aufklappung</string>
+    <string name="presentation_batch_f_exp_apply_on_close_title">Auch beim Schließen anwenden</string>
+    <string name="presentation_batch_f_exp_apply_on_close_subtitle">Schließ-Schwelle verwenden, um beim Einklappen zu Platzhaltern zurückzukehren.</string>
+    <string name="presentation_batch_f_exp_close_threshold_title">Schließ-Schwelle</string>
+    <string name="presentation_batch_f_exp_close_threshold_subtitle">Wie weit das Einklappen fortgeschritten sein muss, bevor Platzhalter übernehmen.</string>
+    <string name="presentation_batch_f_exp_placeholders_after_collapse">Platzhalter erscheinen nach %1$d%% Einklappung</string>
+    <string name="presentation_batch_f_exp_drag_release_bypass">Drag-Release-Modus umgeht Schwellen und Schließverhalten. Der Wechsel erfolgt nur beim Ende der Zieh-Geste.</string>
+    <string name="presentation_batch_f_exp_transparent_placeholders_title">Transparente Platzhalter</string>
+    <string name="presentation_batch_f_exp_transparent_placeholders_subtitle">Platzhalter behalten ihren Layout-Platz, werden aber unsichtbar.</string>
+    <string name="presentation_batch_f_exp_visual_quality">Bildqualität</string>
+    <string name="presentation_batch_f_exp_album_art_resolution">Cover-Auflösung</string>
+    <string name="presentation_batch_f_exp_screen_title">Experimentell</string>
+    <string name="presentation_batch_f_album_art_quality_low_line">Niedrig (256px) – Bessere Performance</string>
+    <string name="presentation_batch_f_album_art_quality_medium_line">Mittel (512px) – Ausgewogen</string>
+    <string name="presentation_batch_f_album_art_quality_high_line">Hoch (800px) – Beste Qualität</string>
+    <string name="presentation_batch_f_album_art_quality_original_line">Original – Maximale Qualität</string>
+
+    <!-- Settings category screen -->
+    <string name="presentation_batch_f_percent">%1$d%%</string>
+    <string name="presentation_batch_f_status_bullet_step">%1$s • %2$s</string>
+    <string name="presentation_batch_f_dot_space_suffix"> · %1$s</string>
+    <string name="presentation_batch_f_unknown_short">\?</string>
+
+</resources>

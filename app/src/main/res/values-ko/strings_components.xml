@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_tap_to_open">탭하여 열기</string>
+    <string name="widget_album_art">앨범 아트</string>
+    <string name="widget_album_art_placeholder">앨범 아트 플레이스홀더</string>
+    <string name="cd_favorite">즐겨찾기</string>
+    <string name="cd_play">재생</string>
+    <string name="cd_pause">일시정지</string>
+    <string name="widget_tap_to_play">탭하여 재생</string>
+    <string name="widget_preview_song_title">곡 제목</string>
+    <string name="widget_preview_artist">아티스트</string>
+    <string name="cd_repeat">반복</string>
+    <string name="widget_wavy_progress_bar_desc">진행 바, %1$d 퍼센트</string>
+
+    <!-- Lyrics more bottom sheet -->
+    <string name="lyrics_more_appearance">디자인</string>
+    <string name="lyrics_more_alignment">정렬</string>
+    <string name="lyrics_more_controls">컨트롤</string>
+    <string name="lyrics_more_dialog_reset_title">가사를 초기화하시겠습니까?</string>
+    <string name="lyrics_more_dialog_reset_message">이 곡의 가사를 정말로 초기화하시겠습니까?</string>
+    <string name="lyrics_more_hide_sync_controls">동기화 컨트롤 숨기기</string>
+    <string name="lyrics_more_adjust_sync">동기화 조정</string>
+    <string name="lyrics_more_show_romanization">로마자 표기 표시</string>
+    <string name="lyrics_more_show_translations">번역 표시</string>
+    <string name="lyrics_more_disable_immersive_once">몰입 모드 해제 (1회)</string>
+    <string name="lyrics_more_keep_screen_on">Keep screen on</string>
+    <string name="cd_lyrics_align_left">가사 왼쪽 정렬</string>
+    <string name="cd_lyrics_align_center">가사 가운데 정렬</string>
+    <string name="cd_lyrics_align_right">가사 오른쪽 정렬</string>
+
+    <!-- No internet -->
+    <string name="no_internet_dialog_title">인터넷 연결 없음</string>
+    <string name="no_internet_dialog_message">이 콘텐츠는 인터넷 연결이 필요합니다. 네트워크 설정을 확인하고 다시 시도하세요.</string>
+    <string name="offline_screen_title">오프라인 상태입니다</string>
+    <string name="offline_screen_message">이 콘텐츠에 액세스하려면 인터넷 연결을 확인하고 다시 시도하세요.</string>
+
+    <!-- Equalizer preset dialogs -->
+    <string name="equalizer_save_custom_preset_title">사용자 지정 프리셋 저장</string>
+    <string name="equalizer_save_custom_preset_body">사용자 지정 이퀄라이저 프리셋의 이름을 입력하세요.</string>
+    <string name="equalizer_preset_name_label">프리셋 이름</string>
+    <string name="equalizer_rename_preset_title">프리셋 이름 변경</string>
+    <string name="error_name_empty">이름은 비워둘 수 없습니다</string>
+    <string name="action_save">저장</string>
+    <string name="equalizer_action_save_new">새로 저장</string>
+    <string name="action_rename">이름 변경</string>
+
+    <string name="song_field_title">제목</string>
+    <string name="song_field_artist">아티스트</string>
+    <string name="song_field_album">앨범</string>
+    <string name="song_field_genre">장르</string>
+    <string name="action_try_again">다시 시도</string>
+    <string name="action_apply_changes">변경 사항 적용</string>
+
+    <!-- Edit song metadata sheet -->
+    <string name="edit_song_info_dialog_title">곡 메타데이터 편집</string>
+    <string name="edit_song_info_dialog_body">곡의 메타데이터를 편집하면 라이브러리 표시 및 구성 방식에 영향을 줄 수 있습니다. 변경 사항은 영구적이며 되돌릴 수 없을 수도 있습니다.</string>
+    <string name="edit_song_got_it">확인</string>
+    <string name="cd_info_icon">정보</string>
+    <string name="edit_song_toolbar_title">곡 편집</string>
+    <string name="cd_show_metadata_info">정보 표시</string>
+    <string name="song_field_track_number">트랙 번호</string>
+    <string name="song_field_disc_number">디스크 번호</string>
+    <string name="song_field_replaygain_track_db">ReplayGain 트랙 (dB)</string>
+    <string name="song_field_replaygain_album_db">ReplayGain 앨범 (dB)</string>
+    <string name="placeholder_replaygain_track_example">-6.50</string>
+    <string name="placeholder_replaygain_album_example">-8.20</string>
+    <string name="cd_replaygain_track">ReplayGain 트랙</string>
+    <string name="cd_replaygain_album">ReplayGain 앨범</string>
+    <string name="cd_song_title_icon">제목</string>
+    <string name="cd_track_number_icon">트랙 번호</string>
+    <string name="cd_disc_number_icon">디스크 번호</string>
+    <string name="cd_search_lyrics_lrclib">lrclib.net에서 가사 검색</string>
+    <string name="edit_song_cover_art_heading">커버 아트</string>
+    <string name="edit_song_cover_art_hint">정사각형 이미지를 선택하고 앱 전체에서 커버 아트가 멋지게 보이도록 미세 조정하세요.</string>
+    <string name="edit_song_change_cover_art">커버 아트 변경</string>
+    <string name="edit_song_delete_cover_art">커버 아트 삭제</string>
+    <string name="cd_cover_art_preview">새 커버 아트 미리보기</string>
+    <string name="cd_current_song_cover_art">현재 곡 커버 아트</string>
+    <string name="edit_song_crop_dialog_title">커버 아트 조정</string>
+    <string name="edit_song_crop_dialog_hint">핀치 및 드래그 제스처를 사용하여 완벽한 구도를 잡으세요.</string>
+    <string name="edit_song_apply_cover_art">커버 아트 적용</string>
+    <string name="edit_song_unable_to_load_image">선택한 이미지를 불러올 수 없습니다</string>
+
+    <!-- Song info bottom sheet -->
+    <string name="song_info_share_chooser_title">곡 파일 공유</string>
+    <string name="cd_play_song_action">곡 재생</string>
+    <string name="cd_share_song_file">곡 파일 공유</string>
+    <string name="cd_add_to_queue">대기열에 추가</string>
+    <string name="cd_play_next_in_queue">대기열에서 다음에 재생</string>
+    <string name="cd_add_to_playlist">플레이리스트에 추가</string>
+    <string name="action_add_to_queue">대기열에 추가</string>
+    <string name="action_queue_next">다음 재생</string>
+    <string name="song_info_transferring_percent">전송 중 %1$d%%</string>
+    <string name="song_info_transfer_in_progress">전송 진행 중</string>
+    <string name="song_info_set_as_short">설정</string>
+    <string name="song_info_choose_tone">사운드로 설정</string>
+    <string name="cd_choose_song_tone">이 곡을 시스템 사운드로 사용할 방식을 선택</string>
+    <string name="song_info_set_ringtone">벨소리로 설정</string>
+    <string name="cd_set_song_as_ringtone">곡을 벨소리로 설정</string>
+    <string name="song_info_tone_picker_title">이 곡 사용</string>
+    <string name="song_info_tone_picker_body">PixelPlayerOSS가 이 사운드를 설치할 위치를 선택하세요.</string>
+    <string name="song_info_tone_ringtone_title">휴대전화 벨소리</string>
+    <string name="song_info_tone_ringtone_subtitle">수신 전화</string>
+    <string name="song_info_tone_notification_title">알림음</string>
+    <string name="song_info_tone_notification_subtitle">메시지 및 앱 알림</string>
+    <string name="song_info_tone_alarm_title">알람음</string>
+    <string name="song_info_tone_alarm_subtitle">시계 알람</string>
+    <string name="song_info_tone_confirm_title">사운드 변경 확인</string>
+    <string name="song_info_tone_confirm_body">\"%1$s\"을(를) %2$s(으)로 설정할까요?</string>
+    <string name="song_info_tone_confirm_action">사운드 설정</string>
+    <string name="song_info_tone_success">\"%1$s\"이(가) %2$s(으)로 설정되었습니다</string>
+    <string name="song_info_tone_ringtone_label">벨소리</string>
+    <string name="song_info_tone_notification_label">알림음</string>
+    <string name="song_info_tone_alarm_label">알람음</string>
+    <string name="song_info_ringtone_permission_prompt">시스템 설정 수정을 켠 다음 PixelPlayerOSS로 돌아오면 자동으로 완료됩니다.</string>
+    <string name="song_info_ringtone_permission_missing">시스템 설정 수정이 켜지지 않았습니다.</string>
+    <string name="song_info_ringtone_success">\"%1$s\"이(가) 벨소리로 설정되었습니다</string>
+    <string name="song_info_ringtone_local_only">로컬 곡만 시스템 사운드로 사용할 수 있습니다.</string>
+    <string name="song_info_ringtone_missing_file">이 오디오 파일을 준비할 수 없습니다.</string>
+    <string name="song_info_ringtone_failed">사운드를 변경할 수 없습니다: %1$s</string>
+    <string name="song_info_label_duration">지속 시간</string>
+    <string name="song_info_label_song_metadata">곡 정보</string>
+    <string name="cd_duration_icon">지속 시간</string>
+    <string name="cd_genre_icon">장르</string>
+    <string name="cd_album_icon">앨범</string>
+    <string name="cd_artist_icon">아티스트</string>
+    <string name="cd_audio_format_icon">오디오 포맷</string>
+    <string name="cd_provider_icon">제공업체</string>
+    <string name="cd_file_icon">파일</string>
+    <string name="cd_edit_song_metadata">곡 메타데이터 편집</string>
+    <string name="cd_remove_from_favorites">즐겨찾기에서 제거</string>
+    <string name="cd_add_to_favorites">즐겨찾기에 추가</string>
+    <string name="song_info_tab_options">옵션</string>
+    <string name="song_info_tab_options_badge">옵션</string>
+    <string name="song_info_tab_details">상세 정보</string>
+    <string name="song_info_tab_info_badge">정보</string>
+    <string name="cd_details_tab">상세 정보</string>
+
+    <!-- Multi-selection bottom sheet -->
+    <string name="multi_selection_songs_count_upper">곡 %1$d개</string>
+    <string name="multi_selection_selected">선택됨</string>
+    <string name="cd_play_all">모두 재생</string>
+    <string name="action_play_all">모두 재생</string>
+    <string name="cd_like_all">모두 좋아요</string>
+    <string name="cd_unlike_all">모두 좋아요 취소</string>
+    <string name="cd_share_all_as_zip">모두 ZIP으로 공유</string>
+    <string name="cd_add_all_to_queue">모두 대기열에 추가</string>
+    <string name="cd_delete_all_songs">모두 삭제</string>
+    <string name="action_delete_all">모두 삭제</string>
+
+    <string name="playlist_dismissed_message">플레이리스트 닫힘</string>
+    <string name="action_undo">실행 취소</string>
+    <string name="home_option_dj_mashup">DJ Mashup</string>
+    <string name="create_playlist_dialog_title">새 플레이리스트</string>
+    <string name="create_playlist_name_label">플레이리스트 이름</string>
+    <string name="create_playlist_name_placeholder">나의 플레이리스트</string>
+    <string name="action_create">생성</string>
+    <string name="playlist_picker_add_songs_title">%1$d곡을 다음 위치에 추가…</string>
+    <string name="playlist_picker_select_playlists">플레이리스트 선택</string>
+    <string name="search_playlists_hint">플레이리스트 검색…</string>
+
+    <string name="multi_selection_playlists_count_upper">플레이리스트 %1$d개</string>
+    <string name="cd_export_all">모두 내보내기</string>
+    <string name="cd_merge_all">모두 병합</string>
+    <string name="cd_share_all">모두 공유</string>
+    <string name="action_export">내보내기</string>
+    <string name="action_merge">병합</string>
+
+    <string name="reorder_tabs_sheet_title">라이브러리 탭 순서 변경</string>
+    <string name="reorder_tabs_reset_dialog_title">순서 초기화</string>
+    <string name="reorder_tabs_reset_dialog_body">탭 순서를 기본값으로 초기화하시겠습니까?</string>
+    <string name="reorder_tabs_reordering">탭 순서 변경 중…</string>
+    <string name="cd_drag_handle">드래그 핸들</string>
+    <string name="cd_reset">초기화</string>
+    <string name="action_done">완료</string>
+</resources>

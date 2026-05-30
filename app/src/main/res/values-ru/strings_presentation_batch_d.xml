@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LibraryScreen -->
+    <string name="presentation_batch_d_library_title">Фонотека</string>
+    <string name="presentation_batch_d_open_settings_cd">Настройки</string>
+    <string name="presentation_batch_d_edit_library_tabs_cd">Правка</string>
+    <string name="presentation_batch_d_reorder_tabs_cd">Изменить порядок вкладок</string>
+    <string name="presentation_batch_d_sort_by">Сортировать по</string>
+    <string name="presentation_batch_d_view_section_cloud">Облако</string>
+    <string name="presentation_batch_d_view_section_view">Вид</string>
+    <string name="presentation_batch_d_playlist_view">Вид плейлиста</string>
+    <string name="presentation_batch_d_view_grid">Сетка</string>
+    <string name="presentation_batch_d_view_list">Список</string>
+    <string name="presentation_batch_d_storage_internal">Внутренняя</string>
+    <string name="presentation_batch_d_storage_sd_card">SD-карта</string>
+    <string name="presentation_batch_d_sd_card_unavailable">SD-карта сейчас недоступна.</string>
+    <string name="presentation_batch_d_topics_display">Отображение тем</string>
+    <string name="presentation_batch_d_topic_mode_channels">Каналы</string>
+    <string name="presentation_batch_d_topic_mode_topics">Темы</string>
+    <string name="presentation_batch_d_topic_mode_both">И то, и другое</string>
+    <string name="presentation_batch_d_cloud_sources_heading">Облако</string>
+    <string name="presentation_batch_d_cloud_only">Только облако</string>
+    <string name="presentation_batch_d_max_albums_selection">Вы можете выбрать до %1$d альбомов</string>
+    <string name="presentation_batch_d_folder_name_fallback">Папка</string>
+    <string name="presentation_batch_d_expand_tab_menu_cd">Развернуть меню</string>
+    <string name="presentation_batch_d_library_tabs_sheet_title">Вкладки фонотеки</string>
+    <string name="presentation_batch_d_library_tabs_sheet_subtitle">Перейдите к любой вкладке или измените их порядок.</string>
+    <string name="presentation_batch_d_reorder_tabs_label">Изменить порядок вкладок</string>
+    <string name="presentation_batch_d_cd_folder">Папка</string>
+
+
+    <!-- LibraryScreen — merge playlists -->
+    <string name="presentation_batch_d_merge_playlists_title">Объединить плейлисты</string>
+    <string name="presentation_batch_d_merge_playlists_prompt">Введите название для объединенного плейлиста:</string>
+    <string name="presentation_batch_d_merge_playlists_placeholder">Объединенный плейлист</string>
+    <string name="presentation_batch_d_merge_playlists_body">Это объединит %1$d выбранных плейлистов в один.</string>
+
+    <!-- MashupScreen -->
+    <string name="presentation_batch_d_mashup_title">DJ Пространство</string>
+    <string name="presentation_batch_d_loading">Загрузка…</string>
+    <string name="presentation_batch_d_mashup_deck_n">Дека %1$d</string>
+    <string name="presentation_batch_d_mashup_load_song_cd">Загрузить песню</string>
+    <string name="presentation_batch_d_mashup_no_song_loaded">Песня не загружена</string>
+    <string name="presentation_batch_d_mashup_artist_placeholder">…</string>
+    <string name="presentation_batch_d_mashup_stem_separation_unavailable">Разделение на дорожки пока недоступно.</string>
+    <string name="presentation_batch_d_mashup_volume">Громкость</string>
+    <string name="presentation_batch_d_mashup_speed">Скорость</string>
+    <string name="presentation_batch_d_mashup_crossfader">Кроссфейдер</string>
+    <string name="presentation_batch_d_mashup_deck_1">Дека 1</string>
+    <string name="presentation_batch_d_mashup_deck_2">Дека 2</string>
+    <string name="presentation_batch_d_mashup_select_song_title">Выберите песню</string>
+
+    <!-- EqualizerScreen -->
+    <string name="presentation_batch_d_eq_change_view_mode_cd">Сменить вид</string>
+    <string name="presentation_batch_d_eq_disable_cd">Выключить эквалайзер</string>
+    <string name="presentation_batch_d_eq_enable_cd">Включить эквалайзер</string>
+    <string name="presentation_batch_d_eq_edit_tab_title">Правка</string>
+    <string name="presentation_batch_d_eq_edit_presets_cd">Правка пресетов</string>
+    <string name="presentation_batch_d_eq_custom_preset_cd">Свой пресет</string>
+    <string name="presentation_batch_d_eq_presets_cd">Пресеты</string>
+    <string name="presentation_batch_d_action_update">Обновить</string>
+    <string name="presentation_batch_d_eq_bass_boost">Усиление баса</string>
+    <string name="presentation_batch_d_eq_virtualizer">Виртуализатор</string>
+    <string name="presentation_batch_d_eq_loudness">Тонкомпенсация</string>
+    <string name="presentation_batch_d_eq_effect_not_supported">Не поддерживается</string>
+    <string name="presentation_batch_d_eq_effect_not_supported_device">Не поддерживается устройством</string>
+    <string name="presentation_batch_d_eq_volume">Громкость</string>
+    <string name="presentation_batch_d_eq_frequency_response">АЧХ</string>
+    <string name="presentation_batch_d_eq_unit_hz">Гц</string>
+    <string name="presentation_batch_d_eq_band_bass">Бас</string>
+    <string name="presentation_batch_d_eq_band_low_mids">Низкие СЧ</string>
+    <string name="presentation_batch_d_eq_band_high_mids">Высокие СЧ</string>
+    <string name="presentation_batch_d_eq_band_treble">ВЧ</string>
+    <string name="presentation_batch_d_eq_band_bass_low">Бас / НЧ</string>
+    <string name="presentation_batch_d_eq_band_mid_high">СЧ / ВЧ</string>
+    <string name="presentation_batch_d_eq_page_n">Стр %1$d</string>
+    <string name="presentation_batch_d_eq_reset_duration_cd">Сброс длительности</string>
+
+    <!-- EditTransitionScreen -->
+    <string name="presentation_batch_d_transition_snackbar_using_global">Используются глобальные настройки</string>
+    <string name="presentation_batch_d_transition_snackbar_saved">Изменения сохранены</string>
+    <string name="presentation_batch_d_transition_title_playlist_rules">Правила плейлиста</string>
+    <string name="presentation_batch_d_transition_title_global">Глобальные переходы</string>
+    <string name="presentation_batch_d_transition_save_cd">Сохранить</string>
+    <string name="presentation_batch_d_transition_intro_playlist">Настройте поведение для этого конкретного плейлиста.</string>
+    <string name="presentation_batch_d_transition_intro_global">Эта конфигурация применяется ко всем источникам воспроизведения.</string>
+    <string name="presentation_batch_d_transition_active_status">Текущий статус</string>
+    <string name="presentation_batch_d_transition_status_global_default">Глобальный стандарт</string>
+    <string name="presentation_batch_d_transition_status_following_global">По глобальным настройкам</string>
+    <string name="presentation_batch_d_transition_status_custom_override">Свое правило</string>
+    <string name="presentation_batch_d_transition_status_playlist_default">Стандарт плейлиста</string>
+    <string name="presentation_batch_d_transition_custom_override_title">Свое правило</string>
+    <string name="presentation_batch_d_transition_custom_override_body">Включите, чтобы задать особые правила для этого плейлиста.</string>
+    <string name="presentation_batch_d_transition_style_title">Стиль перехода</string>
+    <string name="presentation_batch_d_transition_style_subtitle">Как песни сменяют друг друга</string>
+    <string name="presentation_batch_d_transition_mode_crossfade">Кроссфейд</string>
+    <string name="presentation_batch_d_transition_mode_none">Нет</string>
+    <string name="presentation_batch_d_transition_duration_title">Длительность перехода</string>
+    <string name="presentation_batch_d_transition_duration_subtitle_format">%1$ds общего наложения</string>
+    <string name="presentation_batch_d_transition_reset_cd">Сброс</string>
+    <string name="presentation_batch_d_transition_visualizer_current">Текущая песня</string>
+    <string name="presentation_batch_d_transition_visualizer_next">Следующая песня</string>
+    <string name="presentation_batch_d_transition_overlap_explanation_format">Песни будут накладываться друг на друга в течение %1$ds</string>
+    <string name="presentation_batch_d_transition_curves_title">Кривые громкости</string>
+    <string name="presentation_batch_d_transition_curves_subtitle">Тонкая настройка затухания</string>
+    <string name="presentation_batch_d_transition_fade_out">Затухание (Fade Out)</string>
+    <string name="presentation_batch_d_transition_fade_in">Нарастание (Fade In)</string>
+
+    <!-- ArtistDetailScreen -->
+    <string name="presentation_batch_d_cd_play_title">Играть %1$s</string>
+    <string name="presentation_batch_d_cd_collapse_title">Свернуть %1$s</string>
+    <string name="presentation_batch_d_cd_expand_title">Развернуть %1$s</string>
+    <string name="presentation_batch_d_edit_artist_image_cd">Правка фото исполнителя</string>
+    <string name="presentation_batch_d_change_photo">Сменить фото</string>
+    <string name="presentation_batch_d_reset_to_default">Сброс</string>
+    <string name="presentation_batch_d_cd_shuffle_play_artist">Перемешать песни исполнителя</string>
+    <string name="presentation_batch_d_cd_artist">Исполнитель</string>
+</resources>

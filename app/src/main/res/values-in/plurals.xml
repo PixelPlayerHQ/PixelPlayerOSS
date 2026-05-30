@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Berbagi %d playlist</item>
+        <item quantity="other">Berbagi %d playlist</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">Mengekspor %1$d playlist ke %2$s</item>
+        <item quantity="other">Mengekspor %1$d playlist ke %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">%d lagu ditambahkan ke antrean</item>
+        <item quantity="other">%d lagu ditambahkan ke antrean</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">%d lagu akan diputar berikutnya</item>
+        <item quantity="other">%d lagu akan diputar berikutnya</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">%d lagu ditambahkan ke favorit</item>
+        <item quantity="other">%d lagu ditambahkan ke favorit</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">%d lagu dihapus dari favorit</item>
+        <item quantity="other">%d lagu dihapus dari favorit</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">%d file dihapus</item>
+        <item quantity="other">%d file dihapus</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Hapus %d lagu?</item>
+        <item quantity="other">Hapus %d lagu?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d kali</item>
+        <item quantity="other">%d kali</item>
+    </plurals>
+</resources>

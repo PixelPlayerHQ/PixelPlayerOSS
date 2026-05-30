@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Deler %d spilleliste</item>
+        <item quantity="other">Deler %d spillelister</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">Eksporterte %1$d spilleliste til %2$s</item>
+        <item quantity="other">Eksporterte %1$d spillelister til %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">%d sang lagt i kø</item>
+        <item quantity="other">%d sanger lagt i kø</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">%d sang spilles som neste</item>
+        <item quantity="other">%d sanger spilles som neste</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">%d sang lagt til i favoritter</item>
+        <item quantity="other">%d sanger lagt til i favoritter</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">%d sang fjernet fra favoritter</item>
+        <item quantity="other">%d sanger fjernet fra favoritter</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">%d fil slettet</item>
+        <item quantity="other">%d filer slettet</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Slett %d sang?</item>
+        <item quantity="other">Slett %d sanger?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d gang</item>
+        <item quantity="other">%d ganger</item>
+    </plurals>
+</resources>

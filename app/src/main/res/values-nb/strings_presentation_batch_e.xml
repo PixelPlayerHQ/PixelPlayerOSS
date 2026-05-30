@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">Køen er tom.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Kø-handlinger</string>
+    <string name="presentation_batch_e_action_clear_queue">Tøm kø</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Lagre som spilleliste</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s-kø</string>
+    <string name="presentation_batch_e_queue_current">Gjeldende kø</string>
+    <string name="presentation_batch_e_removed">fjernet</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Tøm kø</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Er du sikker på at du vil tømme alle sanger fra køen, bortsett fra den gjeldende?</string>
+    <string name="presentation_batch_e_next_up">Neste</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Køen er tom for øyeblikket.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Kø</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Bland sanger</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Gjenta sanger</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Sleep timer</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Lagre som spilleliste</string>
+    <string name="presentation_batch_e_deselect_all">Velg bort alle</string>
+    <string name="presentation_batch_e_playlist_name_label">Navn på spilleliste</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Søk etter sanger…</string>
+    <string name="presentation_batch_e_save_as_format">Lagre som: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Skriv inn et navn</string>
+    <string name="presentation_batch_e_no_songs_match_query">Ingen sanger samsvarer med \"%1$s\"</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Fjern sang</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Fjern fra spilleliste</string>
+    <string name="presentation_batch_e_more_options_for_song">Flere alternativer for %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 spor i kø.</item>
+        <item quantity="other">%d spor i kø.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d sang valgt</item>
+        <item quantity="other">%d sanger valgt</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">Ingen spillelister er opprettet ennå.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Trykk på \'Ny spilleliste\' for å starte.</string>
+
+    <!-- PlaylistCreationDialogs: create flow -->
+    <string name="presentation_batch_e_create_playlist_title">Opprett spilleliste</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Velg metode.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manuell</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Design bilde, ikon, form og velg sanger selv.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">Nullstill forhåndsinnstillinger</string>
+    <string name="presentation_batch_e_reset_presets_message">Dette vil gjenopprette standard rekkefølge og synlighet. Fortsette?</string>
+    <string name="presentation_batch_e_manage_presets_title">Administrer forhåndsinnstillinger</string>
+    <string name="presentation_batch_e_presets_drag_hint">Dra for å endre rekkefølge • Trykk på øyet for å vise/skjule</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Nullstill til standard</string>
+    <string name="presentation_batch_e_cd_visible">Synlig</string>
+    <string name="presentation_batch_e_cd_hidden">Skjult</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">Hvordan din Daily Mix bygges</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Din Daily Mix bygges fra dine favoritter og mest spilte sanger. Vi legger også til spor fra artister og sjangere du liker, slik at du kan oppdage ny musikk.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">Vi bruker et lite utvalg for å holde kostnadene lave</string>
+    <string name="presentation_batch_e_daily_mix_updating">Oppdaterer…</string>
+    <string name="presentation_batch_e_daily_mix_update">Oppdater Daily Mix</string>
+</resources>

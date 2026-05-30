@@ -1,0 +1,196 @@
+<resources>
+    <string name="app_name">PixelPlayerOSS</string>
+    <string name="app_name_change_title">Perubahan Nama Aplikasi</string>
+    <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
+    <string name="do_not_show_again">Jangan tampilkan lagi</string>
+    <string name="dismiss">Tutup</string>
+    <string name="all_files_access_title">Izin Khusus Diperlukan</string>
+    <string name="all_files_access_description">Untuk mengedit metadata lagu (file .mp3), PixelPlayerOSS memerlukan akses khusus ke semua file. Ini memungkinkan kami untuk mengubah tag lagu secara langsung. Mohon berikan izin ini di layar berikutnya untuk mengaktifkan pengeditan metadata.</string>
+    <string name="grant_permission_button">Berikan Izin</string>
+    <string name="all_files_access_setting">Akses Semua File</string>
+    <string name="error">Kesalahan</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+    <string name="import_file">Impor</string>
+    <string name="search">Cari</string>
+
+    <string name="lyrics">Lirik</string>
+    <string name="close_lyrics_sheet">Tutup Panel Lirik</string>
+    <string name="loading_lyrics">Memuat lirik…</string>
+    <string name="cant_find_lyrics">Tidak dapat menemukan lirik untuk lagu ini.</string>
+    <string name="lyrics_provided_by">Lirik disediakan oleh</string>
+    <string name="lrclib_uri">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Lirik tidak ditemukan</string>
+    <string name="search_lyrics_online_prompt">Apakah Anda ingin mencari lirik secara online?</string>
+    <string name="lyrics_custom_search_hint">Kami tidak dapat menemukan lirik secara otomatis. Anda dapat mengedit judul atau artis dan mencoba mencari secara manual.</string>
+    <string name="failed_to_search_for_lyrics">Gagal mencari lirik</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Gagal mengambil lirik dari server</string>
+    <string name="lyrics_fetch_timeout">Koneksi habis waktu. Silakan periksa koneksi internet Anda.</string>
+    <string name="lyrics_network_error">Kesalahan jaringan. Silakan periksa koneksi internet Anda.</string>
+    <string name="lyrics_server_error">Kesalahan server (kode %d). Silakan coba lagi nanti.</string>
+    <string name="found_n_matches_format">Ditemukan %d kecocokan</string>
+    <string name="searched_for_x_format">Mencari \"%s\"</string>
+    <string name="searching_lyrics">Mencari lirik…</string>
+    <string name="lyrics_already_available">Lirik sudah tersedia. Pengambilan online dilewati.</string>
+    <string name="lyrics_embedded_already_available">Lirik yang tertanam sudah ditemukan. Pengambilan online dilewati.</string>
+    <string name="local_lrc_already_available">Lirik lokal (.lrc) sudah ditemukan. Pengambilan online dilewati.</string>
+    <string name="fetch_lyrics_show_options_title">Tampilkan opsi lirik</string>
+    <string name="fetch_lyrics_show_options_subtitle">Selalu buka pemilih alih-alih menerapkan kecocokan pertama secara otomatis</string>
+    <string name="save_lyrics_as_lrc">Simpan lirik sebagai .lrc</string>
+    <string name="save_lyrics_dialog_title">Simpan Lirik</string>
+    <string name="save_lyrics_dialog_message">Pilih versi yang ingin disimpan:</string>
+    <string name="save_synced_lyrics">Synced (dengan timestamp)</string>
+    <string name="save_plain_lyrics">Biasa (hanya teks)</string>
+    <string name="lyrics_saved_successfully">Lirik berhasil disimpan</string>
+    <string name="lyrics_save_failed">Gagal menyimpan lirik</string>
+    <string name="no_lyrics_to_save">Tidak ada lirik yang tersedia untuk disimpan</string>
+    <string name="reset_imported_lyrics">Reset lirik yang diimpor</string>
+    <string name="lyrics_sync_offset">Offset sinkronisasi lirik</string>
+    <string name="lyrics_sync_offset_format">%+.1fs</string>
+    <string name="lyrics_sync_offset_reset">Reset</string>
+    <string name="lyrics_earlier">Lebih awal</string>
+    <string name="lyrics_later">Lebih lambat</string>
+
+    <string name="sync_scanning">Memindai file musik…</string>
+    <string name="sync_processing">Memproses file…</string>
+    <string name="sync_files_progress">%1$d dari %2$d file</string>
+    <string name="sync_in_progress">Menyinkronkan pustaka…</string>
+    <string name="sync_complete">Sinkronisasi selesai</string>
+    <string name="sync_pending">Menunggu…</string>
+    <string name="syncing_library">Menyinkronkan pustaka…</string>
+    <string name="library_background_sync_cloud">Menyinkronkan sumber cloud...</string>
+    <string name="unknown_song_title">Lagu tidak dikenal</string>
+    <string name="unknown_artist">Artis tidak dikenal</string>
+    <string name="unknown_album">Album tidak dikenal</string>
+    <string name="artist_picker_title">Pilih Artis</string>
+    <string name="artist_picker_supporting_text">Buka artis mana pun yang dikreditkan untuk trek ini.</string>
+    <string name="artist_picker_count_single">1 artis</string>
+    <string name="artist_picker_count_multiple">%1$d artis</string>
+    <string name="artist_picker_primary_label">Artis utama</string>
+    <string name="artist_picker_shortcut_label">Halaman artis</string>
+    <string name="external_queue_label">Putar cepat</string>
+    <string name="external_playback_error">Tidak dapat membuka file audio tersebut.</string>
+    <string name="open_full_player">Buka pemutar penuh</string>
+    <string name="close_external_player">Tutup pemutar melayang</string>
+    <string name="close_notification_player">Tutup pemutar</string>
+    <string name="previous_track">Trek sebelumnya</string>
+    <string name="next_track">Trek berikutnya</string>
+    <string name="pause_playback">Jeda putaran</string>
+    <string name="play_playback">Putar</string>
+    <string name="playlist_not_found">Playlist tidak ditemukan.</string>
+
+    <string name="disc_number_header">Disc %d</string>
+
+    <string name="shortcut_shuffle_short">Acak</string>
+    <string name="shortcut_shuffle_long">Acak semua lagu</string>
+    <string name="shortcut_playlist_short">Playlist</string>
+    <string name="shortcut_playlist_long">Playlist terakhir diputar</string>
+
+    <string name="tile_shuffle_all">Acak Semua</string>
+    <string name="tile_last_playlist">Playlist Terakhir</string>
+    <string name="tile_last_playlist_unavailable">Tidak ada playlist yang tersedia untuk dibuka</string>
+
+    <string name="invalid_album_id">ID album tidak valid</string>
+    <string name="album_id_not_found">ID album tidak ditemukan</string>
+    <string name="error_loading_album">Kesalahan memuat data album: %s</string>
+    <string name="album_not_found">Album tidak ditemukan</string>
+    <string name="could_not_update">Tidak dapat memperbarui: %s</string>
+    <string name="invalid_artist_id">ID artis tidak valid</string>
+    <string name="artist_id_not_found">ID artis tidak ditemukan</string>
+    <string name="error_loading_artist">Kesalahan memuat data artis: %s</string>
+    <string name="could_not_find_artist">Tidak dapat menemukan artis</string>
+    <string name="no_valid_songs">Tidak ditemukan lagu yang valid untuk diputar</string>
+
+    <string name="glance_widget_description">Widget responsif yang beradaptasi dengan ukurannya</string>
+    <string name="widget_bar_4x1_desc">Bilah pemutar ringkas</string>
+    <string name="widget_control_4x2_desc">Kontrol penuh dengan acak dan ulangi</string>
+    <string name="widget_grid_2x2_desc">Pemutar kotak minimalis</string>
+    <string name="service_processing_action">Memproses tindakan pemutaran…</string>
+
+    <!-- Playlist bulk actions -->
+    <string name="playlist_none_to_share">Tidak ada playlist untuk dibagikan</string>
+    <string name="playlist_share_chooser_title">Bagikan playlist</string>
+    <string name="playlist_share_failed">Gagal berbagi: %1$s</string>
+    <string name="playlist_none_to_export">Tidak ada playlist untuk diekspor</string>
+    <string name="playlist_export_failed">Gagal mengekspor: %1$s</string>
+    <string name="playlist_export_folder_display">Musik/Ekspor PixelPlayerOSS</string>
+    <string name="error_unknown">Kesalahan tidak dikenal</string>
+
+
+
+    <!-- Backup / data transfer (ViewModels) -->
+    <string name="backup_invalid_format">Cadangan tidak valid: %1$s</string>
+    <string name="backup_progress_preparing_restore">Menyiapkan pemulihan</string>
+    <string name="backup_progress_starting_task">Memulai tugas pemulihan.</string>
+    <string name="backup_progress_preparing_backup">Menyiapkan cadangan</string>
+    <string name="backup_progress_starting_backup_task">Memulai tugas pencadangan.</string>
+    <string name="restore_completed_success">Cadangan berhasil dipulihkan</string>
+    <string name="restore_completed_partial_issues">Pemulihan selesai dengan beberapa masalah yang belum terselesaikan.</string>
+    <string name="restore_could_not_complete">Pemulihan tidak dapat diselesaikan: %1$s</string>
+    <string name="restore_failed_format">Pemulihan gagal: %1$s</string>
+    <string name="data_exported_successfully">Data berhasil diekspor</string>
+    <string name="export_failed_format">Ekspor gagal: %1$s</string>
+    <string name="data_restored_successfully">Data berhasil dipulihkan</string>
+    <string name="restore_partial_unresolved_format">Pemulihan selesai dengan masalah yang belum terselesaikan. Gagal: %1$s</string>
+    <string name="dev_test_crash_message">Crash uji coba dipicu dari Opsi Pengembang - Ini disengaja untuk menguji sistem pelaporan crash</string>
+
+    <!-- PlayerViewModel -->
+    <string name="player_song_not_found_in_list">Lagu tidak ditemukan dalam daftar saat ini</string>
+    <string name="player_could_not_locate_song">Tidak dapat menemukan lokasi lagu</string>
+    <string name="player_no_songs_in_library_toast">Tidak ada lagu ditemukan di pustaka</string>
+    <string name="player_playback_stopped_eot">Pemutaran berhenti: %1$s selesai (Akhir Trek).</string>
+    <string name="player_default_track_title">Trek</string>
+    <string name="player_no_songs_to_shuffle">Tidak ada lagu untuk diacak.</string>
+    <string name="player_queue_name_selected_albums">Album Terpilih</string>
+    <string name="player_no_playable_songs_in_albums">Tidak ditemukan lagu yang dapat diputar di album terpilih</string>
+    <string name="player_only_first_n_albums_queued">Hanya %1$d album pertama yang dimasukkan ke antrean</string>
+    <string name="player_albums_queued_format">%1$d album dimasukkan ke antrean (%2$d lagu)</string>
+    <string name="player_could_not_queue_albums">Tidak dapat memasukkan album terpilih ke antrean</string>
+    <string name="player_all_songs_already_in_favorites">Semua lagu sudah ada di favorit</string>
+    <string name="player_no_songs_were_in_favorites">Tidak ada lagu yang ada di favorit</string>
+    <string name="player_creating_zip">Membuat file ZIP…</string>
+    <string name="player_share_zip_failed_format">Gagal berbagi: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Tidak dapat menghapus lagu yang sedang diputar</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">%1$d file dihapus (%2$d dilewati - sedang diputar)</string>
+    <string name="player_batch_delete_partial_format">%1$d dari %2$d file dihapus</string>
+    <string name="player_delete_files_failed">Gagal menghapus file</string>
+    <string name="player_file_deleted">File dihapus</string>
+    <string name="player_delete_file_not_found">Tidak dapat menghapus file atau file tidak ditemukan</string>
+    <string name="player_deletion_cancelled">Penghapusan dibatalkan</string>
+    <string name="player_permission_denied_edit_files">Izin ditolak – tidak dapat mengedit file</string>
+    <string name="player_permission_denied_save_lyrics">Izin ditolak – tidak dapat menyimpan lirik</string>
+    <string name="player_permission_denied_edit_this_file">Izin ditolak – tidak dapat mengedit file ini</string>
+    <string name="metadata_updated_successfully">Metadata berhasil diperbarui</string>
+    <string name="player_updating_n_songs">Memperbarui %1$d lagu…</string>
+    <string name="player_batch_genre_updated_all">Berhasil memperbarui %1$d lagu!</string>
+    <string name="player_batch_genre_updated_partial">Diperbarui %1$d lagu. Gagal: %2$d</string>
+    <string name="playlist_restored_toast">Daftar putar dipulihkan</string>
+    <string name="delete_songs_permanent_message">Lagu-lagu ini akan dihapus secara permanen dari perangkat Anda dan tidak dapat dipulihkan.</string>
+    <string name="delete_action">Hapus</string>
+
+    <!-- Sleep timer (SleepTimerStateHolder + TimerOptionsBottomSheet) -->
+    <string name="sleep_timer_n_minutes_format">%1$d menit</string>
+    <string name="sleep_timer_display_eot">Akhir trek</string>
+    <string name="sleep_timer_set_for_minutes_toast">Timer diatur untuk %1$d menit.</string>
+    <string name="sleep_timer_cancelled_toast">Timer dibatalkan.</string>
+    <string name="sleep_timer_eot_no_song_toast">Tidak dapat mengaktifkan akhir trek: tidak ada lagu aktif.</string>
+    <string name="sleep_timer_eot_song_changed_toast">Timer akhir trek dinonaktifkan: lagu berubah dari %1$s ke %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">Pemutaran akan berhenti di akhir trek.</string>
+    <string name="sleep_timer_label_previous_track">Trek sebelumnya</string>
+    <string name="sleep_timer_label_current_track">Trek saat ini</string>
+    <string name="sleep_timer_ui_title">Sleep Timer</string>
+    <string name="sleep_timer_ui_slider_label_timer">Timer</string>
+    <string name="sleep_timer_ui_end_of_current_track">Akhir trek saat ini</string>
+    <string name="sleep_timer_ui_custom_time">Waktu kustom</string>
+    <string name="sleep_timer_ui_cancel_timer">Batalkan timer</string>
+    <string name="sleep_timer_ui_set_custom_duration">Atur durasi kustom</string>
+    <string name="sleep_timer_ui_play_count_label">Jumlah putaran: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 kali</string>
+    <string name="cd_switch_on">Nyalakan</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+    <string name="library_background_sync">Menyelesaikan di latar belakang...</string>
+    <string name="library_background_sync_lyrics">Memindai lirik...</string>
+    <string name="library_background_sync_cache">Membersihkan cache sampul album...</string>
+</resources>

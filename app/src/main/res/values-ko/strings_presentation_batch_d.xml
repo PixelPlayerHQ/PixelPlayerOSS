@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LibraryScreen -->
+    <string name="presentation_batch_d_library_title">라이브러리</string>
+    <string name="presentation_batch_d_open_settings_cd">설정</string>
+    <string name="presentation_batch_d_edit_library_tabs_cd">편집</string>
+    <string name="presentation_batch_d_reorder_tabs_cd">탭 순서 변경</string>
+    <string name="presentation_batch_d_sort_by">정렬 기준</string>
+    <string name="presentation_batch_d_view_section_cloud">클라우드</string>
+    <string name="presentation_batch_d_view_section_view">보기</string>
+    <string name="presentation_batch_d_playlist_view">플레이리스트 보기</string>
+    <string name="presentation_batch_d_view_grid">그리드</string>
+    <string name="presentation_batch_d_view_list">리스트</string>
+    <string name="presentation_batch_d_storage_internal">내부 저장소</string>
+    <string name="presentation_batch_d_storage_sd_card">SD 카드</string>
+    <string name="presentation_batch_d_sd_card_unavailable">현재 SD 카드를 사용할 수 없습니다.</string>
+    <string name="presentation_batch_d_topics_display">주제 표시</string>
+    <string name="presentation_batch_d_topic_mode_channels">채널</string>
+    <string name="presentation_batch_d_topic_mode_topics">주제</string>
+    <string name="presentation_batch_d_topic_mode_both">둘 다</string>
+    <string name="presentation_batch_d_cloud_sources_heading">클라우드</string>
+    <string name="presentation_batch_d_cloud_only">클라우드 전용</string>
+    <string name="presentation_batch_d_max_albums_selection">최대 %1$d개의 앨범을 선택할 수 있습니다</string>
+    <string name="presentation_batch_d_folder_name_fallback">폴더</string>
+    <string name="presentation_batch_d_expand_tab_menu_cd">메뉴 확장</string>
+    <string name="presentation_batch_d_library_tabs_sheet_title">라이브러리 탭</string>
+    <string name="presentation_batch_d_library_tabs_sheet_subtitle">원하는 탭으로 바로 이동하거나 순서를 변경하세요.</string>
+    <string name="presentation_batch_d_reorder_tabs_label">탭 순서 변경</string>
+    <string name="presentation_batch_d_cd_folder">폴더</string>
+
+
+    <!-- LibraryScreen — merge playlists -->
+    <string name="presentation_batch_d_merge_playlists_title">플레이리스트 병합</string>
+    <string name="presentation_batch_d_merge_playlists_prompt">병합된 플레이리스트의 이름을 입력하세요:</string>
+    <string name="presentation_batch_d_merge_playlists_placeholder">병합된 플레이리스트</string>
+    <string name="presentation_batch_d_merge_playlists_body">선택한 %1$d개의 플레이리스트를 하나로 병합합니다.</string>
+
+    <!-- MashupScreen -->
+    <string name="presentation_batch_d_mashup_title">DJ 스페이스</string>
+    <string name="presentation_batch_d_loading">로드 중…</string>
+    <string name="presentation_batch_d_mashup_deck_n">데크 %1$d</string>
+    <string name="presentation_batch_d_mashup_load_song_cd">곡 로드</string>
+    <string name="presentation_batch_d_mashup_no_song_loaded">로드된 곡 없음</string>
+    <string name="presentation_batch_d_mashup_artist_placeholder">…</string>
+    <string name="presentation_batch_d_mashup_stem_separation_unavailable">음원 분리 기능은 아직 사용할 수 없습니다.</string>
+    <string name="presentation_batch_d_mashup_volume">볼륨</string>
+    <string name="presentation_batch_d_mashup_speed">속도</string>
+    <string name="presentation_batch_d_mashup_crossfader">크로스페이더</string>
+    <string name="presentation_batch_d_mashup_deck_1">데크 1</string>
+    <string name="presentation_batch_d_mashup_deck_2">데크 2</string>
+    <string name="presentation_batch_d_mashup_select_song_title">곡 선택</string>
+
+    <!-- EqualizerScreen -->
+    <string name="presentation_batch_d_eq_change_view_mode_cd">보기 모드 변경</string>
+    <string name="presentation_batch_d_eq_disable_cd">이퀄라이저 비활성화</string>
+    <string name="presentation_batch_d_eq_enable_cd">이퀄라이저 활성화</string>
+    <string name="presentation_batch_d_eq_edit_tab_title">편집</string>
+    <string name="presentation_batch_d_eq_edit_presets_cd">프리셋 편집</string>
+    <string name="presentation_batch_d_eq_custom_preset_cd">사용자 지정 프리셋</string>
+    <string name="presentation_batch_d_eq_presets_cd">프리셋</string>
+    <string name="presentation_batch_d_action_update">업데이트</string>
+    <string name="presentation_batch_d_eq_bass_boost">베이스 부스트</string>
+    <string name="presentation_batch_d_eq_virtualizer">가상화</string>
+    <string name="presentation_batch_d_eq_loudness">라우드니스</string>
+    <string name="presentation_batch_d_eq_effect_not_supported">지원되지 않음</string>
+    <string name="presentation_batch_d_eq_effect_not_supported_device">이 기기에서 지원되지 않음</string>
+    <string name="presentation_batch_d_eq_volume">볼륨</string>
+    <string name="presentation_batch_d_eq_frequency_response">주파수 응답</string>
+    <string name="presentation_batch_d_eq_unit_hz">Hz</string>
+    <string name="presentation_batch_d_eq_band_bass">베이스</string>
+    <string name="presentation_batch_d_eq_band_low_mids">로우 미드</string>
+    <string name="presentation_batch_d_eq_band_high_mids">하이 미드</string>
+    <string name="presentation_batch_d_eq_band_treble">트레블</string>
+    <string name="presentation_batch_d_eq_band_bass_low">베이스 / 로우</string>
+    <string name="presentation_batch_d_eq_band_mid_high">미드 / 하이</string>
+    <string name="presentation_batch_d_eq_page_n">%1$d페이지</string>
+    <string name="presentation_batch_d_eq_reset_duration_cd">지속 시간 초기화</string>
+
+    <!-- EditTransitionScreen -->
+    <string name="presentation_batch_d_transition_snackbar_using_global">글로벌 기본값 사용 중</string>
+    <string name="presentation_batch_d_transition_snackbar_saved">변경 사항이 저장되었습니다</string>
+    <string name="presentation_batch_d_transition_title_playlist_rules">플레이리스트 규칙</string>
+    <string name="presentation_batch_d_transition_title_global">글로벌 전환</string>
+    <string name="presentation_batch_d_transition_save_cd">저장</string>
+    <string name="presentation_batch_d_transition_intro_playlist">이 플레이리스트의 기본 동작을 구성합니다.</string>
+    <string name="presentation_batch_d_transition_intro_global">이 구성은 별도로 설정하지 않는 한 모든 재생 소스에 적용됩니다.</string>
+    <string name="presentation_batch_d_transition_active_status">활성 상태</string>
+    <string name="presentation_batch_d_transition_status_global_default">글로벌 기본값</string>
+    <string name="presentation_batch_d_transition_status_following_global">글로벌 설정 따름</string>
+    <string name="presentation_batch_d_transition_status_custom_override">사용자 지정 재정의</string>
+    <string name="presentation_batch_d_transition_status_playlist_default">플레이리스트 기본값</string>
+    <string name="presentation_batch_d_transition_custom_override_title">사용자 지정 재정의</string>
+    <string name="presentation_batch_d_transition_custom_override_body">이 플레이리스트에 대해 특정 규칙을 설정하려면 활성화하세요.</string>
+    <string name="presentation_batch_d_transition_style_title">전환 스타일</string>
+    <string name="presentation_batch_d_transition_style_subtitle">트랙이 섞이는 방식</string>
+    <string name="presentation_batch_d_transition_mode_crossfade">크로스페이드</string>
+    <string name="presentation_batch_d_transition_mode_none">없음</string>
+    <string name="presentation_batch_d_transition_duration_title">전환 지속 시간</string>
+    <string name="presentation_batch_d_transition_duration_subtitle_format">총 %1$d초 겹침</string>
+    <string name="presentation_batch_d_transition_reset_cd">초기화</string>
+    <string name="presentation_batch_d_transition_visualizer_current">현재 곡</string>
+    <string name="presentation_batch_d_transition_visualizer_next">다음 곡</string>
+    <string name="presentation_batch_d_transition_overlap_explanation_format">트랙이 %1$d초 동안 겹칩니다</string>
+    <string name="presentation_batch_d_transition_curves_title">볼륨 곡선</string>
+    <string name="presentation_batch_d_transition_curves_subtitle">오디오 슬로프 미세 조정</string>
+    <string name="presentation_batch_d_transition_fade_out">페이드 아웃</string>
+    <string name="presentation_batch_d_transition_fade_in">페이드 인</string>
+
+    <!-- ArtistDetailScreen -->
+    <string name="presentation_batch_d_cd_play_title">%1$s 재생</string>
+    <string name="presentation_batch_d_cd_collapse_title">%1$s 접기</string>
+    <string name="presentation_batch_d_cd_expand_title">%1$s 펼치기</string>
+    <string name="presentation_batch_d_edit_artist_image_cd">아티스트 이미지 편집</string>
+    <string name="presentation_batch_d_change_photo">사진 변경</string>
+    <string name="presentation_batch_d_reset_to_default">기본값으로 초기화</string>
+    <string name="presentation_batch_d_cd_shuffle_play_artist">아티스트 곡 셔플 재생</string>
+    <string name="presentation_batch_d_cd_artist">아티스트</string>
+</resources>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">Queue is empty.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Queue actions</string>
+    <string name="presentation_batch_e_action_clear_queue">Clear queue</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Save as playlist</string>
+    <string name="presentation_batch_e_action_locate_current_song">Locate current song</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s queue</string>
+    <string name="presentation_batch_e_queue_current">Current queue</string>
+    <string name="presentation_batch_e_removed">removed</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Clear queue</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Are you sure you want to clear all songs from the queue except the current one?</string>
+    <string name="presentation_batch_e_next_up">Next up</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Queue is empty for now.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Queue</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Toggle shuffle</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Toggle repeat</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Sleep timer</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Save as playlist</string>
+    <string name="presentation_batch_e_deselect_all">Deselect all</string>
+    <string name="presentation_batch_e_playlist_name_label">Playlist name</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Search songs to include…</string>
+    <string name="presentation_batch_e_save_as_format">Save as: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Enter a playlist name</string>
+    <string name="presentation_batch_e_no_songs_match_query">No songs match \"%1$s\"</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Dismiss song</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Remove from playlist</string>
+    <string name="presentation_batch_e_more_options_for_song">More options for %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 track lined up.</item>
+        <item quantity="other">%d tracks lined up.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d song selected</item>
+        <item quantity="other">%d songs selected</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">No playlist has been created.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Touch the \'New Playlist\' button to start.</string>
+
+    <!-- PlaylistCreationDialogs: create flow -->
+    <string name="presentation_batch_e_create_playlist_title">Create playlist</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Choose the creation flow.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manual</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Design artwork, icon, shape and pick songs yourself.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">Reset presets</string>
+    <string name="presentation_batch_e_reset_presets_message">This will restore the default preset order and visibility. Continue?</string>
+    <string name="presentation_batch_e_manage_presets_title">Manage presets</string>
+    <string name="presentation_batch_e_presets_drag_hint">Drag to reorder • Tap the eye to show or hide</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Reset to default</string>
+    <string name="presentation_batch_e_cd_visible">Visible</string>
+    <string name="presentation_batch_e_cd_hidden">Hidden</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">How your Daily Mix is built</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Your Daily Mix is built from your favorite and most-played songs. We also add tracks from artists and genres you like so you can discover new music.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">We use a small sample to keep costs low</string>
+    <string name="presentation_batch_e_daily_mix_updating">Updating…</string>
+    <string name="presentation_batch_e_daily_mix_update">Update Daily Mix</string>
+</resources>

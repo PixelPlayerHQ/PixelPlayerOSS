@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared login / streaming auth -->
+    <string name="auth_cd_back">Indietro</string>
+    <string name="auth_show_password">Mostra password</string>
+    <string name="auth_hide_password">Nascondi password</string>
+    <string name="auth_connecting">Connessione in corso…</string>
+    <string name="auth_connect">Connetti</string>
+    <string name="auth_connection_details">Dettagli connessione</string>
+    <string name="auth_connection_details_subtitle">Inserisci l\'URL del server e le credenziali del tuo account.</string>
+    <string name="auth_server_url">URL server</string>
+    <string name="auth_username">Nome utente</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">Inserisci password</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="toast_welcome_user">Benvenuto, %1$s!</string>
+
+    <!-- Navidrome / Subsonic -->
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_subtitle">Connettiti al tuo server musicale self-hosted</string>
+    <string name="auth_navidrome_info_card">Supporta Navidrome, Airsonic, Gonic, Ampache e altri server compatibili con l\'API Subsonic.</string>
+    <string name="auth_server_url_placeholder_https">https://music.example.com</string>
+    <string name="auth_navidrome_server_url_hint">Usa l\'indirizzo base completo https:// del tuo server.</string>
+    <string name="auth_navidrome_username_hint">Questo è il nome del tuo account Subsonic o Navidrome.</string>
+    <string name="auth_navidrome_password_hint">Funziona anche la password dell\'app se il tuo server la supporta.</string>
+    <string name="auth_prefill_https">Precompila https://</string>
+    <string name="auth_navidrome_footer">Compatibile con Navidrome, Gonic, Airsonic e altri server compatibili Subsonic</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+
+    <!-- Jellyfin -->
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_info_card">Si connette ai server Jellyfin. Sono supportati sia HTTP che HTTPS per l\'accesso alla rete locale.</string>
+    <string name="auth_jellyfin_subtitle">Connettiti al tuo server multimediale Jellyfin</string>
+    <string name="auth_jellyfin_connection_subtitle">Inserisci l\'URL del server Jellyfin e le credenziali del tuo account.</string>
+    <string name="auth_jellyfin_server_placeholder">http://192.168.1.100:8096</string>
+    <string name="auth_jellyfin_server_url_hint">URL completo del tuo server Jellyfin, inclusa la porta.</string>
+    <string name="auth_jellyfin_username_hint">Il nome utente del tuo account Jellyfin.</string>
+    <string name="auth_jellyfin_password_hint">La password del tuo account Jellyfin.</string>
+    <string name="auth_prefill_http">Precompila http://</string>
+    <string name="auth_jellyfin_footer">Si connette ai server Jellyfin per lo streaming della tua libreria musicale</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+
+
+    <string name="auth_web_exit_confirm_body">Puoi tornare più tardi. Lo stato della pagina corrente verrà perso alla chiusura.</string>
+    <string name="auth_exit">Esci</string>
+    <string name="auth_stay">Rimani</string>
+    <string name="auth_web_cd_web_back">Indietro web</string>
+    <string name="auth_web_cd_web_forward">Avanti web</string>
+    <string name="auth_web_cd_refresh">Aggiorna</string>
+    <string name="auth_web_cd_open_home">Apri home</string>
+    <string name="auth_saving">Salvataggio in corso…</string>
+    <string name="auth_done">Fatto</string>
+    <string name="auth_web_retry">Riprova</string>
+    <string name="auth_dial_plus">+</string>
+    <string name="auth_snackbar_page_timeout">Timeout caricamento pagina. Puoi riprovare senza perdere i tuoi progressi.</string>
+    <string name="auth_error_cookies_unreadable">Impossibile leggere i cookie di sessione.</string>
+    <string name="auth_page_slow">La pagina sta impiegando troppo tempo a caricarsi. Usa aggiorna o prova un\'altra rete.</string>
+    <string name="auth_webview_load_failed">Caricamento WebView non riuscito.</string>
+    <string name="auth_error_no_cookies">Nessun cookie trovato. Effettua prima il login.</string>
+</resources>

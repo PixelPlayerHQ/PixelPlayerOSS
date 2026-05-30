@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Navigation / misc -->
+    <string name="nav_error_genre_id_missing">Ошибка: ID жанра отсутствует</string>
+    <string name="easter_egg_thank_you">Спасибо за использование PixelPlayerOSS!</string>
+
+    <!-- Word delimiter config -->
+    <string name="word_delimiter_section_title">Текущие разделители слов</string>
+    <string name="word_delimiter_section_subtitle">Эти слова разделяют имена артистов, если окружены пробелами. Регистр не важен. Нажмите для удаления.</string>
+    <string name="word_delimiter_empty">Разделители слов не настроены</string>
+    <string name="word_delimiter_add_title">Добавить разделитель слов</string>
+    <string name="word_delimiter_hint">напр., feat. или ft.</string>
+    <string name="word_delimiter_help_title">Как работают разделители слов</string>
+    <string name="word_delimiter_help_body">Разделители ищутся без учета регистра с пробелами вокруг.\n\nОдносимвольные разделители (типа «x») требуют пробелов с обеих сторон.\n\nПримеры:\n  «Drake feat. Rihanna» -&gt; Drake, Rihanna\n  «Marshmello x Bastille» -&gt; Marshmello, Bastille\n  «A vs. B» -&gt; A, B</string>
+    <string name="word_delimiters_screen_title">Разделители слов</string>
+    <string name="word_delimiter_reset_title">Сбросить разделители?</string>
+    <string name="word_delimiter_reset_message">Это удалит ваши разделители и вернет стандартные. Это нельзя отменить.</string>
+    <string name="word_delimiter_toast_added">Разделитель добавлен</string>
+    <string name="word_delimiter_toast_invalid">Уже существует или неверен</string>
+    <string name="word_delimiter_toast_reset">Сброшено до стандартных</string>
+    <string name="action_reset">Сброс</string>
+
+    <!-- Delimiter config (path separators) -->
+    <string name="delimiter_section_title">Текущие разделители</string>
+    <string name="delimiter_section_subtitle">Нажмите на разделитель для удаления. Требуется минимум один.</string>
+    <string name="delimiter_add_title">Добавить разделитель</string>
+    <string name="delimiter_hint">напр., / или ;</string>
+    <string name="delimiter_defaults_title">Разделители по умолчанию</string>
+    <string name="delimiter_reset_title">Сбросить разделители?</string>
+    <string name="delimiter_reset_message">Это вернет разделители по умолчанию. Это нельзя отменить.</string>
+    <string name="delimiter_toast_reset">Сброшено до стандартных</string>
+    <string name="delimiter_toast_at_least_one">Требуется минимум один разделитель</string>
+    <string name="delimiter_toast_added">Разделитель добавлен</string>
+    <string name="delimiter_toast_invalid">Уже существует или неверен</string>
+    <string name="path_delimiters_toolbar_title">Разделители</string>
+    <string name="delimiter_label_space">Пробел</string>
+    <string name="cd_add_path_delimiter">Добавить разделитель</string>
+
+    <!-- Accounts -->
+    <string name="accounts_unable_open_screen">Не удается открыть экран сейчас.</string>
+
+    <!-- Setup (subset; more keys follow in same file) -->
+    <string name="setup_welcome_prefix">Добро пожаловать в </string>
+    <string name="setup_beta_symbol">β</string>
+    <string name="setup_beta_label">Бета</string>
+    <string name="setup_intro_body">Давайте всё настроим.</string>
+    <string name="setup_checking_backup">Проверка бэкапа…</string>
+    <string name="setup_theme_title">Тема приложения</string>
+    <string name="setup_theme_subtitle">Выберите стиль перед началом работы.</string>
+    <string name="setup_theme_footer">Вы сможете изменить это позже в Настройках.</string>
+    <string name="setup_recommended">Рекомендуется</string>
+    <string name="setup_library_layout_title">Макет фонотеки</string>
+    <string name="setup_library_layout_subtitle">Выберите удобный способ навигации.</string>
+    <string name="setup_compact_mode">Компактный режим</string>
+    <string name="setup_library_layout_footer">Вы сможете изменить это позже в Настройках.</string>
+    <string name="tab_library">Фонотека</string>
+    <string name="tab_songs">ПЕСНИ</string>
+    <string name="tab_albums">АЛЬБОМЫ</string>
+    <string name="tab_artists">АРТИСТЫ</string>
+    <string name="setup_all_set_title">Готово!</string>
+    <string name="setup_all_set_body">Вы готовы наслаждаться музыкой.</string>
+    <string name="setup_restore_backup_title">Восстановить бэкап</string>
+    <string name="setup_restore_backup_subtitle">Выберите модули для импорта.</string>
+    <string name="setup_modules_selected_format">Выбрано модулей: %1$d из %2$d</string>
+    <string name="setup_backup_created_format">Создан %1$s</string>
+    <string name="setup_backup_from_version">Бэкап версии %1$s</string>
+    <string name="unknown_version">Неизвестная версия</string>
+    <string name="setup_lets_go">Поехали!</string>
+    <string name="setup_step_format">Шаг %1$d из %2$d</string>
+    <string name="setup_app_navigation_title">Навигация</string>
+    <string name="setup_app_navigation_subtitle">Выберите стиль панели навигации.</string>
+    <string name="setup_navbar_default_style">Стандартный стиль</string>
+    <string name="setup_navbar_footer">Вы сможете изменить это позже в Настройках.</string>
+    <string name="skip_for_now">Пропустить</string>
+    <string name="skip_not_now">Не сейчас</string>
+    <string name="restoring">Восстановление</string>
+    <string name="restore_selected">Восстановить выбранное</string>
+    <string name="customize_corner_radius">Настроить радиус углов</string>
+    <string name="toast_grant_permission_first">Сначала предоставьте разрешение.</string>
+    <string name="toast_grant_all_permissions">Предоставьте все разрешения.</string>
+    <string name="toast_grant_storage_first">Сначала дайте доступ к хранилищу</string>
+    <string name="toast_battery_settings_unavailable">Не удалось открыть настройки батареи</string>
+
+    <!-- Content descriptions -->
+    <string name="cd_expand_menu">Развернуть меню</string>
+    <string name="cd_next_step">Далее</string>
+    <string name="cd_finish">Завершить</string>
+    <string name="cd_close">Закрыть</string>
+    <string name="cd_remove">Удалить</string>
+    <string name="cd_add_word_delimiter">Добавить разделитель слов</string>
+    <string name="cd_reset_defaults">Сброс настроек</string>
+
+    <!-- Setup (additional literals) -->
+    <string name="setup_excluded_folders_title">Исключенные папки</string>
+    <string name="setup_excluded_folders_description">По умолчанию сканируются все папки. Выберите те, которые нужно игнорировать.</string>
+    <string name="setup_choose_folders_ignore">Выбрать папки</string>
+    <string name="setup_permission_media_title">Доступ к медиа</string>
+    <string name="setup_permission_media_description">PixelPlayerOSS нужен доступ к аудиофайлам для создания фонотеки.</string>
+    <string name="setup_permission_granted">Разрешено</string>
+    <string name="setup_grant_media_permission">Разрешить доступ</string>
+    <string name="setup_permission_notifications_title">Уведомления</string>
+    <string name="setup_permission_notifications_description">Включите уведомления для управления музыкой с экрана блокировки.</string>
+    <string name="setup_enable_notifications">Включить уведомления</string>
+    <string name="setup_permission_alarms_title">Будильники и напоминания</string>
+    <string name="setup_permission_alarms_description">Нужно для точной работы таймера сна.</string>
+    <string name="setup_grant_permission_generic">Дать разрешение</string>
+    <string name="setup_backup_have_title">У вас есть бэкап?</string>
+    <string name="setup_backup_have_description">Если у вас есть бэкап PixelPlayerOSS, восстановите его сейчас.</string>
+    <string name="setup_inspecting_backup">Проверка бэкапа</string>
+    <string name="setup_restoring_backup">Восстановление бэкапа</string>
+    <string name="setup_import_backup">Импортировать бэкап</string>
+    <string name="setup_theme_dark_title">Темная</string>
+    <string name="setup_theme_dark_description">Стандартный темный вид Material 3.</string>
+    <string name="setup_theme_light_title">Светлая</string>
+    <string name="setup_theme_light_description">Яркий вид Material 3.</string>
+    <string name="setup_theme_follow_title">Как в системе</string>
+    <string name="setup_theme_follow_description">Использовать текущую тему устройства.</string>
+    <string name="setup_compact_mode_pill_hint">Используется минимальная навигация</string>
+    <string name="setup_compact_mode_tab_hint">Используется стандартный ряд вкладок</string>
+    <string name="setup_preview_songs_label">Песни</string>
+    <string name="setup_battery_optimization_title">Оптимизация батареи</string>
+    <string name="setup_battery_optimization_description">Отключите оптимизацию, чтобы система не закрывала плеер в фоне.</string>
+    <string name="setup_disable_battery_optimization">Выключить оптимизацию</string>
+    <string name="setup_nav_floating_pill_description">Плавающая панель со скругленными углами</string>
+    <string name="setup_nav_full_width_description">Стандартная панель во всю ширину</string>
+
+    <!-- Delete song (Material dialog from ViewModel) -->
+    <string name="dialog_delete_song_title">Удалить песню?</string>
+    <string name="dialog_delete_song_message">«%1$s» — %2$s\n\nЭта песня будет навсегда удалена с вашего устройства.</string>
+
+    <!-- Home / detail shared -->
+    <string name="home_your_mix_title">Ваш\nМикс</string>
+    <string name="cd_shuffle_play">Перемешать</string>
+    <string name="cd_album_art_for_title">Обложка для %1$s</string>
+    <string name="cd_options">Опции</string>
+    <string name="genre_quick_fill">Заполнить жанр</string>
+    <string name="cd_generic_artist">Исполнитель</string>
+    <string name="cd_play_album">Играть альбом</string>
+    <string name="cd_shuffle_play_album">Перемешать альбом</string>
+    <string name="album_cover_for">Обложка %1$s</string>
+    <string name="album_detail_meta_line">%1$s • %2$s</string>
+    <string name="mashup_cd_play_pause">Пуск/Пауза</string>
+    <string name="cd_song_cover">Обложка песни</string>
+
+    <!-- Crash report dialog -->
+    <string name="crash_report_title">Ой! Что-то пошло не так</string>
+    <string name="crash_report_subtitle">Приложение упало. Помогите нам исправить это, отправив отчет.</string>
+    <string name="crash_report_date_line">Дата: %1$s</string>
+    <string name="crash_report_error_label">Ошибка:</string>
+    <string name="crash_report_stack_preview_label">Трассировка стека:</string>
+    <string name="crash_report_clipboard_label">Лог ошибки</string>
+    <string name="toast_crash_log_copied">Лог скопирован в буфер обмена</string>
+    <string name="crash_report_share_subject">Отчет о сбое PixelPlayerOSS</string>
+    <string name="crash_report_share_chooser">Отправить отчет</string>
+    <string name="action_copy">Копировать</string>
+    <string name="action_share">Поделиться</string>
+
+    <!-- Search screen -->
+    <string name="search_placeholder">Поиск…</string>
+    <string name="cd_search_icon">Поиск</string>
+    <string name="cd_clear_search_query">Очистить поиск</string>
+    <string name="recent_searches">Недавние запросы</string>
+    <string name="clear_all">Очистить всё</string>
+    <string name="cd_search_history_icon">История</string>
+    <string name="cd_delete_search_history_item">Удалить из истории</string>
+    <string name="cd_no_search_results">Нет результатов</string>
+    <string name="search_no_results_for_query">Нет результатов для «%1$s»</string>
+    <string name="search_nothing_found">Ничего не найдено</string>
+    <string name="search_try_different_or_filters">Попробуйте другой запрос или проверьте фильтры.</string>
+    <string name="search_no_results_found">Результатов нет.</string>
+
+    <!-- Genre browse -->
+    <string name="browse_by_genre">По жанрам</string>
+    <string name="no_genres_available">Жанры не найдены.</string>
+
+    <!-- About -->
+    <string name="about_no_contributors">Список участников пока недоступен.</string>
+    <string name="about_app_name">PixelPlayerOSS</string>
+    <string name="about_tagline">Плеер с открытым исходным кодом, созданный сообществом.</string>
+    <string name="about_version_format">Версия v%1$s</string>
+    <string name="about_contributions_format">%1$d contrib.</string>
+    <string name="screen_about">О приложении</string>
+    <string name="about_maintainer_title">Ведущий сообщества</string>
+    <string name="about_maintainer_subtitle">Человек, стоящий за PixelPlayerOSS.</string>
+    <string name="about_spotlight_title">Звезды сообщества</string>
+    <string name="about_spotlight_subtitle">Участники, внесшие огромный вклад.</string>
+    <string name="about_contributors_section_title">Участники проекта</string>
+    <string name="about_contributors_section_subtitle">Список участников из GitHub.</string>
+    <string name="about_signal_open_source">Open source</string>
+    <string name="about_signal_community_first">Для сообщества</string>
+    <string name="about_signal_material3">Material 3 дизайн</string>
+    <string name="cd_open_github_profile">Открыть профиль GitHub</string>
+    <string name="cd_contributor_avatar">Аватар %1$s</string>
+    <string name="cd_contributor_icon">Иконка %1$s</string>
+
+    <!-- Streaming / cloud dashboards -->
+    <string name="screen_subsonic_dashboard_title">Subsonic</string>
+    <string name="dash_playlists_synced_count">Синхрон. плейлистов: %1$d</string>
+    <string name="dash_folders_synced_count">Синхрон. папок: %1$d</string>
+    <string name="dash_title_playlists">Плейлисты</string>
+    <string name="dash_music_folders">Папки с музыкой</string>
+    <string name="dash_action_sync">Синхрон.</string>
+    <string name="dash_playlists_empty_title">Плейлисты пока не синхронизированы</string>
+    <string name="dash_playlists_empty_hint_subsonic">Нажмите «Синхрон.», чтобы получить плейлисты</string>
+    <string name="dash_playlists_empty_hint_jellyfin">Нажмите «Синхрон.», чтобы получить плейлисты Jellyfin</string>
+    <string name="dash_no_folders_yet">Папки еще не добавлены</string>
+    <string name="dash_quick_actions">Быстрые действия</string>
+    <string name="dash_quick_actions_subsonic_subtitle">Управление Navidrome, Airsonic и др.</string>
+    <string name="dash_quick_actions_jellyfin_subtitle">Управление подключением к Jellyfin.</string>
+    <string name="dash_status_syncing">Синхронизация</string>
+    <string name="dash_action_sync_library">Синхрон. фонотеку</string>
+    <string name="dash_action_disconnect">Отключить</string>
+    <string name="dash_song_count">Песен: %1$d</string>
+    <string name="cd_sync">Синхронизация</string>
+    <string name="cd_sync_all">Синхронизировать всё</string>
+    <string name="cd_logout">Выйти</string>
+    <string name="cd_sync_all_playlists">Синхронизировать все плейлисты</string>
+    <string name="error_with_message_format">Ошибка: %1$s</string>
+    <string name="sync_status_syncing_ellipsis">Синхронизация…</string>
+    <string name="cd_user_avatar">Аватар пользователя</string>
+    <string name="toast_playlist_created">Плейлист успешно создан</string>
+    <string name="toast_added_to_queue">Добавлено в очередь</string>
+    <string name="toast_playing_next">Будет сыграно следующим</string>
+    <string name="error_share_song_format">Не удалось поделиться песней: %1$s</string>
+
+    <!-- Cloud dashboard sync status -->
+    <string name="dash_status_syncing_library">Синхронизация фонотеки:</string>
+    <string name="dash_status_fetching_playlists">Загрузка плейлистов:</string>
+    <string name="dash_status_syncing_playlist_format">Синхронизация плейлиста: %1$s</string>
+    <string name="dash_status_updating_local">Обновление локальной фонотеки:</string>
+    <string name="dash_status_sync_complete">Синхронизация завершена</string>
+    <string name="dash_status_fetching_albums">Загрузка списка альбомов:</string>
+    <string name="dash_status_fetching_songs_from_format">Загрузка треков из %1$s:</string>
+    <string name="dash_status_saving_songs_format">Сохранение %1$d треков в базу:</string>
+    <string name="dash_status_no_songs_found">Треки в фонотеке не найдены</string>
+    <string name="dash_status_library_sync_complete">Синхронизация фонотеки завершена</string>
+
+    <!-- Home empty placeholder -->
+    <string name="home_empty_placeholder_title">Пока нечего показать</string>
+    <string name="home_empty_placeholder_subtitle">Ваш микс появится здесь, когда PixelPlayerOSS найдёт треки или синхронизирует источник.</string>
+    <string name="home_empty_placeholder_refresh">Обновить</string>
+</resources>

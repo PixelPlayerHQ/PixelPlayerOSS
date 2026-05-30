@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Partage de %d liste de lecture</item>
+        <item quantity="other">Partage de %d listes de lecture</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">%1$d liste de lecture exportée vers %2$s</item>
+        <item quantity="other">%1$d listes de lecture exportées vers %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">%d chanson ajoutée à la file d\'attente</item>
+        <item quantity="other">%d chansons ajoutées à la file d\'attente</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">%d chanson sera lue ensuite</item>
+        <item quantity="other">%d chansons seront lues ensuite</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">%d chanson ajoutée aux favoris</item>
+        <item quantity="other">%d chansons ajoutées aux favoris</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">%d chanson retirée des favoris</item>
+        <item quantity="other">%d chansons retirées des favoris</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">%d fichier supprimé</item>
+        <item quantity="other">%d fichiers supprimés</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Supprimer %d chanson ?</item>
+        <item quantity="other">Supprimer %d chansons ?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d fois</item>
+        <item quantity="other">%d fois</item>
+    </plurals>
+</resources>

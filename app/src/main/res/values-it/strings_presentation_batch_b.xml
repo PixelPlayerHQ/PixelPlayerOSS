@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AccountsScreen -->
+    <string name="presentation_batch_b_accounts_linked_services">Servizi collegati</string>
+    <string name="presentation_batch_b_accounts_connected_hero_title">Account connessi</string>
+    <string name="presentation_batch_b_accounts_connected_hero_body">Gestisci i provider collegati e tieni ogni integrazione sotto controllo.</string>
+    <string name="presentation_batch_b_accounts_stat_active">Attivo</string>
+    <string name="presentation_batch_b_accounts_stat_available">Disponibile</string>
+    <string name="presentation_batch_b_accounts_status_soon">Presto</string>
+    <string name="presentation_batch_b_accounts_status_connected">Connesso</string>
+    <string name="presentation_batch_b_accounts_open_service">Apri servizio</string>
+    <string name="presentation_batch_b_accounts_coming_soon_short">In arrivo</string>
+    <string name="presentation_batch_b_accounts_logging_out">Disconnessione in corso…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Nessun account collegato</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Connetti un provider per gestirlo da questa schermata.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Connetti %1$s</string>
+    <string name="presentation_batch_b_accounts_service_paren_coming_soon">%1$s (In arrivo)</string>
+
+    <!-- PlaylistDetailScreen -->
+    <string name="presentation_batch_b_sort_songs">Ordina brani</string>
+    <string name="presentation_batch_b_more_options">Altre opzioni</string>
+    <string name="presentation_batch_b_play_it">Riproduci</string>
+    <string name="presentation_batch_b_add_songs">Aggiungi brani</string>
+    <string name="presentation_batch_b_add">Aggiungi</string>
+    <string name="presentation_batch_b_remove_songs">Rimuovi brani</string>
+    <string name="presentation_batch_b_reorder_songs">Riordina brani</string>
+    <string name="presentation_batch_b_reorder">Riordina</string>
+    <string name="presentation_batch_b_reorder_song">Riordina brano</string>
+    <string name="presentation_batch_b_playlist_empty_title">Questa playlist è vuota.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">Questa cartella non contiene brani.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Tocca su \'Aggiungi brani\' per iniziare.</string>
+    <string name="presentation_batch_b_playlist_options_title">Opzioni playlist</string>
+    <string name="presentation_batch_b_edit_playlist">Modifica playlist</string>
+    <string name="presentation_batch_b_delete_playlist">Elimina playlist</string>
+    <string name="presentation_batch_b_set_default_transition">Imposta transizione predefinita</string>
+    <string name="presentation_batch_b_export_playlist">Esporta playlist</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Eliminare playlist?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Sei sicuro di voler eliminare questa playlist?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Rinomina playlist</string>
+    <string name="presentation_batch_b_new_name">Nuovo nome</string>
+
+    <!-- DailyMixScreen -->
+    <string name="presentation_batch_b_daily_mix_title">Daily Mix</string>
+
+    <!-- QuickFillScreen -->
+    <string name="presentation_batch_b_quick_fill_select_songs">Seleziona brani</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Scegli genere</string>
+    <string name="presentation_batch_b_search_songs_label">Cerca brani</string>
+    <string name="presentation_batch_b_select_all">Seleziona tutti</string>
+    <string name="presentation_batch_b_clear">Cancella</string>
+    <string name="presentation_batch_b_genre_label_format">Genere: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Seleziona un genere</string>
+    <string name="presentation_batch_b_quick_fill">Riempimento rapido</string>
+    <string name="presentation_batch_b_add_custom_genre">Aggiungi personalizzato</string>
+    <string name="presentation_batch_b_new_genre">Nuovo genere</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Aggiungi genere personalizzato</string>
+    <string name="presentation_batch_b_genre_name_label">Nome genere</string>
+    <string name="presentation_batch_b_select_icon">Seleziona icona</string>
+
+    <!-- RecentlyPlayedScreen -->
+    <string name="presentation_batch_b_recently_played_title">Riprodotte di recente</string>
+    <string name="presentation_batch_b_play_latest">Riproduci le più recenti</string>
+    <string name="presentation_batch_b_recent_empty_title">Nessuna riproduzione recente in %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Cambia l\'intervallo o riproduci più brani per popolare questa cronologia.</string>
+    <string name="presentation_batch_b_queue_recently_played">Riprodotte di recente</string>
+    <string name="presentation_batch_b_date_today">Oggi</string>
+    <string name="presentation_batch_b_date_yesterday">Ieri</string>
+
+    <!-- NavBarCornerRadiusScreen -->
+    <string name="presentation_batch_b_navbar_adjust_title">Regola raggio angoli</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Abbina gli angoli della barra di navigazione con quelli del tuo dispositivo per un aspetto senza soluzione di continuità.</string>
+    <string name="presentation_batch_b_corner_radius_label">Raggio angoli</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <!-- GenreDetailScreen -->
+    <string name="presentation_batch_b_genre_shuffle_label">Shuffle %1$s</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d brano • %2$s</item>
+        <item quantity="other">%1$d brani • %2$s</item>
+    </plurals>
+</resources>

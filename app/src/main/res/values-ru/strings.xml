@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">PixelPlayerOSS</string>
+    <string name="app_name_change_title">Изменение названия приложения</string>
+    <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
+    <string name="do_not_show_again">Больше не показывать</string>
+    <string name="dismiss">Скрыть</string>
+    <string name="all_files_access_title">Требуется специальное разрешение</string>
+    <string name="all_files_access_description">Для редактирования метаданных песен (файлов .mp3) PixelPlayerOSS требуется специальный доступ ко всем файлам. Это позволяет нам напрямую изменять теги треков. Пожалуйста, предоставьте это разрешение на следующем экране, чтобы включить редактирование метаданных.</string>
+    <string name="grant_permission_button">Предоставить разрешение</string>
+    <string name="all_files_access_setting">Доступ ко всем файлам</string>
+    <string name="error">Ошибка</string>
+    <string name="ok">ОК</string>
+    <string name="cancel">Отмена</string>
+    <string name="import_file">Импорт</string>
+    <string name="search">Поиск</string>
+
+    <string name="lyrics">Текст песни</string>
+    <string name="close_lyrics_sheet">Закрыть панель текста</string>
+    <string name="loading_lyrics">Загрузка текста…</string>
+    <string name="cant_find_lyrics">Не удалось найти текст для этой песни.</string>
+    <string name="lyrics_provided_by">Текст предоставлен</string>
+    <string name="lrclib_uri">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Текст не найден</string>
+    <string name="search_lyrics_online_prompt">Хотите поискать текст в Интернете?</string>
+    <string name="lyrics_custom_search_hint">Мы не смогли найти текст автоматически. Вы можете отредактировать название или исполнителя и попробовать поискать вручную.</string>
+    <string name="failed_to_search_for_lyrics">Ошибка поиска текста</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Ошибка получения текста с сервера</string>
+    <string name="lyrics_fetch_timeout">Время ожидания соединения истекло. Пожалуйста, проверьте подключение к Интернету.</string>
+    <string name="lyrics_network_error">Ошибка сети. Пожалуйста, проверьте подключение к Интернету.</string>
+    <string name="lyrics_server_error">Ошибка сервера (код %d). Пожалуйста, попробуйте позже.</string>
+    <string name="found_n_matches_format">Найдено совпадений: %d</string>
+    <string name="searched_for_x_format">Искали \"%s\"</string>
+    <string name="searching_lyrics">Поиск текста…</string>
+    <string name="lyrics_already_available">Текст уже доступен. Онлайн-загрузка пропущена.</string>
+    <string name="lyrics_embedded_already_available">Встроенный текст уже найден. Онлайн-загрузка пропущена.</string>
+    <string name="local_lrc_already_available">Локальный текст (.lrc) уже найден. Онлайн-загрузка пропущена.</string>
+    <string name="fetch_lyrics_show_options_title">Показать параметры текста</string>
+    <string name="fetch_lyrics_show_options_subtitle">Всегда открывать окно выбора вместо автоматического применения первого совпадения</string>
+    <string name="save_lyrics_as_lrc">Сохранить текст как .lrc</string>
+    <string name="save_lyrics_dialog_title">Сохранить текст</string>
+    <string name="save_lyrics_dialog_message">Выберите версию для сохранения:</string>
+    <string name="save_synced_lyrics">Синхронизированный (с временными метками)</string>
+    <string name="save_plain_lyrics">Обычный (только текст)</string>
+    <string name="lyrics_saved_successfully">Текст успешно сохранен</string>
+    <string name="lyrics_save_failed">Ошибка сохранения текста</string>
+    <string name="no_lyrics_to_save">Нет доступного текста для сохранения</string>
+    <string name="reset_imported_lyrics">Сбросить импортированные тексты</string>
+    <string name="lyrics_sync_offset">Смещение синхронизации текста</string>
+    <string name="lyrics_sync_offset_format">%+.1fs</string>
+    <string name="lyrics_sync_offset_reset">Сброс</string>
+    <string name="lyrics_earlier">Раньше</string>
+    <string name="lyrics_later">Позже</string>
+
+    <string name="sync_scanning">Сканирование музыкальных файлов…</string>
+    <string name="sync_processing">Обработка файлов…</string>
+    <string name="sync_files_progress">%1$d из %2$d файлов</string>
+    <string name="sync_in_progress">Синхронизация фонотеки…</string>
+    <string name="sync_complete">Синхронизация завершена</string>
+    <string name="sync_pending">Ожидание…</string>
+    <string name="syncing_library">Синхронизация фонотеки…</string>
+    <string name="library_background_sync">Завершение в фоновом режиме…</string>
+    <string name="library_background_sync_lyrics">Сканирование текстов…</string>
+    <string name="library_background_sync_cache">Очистка кэша обложек альбомов…</string>
+    <string name="library_background_sync_cloud">Синхронизация с облачными источниками…</string>
+    <string name="unknown_song_title">Неизвестный трек</string>
+    <string name="unknown_artist">Неизвестный исполнитель</string>
+    <string name="unknown_album">Неизвестный альбом</string>
+    <string name="artist_picker_title">Выберите исполнителя</string>
+    <string name="artist_picker_supporting_text">Открыть страницу любого указанного исполнителя этого трека.</string>
+    <string name="artist_picker_count_single">1 исполнитель</string>
+    <string name="artist_picker_count_multiple">%1$d исполнителей</string>
+    <string name="artist_picker_primary_label">Главный исполнитель</string>
+    <string name="artist_picker_shortcut_label">Страница исполнителя</string>
+    <string name="external_queue_label">Быстрое воспроизведение</string>
+    <string name="external_playback_error">Не удалось открыть аудиофайл.</string>
+    <string name="open_full_player">Открыть плеер полностью</string>
+    <string name="close_external_player">Закрыть плавающий плеер</string>
+    <string name="close_notification_player">Закрыть плеер</string>
+    <string name="previous_track">Предыдущий трек</string>
+    <string name="next_track">Следующий трек</string>
+    <string name="pause_playback">Пауза</string>
+    <string name="play_playback">Воспроизведение</string>
+    <string name="playlist_not_found">Плейлист не найден.</string>
+    <string name="disc_number_header">Диск %d</string>
+
+
+
+    <string name="shortcut_shuffle_short">Перемешать</string>
+    <string name="shortcut_shuffle_long">Перемешать все песни</string>
+    <string name="shortcut_playlist_short">Плейлист</string>
+    <string name="shortcut_playlist_long">Последний прослушанный плейлист</string>
+
+    <string name="tile_shuffle_all">Перемешать все</string>
+    <string name="tile_last_playlist">Последний плейлист</string>
+    <string name="tile_last_playlist_unavailable">Нет доступного плейлиста для открытия</string>
+
+    <string name="invalid_album_id">Недопустимый ID альбома</string>
+    <string name="album_id_not_found">ID альбома не найден</string>
+    <string name="error_loading_album">Ошибка загрузки данных альбома: %s</string>
+    <string name="album_not_found">Альбом не найден</string>
+    <string name="could_not_update">Не удалось обновить: %s</string>
+    <string name="invalid_artist_id">Недопустимый ID исполнителя</string>
+    <string name="artist_id_not_found">ID исполнителя не найден</string>
+    <string name="error_loading_artist">Ошибка загрузки данных исполнителя: %s</string>
+    <string name="could_not_find_artist">Не удалось найти исполнителя</string>
+    <string name="no_valid_songs">Не найдено подходящих песен для воспроизведения</string>
+
+    <string name="glance_widget_description">Адаптивный виджет, подстраивающийся под свой размер</string>
+    <string name="widget_bar_4x1_desc">Компактная панель плеера</string>
+    <string name="widget_control_4x2_desc">Полное управление с перемешиванием и повтором</string>
+    <string name="widget_grid_2x2_desc">Минималистичный квадратный плеер</string>
+    <string name="service_processing_action">Обработка действия воспроизведения…</string>
+
+    <!-- Playlist bulk actions -->
+    <string name="playlist_none_to_share">Нет плейлистов для отправки</string>
+    <string name="playlist_share_chooser_title">Поделиться плейлистами</string>
+    <string name="playlist_share_failed">Ошибка отправки: %1$s</string>
+    <string name="playlist_none_to_export">Нет плейлистов для экспорта</string>
+    <string name="playlist_export_failed">Ошибка экспорта: %1$s</string>
+    <string name="playlist_export_folder_display">Music/PixelPlayerOSS Exports</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+
+
+
+    <!-- Backup / data transfer (ViewModels) -->
+    <string name="backup_invalid_format">Неверный формат бэкапа: %1$s</string>
+    <string name="backup_progress_preparing_restore">Подготовка к восстановлению</string>
+    <string name="backup_progress_starting_task">Запуск задачи восстановления.</string>
+    <string name="backup_progress_preparing_backup">Подготовка бэкапа</string>
+    <string name="backup_progress_starting_backup_task">Запуск задачи бэкапа.</string>
+    <string name="restore_completed_success">Бэкап успешно восстановлен</string>
+    <string name="restore_completed_partial_issues">Восстановление завершено с некоторыми нерешенными проблемами.</string>
+    <string name="restore_could_not_complete">Не удалось завершить восстановление: %1$s</string>
+    <string name="restore_failed_format">Восстановление не удалось: %1$s</string>
+    <string name="data_exported_successfully">Данные успешно экспортированы</string>
+    <string name="export_failed_format">Экспорт не удался: %1$s</string>
+    <string name="data_restored_successfully">Данные успешно восстановлены</string>
+    <string name="restore_partial_unresolved_format">Восстановление завершено с нерешенными проблемами. Ошибок: %1$s</string>
+    <string name="dev_test_crash_message">Тестовый сбой, вызванный из параметров разработчика — это сделано специально для проверки системы отчетов о сбоях</string>
+
+    <!-- PlayerViewModel -->
+    <string name="player_song_not_found_in_list">Песня не найдена в текущем списке</string>
+    <string name="player_could_not_locate_song">Не удалось найти песню</string>
+    <string name="player_no_songs_in_library_toast">В фонотеке не найдено песен</string>
+    <string name="player_playback_stopped_eot">Воспроизведение остановлено: %1$s завершено (конец трека).</string>
+    <string name="player_default_track_title">Трек</string>
+    <string name="player_no_songs_to_shuffle">Нет песен для перемешивания.</string>
+    <string name="player_queue_name_selected_albums">Выбранные альбомы</string>
+    <string name="player_no_playable_songs_in_albums">В выбранных альбомах не найдено песен для воспроизведения</string>
+    <string name="player_only_first_n_albums_queued">В очередь добавлены только первые %1$d альбомов</string>
+    <string name="player_albums_queued_format">Альбомов в очереди: %1$d (%2$d песен)</string>
+    <string name="player_could_not_queue_albums">Не удалось добавить выбранные альбомы в очередь</string>
+    <string name="player_all_songs_already_in_favorites">Все песни уже в избранном</string>
+    <string name="player_no_songs_were_in_favorites">В избранном не было песен</string>
+    <string name="player_creating_zip">Создание ZIP-файла…</string>
+    <string name="player_share_zip_failed_format">Ошибка отправки: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Нельзя удалить текущую песню</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">Удалено файлов: %1$d (пропущено: %2$d — воспроизводятся)</string>
+    <string name="player_batch_delete_partial_format">Удалено файлов: %1$d из %2$d</string>
+    <string name="player_delete_files_failed">Ошибка удаления файлов</string>
+    <string name="player_file_deleted">Файл удален</string>
+    <string name="player_delete_file_not_found">Не удалось удалить файл или файл не найден</string>
+    <string name="player_deletion_cancelled">Удаление отменено</string>
+    <string name="player_permission_denied_edit_files">Отказано в доступе — невозможно редактировать файлы</string>
+    <string name="player_permission_denied_save_lyrics">Отказано в доступе — невозможно сохранить текст</string>
+    <string name="player_permission_denied_edit_this_file">Отказано в доступе — невозможно редактировать этот файл</string>
+    <string name="metadata_updated_successfully">Метаданные успешно обновлены</string>
+    <string name="player_updating_n_songs">Обновление %1$d песен…</string>
+    <string name="player_batch_genre_updated_all">Успешно обновлено песен: %1$d!</string>
+    <string name="player_batch_genre_updated_partial">Обновлено песен: %1$d. Ошибок: %2$d</string>
+    <string name="playlist_restored_toast">Плейлист восстановлен</string>
+    <string name="delete_songs_permanent_message">Эти песни будут навсегда удалены с вашего устройства и не могут быть восстановлены.</string>
+    <string name="delete_action">Удалить</string>
+
+    <!-- Sleep timer (SleepTimerStateHolder + TimerOptionsBottomSheet) -->
+    <string name="sleep_timer_n_minutes_format">%1$d минут</string>
+    <string name="sleep_timer_display_eot">Конец трека</string>
+    <string name="sleep_timer_set_for_minutes_toast">Таймер установлен на %1$d минут.</string>
+    <string name="sleep_timer_cancelled_toast">Таймер отменен.</string>
+    <string name="sleep_timer_eot_no_song_toast">Не удалось включить «конец трека»: нет активной песни.</string>
+    <string name="sleep_timer_eot_song_changed_toast">Таймер «конец трека» отключен: песня изменилась с %1$s на %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">Воспроизведение остановится в конце трека.</string>
+    <string name="sleep_timer_label_previous_track">Предыдущий трек</string>
+    <string name="sleep_timer_label_current_track">Текущий трек</string>
+    <string name="sleep_timer_ui_title">Таймер сна</string>
+    <string name="sleep_timer_ui_slider_label_timer">Таймер</string>
+    <string name="sleep_timer_ui_end_of_current_track">Конец текущего трека</string>
+    <string name="sleep_timer_ui_custom_time">Своё время</string>
+    <string name="sleep_timer_ui_cancel_timer">Отменить таймер</string>
+    <string name="sleep_timer_ui_set_custom_duration">Установить свою длительность</string>
+    <string name="sleep_timer_ui_play_count_label">Количество повторов: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 раз</string>
+    <string name="cd_switch_on">Включить</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+</resources>

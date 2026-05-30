@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AccountsScreen -->
+    <string name="presentation_batch_b_accounts_linked_services">Layanan Tertaut</string>
+    <string name="presentation_batch_b_accounts_connected_hero_title">Akun Terhubung</string>
+    <string name="presentation_batch_b_accounts_connected_hero_body">Kelola penyedia yang tertaut dan jaga agar setiap integrasi berada di bawah kendali Anda.</string>
+    <string name="presentation_batch_b_accounts_stat_active">Aktif</string>
+    <string name="presentation_batch_b_accounts_stat_available">Tersedia</string>
+    <string name="presentation_batch_b_accounts_status_soon">Segera</string>
+    <string name="presentation_batch_b_accounts_status_connected">Terhubung</string>
+    <string name="presentation_batch_b_accounts_open_service">Buka Layanan</string>
+    <string name="presentation_batch_b_accounts_coming_soon_short">Segera hadir</string>
+    <string name="presentation_batch_b_accounts_logging_out">Keluar…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Belum ada akun tertaut</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Hubungkan penyedia untuk mengelolanya dari layar ini.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Hubungkan %1$s</string>
+    <string name="presentation_batch_b_accounts_service_paren_coming_soon">%1$s (Segera hadir)</string>
+
+    <!-- PlaylistDetailScreen -->
+    <string name="presentation_batch_b_sort_songs">Urutkan Lagu</string>
+    <string name="presentation_batch_b_more_options">Opsi Lainnya</string>
+    <string name="presentation_batch_b_play_it">Putar</string>
+    <string name="presentation_batch_b_add_songs">Tambah lagu</string>
+    <string name="presentation_batch_b_add">Tambah</string>
+    <string name="presentation_batch_b_remove_songs">Hapus lagu</string>
+    <string name="presentation_batch_b_reorder_songs">Urutkan ulang lagu</string>
+    <string name="presentation_batch_b_reorder">Urutkan ulang</string>
+    <string name="presentation_batch_b_reorder_song">Urutkan ulang lagu</string>
+    <string name="presentation_batch_b_playlist_empty_title">Playlist ini kosong.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">Folder ini tidak berisi lagu.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Ketuk \'Tambah Lagu\' untuk memulai.</string>
+    <string name="presentation_batch_b_playlist_options_title">Opsi playlist</string>
+    <string name="presentation_batch_b_edit_playlist">Edit playlist</string>
+    <string name="presentation_batch_b_delete_playlist">Hapus playlist</string>
+    <string name="presentation_batch_b_set_default_transition">Atur transisi default</string>
+    <string name="presentation_batch_b_export_playlist">Ekspor Playlist</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Hapus playlist?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Apakah Anda yakin ingin menghapus playlist ini?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Ubah Nama Playlist</string>
+    <string name="presentation_batch_b_new_name">Nama baru</string>
+
+    <!-- DailyMixScreen -->
+    <string name="presentation_batch_b_daily_mix_title">Daily Mix</string>
+
+    <!-- QuickFillScreen -->
+    <string name="presentation_batch_b_quick_fill_select_songs">Pilih Lagu</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Pilih Genre</string>
+    <string name="presentation_batch_b_search_songs_label">Cari lagu</string>
+    <string name="presentation_batch_b_select_all">Pilih Semua</string>
+    <string name="presentation_batch_b_clear">Bersihkan</string>
+    <string name="presentation_batch_b_genre_label_format">Genre: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Pilih genre</string>
+    <string name="presentation_batch_b_quick_fill">Isi Cepat</string>
+    <string name="presentation_batch_b_add_custom_genre">Tambah Kustom</string>
+    <string name="presentation_batch_b_new_genre">Genre Baru</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Tambah Genre Kustom</string>
+    <string name="presentation_batch_b_genre_name_label">Nama Genre</string>
+    <string name="presentation_batch_b_select_icon">Pilih Ikon</string>
+
+    <!-- RecentlyPlayedScreen -->
+    <string name="presentation_batch_b_recently_played_title">Baru Diputar</string>
+    <string name="presentation_batch_b_play_latest">Putar terbaru</string>
+    <string name="presentation_batch_b_recent_empty_title">Belum ada yang diputar di %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Ubah rentang atau putar lebih banyak lagu untuk mengisi timeline ini.</string>
+    <string name="presentation_batch_b_queue_recently_played">Baru Diputar</string>
+    <string name="presentation_batch_b_date_today">Hari ini</string>
+    <string name="presentation_batch_b_date_yesterday">Kemarin</string>
+
+    <!-- NavBarCornerRadiusScreen -->
+    <string name="presentation_batch_b_navbar_adjust_title">Sesuaikan Radius Sudut</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Cocokkan sudut navbar dengan sudut fisik perangkat Anda untuk tampilan yang mulus.</string>
+    <string name="presentation_batch_b_corner_radius_label">Radius Sudut</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <!-- GenreDetailScreen -->
+    <string name="presentation_batch_b_genre_shuffle_label">Acak %1$s</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d lagu • %2$s</item>
+        <item quantity="other">%1$d lagu • %2$s</item>
+    </plurals>
+</resources>

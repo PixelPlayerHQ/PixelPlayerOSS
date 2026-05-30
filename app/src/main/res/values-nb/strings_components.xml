@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_tap_to_open">Trykk for å åpne</string>
+    <string name="widget_album_art">Albumkunst</string>
+    <string name="widget_album_art_placeholder">Plassholder for albumkunst</string>
+    <string name="cd_favorite">Favoritt</string>
+    <string name="cd_play">Spill av</string>
+    <string name="cd_pause">Pause</string>
+    <string name="widget_tap_to_play">Trykk for å spille</string>
+    <string name="widget_preview_song_title">Sangtittel</string>
+    <string name="widget_preview_artist">Artist</string>
+    <string name="cd_repeat">Gjenta</string>
+    <string name="widget_wavy_progress_bar_desc">Fremdriftslinje, %1$d prosent</string>
+
+    <!-- Lyrics more bottom sheet -->
+    <string name="lyrics_more_appearance">Utseende</string>
+    <string name="lyrics_more_alignment">Justering</string>
+    <string name="lyrics_more_controls">Kontroller</string>
+    <string name="lyrics_more_dialog_reset_title">Nullstill sangtekst?</string>
+    <string name="lyrics_more_dialog_reset_message">Er du sikker på at du vil nullstille sangteksten for denne sangen?</string>
+    <string name="lyrics_more_hide_sync_controls">Skjul synkroniseringskontroller</string>
+    <string name="lyrics_more_adjust_sync">Juster synkronisering</string>
+    <string name="lyrics_more_show_romanization">Vis romanisering</string>
+    <string name="lyrics_more_show_translations">Vis oversettelser</string>
+    <string name="lyrics_more_disable_immersive_once">Deaktiver immersiv modus (én gang)</string>
+    <string name="lyrics_more_keep_screen_on">Keep screen on</string>
+    <string name="cd_lyrics_align_left">Venstrejuster tekst</string>
+    <string name="cd_lyrics_align_center">Midtstill tekst</string>
+    <string name="cd_lyrics_align_right">Høyrejuster tekst</string>
+
+    <!-- No internet -->
+    <string name="no_internet_dialog_title">Ingen internettforbindelse</string>
+    <string name="no_internet_dialog_message">Dette innholdet krever internettforbindelse. Vennligst sjekk nettverksinnstillingene dine og prøv igjen.</string>
+    <string name="offline_screen_title">Du er offline</string>
+    <string name="offline_screen_message">Vennligst sjekk internettforbindelsen din for å få tilgang til dette innholdet.</string>
+
+    <!-- Equalizer preset dialogs -->
+    <string name="equalizer_save_custom_preset_title">Lagre egendefinert forhåndsinnstilling</string>
+    <string name="equalizer_save_custom_preset_body">Skriv inn et navn for din forhåndsinnstilling.</string>
+    <string name="equalizer_preset_name_label">Navn på forhåndsinnstilling</string>
+    <string name="equalizer_rename_preset_title">Endre navn på forhåndsinnstilling</string>
+    <string name="error_name_empty">Navnet kan ikke være tomt</string>
+    <string name="action_save">Lagre</string>
+    <string name="equalizer_action_save_new">Lagre ny</string>
+    <string name="action_rename">Endre navn</string>
+
+    <string name="song_field_title">Tittel</string>
+    <string name="song_field_artist">Artist</string>
+    <string name="song_field_album">Album</string>
+    <string name="song_field_genre">Sjanger</string>
+    <string name="action_try_again">Prøv igjen</string>
+    <string name="action_apply_changes">Bruk endringer</string>
+
+    <!-- Edit song metadata sheet -->
+    <string name="edit_song_info_dialog_title">Redigerer metadata</string>
+    <string name="edit_song_info_dialog_body">Redigering av sang-metadata kan påvirke hvordan den vises og organiseres i biblioteket ditt. Endringer er permanente.</string>
+    <string name="edit_song_got_it">Skjønner</string>
+    <string name="cd_info_icon">Informasjon</string>
+    <string name="edit_song_toolbar_title">Rediger sang</string>
+    <string name="cd_show_metadata_info">Vis informasjon</string>
+    <string name="song_field_track_number">Spornummer</string>
+    <string name="song_field_disc_number">Disknummer</string>
+    <string name="song_field_replaygain_track_db">ReplayGain spor (dB)</string>
+    <string name="song_field_replaygain_album_db">ReplayGain album (dB)</string>
+    <string name="placeholder_replaygain_track_example">-6.50</string>
+    <string name="placeholder_replaygain_album_example">-8.20</string>
+    <string name="cd_replaygain_track">ReplayGain spor</string>
+    <string name="cd_replaygain_album">ReplayGain album</string>
+    <string name="cd_song_title_icon">Tittel</string>
+    <string name="cd_track_number_icon">Spornummer</string>
+    <string name="cd_disc_number_icon">Disknummer</string>
+    <string name="cd_search_lyrics_lrclib">Søk etter tekst på lrclib.net</string>
+    <string name="edit_song_cover_art_heading">Coverbilde</string>
+    <string name="edit_song_cover_art_hint">Velg et kvadratisk bilde for best resultat i appen.</string>
+    <string name="edit_song_change_cover_art">Bytt coverbilde</string>
+    <string name="edit_song_delete_cover_art">Slett coverbilde</string>
+    <string name="cd_cover_art_preview">Forhåndsvisning av nytt bilde</string>
+    <string name="cd_current_song_cover_art">Gjeldende bilde</string>
+    <string name="edit_song_crop_dialog_title">Juster coverbilde</string>
+    <string name="edit_song_crop_dialog_hint">Bruk gester for å finne den perfekte utsnittet.</string>
+    <string name="edit_song_apply_cover_art">Bruk coverbilde</string>
+    <string name="edit_song_unable_to_load_image">Kunne ikke laste valgt bilde</string>
+
+    <!-- Song info bottom sheet -->
+    <string name="song_info_share_chooser_title">Del sangfil via</string>
+    <string name="cd_play_song_action">Spill sang</string>
+    <string name="cd_share_song_file">Del sangfil</string>
+    <string name="cd_add_to_queue">Legg i kø</string>
+    <string name="cd_play_next_in_queue">Spill som neste</string>
+    <string name="cd_add_to_playlist">Legg i spilleliste</string>
+    <string name="action_add_to_queue">Legg i kø</string>
+    <string name="action_queue_next">Neste</string>
+    <string name="song_info_transferring_percent">Overfører %1$d%%</string>
+    <string name="song_info_transfer_in_progress">Overføring pågår</string>
+    <string name="song_info_set_as_short">Bruk som</string>
+    <string name="song_info_choose_tone">Bruk som lyd</string>
+    <string name="cd_choose_song_tone">Velg hvordan denne sangen skal brukes som systemlyd</string>
+    <string name="song_info_set_ringtone">Bruk som ringetone</string>
+    <string name="cd_set_song_as_ringtone">Bruk sang som ringetone</string>
+    <string name="song_info_tone_picker_title">Bruk denne sangen som</string>
+    <string name="song_info_tone_picker_body">Velg hvor PixelPlayerOSS skal installere denne lyden.</string>
+    <string name="song_info_tone_ringtone_title">Ringetone</string>
+    <string name="song_info_tone_ringtone_subtitle">Innkommende anrop</string>
+    <string name="song_info_tone_notification_title">Varsellyd</string>
+    <string name="song_info_tone_notification_subtitle">Meldinger og appvarsler</string>
+    <string name="song_info_tone_alarm_title">Alarmlyd</string>
+    <string name="song_info_tone_alarm_subtitle">Klokkealarmer</string>
+    <string name="song_info_tone_confirm_title">Bekreft lydendring</string>
+    <string name="song_info_tone_confirm_body">Bruke \"%1$s\" som %2$s?</string>
+    <string name="song_info_tone_confirm_action">Bruk lyd</string>
+    <string name="song_info_tone_success">\"%1$s\" er brukt som %2$s</string>
+    <string name="song_info_tone_ringtone_label">ringetone</string>
+    <string name="song_info_tone_notification_label">varsellyd</string>
+    <string name="song_info_tone_alarm_label">alarmlyd</string>
+    <string name="song_info_ringtone_permission_prompt">Aktiver Endre systeminnstillinger, og gå tilbake til PixelPlayerOSS for å fullføre automatisk.</string>
+    <string name="song_info_ringtone_permission_missing">Endre systeminnstillinger ble ikke aktivert.</string>
+    <string name="song_info_ringtone_success">\"%1$s\" er brukt som ringetone</string>
+    <string name="song_info_ringtone_local_only">Bare lokale sanger kan brukes som systemlyder.</string>
+    <string name="song_info_ringtone_missing_file">Kunne ikke klargjøre denne lydfilen.</string>
+    <string name="song_info_ringtone_failed">Kunne ikke endre lyd: %1$s</string>
+    <string name="song_info_label_duration">Varighet</string>
+    <string name="song_info_label_song_metadata">Sanginfo</string>
+    <string name="cd_duration_icon">Varighet</string>
+    <string name="cd_genre_icon">Sjanger</string>
+    <string name="cd_album_icon">Album</string>
+    <string name="cd_artist_icon">Artist</string>
+    <string name="cd_audio_format_icon">Lydformat</string>
+    <string name="cd_provider_icon">Leverandør</string>
+    <string name="cd_file_icon">Fil</string>
+    <string name="cd_edit_song_metadata">Rediger metadata</string>
+    <string name="cd_remove_from_favorites">Fjern fra favoritter</string>
+    <string name="cd_add_to_favorites">Legg til i favoritter</string>
+    <string name="song_info_tab_options">Alternativer</string>
+    <string name="song_info_tab_options_badge">ALTERNATIVER</string>
+    <string name="song_info_tab_details">Detaljer</string>
+    <string name="song_info_tab_info_badge">INFO</string>
+    <string name="cd_details_tab">Detaljer</string>
+
+    <!-- Multi-selection bottom sheet -->
+    <string name="multi_selection_songs_count_upper">%1$d SANGER</string>
+    <string name="multi_selection_selected">valgt</string>
+    <string name="cd_play_all">Spill alle</string>
+    <string name="action_play_all">Spill alle</string>
+    <string name="cd_like_all">Lik alle</string>
+    <string name="cd_unlike_all">Fjern liker-markering på alle</string>
+    <string name="cd_share_all_as_zip">Del alle som ZIP</string>
+    <string name="cd_add_all_to_queue">Legg alle i kø</string>
+    <string name="cd_delete_all_songs">Slett alle</string>
+    <string name="action_delete_all">Slett alle</string>
+
+    <string name="playlist_dismissed_message">Spilleliste fjernet</string>
+    <string name="action_undo">Angre</string>
+    <string name="home_option_dj_mashup">DJ Mashup</string>
+    <string name="create_playlist_dialog_title">Ny spilleliste</string>
+    <string name="create_playlist_name_label">Navn på spilleliste</string>
+    <string name="create_playlist_name_placeholder">Min spilleliste</string>
+    <string name="action_create">Opprett</string>
+    <string name="playlist_picker_add_songs_title">Legg til %1$d sanger i…</string>
+    <string name="playlist_picker_select_playlists">Velg spillelister</string>
+    <string name="search_playlists_hint">Søk etter spillelister…</string>
+
+    <string name="multi_selection_playlists_count_upper">%1$d SPILLELISTER</string>
+    <string name="cd_export_all">Eksporter alle</string>
+    <string name="cd_merge_all">Slå sammen alle</string>
+    <string name="cd_share_all">Del alle</string>
+    <string name="action_export">Eksporter</string>
+    <string name="action_merge">Slå sammen</string>
+
+    <string name="reorder_tabs_sheet_title">Endre rekkefølge på faner</string>
+    <string name="reorder_tabs_reset_dialog_title">Nullstill rekkefølge</string>
+    <string name="reorder_tabs_reset_dialog_body">Nullstill rekkefølgen til standard?</string>
+    <string name="reorder_tabs_reordering">Endrer rekkefølge…</string>
+    <string name="cd_drag_handle">Dra-håndtak</string>
+    <string name="cd_reset">Nullstill</string>
+    <string name="action_done">Ferdig</string>
+</resources>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">Feil ved lasting av sanger</string>
+    <string name="library_error_loading_albums">Feil ved lasting av album</string>
+    <string name="library_error_loading_artists">Feil ved lasting av artister</string>
+    <string name="library_retry">Prøv på nytt</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">Ingen sanger funnet i biblioteket ditt.</string>
+    <string name="library_no_songs_rescan_hint">Prøv å skanne biblioteket ditt på nytt i innstillinger hvis du har musikk på enheten din.</string>
+    <string name="cd_no_songs_in_library">Ingen sanger funnet</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">Ny</string>
+    <string name="cd_create_new_playlist">Opprett ny spilleliste</string>
+    <string name="cd_import_m3u_playlist">Importer M3U-spilleliste</string>
+    <string name="cd_locate_current_song">Finn gjeldende sang</string>
+    <string name="library_storage_filter_all_songs">Alle sanger</string>
+    <string name="library_storage_filter_online">Online</string>
+    <string name="library_storage_filter_offline">Offline</string>
+    <string name="cd_sort_options">Sorteringsalternativer</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">SYNKRONISERT</string>
+    <string name="song_field_artist_optional">Artist (valgfritt)</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">Legg til sanger</string>
+    <string name="cd_confirm_add_songs">Legg til valgte sanger</string>
+    <string name="song_picker_action_add">Legg til</string>
+    <string name="song_picker_search_label">Søk etter sanger…</string>
+    <string name="song_picker_error_load_failed">Kunne ikke laste sanger</string>
+    <string name="song_picker_load_more">Last inn mer</string>
+
+    
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">Ingen sanger ennå</string>
+    <string name="lib_empty_songs_all_subtitle">Legg til musikk på enheten din eller synkroniser en skykilde for å begynne å lytte.</string>
+    <string name="lib_empty_songs_offline_title">Ingen lokale sanger funnet</string>
+    <string name="lib_empty_songs_offline_subtitle">Prøv et annet kildefilter eller skann enhetsbiblioteket på nytt.</string>
+    <string name="lib_empty_songs_online_title">Ingen skysanger funnet</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">Ingen album tilgjengelig</string>
+    <string name="lib_empty_albums_all_subtitle">Album vil vises her så snart biblioteket ditt har gruppert spor.</string>
+    <string name="lib_empty_albums_offline_title">Ingen lokale album funnet</string>
+    <string name="lib_empty_albums_offline_subtitle">Lokale sanger kreves for å bygge lokale albumgrupper.</string>
+    <string name="lib_empty_albums_online_title">Ingen skyalbum funnet</string>
+    <string name="lib_empty_albums_online_subtitle">Skysanger med albumdata vil vises her etter synkronisering.</string>
+    <string name="lib_empty_artists_all_title">Ingen artister tilgjengelig</string>
+    <string name="lib_empty_artists_all_subtitle">Artister vises etter at sanger er indeksert fra en hvilken som helst kilde.</string>
+    <string name="lib_empty_artists_offline_title">Ingen lokale artister funnet</string>
+    <string name="lib_empty_artists_offline_subtitle">Ingen artistmetadata er tilgjengelig for lokale sanger akkurat nå.</string>
+    <string name="lib_empty_artists_online_title">Ingen skyartister funnet</string>
+    <string name="lib_empty_artists_online_subtitle">Skyartister vises når eksterne sanger synkroniseres.</string>
+    <string name="lib_empty_liked_all_title">Ingen likte sanger ennå</string>
+    <string name="lib_empty_liked_all_subtitle">Trykk på hjerteikonet mens du spiller en sang for å lagre den her.</string>
+    <string name="lib_empty_liked_offline_title">Ingen likte lokale sanger</string>
+    <string name="lib_empty_liked_offline_subtitle">Bytt kildefilter eller lik sanger fra enheten din.</string>
+    <string name="lib_empty_liked_online_title">Ingen likte skysanger</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">Ingen mapper funnet</string>
+    <string name="lib_empty_folders_subtitle">Mapper med musikk fra det interne minnet vil vises her.</string>
+    <string name="lib_empty_playlists_title">Ingen spillelister ennå</string>
+    <string name="lib_empty_playlists_subtitle">Opprett din første spilleliste for å organisere biblioteket ditt.</string>
+</resources>

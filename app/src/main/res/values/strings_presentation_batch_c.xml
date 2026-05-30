@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">Error loading songs</string>
+    <string name="library_error_loading_albums">Error loading albums</string>
+    <string name="library_error_loading_artists">Error loading artists</string>
+    <string name="library_retry">Retry</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">No songs found in your library.</string>
+    <string name="library_no_songs_rescan_hint">Try rescanning your library in settings if you have music on your device.</string>
+    <string name="cd_no_songs_in_library">No songs found</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">New</string>
+    <string name="cd_create_new_playlist">Create new playlist</string>
+    <string name="cd_import_m3u_playlist">Import M3U playlist</string>
+    <string name="cd_locate_current_song">Locate current song</string>
+    <string name="library_storage_filter_all_songs">All songs</string>
+    <string name="library_storage_filter_online">CLOUD</string>
+    <string name="library_storage_filter_offline">LOCAL</string>
+    <string name="cd_sort_options">Sort options</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">SYNCED</string>
+    <string name="song_field_artist_optional">Artist (optional)</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">Add songs</string>
+    <string name="cd_confirm_add_songs">Add selected songs</string>
+    <string name="song_picker_action_add">Add</string>
+    <string name="song_picker_search_label">Search or filter songs…</string>
+    <string name="song_picker_filter_favorites">Liked</string>
+    <string name="song_picker_error_load_failed">Failed to load songs</string>
+    <string name="song_picker_load_more">Load more</string>
+
+    
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">No songs yet</string>
+    <string name="lib_empty_songs_all_subtitle">Add music to your device or sync a cloud source to start listening.</string>
+    <string name="lib_empty_songs_offline_title">No local songs found</string>
+    <string name="lib_empty_songs_offline_subtitle">Try another source filter or rescan your device library.</string>
+    <string name="lib_empty_songs_online_title">No cloud songs found</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">No albums available</string>
+    <string name="lib_empty_albums_all_subtitle">Albums will appear here as soon as your library has grouped tracks.</string>
+    <string name="lib_empty_albums_offline_title">No local albums found</string>
+    <string name="lib_empty_albums_offline_subtitle">Local songs are required to build local album groups.</string>
+    <string name="lib_empty_albums_online_title">No cloud albums found</string>
+    <string name="lib_empty_albums_online_subtitle">Cloud songs with album data will appear here after sync.</string>
+    <string name="lib_empty_artists_all_title">No artists available</string>
+    <string name="lib_empty_artists_all_subtitle">Artists are shown after songs are indexed from any source.</string>
+    <string name="lib_empty_artists_offline_title">No local artists found</string>
+    <string name="lib_empty_artists_offline_subtitle">No artist metadata is available for local songs right now.</string>
+    <string name="lib_empty_artists_online_title">No cloud artists found</string>
+    <string name="lib_empty_artists_online_subtitle">Cloud artist entries appear when remote songs are synced.</string>
+    <string name="lib_empty_liked_all_title">No liked songs yet</string>
+    <string name="lib_empty_liked_all_subtitle">Tap the heart icon while playing a song to save it here.</string>
+    <string name="lib_empty_liked_offline_title">No liked local songs</string>
+    <string name="lib_empty_liked_offline_subtitle">Switch source filter or like songs from your device.</string>
+    <string name="lib_empty_liked_online_title">No liked cloud songs</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">No folders found</string>
+    <string name="lib_empty_folders_subtitle">Internal storage folders with music will appear here.</string>
+    <string name="lib_empty_playlists_title">No playlists yet</string>
+    <string name="lib_empty_playlists_subtitle">Create your first playlist to organize your library.</string>
+</resources>

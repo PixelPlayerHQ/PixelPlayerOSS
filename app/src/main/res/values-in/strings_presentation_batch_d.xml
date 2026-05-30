@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LibraryScreen -->
+    <string name="presentation_batch_d_library_title">Pustaka</string>
+    <string name="presentation_batch_d_open_settings_cd">Pengaturan</string>
+    <string name="presentation_batch_d_edit_library_tabs_cd">Edit</string>
+    <string name="presentation_batch_d_reorder_tabs_cd">Urutkan ulang tab</string>
+    <string name="presentation_batch_d_sort_by">Urutkan berdasarkan</string>
+    <string name="presentation_batch_d_view_section_cloud">Cloud</string>
+    <string name="presentation_batch_d_view_section_view">Tampilan</string>
+    <string name="presentation_batch_d_playlist_view">Tampilan Playlist</string>
+    <string name="presentation_batch_d_view_grid">Grid</string>
+    <string name="presentation_batch_d_view_list">List</string>
+    <string name="presentation_batch_d_storage_internal">Internal</string>
+    <string name="presentation_batch_d_storage_sd_card">Kartu SD</string>
+    <string name="presentation_batch_d_sd_card_unavailable">Kartu SD tidak tersedia saat ini.</string>
+    <string name="presentation_batch_d_topics_display">Tampilan Topik</string>
+    <string name="presentation_batch_d_topic_mode_channels">Saluran</string>
+    <string name="presentation_batch_d_topic_mode_topics">Topik</string>
+    <string name="presentation_batch_d_topic_mode_both">Keduanya</string>
+    <string name="presentation_batch_d_cloud_sources_heading">Cloud</string>
+    <string name="presentation_batch_d_cloud_only">Hanya Cloud</string>
+    <string name="presentation_batch_d_max_albums_selection">Anda dapat memilih hingga %1$d album</string>
+    <string name="presentation_batch_d_folder_name_fallback">Folder</string>
+    <string name="presentation_batch_d_expand_tab_menu_cd">Perluas menu</string>
+    <string name="presentation_batch_d_library_tabs_sheet_title">Tab pustaka</string>
+    <string name="presentation_batch_d_library_tabs_sheet_subtitle">Lompat langsung ke tab mana pun atau urutkan ulang.</string>
+    <string name="presentation_batch_d_reorder_tabs_label">Urutkan ulang tab</string>
+    <string name="presentation_batch_d_cd_folder">Folder</string>
+
+
+    <!-- LibraryScreen — merge playlists -->
+    <string name="presentation_batch_d_merge_playlists_title">Gabungkan Playlist</string>
+    <string name="presentation_batch_d_merge_playlists_prompt">Masukkan nama untuk playlist gabungan:</string>
+    <string name="presentation_batch_d_merge_playlists_placeholder">Playlist Gabungan</string>
+    <string name="presentation_batch_d_merge_playlists_body">Ini akan menggabungkan %1$d playlist terpilih menjadi satu.</string>
+
+    <!-- MashupScreen -->
+    <string name="presentation_batch_d_mashup_title">Ruang DJ</string>
+    <string name="presentation_batch_d_loading">Memuat…</string>
+    <string name="presentation_batch_d_mashup_deck_n">Dek %1$d</string>
+    <string name="presentation_batch_d_mashup_load_song_cd">Muat lagu</string>
+    <string name="presentation_batch_d_mashup_no_song_loaded">Tidak ada lagu yang dimuat</string>
+    <string name="presentation_batch_d_mashup_artist_placeholder">…</string>
+    <string name="presentation_batch_d_mashup_stem_separation_unavailable">Pemisahan stem belum tersedia.</string>
+    <string name="presentation_batch_d_mashup_volume">Volume</string>
+    <string name="presentation_batch_d_mashup_speed">Kecepatan</string>
+    <string name="presentation_batch_d_mashup_crossfader">Crossfader</string>
+    <string name="presentation_batch_d_mashup_deck_1">Dek 1</string>
+    <string name="presentation_batch_d_mashup_deck_2">Dek 2</string>
+    <string name="presentation_batch_d_mashup_select_song_title">Pilih sebuah lagu</string>
+
+    <!-- EqualizerScreen -->
+    <string name="presentation_batch_d_eq_change_view_mode_cd">Ubah mode tampilan</string>
+    <string name="presentation_batch_d_eq_disable_cd">Nonaktifkan equalizer</string>
+    <string name="presentation_batch_d_eq_enable_cd">Aktifkan equalizer</string>
+    <string name="presentation_batch_d_eq_edit_tab_title">Edit</string>
+    <string name="presentation_batch_d_eq_edit_presets_cd">Edit preset</string>
+    <string name="presentation_batch_d_eq_custom_preset_cd">Preset kustom</string>
+    <string name="presentation_batch_d_eq_presets_cd">Preset</string>
+    <string name="presentation_batch_d_action_update">Perbarui</string>
+    <string name="presentation_batch_d_eq_bass_boost">Bass Boost</string>
+    <string name="presentation_batch_d_eq_virtualizer">Virtualizer</string>
+    <string name="presentation_batch_d_eq_loudness">Loudness</string>
+    <string name="presentation_batch_d_eq_effect_not_supported">Tidak didukung</string>
+    <string name="presentation_batch_d_eq_effect_not_supported_device">Tidak didukung di perangkat ini</string>
+    <string name="presentation_batch_d_eq_volume">Volume</string>
+    <string name="presentation_batch_d_eq_frequency_response">Respons Frekuensi</string>
+    <string name="presentation_batch_d_eq_unit_hz">Hz</string>
+    <string name="presentation_batch_d_eq_band_bass">Bass</string>
+    <string name="presentation_batch_d_eq_band_low_mids">Low Mids</string>
+    <string name="presentation_batch_d_eq_band_high_mids">High Mids</string>
+    <string name="presentation_batch_d_eq_band_treble">Treble</string>
+    <string name="presentation_batch_d_eq_band_bass_low">Bass / Low</string>
+    <string name="presentation_batch_d_eq_band_mid_high">Mid / High</string>
+    <string name="presentation_batch_d_eq_page_n">Halaman %1$d</string>
+    <string name="presentation_batch_d_eq_reset_duration_cd">Reset durasi</string>
+
+    <!-- EditTransitionScreen -->
+    <string name="presentation_batch_d_transition_snackbar_using_global">Menggunakan default global</string>
+    <string name="presentation_batch_d_transition_snackbar_saved">Perubahan berhasil disimpan</string>
+    <string name="presentation_batch_d_transition_title_playlist_rules">Aturan playlist</string>
+    <string name="presentation_batch_d_transition_title_global">Transisi global</string>
+    <string name="presentation_batch_d_transition_save_cd">Simpan</string>
+    <string name="presentation_batch_d_transition_intro_playlist">Konfigurasi perilaku default untuk playlist spesifik ini.</string>
+    <string name="presentation_batch_d_transition_intro_global">Konfigurasi ini berlaku untuk semua sumber pemutaran kecuali ditimpa.</string>
+    <string name="presentation_batch_d_transition_active_status">Status Aktif</string>
+    <string name="presentation_batch_d_transition_status_global_default">Default Global</string>
+    <string name="presentation_batch_d_transition_status_following_global">Mengikuti Global</string>
+    <string name="presentation_batch_d_transition_status_custom_override">Timpa Kustom</string>
+    <string name="presentation_batch_d_transition_status_playlist_default">Default Playlist</string>
+    <string name="presentation_batch_d_transition_custom_override_title">Timpa Kustom</string>
+    <string name="presentation_batch_d_transition_custom_override_body">Aktifkan untuk mengatur aturan spesifik bagi playlist ini.</string>
+    <string name="presentation_batch_d_transition_style_title">Gaya Transisi</string>
+    <string name="presentation_batch_d_transition_style_subtitle">Cara trek berbaur bersama</string>
+    <string name="presentation_batch_d_transition_mode_crossfade">Crossfade</string>
+    <string name="presentation_batch_d_transition_mode_none">Tidak ada</string>
+    <string name="presentation_batch_d_transition_duration_title">Durasi Transisi</string>
+    <string name="presentation_batch_d_transition_duration_subtitle_format">Tumpang tindih total %1$ddtk</string>
+    <string name="presentation_batch_d_transition_reset_cd">Reset</string>
+    <string name="presentation_batch_d_transition_visualizer_current">Lagu Saat Ini</string>
+    <string name="presentation_batch_d_transition_visualizer_next">Lagu Berikutnya</string>
+    <string name="presentation_batch_d_transition_overlap_explanation_format">Trek akan tumpang tindih selama %1$ddtk</string>
+    <string name="presentation_batch_d_transition_curves_title">Kurva Volume</string>
+    <string name="presentation_batch_d_transition_curves_subtitle">Sempurnakan kemiringan audio</string>
+    <string name="presentation_batch_d_transition_fade_out">Fade Out</string>
+    <string name="presentation_batch_d_transition_fade_in">Fade In</string>
+
+    <!-- ArtistDetailScreen -->
+    <string name="presentation_batch_d_cd_play_title">Putar %1$s</string>
+    <string name="presentation_batch_d_cd_collapse_title">Ciutkan %1$s</string>
+    <string name="presentation_batch_d_cd_expand_title">Perluas %1$s</string>
+    <string name="presentation_batch_d_edit_artist_image_cd">Edit gambar artis</string>
+    <string name="presentation_batch_d_change_photo">Ubah foto</string>
+    <string name="presentation_batch_d_reset_to_default">Reset ke default</string>
+    <string name="presentation_batch_d_cd_shuffle_play_artist">Putar acak artis</string>
+    <string name="presentation_batch_d_cd_artist">Artis</string>
+</resources>

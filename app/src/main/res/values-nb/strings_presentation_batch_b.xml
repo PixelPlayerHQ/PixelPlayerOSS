@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AccountsScreen -->
+    <string name="presentation_batch_b_accounts_linked_services">Tilkoblede tjenester</string>
+    <string name="presentation_batch_b_accounts_connected_hero_title">Tilkoblede kontoer</string>
+    <string name="presentation_batch_b_accounts_connected_hero_body">Administrer tilkoblede leverandører og ha full kontroll over hver integrasjon.</string>
+    <string name="presentation_batch_b_accounts_stat_active">Aktiv</string>
+    <string name="presentation_batch_b_accounts_stat_available">Tilgjengelig</string>
+    <string name="presentation_batch_b_accounts_status_soon">Kommer snart</string>
+    <string name="presentation_batch_b_accounts_status_connected">Tilkoblet</string>
+    <string name="presentation_batch_b_accounts_open_service">Åpne tjeneste</string>
+    <string name="presentation_batch_b_accounts_coming_soon_short">Kommer snart</string>
+    <string name="presentation_batch_b_accounts_logging_out">Logger ut…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Ingen tilkoblede kontoer ennå</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Koble til en leverandør for å administrere den fra denne skjermen.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Koble til %1$s</string>
+    <string name="presentation_batch_b_accounts_service_paren_coming_soon">%1$s (Kommer snart)</string>
+
+    <!-- PlaylistDetailScreen -->
+    <string name="presentation_batch_b_sort_songs">Sorter sanger</string>
+    <string name="presentation_batch_b_more_options">Flere alternativer</string>
+    <string name="presentation_batch_b_play_it">Spill den</string>
+    <string name="presentation_batch_b_add_songs">Legg til sanger</string>
+    <string name="presentation_batch_b_add">Legg til</string>
+    <string name="presentation_batch_b_remove_songs">Fjern sanger</string>
+    <string name="presentation_batch_b_reorder_songs">Endre rekkefølge</string>
+    <string name="presentation_batch_b_reorder">Endre rekkefølge</string>
+    <string name="presentation_batch_b_reorder_song">Endre rekkefølge på sang</string>
+    <string name="presentation_batch_b_playlist_empty_title">Denne spillelisten er tom.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">Denne mappen inneholder ingen sanger.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Trykk på \'Legg til sanger\' for å starte.</string>
+    <string name="presentation_batch_b_playlist_options_title">Alternativer for spilleliste</string>
+    <string name="presentation_batch_b_edit_playlist">Rediger spilleliste</string>
+    <string name="presentation_batch_b_delete_playlist">Slett spilleliste</string>
+    <string name="presentation_batch_b_set_default_transition">Angi standard overgang</string>
+    <string name="presentation_batch_b_export_playlist">Eksporter spilleliste</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Slett spilleliste?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Er du sikker på at du vil slette denne spillelisten?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Gi nytt navn</string>
+    <string name="presentation_batch_b_new_name">Nytt navn</string>
+
+    <!-- DailyMixScreen -->
+    <string name="presentation_batch_b_daily_mix_title">Daily Mix</string>
+
+    <!-- QuickFillScreen -->
+    <string name="presentation_batch_b_quick_fill_select_songs">Velg sanger</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Velg sjanger</string>
+    <string name="presentation_batch_b_search_songs_label">Søk etter sanger</string>
+    <string name="presentation_batch_b_select_all">Velg alle</string>
+    <string name="presentation_batch_b_clear">Tøm</string>
+    <string name="presentation_batch_b_genre_label_format">Sjanger: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Velg en sjanger</string>
+    <string name="presentation_batch_b_quick_fill">Quick Fill</string>
+    <string name="presentation_batch_b_add_custom_genre">Legg til egendefinert</string>
+    <string name="presentation_batch_b_new_genre">Ny sjanger</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Legg til egendefinert sjanger</string>
+    <string name="presentation_batch_b_genre_name_label">Sjangernavn</string>
+    <string name="presentation_batch_b_select_icon">Velg ikon</string>
+
+    <!-- RecentlyPlayedScreen -->
+    <string name="presentation_batch_b_recently_played_title">Nylig spilt</string>
+    <string name="presentation_batch_b_play_latest">Spill siste</string>
+    <string name="presentation_batch_b_recent_empty_title">Ingen nylige avspillinger i %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Endre tidsrommet eller spill flere sanger for å fylle denne oversikten.</string>
+    <string name="presentation_batch_b_queue_recently_played">Nylig spilt</string>
+    <string name="presentation_batch_b_date_today">I dag</string>
+    <string name="presentation_batch_b_date_yesterday">I går</string>
+
+    <!-- NavBarCornerRadiusScreen -->
+    <string name="presentation_batch_b_navbar_adjust_title">Juster hjørneradius</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Tilpass hjørnene på navigasjonslinjen til enhetens fysiske hjørner for et sømløst utseende.</string>
+    <string name="presentation_batch_b_corner_radius_label">Hjørneradius</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <!-- GenreDetailScreen -->
+    <string name="presentation_batch_b_genre_shuffle_label">%1$s-blanding</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d sang • %2$s</item>
+        <item quantity="other">%1$d sanger • %2$s</item>
+    </plurals>
+</resources>

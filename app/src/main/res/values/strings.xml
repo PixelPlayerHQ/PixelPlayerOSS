@@ -1,0 +1,213 @@
+<resources>
+    <string name="app_name">PixelPlayerOSS</string>
+    <string name="app_name_change_title">App Name Change</string>
+    <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
+    <string name="do_not_show_again">Do not show again</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="all_files_access_title">Special Permission Required</string>
+    <string name="all_files_access_description">To edit song metadata (.mp3 files), PixelPlayerOSS needs special access to all files. This allows us to modify track tags directly. Please grant this permission on the next screen to enable metadata editing.</string>
+    <string name="grant_permission_button">Grant Permission</string>
+    <string name="all_files_access_setting">All Files Access</string>
+    <string name="error">Error</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="import_file">Import</string>
+    <string name="search">Search</string>
+
+    <string name="lyrics">Lyrics</string>
+    <string name="close_lyrics_sheet">Close Lyrics Sheet</string>
+    <string name="loading_lyrics">Loading lyrics…</string>
+    <string name="cant_find_lyrics">Couldn\'t find lyrics for this song.</string>
+    <string name="lyrics_provided_by">Lyrics provided by</string>
+    <string name="lrclib_uri">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Lyrics not found</string>
+    <string name="search_lyrics_online_prompt">Would you like to search for lyrics online?</string>
+    <string name="lyrics_custom_search_hint">We couldn\'t find lyrics automatically. You can edit the title or artist and try searching manually.</string>
+    <string name="failed_to_search_for_lyrics">Failed to search for lyrics</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Failed to fetch lyrics from remote</string>
+    <string name="lyrics_fetch_timeout">Connection timed out. Please check your internet connection.</string>
+    <string name="lyrics_network_error">Network error. Please check your internet connection.</string>
+    <string name="lyrics_server_error">Server error (code %d). Please try again later.</string>
+    <string name="found_n_matches_format">Found %d match(es)</string>
+    <string name="searched_for_x_format">Searched for \"%s\"</string>
+    <string name="searching_lyrics">Searching for lyrics…</string>
+    <string name="lyrics_already_available">Lyrics already available. Online fetch skipped.</string>
+    <string name="lyrics_embedded_already_available">Embedded lyrics already found. Online fetch skipped.</string>
+    <string name="local_lrc_already_available">Local (.lrc) lyrics already found. Online fetch skipped.</string>
+    <string name="fetch_lyrics_show_options_title">Show lyric options</string>
+    <string name="fetch_lyrics_show_options_subtitle">Always open the picker instead of auto-applying the first match</string>
+    <string name="save_lyrics_as_lrc">Save lyrics as .lrc</string>
+    <string name="save_lyrics_dialog_title">Save Lyrics</string>
+    <string name="save_lyrics_dialog_message">Choose which version to save:</string>
+    <string name="save_synced_lyrics">Synced (with timestamps)</string>
+    <string name="save_plain_lyrics">Plain (text only)</string>
+    <string name="lyrics_saved_successfully">Lyrics saved successfully</string>
+    <string name="lyrics_save_failed">Failed to save lyrics</string>
+    <string name="no_lyrics_to_save">No lyrics available to save</string>
+    <string name="reset_imported_lyrics">Reset imported lyrics</string>
+    <string name="lyrics_sync_offset">Lyrics sync offset</string>
+    <string name="lyrics_sync_offset_format">%+.1fs</string>
+    <string name="lyrics_sync_offset_reset">Reset</string>
+    <string name="lyrics_earlier">Earlier</string>
+    <string name="lyrics_later">Later</string>
+
+    <string name="sync_scanning">Scanning music files…</string>
+    <string name="sync_processing">Processing files…</string>
+    <string name="sync_files_progress">%1$d of %2$d files</string>
+    <string name="sync_in_progress">Syncing library…</string>
+    <string name="sync_complete">Sync complete</string>
+    <string name="sync_pending">Waiting…</string>
+    <string name="syncing_library">Syncing library…</string>
+    <string name="library_background_sync">Finishing in the background…</string>
+    <string name="library_background_sync_lyrics">Scanning lyrics…</string>
+    <string name="library_background_sync_cache">Cleaning album art cache…</string>
+    <string name="library_background_sync_cloud">Syncing cloud sources…</string>
+    <string name="unknown_song_title">Unknown track</string>
+    <string name="unknown_artist">Unknown artist</string>
+    <string name="unknown_album">Unknown album</string>
+    <string name="artist_picker_title">Pick an Artist</string>
+    <string name="artist_picker_supporting_text">Open any credited artist for this track.</string>
+    <string name="artist_picker_count_single">1 artist</string>
+    <string name="artist_picker_count_multiple">%1$d artists</string>
+    <string name="artist_picker_primary_label">Primary artist</string>
+    <string name="artist_picker_shortcut_label">Artist page</string>
+    <string name="external_queue_label">Quick play</string>
+    <string name="external_playback_error">Unable to open that audio file.</string>
+    <string name="open_full_player">Open full player</string>
+    <string name="close_external_player">Close floating player</string>
+    <string name="close_notification_player">Close player</string>
+    <string name="previous_track">Previous track</string>
+    <string name="next_track">Next track</string>
+    <string name="pause_playback">Pause playback</string>
+    <string name="play_playback">Play</string>
+    <string name="playlist_not_found">Playlist not found.</string>
+    <string name="disc_number_header">Disc %d</string>
+
+
+
+    <string name="shortcut_shuffle_short">Shuffle</string>
+    <string name="shortcut_shuffle_long">Shuffle all songs</string>
+    <string name="shortcut_playlist_short">Playlist</string>
+    <string name="shortcut_playlist_long">Last played playlist</string>
+
+    <string name="tile_shuffle_all">Shuffle All</string>
+    <string name="tile_last_playlist">Last Playlist</string>
+    <string name="tile_last_playlist_unavailable">No playlist available to open</string>
+
+    <string name="invalid_album_id">Invalid album ID</string>
+    <string name="album_id_not_found">Album ID not found</string>
+    <string name="error_loading_album">Error loading album data: %s</string>
+    <string name="album_not_found">Album not found</string>
+    <string name="could_not_update">Could not update: %s</string>
+    <string name="invalid_artist_id">Invalid artist ID</string>
+    <string name="artist_id_not_found">Artist ID not found</string>
+    <string name="error_loading_artist">Error loading artist data: %s</string>
+    <string name="could_not_find_artist">Could not find the artist</string>
+    <string name="no_valid_songs">No valid songs found to play</string>
+
+    <string name="glance_widget_description">Responsive widget that adapts to its size</string>
+    <string name="widget_bar_4x1_desc">Compact player bar</string>
+    <string name="widget_control_4x2_desc">Full controls with shuffle and repeat</string>
+    <string name="widget_grid_2x2_desc">Minimalist square player</string>
+    <string name="service_processing_action">Processing playback action…</string>
+
+    <!-- Playlist bulk actions -->
+    <string name="playlist_none_to_share">No playlists to share</string>
+    <string name="playlist_share_chooser_title">Share playlists</string>
+    <string name="playlist_share_failed">Share failed: %1$s</string>
+    <string name="playlist_none_to_export">No playlists to export</string>
+    <string name="playlist_export_failed">Export failed: %1$s</string>
+    <string name="playlist_export_folder_display">Music/PixelPlayerOSS Exports</string>
+    <string name="error_unknown">Unknown error</string>
+
+
+
+    <!-- Backup / data transfer (ViewModels) -->
+    <string name="backup_invalid_format">Invalid backup: %1$s</string>
+    <string name="backup_progress_preparing_restore">Preparing restore</string>
+    <string name="backup_progress_starting_task">Starting restore task.</string>
+    <string name="backup_progress_preparing_backup">Preparing backup</string>
+    <string name="backup_progress_starting_backup_task">Starting backup task.</string>
+    <string name="restore_completed_success">Backup restored successfully</string>
+    <string name="restore_completed_partial_issues">Restore completed with some unresolved issues.</string>
+    <string name="restore_could_not_complete">Restore could not be completed: %1$s</string>
+    <string name="restore_failed_format">Restore failed: %1$s</string>
+    <string name="data_exported_successfully">Data exported successfully</string>
+    <string name="export_failed_format">Export failed: %1$s</string>
+    <string name="data_restored_successfully">Data restored successfully</string>
+    <string name="restore_partial_unresolved_format">Restore completed with unresolved issues. Failed: %1$s</string>
+    <string name="dev_test_crash_message">Test crash triggered from Developer Options - This is intentional for testing the crash reporting system</string>
+
+    <!-- PlayerViewModel -->
+    <string name="player_song_not_found_in_list">Song not found in current list</string>
+    <string name="player_could_not_locate_song">Could not locate song</string>
+    <string name="player_no_songs_in_library_toast">No songs found in library</string>
+    <string name="player_playback_stopped_eot">Playback stopped: %1$s finished (End of Track).</string>
+    <string name="player_default_track_title">Track</string>
+    <string name="player_no_songs_to_shuffle">No songs to shuffle.</string>
+    <string name="player_queue_name_selected_albums">Selected Albums</string>
+    <string name="player_no_playable_songs_in_albums">No playable songs found in selected albums</string>
+    <string name="player_only_first_n_albums_queued">Only the first %1$d albums were queued</string>
+    <string name="player_albums_queued_format">%1$d albums queued (%2$d songs)</string>
+    <string name="player_could_not_queue_albums">Could not queue selected albums</string>
+    <string name="player_all_songs_already_in_favorites">All songs already in favorites</string>
+    <string name="player_no_songs_were_in_favorites">No songs were in favorites</string>
+    <string name="player_creating_zip">Creating ZIP file…</string>
+    <string name="player_share_zip_failed_format">Failed to share: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Cannot delete currently playing song</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">%1$d files deleted (%2$d skipped - playing)</string>
+    <string name="player_batch_delete_partial_format">%1$d of %2$d files deleted</string>
+    <string name="player_delete_files_failed">Failed to delete files</string>
+    <string name="player_file_deleted">File deleted</string>
+    <string name="player_delete_file_not_found">Can\'t delete the file or file not found</string>
+    <string name="player_deletion_cancelled">Deletion cancelled</string>
+    <string name="player_permission_denied_edit_files">Permission denied – cannot edit files</string>
+    <string name="player_permission_denied_save_lyrics">Permission denied – cannot save lyrics</string>
+    <string name="player_permission_denied_edit_this_file">Permission denied – cannot edit this file</string>
+    <string name="metadata_updated_successfully">Metadata updated successfully</string>
+    <string name="player_updating_n_songs">Updating %1$d songs…</string>
+    <string name="player_batch_genre_updated_all">Successfully updated %1$d songs!</string>
+    <string name="player_batch_genre_updated_partial">Updated %1$d songs. Failed: %2$d</string>
+    <string name="playlist_restored_toast">Playlist restored</string>
+    <string name="delete_songs_permanent_message">These songs will be permanently deleted from your device and cannot be recovered.</string>
+    <string name="delete_action">Delete</string>
+
+    <!-- Sleep timer (SleepTimerStateHolder + TimerOptionsBottomSheet) -->
+    <string name="sleep_timer_n_minutes_format">%1$d minutes</string>
+    <string name="sleep_timer_display_eot">End of track</string>
+    <string name="sleep_timer_set_for_minutes_toast">Timer set for %1$d minutes.</string>
+    <string name="sleep_timer_cancelled_toast">Timer cancelled.</string>
+    <string name="sleep_timer_eot_no_song_toast">Cannot enable end of track: no active song.</string>
+    <string name="sleep_timer_eot_song_changed_toast">End of track timer deactivated: song changed from %1$s to %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">Playback will stop at end of track.</string>
+    <string name="sleep_timer_label_previous_track">Previous track</string>
+    <string name="sleep_timer_label_current_track">Current track</string>
+    <string name="sleep_timer_ui_title">Sleep timer</string>
+    <string name="sleep_timer_ui_slider_label_timer">Timer</string>
+    <string name="sleep_timer_ui_end_of_current_track">End of current track</string>
+    <string name="sleep_timer_ui_custom_time">Custom time</string>
+    <string name="sleep_timer_ui_cancel_timer">Cancel timer</string>
+    <string name="sleep_timer_ui_set_custom_duration">Set custom duration</string>
+    <string name="sleep_timer_ui_play_count_label">Play count: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 time</string>
+    <string name="cd_switch_on">Switch on</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+
+    <!-- Batch Edit -->
+    <string name="batch_edit_toolbar_title">Edit %d Songs</string>
+    <string name="batch_edit_info_message">Only modified fields will be updated. Leave fields empty to keep existing values.</string>
+    <string name="batch_edit_mixed_values">(Mixed values)</string>
+    <string name="batch_edit_optional">(Optional - leave empty to skip)</string>
+    <string name="batch_edit_success">Successfully updated %d songs</string>
+    <string name="batch_edit_partial_success">Updated %d of %d songs. Some files could not be edited.</string>
+    <string name="batch_edit_failed">Failed to update songs</string>
+
+    <!-- Batch Edit Cover Art -->
+    <string name="batch_edit_cover_art_heading">Batch Cover Art</string>
+    <string name="batch_edit_cover_art_hint">This will replace the cover art for all %d selected songs</string>
+    <string name="batch_edit_set_cover_art">Set Cover Art for All</string>
+    <string name="batch_edit_remove_all_art">Remove All Cover Art</string>
+    <string name="batch_edit_multiple_covers">(Multiple different covers)</string>
+</resources>

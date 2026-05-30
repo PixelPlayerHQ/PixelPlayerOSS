@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Отправка %d плейлиста</item>
+        <item quantity="few">Отправка %d плейлистов</item>
+        <item quantity="many">Отправка %d плейлистов</item>
+        <item quantity="other">Отправка %d плейлиста</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">Экспортирован %1$d плейлист в %2$s</item>
+        <item quantity="few">Экспортировано %1$d плейлиста в %2$s</item>
+        <item quantity="many">Экспортировано %1$d плейлистов в %2$s</item>
+        <item quantity="other">Экспортировано %1$d плейлиста в %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">%d песня добавлена в очередь</item>
+        <item quantity="few">%d песни добавлено в очередь</item>
+        <item quantity="many">%d песен добавлено в очередь</item>
+        <item quantity="other">%d песни добавлено в очередь</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">%d песня будет сыграна следующей</item>
+        <item quantity="few">%d песни будут сыграны следующими</item>
+        <item quantity="many">%d песен будут сыграны следующими</item>
+        <item quantity="other">%d песни будут сыграны следующими</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">%d песня добавлена в избранное</item>
+        <item quantity="few">%d песни добавлено в избранное</item>
+        <item quantity="many">%d песен добавлено в избранное</item>
+        <item quantity="other">%d песни добавлено в избранное</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">%d песня удалена из избранного</item>
+        <item quantity="few">%d песни удалено из избранного</item>
+        <item quantity="many">%d песен удалено из избранного</item>
+        <item quantity="other">%d песни удалено из избранного</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">%d файл удален</item>
+        <item quantity="few">%d файла удалено</item>
+        <item quantity="many">%d файлов удалено</item>
+        <item quantity="other">%d файла удалено</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Удалить %d песню?</item>
+        <item quantity="few">Удалить %d песни?</item>
+        <item quantity="many">Удалить %d песен?</item>
+        <item quantity="other">Удалить %d песню?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d раз</item>
+        <item quantity="few">%d раза</item>
+        <item quantity="many">%d раз</item>
+        <item quantity="other">%d раза</item>
+    </plurals>
+</resources>

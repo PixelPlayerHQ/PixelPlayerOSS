@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AccountsScreen -->
+    <string name="presentation_batch_b_accounts_linked_services">연결된 서비스</string>
+    <string name="presentation_batch_b_accounts_connected_hero_title">연결된 계정</string>
+    <string name="presentation_batch_b_accounts_connected_hero_body">연결된 제공업체를 관리하고 각 연동 기능을 제어하세요.</string>
+    <string name="presentation_batch_b_accounts_stat_active">활성</string>
+    <string name="presentation_batch_b_accounts_stat_available">사용 가능</string>
+    <string name="presentation_batch_b_accounts_status_soon">예정</string>
+    <string name="presentation_batch_b_accounts_status_connected">연결됨</string>
+    <string name="presentation_batch_b_accounts_open_service">서비스 열기</string>
+    <string name="presentation_batch_b_accounts_coming_soon_short">출시 예정</string>
+    <string name="presentation_batch_b_accounts_logging_out">로그아웃 중…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">연결된 계정 없음</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">제공업체를 연결하여 이 화면에서 관리하세요.</string>
+    <string name="presentation_batch_b_accounts_connect_service">%1$s 연결</string>
+    <string name="presentation_batch_b_accounts_service_paren_coming_soon">%1$s (출시 예정)</string>
+
+    <!-- PlaylistDetailScreen -->
+    <string name="presentation_batch_b_sort_songs">곡 정렬</string>
+    <string name="presentation_batch_b_more_options">추가 옵션</string>
+    <string name="presentation_batch_b_play_it">재생</string>
+    <string name="presentation_batch_b_add_songs">곡 추가</string>
+    <string name="presentation_batch_b_add">추가</string>
+    <string name="presentation_batch_b_remove_songs">곡 제거</string>
+    <string name="presentation_batch_b_reorder_songs">곡 순서 변경</string>
+    <string name="presentation_batch_b_reorder">순서 변경</string>
+    <string name="presentation_batch_b_reorder_song">곡 순서 변경</string>
+    <string name="presentation_batch_b_playlist_empty_title">플레이리스트가 비어 있습니다.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">이 폴더에 곡이 없습니다.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">\'곡 추가\'를 눌러 시작하세요.</string>
+    <string name="presentation_batch_b_playlist_options_title">플레이리스트 옵션</string>
+    <string name="presentation_batch_b_edit_playlist">플레이리스트 편집</string>
+    <string name="presentation_batch_b_delete_playlist">플레이리스트 삭제</string>
+    <string name="presentation_batch_b_set_default_transition">기본 전환 설정</string>
+    <string name="presentation_batch_b_export_playlist">플레이리스트 내보내기</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">플레이리스트를 삭제하시겠습니까?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">이 플레이리스트를 삭제하시겠습니까?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">플레이리스트 이름 변경</string>
+    <string name="presentation_batch_b_new_name">새 이름</string>
+
+    <!-- DailyMixScreen -->
+    <string name="presentation_batch_b_daily_mix_title">Daily Mix</string>
+
+    <!-- QuickFillScreen -->
+    <string name="presentation_batch_b_quick_fill_select_songs">곡 선택</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">장르 선택</string>
+    <string name="presentation_batch_b_search_songs_label">곡 검색</string>
+    <string name="presentation_batch_b_select_all">모두 선택</string>
+    <string name="presentation_batch_b_clear">지우기</string>
+    <string name="presentation_batch_b_genre_label_format">장르: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">장르를 선택하세요</string>
+    <string name="presentation_batch_b_quick_fill">Quick Fill</string>
+    <string name="presentation_batch_b_add_custom_genre">사용자 지정 추가</string>
+    <string name="presentation_batch_b_new_genre">새 장르</string>
+    <string name="presentation_batch_b_add_custom_genre_title">사용자 지정 장르 추가</string>
+    <string name="presentation_batch_b_genre_name_label">장르 이름</string>
+    <string name="presentation_batch_b_select_icon">아이콘 선택</string>
+
+    <!-- RecentlyPlayedScreen -->
+    <string name="presentation_batch_b_recently_played_title">최근 재생한 곡</string>
+    <string name="presentation_batch_b_play_latest">최신 곡 재생</string>
+    <string name="presentation_batch_b_recent_empty_title">%1$s 동안 재생한 곡이 없습니다</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">기간을 변경하거나 곡을 더 재생하여 타임라인을 채워보세요.</string>
+    <string name="presentation_batch_b_queue_recently_played">최근 재생한 곡</string>
+    <string name="presentation_batch_b_date_today">오늘</string>
+    <string name="presentation_batch_b_date_yesterday">어제</string>
+
+    <!-- NavBarCornerRadiusScreen -->
+    <string name="presentation_batch_b_navbar_adjust_title">모서리 반경 조정</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">내비게이션 바의 모양을 기기의 물리적 모서리와 맞춰보세요.</string>
+    <string name="presentation_batch_b_corner_radius_label">모서리 반경</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <!-- GenreDetailScreen -->
+    <string name="presentation_batch_b_genre_shuffle_label">%1$s 셔플</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="other">곡 %1$d개 • %2$s</item>
+    </plurals>
+</resources>

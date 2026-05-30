@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- QueueBottomSheet -->
+    <string name="presentation_batch_e_queue_empty">대기열이 비어 있습니다.</string>
+    <string name="presentation_batch_e_cd_queue_actions">대기열 작업</string>
+    <string name="presentation_batch_e_action_clear_queue">대기열 비우기</string>
+    <string name="presentation_batch_e_action_save_as_playlist">플레이리스트로 저장</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s 대기열</string>
+    <string name="presentation_batch_e_queue_current">현재 대기열</string>
+    <string name="presentation_batch_e_removed">제거됨</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">대기열 비우기</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">현재 곡을 제외한 대기열의 모든 곡을 지우시겠습니까?</string>
+    <string name="presentation_batch_e_next_up">다음 트랙</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">현재 대기열이 비어 있습니다.</string>
+    <string name="presentation_batch_e_queue_source_fallback">대기열</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">셔플 토글</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">반복 토글</string>
+    <string name="presentation_batch_e_cd_sleep_timer">취침 타이머</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">플레이리스트로 저장</string>
+    <string name="presentation_batch_e_deselect_all">모두 선택 해제</string>
+    <string name="presentation_batch_e_playlist_name_label">플레이리스트 이름</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">포함할 곡 검색…</string>
+    <string name="presentation_batch_e_save_as_format">저장 형식: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">플레이리스트 이름을 입력하세요</string>
+    <string name="presentation_batch_e_no_songs_match_query">\"%1$s\"와(과) 일치하는 곡이 없습니다</string>
+    <string name="presentation_batch_e_cd_dismiss_song">곡 닫기</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">플레이리스트에서 제거</string>
+    <string name="presentation_batch_e_more_options_for_song">%1$s 추가 옵션</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="other">트랙 %d개가 대기 중입니다.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="other">곡 %d개 선택됨</item>
+    </plurals>
+
+    <!-- PlaylistContainer -->
+    <string name="presentation_batch_e_no_playlist_created">생성된 플레이리스트가 없습니다.</string>
+    <string name="presentation_batch_e_new_playlist_hint">\'새 플레이리스트\' 버튼을 눌러 시작하세요.</string>
+
+    <!-- PlaylistCreationDialogs: create flow -->
+    <string name="presentation_batch_e_create_playlist_title">플레이리스트 생성</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">생성 방식을 선택하세요.</string>
+    <string name="presentation_batch_e_creation_mode_manual">직접 만들기</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">아트워크, 아이콘, 모양을 디자인하고 곡을 직접 선택합니다.</string>
+
+    <!-- ReorderPresetsSheet -->
+    <string name="presentation_batch_e_reset_presets_title">프리셋 초기화</string>
+    <string name="presentation_batch_e_reset_presets_message">프리셋 순서와 표시 여부가 기본값으로 복원됩니다. 계속하시겠습니까?</string>
+    <string name="presentation_batch_e_manage_presets_title">프리셋 관리</string>
+    <string name="presentation_batch_e_presets_drag_hint">드래그하여 순서 변경 • 눈 아이콘을 눌러 표시/숨기기</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">기본값으로 초기화</string>
+    <string name="presentation_batch_e_cd_visible">표시됨</string>
+    <string name="presentation_batch_e_cd_hidden">숨겨짐</string>
+
+    <!-- DailyMixMenu -->
+    <string name="presentation_batch_e_daily_mix_how_title">Daily Mix 구축 방식</string>
+    <string name="presentation_batch_e_daily_mix_how_body">Daily Mix는 귀하가 즐겨찾는 곡과 가장 많이 재생한 곡을 기반으로 만들어집니다. 또한 새로운 음악을 발견할 수 있도록 귀하가 좋아하는 아티스트와 장르의 트랙도 추가됩니다.</string>
+    <string name="presentation_batch_e_daily_mix_cost_hint">비용을 낮게 유지하기 위해 작은 샘플을 사용합니다</string>
+    <string name="presentation_batch_e_daily_mix_updating">업데이트 중…</string>
+    <string name="presentation_batch_e_daily_mix_update">Daily Mix 업데이트</string>
+</resources>

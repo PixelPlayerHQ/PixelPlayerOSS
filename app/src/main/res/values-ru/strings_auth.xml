@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Shared login / streaming auth -->
+    <string name="auth_cd_back">Назад</string>
+    <string name="auth_show_password">Показать пароль</string>
+    <string name="auth_hide_password">Скрыть пароль</string>
+    <string name="auth_connecting">Подключение…</string>
+    <string name="auth_connect">Подключить</string>
+    <string name="auth_connection_details">Детали подключения</string>
+    <string name="auth_connection_details_subtitle">Введите URL вашего сервера и данные учётной записи.</string>
+    <string name="auth_server_url">URL сервера</string>
+    <string name="auth_username">Имя пользователя</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_password_placeholder">Введите пароль</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="toast_welcome_user">Добро пожаловать, %1$s!</string>
+
+    <!-- Navidrome / Subsonic -->
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_subtitle">Подключение к вашему музыкальному серверу</string>
+    <string name="auth_navidrome_info_card">Поддерживаются Navidrome, Airsonic, Gonic, Ampache и другие серверы, совместимые с API Subsonic.</string>
+    <string name="auth_server_url_placeholder_https">https://music.example.com</string>
+    <string name="auth_navidrome_server_url_hint">Используйте полный https:// адрес вашего сервера.</string>
+    <string name="auth_navidrome_username_hint">Это имя вашей учётной записи Subsonic или Navidrome.</string>
+    <string name="auth_navidrome_password_hint">Пароль приложения тоже поддерживается, если ваш сервер это позволяет.</string>
+    <string name="auth_prefill_https">Подставить https://</string>
+    <string name="auth_navidrome_footer">Совместимо с Navidrome, Gonic, Airsonic и другими серверами с поддержкой Subsonic</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+
+    <!-- Jellyfin -->
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_info_card">Подключается к серверам Jellyfin. В локальной сети поддерживаются HTTP и HTTPS.</string>
+    <string name="auth_jellyfin_subtitle">Подключение к вашему медиа-серверу Jellyfin</string>
+    <string name="auth_jellyfin_connection_subtitle">Введите URL сервера Jellyfin и данные учётной записи.</string>
+    <string name="auth_jellyfin_server_placeholder">http://192.168.1.100:8096</string>
+    <string name="auth_jellyfin_server_url_hint">Полный URL вашего сервера Jellyfin, включая порт.</string>
+    <string name="auth_jellyfin_username_hint">Имя пользователя вашей учётной записи Jellyfin.</string>
+    <string name="auth_jellyfin_password_hint">Пароль вашей учётной записи Jellyfin.</string>
+    <string name="auth_prefill_http">Вставить http://</string>
+    <string name="auth_jellyfin_footer">Подключение к серверам Jellyfin для стриминга вашей музыкальной библиотеки</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+
+
+    <string name="auth_web_exit_confirm_body">Вы сможете вернуться позже. Текущее состояние страницы будет потеряно после закрытия.</string>
+    <string name="auth_exit">Выйти</string>
+    <string name="auth_stay">Остаться</string>
+    <string name="auth_web_cd_web_back">Назад</string>
+    <string name="auth_web_cd_web_forward">Вперёд</string>
+    <string name="auth_web_cd_refresh">Обновить</string>
+    <string name="auth_web_cd_open_home">Открыть главную</string>
+    <string name="auth_saving">Сохранение…</string>
+    <string name="auth_done">Готово</string>
+    <string name="auth_web_retry">Повторить</string>
+    <string name="auth_dial_plus">+</string>
+    <string name="auth_snackbar_page_timeout">Время загрузки страницы истекло. Вы можете повторить попытку без потери прогресса.</string>
+    <string name="auth_error_cookies_unreadable">Не удалось прочитать cookie-файлы сессии.</string>
+    <string name="auth_page_slow">Страница загружается слишком долго. Попробуйте обновить её или использовать другую сеть.</string>
+    <string name="auth_webview_load_failed">Не удалось загрузить встроенный браузер.</string>
+    <string name="auth_error_no_cookies">Cookies не найдены. Сначала войдите в аккаунт.</string>
+</resources>

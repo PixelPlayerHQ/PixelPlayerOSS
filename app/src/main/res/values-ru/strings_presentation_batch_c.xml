@@ -1,0 +1,67 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library list errors -->
+    <string name="library_error_loading_songs">Ошибка загрузки песен</string>
+    <string name="library_error_loading_albums">Ошибка загрузки альбомов</string>
+    <string name="library_error_loading_artists">Ошибка загрузки исполнителей</string>
+    <string name="library_retry">Повторить</string>
+
+    <!-- Library empty (paginated) -->
+    <string name="library_no_songs_in_library_message">В вашей фонотеке не найдено песен.</string>
+    <string name="library_no_songs_rescan_hint">Попробуйте пересканировать фонотеку в настройках, если у вас есть музыка на устройстве.</string>
+    <string name="cd_no_songs_in_library">Песни не найдены</string>
+
+    <!-- Library action row -->
+    <string name="library_action_new">Создать</string>
+    <string name="cd_create_new_playlist">Создать плейлист</string>
+    <string name="cd_import_m3u_playlist">Импорт M3U плейлиста</string>
+    <string name="cd_locate_current_song">Найти текущую песню</string>
+    <string name="library_storage_filter_all_songs">Все песни</string>
+    <string name="library_storage_filter_online">Онлайн</string>
+    <string name="library_storage_filter_offline">Офлайн</string>
+    <string name="cd_sort_options">Параметры сортировки</string>
+
+    <!-- Fetch lyrics (manual search fields) -->
+    <string name="lyrics_synced_badge">СИНХРОН.</string>
+    <string name="song_field_artist_optional">Исполнитель (необязательно)</string>
+
+    <!-- Song picker -->
+    <string name="song_picker_title">Добавить песни</string>
+    <string name="cd_confirm_add_songs">Добавить выбранные песни</string>
+    <string name="song_picker_action_add">Добавить</string>
+    <string name="song_picker_search_label">Поиск песен…</string>
+    <string name="song_picker_error_load_failed">Не удалось загрузить песни</string>
+    <string name="song_picker_load_more">Загрузить еще</string>
+
+    
+    <!-- Library Empty State -->
+    <string name="lib_empty_songs_all_title">Песен пока нет</string>
+    <string name="lib_empty_songs_all_subtitle">Добавьте музыку на устройство или синхронизируйте облачный источник.</string>
+    <string name="lib_empty_songs_offline_title">Местные песни не найдены</string>
+    <string name="lib_empty_songs_offline_subtitle">Попробуйте другой фильтр или пересканируйте устройство.</string>
+    <string name="lib_empty_songs_online_title">Облачные песни не найдены</string>
+    <string name="lib_empty_songs_online_subtitle">Sync Navidrome or Jellyfin songs, or switch to local source.</string>
+    <string name="lib_empty_albums_all_title">Нет доступных альбомов</string>
+    <string name="lib_empty_albums_all_subtitle">Альбомы появятся здесь, как только песни будут сгруппированы.</string>
+    <string name="lib_empty_albums_offline_title">Местные альбомы не найдены</string>
+    <string name="lib_empty_albums_offline_subtitle">Для создания альбомов требуются местные песни.</string>
+    <string name="lib_empty_albums_online_title">Облачные альбомы не найдены</string>
+    <string name="lib_empty_albums_online_subtitle">Облачные песни с данными об альбомах появятся здесь после синхронизации.</string>
+    <string name="lib_empty_artists_all_title">Нет доступных исполнителей</string>
+    <string name="lib_empty_artists_all_subtitle">Исполнители появятся после индексации песен из любого источника.</string>
+    <string name="lib_empty_artists_offline_title">Местные исполнители не найдены</string>
+    <string name="lib_empty_artists_offline_subtitle">Для местных песен пока нет метаданных об исполнителях.</string>
+    <string name="lib_empty_artists_online_title">Облачные исполнители не найдены</string>
+    <string name="lib_empty_artists_online_subtitle">Облачные исполнители появятся после синхронизации песен.</string>
+    <string name="lib_empty_liked_all_title">Нет понравившихся песен</string>
+    <string name="lib_empty_liked_all_subtitle">Нажмите на иконку сердца во время прослушивания, чтобы сохранить песню здесь.</string>
+    <string name="lib_empty_liked_offline_title">Нет понравившихся местных песен</string>
+    <string name="lib_empty_liked_offline_subtitle">Измените фильтр или ставьте лайки песням на устройстве.</string>
+    <string name="lib_empty_liked_online_title">Нет понравившихся облачных песен</string>
+    <string name="lib_empty_liked_online_subtitle">Like Navidrome or Jellyfin tracks to see them in this view.</string>
+    <string name="lib_empty_folders_title">Папки не найдены</string>
+    <string name="lib_empty_folders_subtitle">Папки внутреннего хранилища с музыкой появятся здесь.</string>
+    <string name="lib_empty_playlists_title">Плейлистов пока нет</string>
+    <string name="lib_empty_playlists_subtitle">Создайте свой первый плейлист, чтобы организовать фонотеку.</string>
+    <string name="song_picker_filter_favorites">Только избранное</string>
+</resources>

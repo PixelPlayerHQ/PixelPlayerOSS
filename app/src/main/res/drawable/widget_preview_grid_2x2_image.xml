@@ -1,0 +1,67 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp"
+    android:height="180dp"
+    android:viewportWidth="180"
+    android:viewportHeight="180">
+
+  <!-- Base background -->
+  <path
+      android:pathData="M32,0L148,0A32,32 0,0 1,180 32L180,148A32,32 0,0 1,148 180L32,180A32,32 0,0 1,0 148L0,32A32,32 0,0 1,32 0z"
+      android:fillColor="#181C1F"/>
+
+  <!-- Image icon -->
+  <group>
+    <!-- Background -->
+    <path
+        android:pathData="M36,20L71,20A16,16 0,0 1,87 36L87,71A16,16 0,0 1,71 87L36,87A16,16 0,0 1,20 71L20,36A16,16 0,0 1,36 20z"
+        android:fillColor="#40474D"/>
+    <!-- Image icon -->
+    <path
+        android:pathData="M53.33,44V55.14C52.71,54.78 51.99,54.56 51.22,54.56C48.89,54.56 47,56.44 47,58.78C47,61.11 48.89,63 51.22,63C53.56,63 55.44,61.11 55.44,58.78V48.22H59.67V44H53.33Z"
+        android:fillColor="#C0C8CD"/>
+  </group>
+
+  <!-- Play/pause button -->
+  <group>
+    <!-- Play/pause button background-->
+    <path
+        android:pathData="M109,20L144,20A16,16 0,0 1,160 36L160,71A16,16 0,0 1,144 87L109,87A16,16 0,0 1,93 71L93,36A16,16 0,0 1,109 20z"
+        android:fillColor="#014C69"/>
+    <!-- Play/pause button icon -->
+    <path
+        android:pathData="M120,45H122.67C123.2,45 123.67,45.45 123.67,46.04V60.96C123.67,61.55 123.2,62 122.67,62H120C119.46,62 119,61.55 119,60.96V46.04C119,45.45 119.46,45 120,45ZM129.33,45H132C132.54,45 133,45.45 133,46.04V60.96C133,61.55 132.54,62 132,62H129.33C128.8,62 128.33,61.55 128.33,60.96V46.04C128.33,45.45 128.8,45 129.33,45Z"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:strokeColor="#A6D4EB"/>
+  </group>
+
+  <!-- Previous button -->
+  <group>
+    <!-- Previous button background -->
+    <path
+        android:pathData="M36,93L71,93A16,16 0,0 1,87 109L87,144A16,16 0,0 1,71 160L36,160A16,16 0,0 1,20 144L20,109A16,16 0,0 1,36 93z"
+        android:fillColor="#354A56"/>
+    <!-- Previous button icon -->
+    <path
+        android:pathData="M44,134V118M63,131.47V120.53C63,118.77 61.14,117.67 59.66,118.55L50.42,124.02C48.94,124.9 48.94,127.1 50.42,127.98L59.66,133.45C61.14,134.33 63,133.23 63,131.47Z"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:strokeColor="#A6D4EB"
+        android:strokeLineCap="round"/>
+  </group>
+
+  <!-- Next button -->
+  <group>
+    <!-- Next button background -->
+    <path
+        android:pathData="M109,93L144,93A16,16 0,0 1,160 109L160,144A16,16 0,0 1,144 160L109,160A16,16 0,0 1,93 144L93,109A16,16 0,0 1,109 93z"
+        android:fillColor="#354A56"/>
+    <!-- Next button icon -->
+    <path
+        android:pathData="M136,118V134M117,120.53V131.47C117,133.23 118.86,134.33 120.34,133.45L129.58,127.98C131.06,127.1 131.06,124.9 129.58,124.02L120.34,118.55C118.86,117.67 117,118.77 117,120.53Z"
+        android:strokeWidth="2"
+        android:fillColor="#00000000"
+        android:strokeColor="#A6D4EB"
+        android:strokeLineCap="round"/>
+  </group>
+</vector>

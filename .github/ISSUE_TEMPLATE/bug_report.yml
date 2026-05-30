@@ -1,0 +1,48 @@
+name: Bug Report
+description: Create a report to help us improve PixelPlayerOSS
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report!
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what you were trying to do and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: How can we trigger the issue?
+      placeholder: |
+        1. Open the app
+        2. Go to '...'
+        3. Click on '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Device Environment
+      description: What is your device model and OS version?
+      placeholder: |
+        Model: (e.g. Pixel 8)
+        OS Version: (e.g. Android 14)
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Please provide relevant logs (use `adb logcat` if experienced), screenshots, or plaintext. We suggest placing plaintext logs between "```txt" (above) and "```" (below).
+      placeholder: |
+        Add logs or describe the crash/visual issue here.
+    validations:
+      required: false

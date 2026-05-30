@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- Exclude all credential/token stores from cloud backup -->
+        <exclude domain="sharedpref" path="jellyfin_prefs.xml"/>
+        <exclude domain="sharedpref" path="navidrome_prefs.xml"/>
+
+        <!-- Also exclude the plaintext fallback files written when
+             EncryptedSharedPreferences fails to initialize (e.g. Keystore
+             error after a device PIN/biometric change). Without these
+             excludes, credentials could be uploaded to cloud backup in
+             cleartext on a transient Keystore failure. -->
+        <exclude domain="sharedpref" path="jellyfin_prefs_plain.xml"/>
+        <exclude domain="sharedpref" path="navidrome_prefs_plain.xml"/>
+
+        <!-- Exclude DataStore preferences that may contain API keys/sensitive settings -->
+        <exclude domain="file" path="datastore/settings.preferences_pb"/>
+    </cloud-backup>
+    <device-transfer>
+        <!-- Also exclude from device-to-device transfers — user must re-authenticate -->
+        <exclude domain="sharedpref" path="jellyfin_prefs.xml"/>
+        <exclude domain="sharedpref" path="navidrome_prefs.xml"/>
+
+        <exclude domain="sharedpref" path="jellyfin_prefs_plain.xml"/>
+        <exclude domain="sharedpref" path="navidrome_prefs_plain.xml"/>
+
+        <!-- Keep device-to-device behavior aligned with cloud backup -->
+        <exclude domain="file" path="datastore/settings.preferences_pb"/>
+    </device-transfer>
+</data-extraction-rules>

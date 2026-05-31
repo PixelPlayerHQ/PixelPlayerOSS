@@ -8,10 +8,12 @@ import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibApiService
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibResponse
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
 import java.io.File
@@ -26,7 +28,8 @@ class LyricsRepositoryImplTest {
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = mockk<LrcLibApiService>(relaxed = true),
             lyricsDao = mockk<LyricsDao>(relaxed = true),
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = Song(
             id = "12",
@@ -60,7 +63,8 @@ class LyricsRepositoryImplTest {
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = apiService,
             lyricsDao = mockk<LyricsDao>(relaxed = true),
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = Song(
             id = "45",
@@ -102,7 +106,8 @@ class LyricsRepositoryImplTest {
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = Song(
             id = "77",
@@ -133,6 +138,33 @@ class LyricsRepositoryImplTest {
     }
 
     @Test
+    fun fetchFromRemote_whenExternalLyricsDisabled_doesNotCallLrcLib() = runTest {
+        val apiService = mockk<LrcLibApiService>(relaxed = true)
+        val lyricsDao = mockk<LyricsDao>(relaxed = true)
+        coEvery { lyricsDao.getLyrics(105L) } returns null
+        val repository = LyricsRepositoryImpl(
+            context = testContext(),
+            lrcLibApiService = apiService,
+            lyricsDao = lyricsDao,
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository(externalLyricsEnabled = false)
+        )
+        val song = testSong(
+            id = "105",
+            title = "Remote Track",
+            artist = "Remote Artist",
+            duration = 180_000L
+        )
+
+        val result = repository.fetchFromRemote(song)
+
+        assertThat(result.isFailure).isTrue()
+        coVerify(exactly = 0) { apiService.searchLyrics(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { apiService.getLyrics(any(), any(), any(), any()) }
+        coVerify(exactly = 0) { lyricsDao.insert(any()) }
+    }
+
+    @Test
     fun fetchFromRemote_rejectsDurationOnlySearchMatch() = runTest {
         val apiService = mockk<LrcLibApiService>(relaxed = true)
         val lyricsDao = mockk<LyricsDao>(relaxed = true)
@@ -150,7 +182,8 @@ class LyricsRepositoryImplTest {
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = testSong(
             id = "101",
@@ -182,7 +215,8 @@ class LyricsRepositoryImplTest {
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = testSong(
             id = "102",
@@ -214,7 +248,8 @@ class LyricsRepositoryImplTest {
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = testSong(
             id = "103",
@@ -247,7 +282,8 @@ class LyricsRepositoryImplTest {
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
-            okHttpClient = mockk<OkHttpClient>(relaxed = true)
+            okHttpClient = mockk<OkHttpClient>(relaxed = true),
+            userPreferencesRepository = userPreferencesRepository()
         )
         val song = testSong(
             id = "104",
@@ -263,9 +299,15 @@ class LyricsRepositoryImplTest {
         coVerify(exactly = 1) { lyricsDao.insert(any()) }
     }
 
-    private fun testContext(filesDir: File = Files.createTempDirectory("pixelplay-lyrics-test").toFile()): Context {
+    private fun testContext(filesDir: File = Files.createTempDirectory("pixelplayer-lyrics-test").toFile()): Context {
         return mockk<Context>(relaxed = true) {
             every { this@mockk.filesDir } returns filesDir
+        }
+    }
+
+    private fun userPreferencesRepository(externalLyricsEnabled: Boolean = true): UserPreferencesRepository {
+        return mockk {
+            every { this@mockk.externalLyricsEnabledFlow } returns flowOf(externalLyricsEnabled)
         }
     }
 

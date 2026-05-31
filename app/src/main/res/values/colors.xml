@@ -20,7 +20,7 @@
 
     <color name="my_tertiary">#7D5260</color>
     <color name="my_on_tertiary">#FFFFFF</color>
-    <color name="pixelplay_widget_background_color">#FF2C1D4D</color>
+    <color name="pixelplayer_widget_background_color">#FF2C1D4D</color>
 
     <color name="pixel_play_purple_dark">#19191B</color>
     <color name="light_background">#EDEDED</color>

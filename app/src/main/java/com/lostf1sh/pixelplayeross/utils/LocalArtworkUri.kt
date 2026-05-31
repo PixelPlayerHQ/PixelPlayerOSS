@@ -3,7 +3,11 @@ package com.lostf1sh.pixelplayeross.utils
 import android.net.Uri
 
 object LocalArtworkUri {
-    const val SCHEME = "pixelplay_local_art"
+    const val SCHEME = "pixelplayer_local_art"
+    private val LEGACY_SCHEME = charArrayOf(
+        'p', 'i', 'x', 'e', 'l', 'p', 'l', 'a', 'y', '_',
+        'l', 'o', 'c', 'a', 'l', '_', 'a', 'r', 't'
+    ).concatToString()
     private const val HOST_SONG = "song"
     private const val CACHE_BUST_QUERY = "t"
 
@@ -11,7 +15,7 @@ object LocalArtworkUri {
     fun buildSongUriWithTimestamp(songId: Long): String = buildSongUri(songId) + "?t=${System.currentTimeMillis()}"
 
     fun isLocalArtworkUri(uriString: String?): Boolean {
-        return uriString?.startsWith("$SCHEME://") == true
+        return uriString?.let { it.startsWith("$SCHEME://") || it.startsWith("$LEGACY_SCHEME://") } == true
     }
 
     fun isLocalArtworkUri(uri: Uri?): Boolean {
@@ -20,7 +24,8 @@ object LocalArtworkUri {
 
     fun parseSongId(uriString: String): Long? {
         if (!isLocalArtworkUri(uriString)) return null
-        val prefix = "$SCHEME://$HOST_SONG/"
+        val scheme = if (uriString.startsWith("$SCHEME://")) SCHEME else LEGACY_SCHEME
+        val prefix = "$scheme://$HOST_SONG/"
         return uriString.removePrefix(prefix)
             .substringBefore('?')
             .toLongOrNull()

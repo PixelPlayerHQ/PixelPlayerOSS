@@ -73,7 +73,7 @@ import com.lostf1sh.pixelplayeross.presentation.viewmodel.SectionData
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.AlbumData
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StablePlayerState
-import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayDarkTheme
+import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 import com.lostf1sh.pixelplayeross.utils.formatDuration
 import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import kotlinx.collections.immutable.persistentListOf
@@ -110,7 +110,7 @@ fun GenreDetailScreen(
     }
 
     val density = LocalDensity.current
-    val darkMode = LocalPixelPlayDarkTheme.current
+    val darkMode = LocalPixelPlayerDarkTheme.current
 
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()

@@ -1,8 +1,8 @@
-# Auditoría de Performance UI - PixelPlay
+# Auditoría de Performance UI - PixelPlayer
 
 ## 1. Resumen Ejecutivo
 
-El estado general de performance de PixelPlay es mixto con tendencia a acumulativo. La app demuestra que hubo esfuerzo deliberado en optimización: strong skipping, stability config, state slicing con `.map().distinctUntilChanged()` en el player sheet, separación del flow de posición, baseline profiles, y uso de `ImmutableList` extensivo. Esto no es un codebase negligente en performance.
+El estado general de performance de PixelPlayer es mixto con tendencia a acumulativo. La app demuestra que hubo esfuerzo deliberado en optimización: strong skipping, stability config, state slicing con `.map().distinctUntilChanged()` en el player sheet, separación del flow de posición, baseline profiles, y uso de `ImmutableList` extensivo. Esto no es un codebase negligente en performance.
 
 Sin embargo, el problema principal es de amplificación acumulativa: individualmente, muchos patrones son "aceptables", pero su combinación simultánea —especialmente en dispositivos de gama media/baja con bibliotecas grandes— genera un budget de frames que se desborda consistentemente. El cuello de botella no es un solo componente catastrófico, sino la suma de:
 
@@ -549,7 +549,7 @@ Actualmente es un God Object de `4,631` líneas con `15 StateHolders`. Considera
 Habilitar vía gradle property:
 
 ```properties
-pixelplay.enableComposeCompilerReports=true
+pixelplayer.enableComposeCompilerReports=true
 ```
 
 Revisar:

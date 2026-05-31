@@ -378,12 +378,12 @@ class PlayerSheetAnimationBenchmarks {
         private var libraryRebuiltForThisRun = false
         private const val BENCHMARK_REBUILD_DATABASE_EXTRA = "benchmark_rebuild_database"
 
-        private val SHEET_COLLAPSED_PATTERN = pattern("PixelPlay player sheet collapsed")
+        private val SHEET_COLLAPSED_PATTERN = pattern("PixelPlayer player sheet collapsed")
         private val SHEET_EXPANDED_PATTERN = pattern(
-            "PixelPlay player sheet expanded|Collapse player|Contraer reproductor|Now Playing|Reproduciendo"
+            "PixelPlayer player sheet expanded|Collapse player|Contraer reproductor|Now Playing|Reproduciendo"
         )
         private val COLLAPSED_PLAYER_ANCHOR_PATTERN = pattern(
-            "PixelPlay player sheet collapsed|Album art of|Car[aá]tula de|Anterior|Pausar|Reproducir|Siguiente"
+            "PixelPlayer player sheet collapsed|Album art of|Car[aá]tula de|Anterior|Pausar|Reproducir|Siguiente"
         )
         private val HOME_TAB_PATTERN = pattern("Home|Inicio")
         private val BACK_PATTERN = exactPattern("Back|Atr[aá]s")

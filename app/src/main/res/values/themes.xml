@@ -2,12 +2,12 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Base app theme -->
-    <style name="Theme.PixelPlay" parent="Theme.Material3.DynamicColors.DayNight">
+    <style name="Theme.PixelPlayer" parent="Theme.Material3.DynamicColors.DayNight">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.PixelPlay.ExternalPlayer" parent="Theme.Material3.DynamicColors.DayNight">
+    <style name="Theme.PixelPlayer.ExternalPlayer" parent="Theme.Material3.DynamicColors.DayNight">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
@@ -21,6 +21,6 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
 <!--        <item name="windowSplashScreenBackground">@color/light_background</item>-->
 <!--        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>-->
-<!--        <item name="postSplashScreenTheme">@style/Theme.PixelPlay</item>-->
+<!--        <item name="postSplashScreenTheme">@style/Theme.PixelPlayer</item>-->
     </style>
 </resources>

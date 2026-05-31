@@ -18,11 +18,11 @@ val keystoreProperties = Properties().apply {
     }
 }
 
-val enableAbiSplits = providers.gradleProperty("pixelplay.enableAbiSplits")
+val enableAbiSplits = providers.gradleProperty("pixelplayer.enableAbiSplits")
     .getOrElse("true")
     .toBoolean()
 
-val enableComposeCompilerReports = providers.gradleProperty("pixelplay.enableComposeCompilerReports")
+val enableComposeCompilerReports = providers.gradleProperty("pixelplayer.enableComposeCompilerReports")
     .getOrElse("false")
     .toBoolean()
 

@@ -8,6 +8,7 @@ import android.util.Log
 import android.util.LruCache
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.utils.NetworkRetryUtils
 import com.lostf1sh.pixelplayeross.utils.isRetryableNetworkError
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.max
@@ -35,7 +37,8 @@ import androidx.core.graphics.scale
 @Singleton
 class ArtistImageRepository @Inject constructor(
     private val deezerApiService: DeezerApiService,
-    private val musicDao: MusicDao
+    private val musicDao: MusicDao,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) {
     companion object {
         private const val TAG = "ArtistImageRepository"
@@ -84,6 +87,7 @@ class ArtistImageRepository @Inject constructor(
      */
     suspend fun getArtistImageUrl(artistName: String, artistId: Long): String? {
         if (artistName.isBlank()) return null
+        if (!userPreferencesRepository.externalArtistImagesEnabledFlow.first()) return null
 
         val normalizedName = artistName.trim().lowercase()
 
@@ -124,6 +128,8 @@ class ArtistImageRepository @Inject constructor(
      * Useful for batch loading when displaying artist lists.
      */
     suspend fun prefetchArtistImages(artists: List<Pair<Long, String>>) = withContext(Dispatchers.IO) {
+        if (!userPreferencesRepository.externalArtistImagesEnabledFlow.first()) return@withContext
+
         // Process in small chunks to avoid creating hundreds of coroutines simultaneously.
         // Without this, a library with 500 artists creates 500 coroutine objects at once, all
         // suspended at the semaphore, exhausting the heap and triggering OOM in coroutine machinery.

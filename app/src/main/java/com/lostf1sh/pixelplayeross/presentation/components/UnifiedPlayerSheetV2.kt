@@ -82,7 +82,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.scoped.rememberSheetV
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerSheetState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StablePlayerState
-import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayDarkTheme
+import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -495,7 +495,7 @@ fun UnifiedPlayerSheetV2(
 
     val activePlayerSchemePair by playerViewModel.activePlayerColorSchemePair.collectAsStateWithLifecycle()
     val themedAlbumArtUri by playerViewModel.currentThemedAlbumArtUri.collectAsStateWithLifecycle()
-    val isDarkTheme = LocalPixelPlayDarkTheme.current
+    val isDarkTheme = LocalPixelPlayerDarkTheme.current
     val currentSong = infrequentPlayerState.currentSong
     val sheetThemeState = rememberSheetThemeState(
         activePlayerSchemePair = activePlayerSchemePair,
@@ -569,7 +569,7 @@ fun UnifiedPlayerSheetV2(
         currentSheetContentState,
         infrequentPlayerState.currentSong?.title
     ) {
-        "PixelPlay player sheet ${currentSheetContentState.name.lowercase()} " +
+        "PixelPlayer player sheet ${currentSheetContentState.name.lowercase()} " +
             (infrequentPlayerState.currentSong?.title ?: "")
     }
 

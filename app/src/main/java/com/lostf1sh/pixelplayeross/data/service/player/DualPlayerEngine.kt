@@ -746,6 +746,9 @@ class DualPlayerEngine @Inject constructor(
                 if (scheme in REMOTE_MEDIA_SCHEMES) {
                     val originalUri = uri.toString()
                     val resolved = resolvedUriCache.get(originalUri)
+                        ?: resolveReadyCloudProxyUri(uri)?.also { proxyUri ->
+                            resolvedUriCache.put(originalUri, proxyUri)
+                        }
                     if (resolved != null) {
                         return dataSpec.buildUpon().setUri(resolved).build()
                     }
@@ -786,6 +789,20 @@ class DualPlayerEngine @Inject constructor(
             setWakeMode(C.WAKE_MODE_LOCAL)
             playWhenReady = false
         }
+    }
+
+    private fun resolveReadyCloudProxyUri(uri: Uri): Uri? {
+        val uriString = uri.toString()
+        val proxyUrl = when (uri.scheme) {
+            "navidrome" -> navidromeStreamProxy
+                .takeIf { it.isReady() }
+                ?.resolveNavidromeUri(uriString)
+            "jellyfin" -> jellyfinStreamProxy
+                .takeIf { it.isReady() }
+                ?.resolveJellyfinUri(uriString)
+            else -> null
+        }
+        return proxyUrl?.let(Uri::parse)
     }
 
     private fun getOrCreateAuxiliaryPlayer(): ExoPlayer {

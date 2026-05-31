@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Semaphore
@@ -77,7 +78,7 @@ class NavidromeRepository @Inject constructor(
         private const val NAVIDROME_PARENT_DIRECTORY = "/Cloud/Navidrome"
         private const val NAVIDROME_GENRE = "Navidrome"
         private const val NAVIDROME_PLAYLIST_PREFIX = "navidrome_playlist:"
-        private const val LIBRARY_PLAYLIST_ID = "__library__"
+        const val LIBRARY_PLAYLIST_ID = "__library__"
     }
 
     private val prefs: SharedPreferences = try {
@@ -316,6 +317,10 @@ class NavidromeRepository @Inject constructor(
      * Sync songs in a specific playlist.
      */
     suspend fun syncPlaylistSongs(playlistId: String): Result<Int> {
+        if (playlistId == LIBRARY_PLAYLIST_ID) {
+            return syncLibrarySongs()
+        }
+
         return withContext(Dispatchers.IO) {
             try {
                 Timber.d("$TAG: Syncing songs for playlist $playlistId")
@@ -577,6 +582,13 @@ class NavidromeRepository @Inject constructor(
      * Get all playlists as Flow.
      */
     fun getPlaylists(): Flow<List<NavidromePlaylistEntity>> = dao.getAllPlaylists()
+        .combine(dao.getLibrarySongCount()) { playlists, librarySongCount ->
+            navidromePlaylistsWithLibraryFallback(
+                playlists = playlists,
+                librarySongCount = librarySongCount,
+                libraryName = context.getString(R.string.dash_library_playlist_title)
+            )
+        }
 
     /**
      * Get songs in a playlist as Flow of Song.
@@ -920,11 +932,36 @@ class NavidromeRepository @Inject constructor(
     // ─── Delete ────────────────────────────────────────────────────────────
 
     suspend fun deletePlaylist(playlistId: String) {
+        if (playlistId == LIBRARY_PLAYLIST_ID) return
+
         dao.deleteSongsByPlaylist(playlistId)
         dao.deletePlaylist(playlistId)
         deleteAppPlaylistForNavidromePlaylist(playlistId)
         syncUnifiedLibrarySongsFromNavidrome()
     }
+}
+
+internal fun navidromePlaylistsWithLibraryFallback(
+    playlists: List<NavidromePlaylistEntity>,
+    librarySongCount: Int,
+    libraryName: String,
+    nowMs: Long = System.currentTimeMillis()
+): List<NavidromePlaylistEntity> {
+    if (playlists.isNotEmpty() || librarySongCount <= 0) return playlists
+
+    return listOf(
+        NavidromePlaylistEntity(
+            id = NavidromeRepository.LIBRARY_PLAYLIST_ID,
+            name = libraryName,
+            comment = null,
+            owner = null,
+            coverArtId = null,
+            songCount = librarySongCount,
+            duration = 0L,
+            public = false,
+            lastSyncTime = nowMs
+        )
+    )
 }
 
 // ─── Extension Functions ────────────────────────────────────────────────────

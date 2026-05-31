@@ -23,7 +23,7 @@ import androidx.core.view.WindowCompat
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair
 import androidx.core.graphics.ColorUtils
 
-val LocalPixelPlayDarkTheme = staticCompositionLocalOf { false }
+val LocalPixelPlayerDarkTheme = staticCompositionLocalOf { false }
 
 private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
@@ -33,7 +33,7 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 
 @Suppress("DEPRECATION")
 @Composable
-fun PixelPlayStatusBarStyle(
+fun PixelPlayerStatusBarStyle(
     color: Color,
     useDarkIcons: Boolean = ColorUtils.calculateLuminance(color.toArgb()) > 0.55,
     navigationColor: Color? = null,
@@ -67,31 +67,31 @@ fun PixelPlayStatusBarStyle(
 }
 
 val DarkColorScheme = darkColorScheme(
-    primary = PixelPlayPurplePrimary,
-    secondary = PixelPlayPink,
-    tertiary = PixelPlayOrange,
-    background = PixelPlayPurpleDark,
-    surface = PixelPlaySurface,
-    onPrimary = PixelPlayWhite,
-    onSecondary = PixelPlayWhite,
-    onTertiary = PixelPlayWhite,
-    onBackground = PixelPlayWhite,
-    onSurface = PixelPlayLightPurple, // Texto sobre superficies
+    primary = PixelPlayerPurplePrimary,
+    secondary = PixelPlayerPink,
+    tertiary = PixelPlayerOrange,
+    background = PixelPlayerPurpleDark,
+    surface = PixelPlayerSurface,
+    onPrimary = PixelPlayerWhite,
+    onSecondary = PixelPlayerWhite,
+    onTertiary = PixelPlayerWhite,
+    onBackground = PixelPlayerWhite,
+    onSurface = PixelPlayerLightPurple, // Texto sobre superficies
     error = Color(0xFFFF5252),
-    onError = PixelPlayWhite
+    onError = PixelPlayerWhite
 )
 
 val LightColorScheme = lightColorScheme(
     primary = LightPrimary,
-    onPrimary = PixelPlayWhite,
+    onPrimary = PixelPlayerWhite,
     primaryContainer = LightPrimaryContainer,
     onPrimaryContainer = LightOnPrimaryContainer,
-    secondary = PixelPlayPink,
-    onSecondary = PixelPlayWhite,
-    secondaryContainer = PixelPlayPink.copy(alpha = 0.15f),
-    onSecondaryContainer = PixelPlayPink.copy(alpha = 0.85f),
-    tertiary = PixelPlayOrange,
-    onTertiary = PixelPlayBlack,
+    secondary = PixelPlayerPink,
+    onSecondary = PixelPlayerWhite,
+    secondaryContainer = PixelPlayerPink.copy(alpha = 0.15f),
+    onSecondaryContainer = PixelPlayerPink.copy(alpha = 0.85f),
+    tertiary = PixelPlayerOrange,
+    onTertiary = PixelPlayerBlack,
     background = LightBackground,
     onBackground = LightOnSurface,
     surface = LightSurface,
@@ -102,11 +102,11 @@ val LightColorScheme = lightColorScheme(
     outlineVariant = LightOutline.copy(alpha = 0.6f),
     surfaceTint = LightPrimary,
     error = Color(0xFFD32F2F),
-    onError = PixelPlayWhite
+    onError = PixelPlayerWhite
 )
 
 @Composable
-fun PixelPlayTheme(
+fun PixelPlayerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     colorSchemePairOverride: ColorSchemePair? = null,
     content: @Composable () -> Unit
@@ -131,12 +131,12 @@ fun PixelPlayTheme(
         else -> LightColorScheme
     }
 
-    PixelPlayStatusBarStyle(
+    PixelPlayerStatusBarStyle(
         color = finalColorScheme.background,
         navigationColor = finalColorScheme.background
     )
 
-    CompositionLocalProvider(LocalPixelPlayDarkTheme provides darkTheme) {
+    CompositionLocalProvider(LocalPixelPlayerDarkTheme provides darkTheme) {
         MaterialTheme(
             colorScheme = finalColorScheme,
             typography = Typography,

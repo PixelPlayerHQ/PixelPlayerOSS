@@ -57,7 +57,7 @@ class AlbumGroupingUtilsTest {
         val firstAlbum = testSong(
             artistName = "Artist A",
             albumArtist = null,
-            albumArtUriString = "pixelplay_local_art://song/10",
+            albumArtUriString = "pixelplayer_local_art://song/10",
             parentDirectoryPath = "/music/Artist A/Feels",
             albumName = "Unknown Album",
             albumId = 10L
@@ -65,7 +65,7 @@ class AlbumGroupingUtilsTest {
         val secondAlbum = testSong(
             artistName = "Artist B",
             albumArtist = null,
-            albumArtUriString = "pixelplay_local_art://song/10",
+            albumArtUriString = "pixelplayer_local_art://song/10",
             parentDirectoryPath = "/music/Artist B/Feels",
             albumName = "Unknown Album",
             albumId = 11L
@@ -81,7 +81,7 @@ class AlbumGroupingUtilsTest {
             title = "Unknown Album",
             artistName = "",
             artistId = 0L,
-            albumArtUriString = "pixelplay_local_art://song/10",
+            albumArtUriString = "pixelplayer_local_art://song/10",
             songCount = 1,
             dateAdded = 0L,
             year = 0

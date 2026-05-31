@@ -104,7 +104,7 @@ class QueueUtilsTest {
             album = "Album",
             albumId = 1L,
             path = "/tmp/song-$index.mp3",
-            contentUriString = "content://pixelplay/song/$index",
+            contentUriString = "content://pixelplayer/song/$index",
             albumArtUriString = null,
             duration = 180_000L,
             mimeType = "audio/mpeg",

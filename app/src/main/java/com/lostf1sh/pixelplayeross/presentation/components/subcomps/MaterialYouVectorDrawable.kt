@@ -13,7 +13,7 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.content.res.AppCompatResources
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import com.lostf1sh.pixelplayeross.R
-import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayDarkTheme
+import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 
 /**
  * Infla un vector XML que depende de attrs del tema Android usando el modo
@@ -25,7 +25,7 @@ fun MaterialYouVectorDrawable(
     @DrawableRes drawableResId: Int
 ) {
     val context = LocalContext.current
-    val isDarkTheme = LocalPixelPlayDarkTheme.current
+    val isDarkTheme = LocalPixelPlayerDarkTheme.current
     val themedContext = remember(context, isDarkTheme) {
         context.createVectorThemedContext(isDarkTheme = isDarkTheme)
     }
@@ -49,5 +49,5 @@ private fun Context.createVectorThemedContext(isDarkTheme: Boolean): Context {
             if (isDarkTheme) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO
     }
     val modeContext = createConfigurationContext(themedConfiguration)
-    return ContextThemeWrapper(modeContext, R.style.Theme_PixelPlay)
+    return ContextThemeWrapper(modeContext, R.style.Theme_PixelPlayer)
 }

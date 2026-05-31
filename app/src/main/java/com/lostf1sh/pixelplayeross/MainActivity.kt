@@ -126,7 +126,7 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.screens.SetupScreen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.MainViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
-import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayTheme
+import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
 import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import com.lostf1sh.pixelplayeross.utils.LogUtils
@@ -215,13 +215,13 @@ class MainActivity : ComponentActivity() {
         val shouldBenchmarkRebuildDatabase =
             isBenchmarkMode && intent.getBooleanExtra("benchmark_rebuild_database", false)
         Log.i(
-            "PixelPlayBenchmark",
+            "PixelPlayerBenchmark",
             "onCreate benchmark=$isBenchmarkMode rebuildDatabase=$shouldBenchmarkRebuildDatabase"
         )
         if (shouldBenchmarkRebuildDatabase) {
             lifecycleScope.launch {
                 userPreferencesRepository.setInitialSetupDone(true)
-                Log.i("PixelPlayBenchmark", "Enqueueing benchmark database rebuild")
+                Log.i("PixelPlayerBenchmark", "Enqueueing benchmark database rebuild")
                 syncManager.rebuildDatabase()
                 delay(1_500L)
                 playerViewModel.prepareBenchmarkPlayerFromLibrary()
@@ -276,7 +276,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            PixelPlayTheme(
+            PixelPlayerTheme(
                 darkTheme = useDarkTheme
             ) {
                 var contentVisible by remember { mutableStateOf(false) }

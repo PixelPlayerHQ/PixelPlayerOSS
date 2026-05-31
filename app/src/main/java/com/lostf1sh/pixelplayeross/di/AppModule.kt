@@ -16,14 +16,14 @@ import coil.ImageLoader
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.lostf1sh.pixelplayeross.BuildConfig
-import com.lostf1sh.pixelplayeross.PixelPlayApplication
+import com.lostf1sh.pixelplayeross.PixelPlayerApplication
 import com.lostf1sh.pixelplayeross.data.database.AlbumArtThemeDao
 import com.lostf1sh.pixelplayeross.data.database.EngagementDao
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.LyricsDao
 import com.lostf1sh.pixelplayeross.data.database.LocalPlaylistDao
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
-import com.lostf1sh.pixelplayeross.data.database.PixelPlayDatabase
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.TransitionDao
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
@@ -65,8 +65,8 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideApplication(@ApplicationContext app: Context): PixelPlayApplication {
-        return app as PixelPlayApplication
+    fun provideApplication(@ApplicationContext app: Context): PixelPlayerApplication {
+        return app as PixelPlayerApplication
     }
 
     @Singleton
@@ -116,54 +116,54 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun providePixelPlayDatabase(@ApplicationContext context: Context): PixelPlayDatabase {
+    fun providePixelPlayerDatabase(@ApplicationContext context: Context): PixelPlayerDatabase {
         val builder = Room.databaseBuilder(
             context.applicationContext,
-            PixelPlayDatabase::class.java,
-            "pixelplay_database"
+            PixelPlayerDatabase::class.java,
+            "pixelplayer_database"
         ).addMigrations(
-            PixelPlayDatabase.MIGRATION_3_4,
-            PixelPlayDatabase.MIGRATION_4_5,
-            PixelPlayDatabase.MIGRATION_5_6,
-            PixelPlayDatabase.MIGRATION_6_7,
-            PixelPlayDatabase.MIGRATION_7_8,
-            PixelPlayDatabase.MIGRATION_8_9,
-            PixelPlayDatabase.MIGRATION_9_10,
-            PixelPlayDatabase.MIGRATION_10_11,
-            PixelPlayDatabase.MIGRATION_11_12,
-            PixelPlayDatabase.MIGRATION_12_13,
-            PixelPlayDatabase.MIGRATION_13_14,
-            PixelPlayDatabase.MIGRATION_14_15,
-            PixelPlayDatabase.MIGRATION_15_16,
-            PixelPlayDatabase.MIGRATION_16_17,
-            PixelPlayDatabase.MIGRATION_17_18,
-            PixelPlayDatabase.MIGRATION_18_19,
-            PixelPlayDatabase.MIGRATION_19_20,
-            PixelPlayDatabase.MIGRATION_20_21,
-            PixelPlayDatabase.MIGRATION_21_22,
-            PixelPlayDatabase.MIGRATION_22_23,
-            PixelPlayDatabase.MIGRATION_23_24,
-            PixelPlayDatabase.MIGRATION_24_25,
-            PixelPlayDatabase.MIGRATION_25_26,
-            PixelPlayDatabase.MIGRATION_26_27,
-            PixelPlayDatabase.MIGRATION_27_28,
-            PixelPlayDatabase.MIGRATION_28_29,
-            PixelPlayDatabase.MIGRATION_29_30,
-            PixelPlayDatabase.MIGRATION_30_31,
-            PixelPlayDatabase.MIGRATION_31_32,
-            PixelPlayDatabase.MIGRATION_32_33,
-            PixelPlayDatabase.MIGRATION_33_34,
-            PixelPlayDatabase.MIGRATION_34_35,
-            PixelPlayDatabase.MIGRATION_35_36,
-            PixelPlayDatabase.MIGRATION_36_37,
-            PixelPlayDatabase.MIGRATION_37_38,
-            PixelPlayDatabase.MIGRATION_38_39,
-            PixelPlayDatabase.MIGRATION_39_40,
-            PixelPlayDatabase.MIGRATION_40_41,
-            PixelPlayDatabase.MIGRATION_41_42,
-            PixelPlayDatabase.MIGRATION_42_43
+            PixelPlayerDatabase.MIGRATION_3_4,
+            PixelPlayerDatabase.MIGRATION_4_5,
+            PixelPlayerDatabase.MIGRATION_5_6,
+            PixelPlayerDatabase.MIGRATION_6_7,
+            PixelPlayerDatabase.MIGRATION_7_8,
+            PixelPlayerDatabase.MIGRATION_8_9,
+            PixelPlayerDatabase.MIGRATION_9_10,
+            PixelPlayerDatabase.MIGRATION_10_11,
+            PixelPlayerDatabase.MIGRATION_11_12,
+            PixelPlayerDatabase.MIGRATION_12_13,
+            PixelPlayerDatabase.MIGRATION_13_14,
+            PixelPlayerDatabase.MIGRATION_14_15,
+            PixelPlayerDatabase.MIGRATION_15_16,
+            PixelPlayerDatabase.MIGRATION_16_17,
+            PixelPlayerDatabase.MIGRATION_17_18,
+            PixelPlayerDatabase.MIGRATION_18_19,
+            PixelPlayerDatabase.MIGRATION_19_20,
+            PixelPlayerDatabase.MIGRATION_20_21,
+            PixelPlayerDatabase.MIGRATION_21_22,
+            PixelPlayerDatabase.MIGRATION_22_23,
+            PixelPlayerDatabase.MIGRATION_23_24,
+            PixelPlayerDatabase.MIGRATION_24_25,
+            PixelPlayerDatabase.MIGRATION_25_26,
+            PixelPlayerDatabase.MIGRATION_26_27,
+            PixelPlayerDatabase.MIGRATION_27_28,
+            PixelPlayerDatabase.MIGRATION_28_29,
+            PixelPlayerDatabase.MIGRATION_29_30,
+            PixelPlayerDatabase.MIGRATION_30_31,
+            PixelPlayerDatabase.MIGRATION_31_32,
+            PixelPlayerDatabase.MIGRATION_32_33,
+            PixelPlayerDatabase.MIGRATION_33_34,
+            PixelPlayerDatabase.MIGRATION_34_35,
+            PixelPlayerDatabase.MIGRATION_35_36,
+            PixelPlayerDatabase.MIGRATION_36_37,
+            PixelPlayerDatabase.MIGRATION_37_38,
+            PixelPlayerDatabase.MIGRATION_38_39,
+            PixelPlayerDatabase.MIGRATION_39_40,
+            PixelPlayerDatabase.MIGRATION_40_41,
+            PixelPlayerDatabase.MIGRATION_41_42,
+            PixelPlayerDatabase.MIGRATION_42_43
         )
-            .addCallback(PixelPlayDatabase.createRuntimeArtifactsCallback())
+            .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
 
         // P2-4: Only allow destructive migration in debug builds.
@@ -178,61 +178,61 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideAlbumArtThemeDao(database: PixelPlayDatabase): AlbumArtThemeDao {
+    fun provideAlbumArtThemeDao(database: PixelPlayerDatabase): AlbumArtThemeDao {
         return database.albumArtThemeDao()
     }
 
     @Singleton
     @Provides
-    fun provideSearchHistoryDao(database: PixelPlayDatabase): SearchHistoryDao { // NUEVO MÉTODO
+    fun provideSearchHistoryDao(database: PixelPlayerDatabase): SearchHistoryDao { // NUEVO MÉTODO
         return database.searchHistoryDao()
     }
 
     @Singleton
     @Provides
-    fun provideMusicDao(database: PixelPlayDatabase): MusicDao { // Proveer MusicDao
+    fun provideMusicDao(database: PixelPlayerDatabase): MusicDao { // Proveer MusicDao
         return database.musicDao()
     }
 
     @Singleton
     @Provides
-    fun provideTransitionDao(database: PixelPlayDatabase): TransitionDao {
+    fun provideTransitionDao(database: PixelPlayerDatabase): TransitionDao {
         return database.transitionDao()
     }
 
     @Singleton
     @Provides
-    fun provideEngagementDao(database: PixelPlayDatabase): EngagementDao {
+    fun provideEngagementDao(database: PixelPlayerDatabase): EngagementDao {
         return database.engagementDao()
     }
 
     @Singleton
     @Provides
-    fun provideFavoritesDao(database: PixelPlayDatabase): FavoritesDao {
+    fun provideFavoritesDao(database: PixelPlayerDatabase): FavoritesDao {
         return database.favoritesDao()
     }
 
     @Singleton
     @Provides
-    fun provideLyricsDao(database: PixelPlayDatabase): LyricsDao {
+    fun provideLyricsDao(database: PixelPlayerDatabase): LyricsDao {
         return database.lyricsDao()
     }
 
     @Singleton
     @Provides
-    fun provideLocalPlaylistDao(database: PixelPlayDatabase): LocalPlaylistDao {
+    fun provideLocalPlaylistDao(database: PixelPlayerDatabase): LocalPlaylistDao {
         return database.localPlaylistDao()
     }
 
     @Singleton
     @Provides
-    fun provideNavidromeDao(database: PixelPlayDatabase): com.lostf1sh.pixelplayeross.data.database.NavidromeDao {
+    fun provideNavidromeDao(database: PixelPlayerDatabase): com.lostf1sh.pixelplayeross.data.database.NavidromeDao {
         return database.navidromeDao()
     }
     
     @Singleton
     @Provides
-    fun provideJellyfinDao(database: PixelPlayDatabase): com.lostf1sh.pixelplayeross.data.database.JellyfinDao {
+    fun provideJellyfinDao(database: PixelPlayerDatabase): com.lostf1sh.pixelplayeross.data.database.JellyfinDao {
         return database.jellyfinDao()
     }
 
@@ -275,13 +275,15 @@ object AppModule {
         @ApplicationContext context: Context,
         lrcLibApiService: LrcLibApiService,
         lyricsDao: LyricsDao,
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        userPreferencesRepository: UserPreferencesRepository
     ): LyricsRepository {
         return LyricsRepositoryImpl(
             context = context,
             lrcLibApiService = lrcLibApiService,
             lyricsDao = lyricsDao,
-            okHttpClient = okHttpClient
+            okHttpClient = okHttpClient,
+            userPreferencesRepository = userPreferencesRepository
         )
     }
 
@@ -516,8 +518,9 @@ object AppModule {
     @Singleton
     fun provideArtistImageRepository(
         deezerApiService: DeezerApiService,
-        musicDao: MusicDao
+        musicDao: MusicDao,
+        userPreferencesRepository: UserPreferencesRepository
     ): ArtistImageRepository {
-        return ArtistImageRepository(deezerApiService, musicDao)
+        return ArtistImageRepository(deezerApiService, musicDao, userPreferencesRepository)
     }
 }

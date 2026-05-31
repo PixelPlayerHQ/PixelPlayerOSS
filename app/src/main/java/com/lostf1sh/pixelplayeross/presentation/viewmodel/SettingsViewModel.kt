@@ -71,6 +71,8 @@ data class SettingsUiState(
     val folderBackGestureNavigation: Boolean = true,
     val lyricsSourcePreference: LyricsSourcePreference = LyricsSourcePreference.EMBEDDED_FIRST,
     val autoScanLrcFiles: Boolean = false,
+    val externalLyricsEnabled: Boolean = false,
+    val externalArtistImagesEnabled: Boolean = false,
     val blockedDirectories: Set<String> = emptySet(),
     val appRebrandDialogShown: Boolean = false,
     val beta05CleanInstallDisclaimerDismissed: Boolean? = null,
@@ -369,6 +371,18 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            userPreferencesRepository.externalLyricsEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(externalLyricsEnabled = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.externalArtistImagesEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(externalArtistImagesEnabled = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
             userPreferencesRepository.backupInfoDismissedFlow.collect { dismissed ->
                 _uiState.update { it.copy(backupInfoDismissed = dismissed) }
             }
@@ -641,6 +655,18 @@ class SettingsViewModel @Inject constructor(
     fun setAutoScanLrcFiles(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setAutoScanLrcFiles(enabled)
+        }
+    }
+
+    fun setExternalLyricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setExternalLyricsEnabled(enabled)
+        }
+    }
+
+    fun setExternalArtistImagesEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setExternalArtistImagesEnabled(enabled)
         }
     }
 

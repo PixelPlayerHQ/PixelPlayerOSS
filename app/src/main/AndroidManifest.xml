@@ -36,7 +36,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
-        android:name=".PixelPlayApplication"
+        android:name=".PixelPlayerApplication"
         android:allowBackup="true"
         android:enableOnBackInvokedCallback="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -46,7 +46,7 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PixelPlay"
+        android:theme="@style/Theme.PixelPlayer"
         android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/network_security_config"
         tools:targetApi="31">
@@ -54,7 +54,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.PixelPlay"
+            android:theme="@style/Theme.PixelPlayer"
             android:launchMode="singleTop"
             android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize"
             android:windowSoftInputMode="adjustResize">
@@ -82,14 +82,14 @@
             android:name=".presentation.navidrome.auth.NavidromeLoginActivity"
             android:exported="false"
             android:label="Navidrome Login"
-            android:theme="@style/Theme.PixelPlay"
+            android:theme="@style/Theme.PixelPlayer"
             android:windowSoftInputMode="adjustResize" />
 
         <activity
             android:name=".presentation.jellyfin.auth.JellyfinLoginActivity"
             android:exported="false"
             android:label="Jellyfin Login"
-            android:theme="@style/Theme.PixelPlay"
+            android:theme="@style/Theme.PixelPlayer"
             android:windowSoftInputMode="adjustResize" />
 
 
@@ -98,7 +98,7 @@
             android:exported="true"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.PixelPlay.ExternalPlayer"
+            android:theme="@style/Theme.PixelPlayer.ExternalPlayer"
             android:excludeFromRecents="true"
             android:grantUriPermissions="true">
             <intent-filter>
@@ -133,14 +133,14 @@
         </service>
 
         <receiver
-            android:name=".ui.glancewidget.PixelPlayGlanceWidgetReceiver"
+            android:name=".ui.glancewidget.PixelPlayerGlanceWidgetReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/pixelplay_glance_widget_info" />
+                android:resource="@xml/pixelplayer_glance_widget_info" />
         </receiver>
 
         <receiver
@@ -180,7 +180,7 @@
 
         <!-- Media Button Receiver for external media controls (headphones, car, etc.) -->
         <receiver
-            android:name=".data.service.PixelPlayMediaButtonReceiver"
+            android:name=".data.service.PixelPlayerMediaButtonReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />

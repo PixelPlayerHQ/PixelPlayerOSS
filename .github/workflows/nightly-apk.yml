@@ -118,7 +118,7 @@ jobs:
           echo "keyPassword=994273" >> keystore.properties
 
       - name: Build Phone nightly release APKs
-        run: gradle :app:assembleRelease -Ppixelplay.enableAbiSplits=true
+        run: gradle :app:assembleRelease -Ppixelplayer.enableAbiSplits=true
 
       - name: Verify Phone nightly split APKs
         run: |

@@ -17,12 +17,12 @@ import java.io.IOException
 //class MusicDaoTest {
 //
 //    private lateinit var musicDao: MusicDao
-//    private lateinit var db: PixelPlayDatabase
+//    private lateinit var db: PixelPlayerDatabase
 //
 //    @Before
 //    fun createDb() {
 //        val context = ApplicationProvider.getApplicationContext<Context>()
-//        db = Room.inMemoryDatabaseBuilder(context, PixelPlayDatabase::class.java)
+//        db = Room.inMemoryDatabaseBuilder(context, PixelPlayerDatabase::class.java)
 //            .allowMainThreadQueries() // Permite consultas en el hilo principal para tests
 //            .build()
 //        musicDao = db.musicDao()

@@ -39,7 +39,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
-import com.lostf1sh.pixelplayeross.PixelPlayApplication
+import com.lostf1sh.pixelplayeross.PixelPlayerApplication
 import com.lostf1sh.pixelplayeross.MainActivity
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.PlayerInfo
@@ -52,7 +52,7 @@ import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.data.service.player.TransitionController
 import com.lostf1sh.pixelplayeross.ui.glancewidget.ControlWidget4x2
-import com.lostf1sh.pixelplayeross.ui.glancewidget.PixelPlayGlanceWidget
+import com.lostf1sh.pixelplayeross.ui.glancewidget.PixelPlayerGlanceWidget
 import com.lostf1sh.pixelplayeross.ui.glancewidget.PlayerActions
 import com.lostf1sh.pixelplayeross.ui.glancewidget.PlayerInfoStateDefinition
 import com.lostf1sh.pixelplayeross.utils.AlbumArtUtils
@@ -130,7 +130,7 @@ suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? {
             config = ArtworkTransportSanitizer.WIDGET_CONFIG,
         )
     }.getOrElse { error ->
-        Timber.tag("MusicService_PixelPlay").w(error, "Artwork read failed via Coil for uri=%s", uri)
+        Timber.tag("MusicService_PixelPlayer").w(error, "Artwork read failed via Coil for uri=%s", uri)
         null
     }
 }
@@ -211,7 +211,7 @@ class MusicService : MediaLibraryService() {
     private var temporaryForegroundStartedInOnCreate = false
 
     companion object {
-        private const val TAG = "MusicService_PixelPlay"
+        private const val TAG = "MusicService_PixelPlayer"
         const val NOTIFICATION_ID = 101
         const val ACTION_SLEEP_TIMER_EXPIRED = "com.lostf1sh.pixelplayeross.ACTION_SLEEP_TIMER_EXPIRED"
         const val EXTRA_FORCE_FOREGROUND_ON_START =
@@ -227,7 +227,7 @@ class MusicService : MediaLibraryService() {
         private val pendingMediaButtonForegroundStarts = AtomicInteger(0)
 
         private const val APP_PACKAGE_PREFIX = "com.lostf1sh.pixelplayeross"
-        private const val LOCAL_LIBRARY_ROOT_ID = "pixelplay_root"
+        private const val LOCAL_LIBRARY_ROOT_ID = "pixelplayer_root"
         private const val DEFAULT_STREAM_BUFFER_SIZE = 8 * 1024
         private const val WIDGET_ART_FAILURE_RETRY_MS = 30_000L
         private const val WIDGET_QUEUE_PREVIEW_LIMIT = 4
@@ -364,7 +364,7 @@ class MusicService : MediaLibraryService() {
         }
 
         // A media-button startForegroundService() can reach MusicService directly (not always
-        // through PixelPlayMediaButtonReceiver), so the pending counter is only a hint. Promote
+        // through PixelPlayerMediaButtonReceiver), so the pending counter is only a hint. Promote
         // immediately on cold start before super.onCreate(): Hilt injection and MediaLibraryService
         // startup can otherwise consume Android's 5-second FGS deadline before onStartCommand()
         // receives the media-button intent.
@@ -857,7 +857,7 @@ class MusicService : MediaLibraryService() {
     private fun startTemporaryForegroundForCommand() {
         val notification = NotificationCompat.Builder(
             this,
-            PixelPlayApplication.NOTIFICATION_CHANNEL_ID
+            PixelPlayerApplication.NOTIFICATION_CHANNEL_ID
         )
             .setSmallIcon(R.drawable.monochrome_player)
             .setContentTitle(getString(R.string.app_name))
@@ -2245,10 +2245,10 @@ class MusicService : MediaLibraryService() {
             val glanceManager = GlanceAppWidgetManager(applicationContext)
             val widgetPlayerInfo = playerInfo.toWidgetTransportState()
 
-            val glanceIds = glanceManager.getGlanceIds(PixelPlayGlanceWidget::class.java)
+            val glanceIds = glanceManager.getGlanceIds(PixelPlayerGlanceWidget::class.java)
             glanceIds.forEach { id ->
                 updateAppWidgetState(applicationContext, PlayerInfoStateDefinition, id) { widgetPlayerInfo }
-                PixelPlayGlanceWidget().update(applicationContext, id)
+                PixelPlayerGlanceWidget().update(applicationContext, id)
             }
 
             val barGlanceIds = glanceManager.getGlanceIds(BarWidget4x1::class.java)

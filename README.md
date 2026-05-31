@@ -98,7 +98,7 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug
 Build one universal debug APK for local install:
 
 ```sh
-JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug -Ppixelplay.enableAbiSplits=false
+JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:assembleDebug -Ppixelplayer.enableAbiSplits=false
 ```
 
 Run unit tests:

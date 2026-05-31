@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayStatusBarStyle
+import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerStatusBarStyle
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 
@@ -68,7 +68,7 @@ fun CollapsibleCommonTopBar(
     val statusBarFallbackColor = backgroundColor.compositeOver(MaterialTheme.colorScheme.surface)
 
     if (syncStatusBarWithContainer) {
-        PixelPlayStatusBarStyle(color = statusBarFallbackColor)
+        PixelPlayerStatusBarStyle(color = statusBarFallbackColor)
     }
     // We can also fade the content color if we want, but usually onSurface is fine.
     // GenreDetail interpolates content color, but for standard screens onSurface is usually correct for both states 

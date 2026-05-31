@@ -37,7 +37,7 @@ fun AlbumEntity.toAlbum(): Album {
         // representative art. After the v0.7 artwork-pipeline rewrite those
         // cache files no longer exist, so the raw URI 404s. Recover the song
         // id embedded in the filename and remap to the stable
-        // pixelplay_local_art:// scheme so LocalArtworkCoilFetcher can
+        // pixelplayer_local_art:// scheme so LocalArtworkCoilFetcher can
         // re-extract embedded art on demand. Songs go through the same remap
         // in LocalArtworkUri.resolveSongArtworkUri; without this, album rows
         // would render placeholders until a metadata-save re-syncs the row.

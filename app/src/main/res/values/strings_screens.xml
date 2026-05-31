@@ -49,6 +49,13 @@
     <string name="setup_theme_subtitle">Pick the look you want before you start exploring your library.</string>
     <string name="setup_theme_footer">You can change this later in Settings &gt; Appearance &gt; App Theme.</string>
     <string name="setup_recommended">Recommended</string>
+    <string name="setup_external_services_title">Optional Online Services</string>
+    <string name="setup_external_services_subtitle">PixelPlayerOSS works offline by default. Enable only the lookups you want.</string>
+    <string name="setup_external_lyrics_title">Online lyrics from LRCLIB</string>
+    <string name="setup_external_lyrics_description">Search lrclib.net when local or embedded lyrics are missing.</string>
+    <string name="setup_external_artist_images_title">Artist artwork from Deezer</string>
+    <string name="setup_external_artist_images_description">Fetch missing artist photos from Deezer and cache them locally.</string>
+    <string name="setup_external_services_footer">You can change these later in Settings &gt; Music Management &gt; Optional online services.</string>
     <string name="setup_library_layout_title">Library Layout</string>
     <string name="setup_library_layout_subtitle">Choose your preferred way to navigate your library.</string>
     <string name="setup_compact_mode">Compact Mode</string>
@@ -201,6 +208,7 @@
     <string name="dash_playlists_synced_count">%1$d playlists synced</string>
     <string name="dash_folders_synced_count">%1$d folders synced</string>
     <string name="dash_title_playlists">Playlists</string>
+    <string name="dash_library_playlist_title">Library</string>
     <string name="dash_music_folders">Music folders</string>
     <string name="dash_action_sync">Sync</string>
     <string name="dash_playlists_empty_title">No playlists synced yet</string>

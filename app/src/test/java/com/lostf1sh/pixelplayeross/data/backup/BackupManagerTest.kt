@@ -155,7 +155,7 @@ class BackupManagerTest {
                 deviceInfo = DeviceInfo(),
                 modules = modules
             ),
-            backupUri = "content://pixelplay/test-backup",
+            backupUri = "content://pixelplayer/test-backup",
             availableModules = selectedModules,
             selectedModules = selectedModules,
             moduleDetails = selectedModules.associateWith {

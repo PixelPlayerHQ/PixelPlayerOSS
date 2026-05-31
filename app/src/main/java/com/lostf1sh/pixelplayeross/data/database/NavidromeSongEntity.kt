@@ -82,7 +82,8 @@ fun NavidromeSongEntity.toSong(): Song {
         year = year,
         trackNumber = trackNumber,
         dateAdded = dateAdded,
-        isFavorite = false
+        isFavorite = false,
+        navidromeId = navidromeId
     )
 }
 

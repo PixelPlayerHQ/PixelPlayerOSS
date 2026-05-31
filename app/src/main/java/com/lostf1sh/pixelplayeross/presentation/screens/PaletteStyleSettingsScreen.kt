@@ -68,7 +68,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
-import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayDarkTheme
+import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 import com.lostf1sh.pixelplayeross.ui.theme.generateColorSchemeFromSeed
 import kotlin.math.roundToInt
 
@@ -82,7 +82,7 @@ fun PaletteStyleSettingsScreen(
 ) {
     val uiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
-    val isDarkTheme = LocalPixelPlayDarkTheme.current
+    val isDarkTheme = LocalPixelPlayerDarkTheme.current
     val albumSchemePair by playerViewModel.currentAlbumArtColorSchemePair.collectAsStateWithLifecycle()
 
     val baseScheme = MaterialTheme.colorScheme

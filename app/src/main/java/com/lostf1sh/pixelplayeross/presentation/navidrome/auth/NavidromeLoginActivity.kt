@@ -74,7 +74,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
-import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayTheme
+import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
 import dagger.hilt.android.AndroidEntryPoint
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -85,7 +85,7 @@ class NavidromeLoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PixelPlayTheme {
+            PixelPlayerTheme {
                 NavidromeLoginScreen(onClose = { finish() })
             }
         }

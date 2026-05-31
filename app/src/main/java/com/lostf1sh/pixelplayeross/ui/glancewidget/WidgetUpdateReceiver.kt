@@ -22,9 +22,9 @@ class WidgetUpdateReceiver : BroadcastReceiver() {
             try {
                 val glanceAppWidgetManager = GlanceAppWidgetManager(context)
 
-                val glanceIds = glanceAppWidgetManager.getGlanceIds(PixelPlayGlanceWidget::class.java)
+                val glanceIds = glanceAppWidgetManager.getGlanceIds(PixelPlayerGlanceWidget::class.java)
                 glanceIds.forEach { glanceId ->
-                    PixelPlayGlanceWidget().update(context, glanceId)
+                    PixelPlayerGlanceWidget().update(context, glanceId)
                 }
 
                 val barGlanceIds = glanceAppWidgetManager.getGlanceIds(BarWidget4x1::class.java)

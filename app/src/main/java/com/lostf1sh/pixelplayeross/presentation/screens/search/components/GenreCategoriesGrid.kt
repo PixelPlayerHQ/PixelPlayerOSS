@@ -49,7 +49,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.getNavigationBarHeigh
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
 import com.lostf1sh.pixelplayeross.presentation.utils.GenreIconProvider
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
-import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayDarkTheme
+import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
@@ -158,7 +158,7 @@ private fun GenreCard(
     onClick: () -> Unit,
     isGridView: Boolean
 ) {
-    val isDark = LocalPixelPlayDarkTheme.current
+    val isDark = LocalPixelPlayerDarkTheme.current
     val themeColor = remember(genre, isDark) {
         com.lostf1sh.pixelplayeross.ui.theme.GenreThemeUtils.getGenreThemeColor(
             genre = genre,

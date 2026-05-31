@@ -4,13 +4,16 @@ import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerArtist
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerSearchResponse
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -36,7 +39,7 @@ class ArtistImageRepositoryTest {
     fun `cancelled prefetch does not mark artist as failed for the session`() = runTest {
         val deezerApiService = mockk<DeezerApiService>()
         val musicDao = mockk<MusicDao>()
-        val repository = ArtistImageRepository(deezerApiService, musicDao)
+        val repository = ArtistImageRepository(deezerApiService, musicDao, userPreferencesRepository())
         val firstAttemptStarted = CompletableDeferred<Unit>()
         val searchAttempts = AtomicInteger(0)
         val rawUrl = "https://cdn-images.dzcdn.net/images/artist/250x250-000000-80-0-0.jpg"
@@ -77,5 +80,27 @@ class ArtistImageRepositoryTest {
         assertEquals(upgradedUrl, imageUrl)
         assertEquals(2, searchAttempts.get())
         coVerify(exactly = 1) { musicDao.updateArtistImageUrl(42L, upgradedUrl) }
+    }
+
+    @Test
+    fun `disabled artist image lookup does not call deezer`() = runTest {
+        val deezerApiService = mockk<DeezerApiService>(relaxed = true)
+        val musicDao = mockk<MusicDao>(relaxed = true)
+        val repository = ArtistImageRepository(
+            deezerApiService,
+            musicDao,
+            userPreferencesRepository(externalArtistImagesEnabled = false)
+        )
+
+        val imageUrl = repository.getArtistImageUrl("Artist Name", 42L)
+
+        assertEquals(null, imageUrl)
+        coVerify(exactly = 0) { deezerApiService.searchArtist(any(), any()) }
+    }
+
+    private fun userPreferencesRepository(externalArtistImagesEnabled: Boolean = true): UserPreferencesRepository {
+        return mockk {
+            every { this@mockk.externalArtistImagesEnabledFlow } returns flowOf(externalArtistImagesEnabled)
+        }
     }
 }

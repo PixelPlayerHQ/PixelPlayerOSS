@@ -201,6 +201,8 @@ constructor(
         // Lyrics Source Preference
         val LYRICS_SOURCE_PREFERENCE = stringPreferencesKey("lyrics_source_preference")
         val AUTO_SCAN_LRC_FILES = booleanPreferencesKey("auto_scan_lrc_files")
+        val EXTERNAL_LYRICS_ENABLED = booleanPreferencesKey("external_lyrics_enabled")
+        val EXTERNAL_ARTIST_IMAGES_ENABLED = booleanPreferencesKey("external_artist_images_enabled")
 
         // Developer Options
         val ALBUM_ART_QUALITY = stringPreferencesKey("album_art_quality")
@@ -593,6 +595,31 @@ constructor(
     suspend fun setLyricsSourcePreference(preference: LyricsSourcePreference) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.LYRICS_SOURCE_PREFERENCE] = preference.name
+        }
+    }
+
+    val externalLyricsEnabledFlow: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.EXTERNAL_LYRICS_ENABLED] ?: false
+            }.distinctUntilChanged()
+
+    suspend fun setExternalLyricsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXTERNAL_LYRICS_ENABLED] = enabled
+            if (!enabled && preferences[PreferencesKeys.LYRICS_SOURCE_PREFERENCE] == LyricsSourcePreference.API_FIRST.name) {
+                preferences[PreferencesKeys.LYRICS_SOURCE_PREFERENCE] = LyricsSourcePreference.EMBEDDED_FIRST.name
+            }
+        }
+    }
+
+    val externalArtistImagesEnabledFlow: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.EXTERNAL_ARTIST_IMAGES_ENABLED] ?: false
+            }.distinctUntilChanged()
+
+    suspend fun setExternalArtistImagesEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXTERNAL_ARTIST_IMAGES_ENABLED] = enabled
         }
     }
 

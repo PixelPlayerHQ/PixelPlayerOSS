@@ -10,6 +10,7 @@ import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.data.worker.NavidromeSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +39,11 @@ class NavidromeDashboardViewModel @Inject constructor(
 
     private val _selectedPlaylistSongs = MutableStateFlow<List<Song>>(emptyList())
     val selectedPlaylistSongs: StateFlow<List<Song>> = _selectedPlaylistSongs.asStateFlow()
+
+    private val _selectedPlaylistName = MutableStateFlow<String?>(null)
+    val selectedPlaylistName: StateFlow<String?> = _selectedPlaylistName.asStateFlow()
+
+    private var selectedPlaylistJob: Job? = null
 
     val username: String? get() = repository.username
     val serverUrl: String? get() = repository.serverUrl
@@ -100,8 +106,10 @@ class NavidromeDashboardViewModel @Inject constructor(
         )
     }
 
-    fun loadPlaylistSongs(playlistId: String) {
-        viewModelScope.launch {
+    fun loadPlaylistSongs(playlistId: String, playlistName: String) {
+        _selectedPlaylistName.value = playlistName
+        selectedPlaylistJob?.cancel()
+        selectedPlaylistJob = viewModelScope.launch {
             repository.getPlaylistSongs(playlistId).collect { songs ->
                 _selectedPlaylistSongs.value = songs
             }

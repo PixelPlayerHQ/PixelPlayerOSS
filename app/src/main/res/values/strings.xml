@@ -28,6 +28,7 @@
     <string name="lyrics_fetch_timeout">Connection timed out. Please check your internet connection.</string>
     <string name="lyrics_network_error">Network error. Please check your internet connection.</string>
     <string name="lyrics_server_error">Server error (code %d). Please try again later.</string>
+    <string name="lyrics_remote_disabled">Online lyrics are disabled in settings.</string>
     <string name="found_n_matches_format">Found %d match(es)</string>
     <string name="searched_for_x_format">Searched for \"%s\"</string>
     <string name="searching_lyrics">Searching for lyrics…</string>

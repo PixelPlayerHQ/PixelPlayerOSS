@@ -476,6 +476,23 @@ fun SettingsCategoryScreen(
                                 )
                             }
 
+                            SettingsSubsection(title = stringResource(R.string.setcat_online_services)) {
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_external_lyrics_title),
+                                    subtitle = stringResource(R.string.setcat_external_lyrics_subtitle),
+                                    checked = uiState.externalLyricsEnabled,
+                                    onCheckedChange = { settingsViewModel.setExternalLyricsEnabled(it) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.rounded_lyrics_24), null, tint = MaterialTheme.colorScheme.secondary) }
+                                )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_external_artist_images_title),
+                                    subtitle = stringResource(R.string.setcat_external_artist_images_subtitle),
+                                    checked = uiState.externalArtistImagesEnabled,
+                                    onCheckedChange = { settingsViewModel.setExternalArtistImagesEnabled(it) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.rounded_artist_24), null, tint = MaterialTheme.colorScheme.secondary) }
+                                )
+                            }
+
                             SettingsSubsection(
                                 title = stringResource(R.string.setcat_lyrics_management),
                                 addBottomSpace = false

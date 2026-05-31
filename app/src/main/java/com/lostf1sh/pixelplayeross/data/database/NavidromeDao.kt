@@ -23,6 +23,9 @@ interface NavidromeDao {
     @Query("SELECT * FROM navidrome_songs WHERE playlist_id = :playlistId ORDER BY date_added DESC")
     fun getSongsByPlaylist(playlistId: String): Flow<List<NavidromeSongEntity>>
 
+    @Query("SELECT COUNT(*) FROM navidrome_songs WHERE playlist_id = '__library__'")
+    fun getLibrarySongCount(): Flow<Int>
+
     @Query("SELECT * FROM navidrome_songs WHERE title LIKE '%' || :query || '%' OR artist LIKE '%' || :query || '%'")
     fun searchSongs(query: String): Flow<List<NavidromeSongEntity>>
 

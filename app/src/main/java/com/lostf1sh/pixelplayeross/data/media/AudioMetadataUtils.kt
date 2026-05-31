@@ -16,7 +16,7 @@ internal fun createTempAudioFileFromUri(context: Context, uri: Uri): File? {
     return try {
         val fileExtension = resolveAudioFileExtension(context, uri)
         val inputStream = context.contentResolver.openInputStream(uri)
-        val tempFile = File.createTempFile("pixelplay_audio_", fileExtension, context.cacheDir)
+        val tempFile = File.createTempFile("pixelplayer_audio_", fileExtension, context.cacheDir)
         tempFile.deleteOnExit()
         val outputStream = FileOutputStream(tempFile)
         inputStream?.use { input ->

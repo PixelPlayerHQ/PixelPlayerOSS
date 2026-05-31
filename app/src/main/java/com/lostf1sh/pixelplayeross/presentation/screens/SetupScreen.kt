@@ -384,6 +384,11 @@ fun SetupScreen(
                         uiState = uiState,
                         onModeSelected = setupViewModel::setAppThemeMode
                     )
+                    SetupPage.ExternalServices -> ExternalServicesPage(
+                        uiState = uiState,
+                        onExternalLyricsChanged = setupViewModel::setExternalLyricsEnabled,
+                        onExternalArtistImagesChanged = setupViewModel::setExternalArtistImagesEnabled
+                    )
                     SetupPage.Finish -> FinishPage()
                     SetupPage.LibraryLayout -> LibraryLayoutPage(
                         uiState = uiState,
@@ -541,6 +546,7 @@ sealed class SetupPage {
     object MediaPermission : SetupPage()
     object BackupRestore : SetupPage()
     object DirectorySelection : SetupPage()
+    object ExternalServices : SetupPage()
     object ThemeSelection : SetupPage()
     object NotificationsPermission : SetupPage()
     object AlarmsPermission : SetupPage()
@@ -562,6 +568,7 @@ private fun buildSetupPages(sdkInt: Int): List<SetupPage> {
 
     pages += SetupPage.BackupRestore
     pages += SetupPage.DirectorySelection
+    pages += SetupPage.ExternalServices
     pages += SetupPage.ThemeSelection
     pages += SetupPage.LibraryLayout
     pages += SetupPage.NavBarLayout
@@ -1171,6 +1178,134 @@ private fun ThemeModeOptionCard(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun ExternalServicesPage(
+    uiState: SetupUiState,
+    onExternalLyricsChanged: (Boolean) -> Unit,
+    onExternalArtistImagesChanged: (Boolean) -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(R.string.setup_external_services_title),
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontFamily = RoundedSans,
+                    fontSize = 32.sp
+                ),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResource(R.string.setup_external_services_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            ExternalServiceToggleCard(
+                title = stringResource(R.string.setup_external_lyrics_title),
+                description = stringResource(R.string.setup_external_lyrics_description),
+                checked = uiState.externalLyricsEnabled,
+                onCheckedChange = onExternalLyricsChanged,
+                icon = { Icon(painterResource(R.drawable.rounded_lyrics_24), null) }
+            )
+            ExternalServiceToggleCard(
+                title = stringResource(R.string.setup_external_artist_images_title),
+                description = stringResource(R.string.setup_external_artist_images_description),
+                checked = uiState.externalArtistImagesEnabled,
+                onCheckedChange = onExternalArtistImagesChanged,
+                icon = { Icon(painterResource(R.drawable.rounded_artist_24), null) }
+            )
+
+            Text(
+                text = stringResource(R.string.setup_external_services_footer),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExternalServiceToggleCard(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    icon: @Composable () -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onCheckedChange(!checked) }
+                .padding(horizontal = 18.dp, vertical = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                color = if (checked) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.secondaryContainer
+                },
+                contentColor = if (checked) {
+                    MaterialTheme.colorScheme.onPrimary
+                } else {
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                },
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.size(46.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    icon()
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
         }
     }
 }

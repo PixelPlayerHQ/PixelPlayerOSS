@@ -15,7 +15,7 @@ import androidx.compose.runtime.getValue
 import dagger.hilt.android.AndroidEntryPoint
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.components.external.ExternalPlayerOverlay
-import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayTheme
+import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
 import android.content.Intent.EXTRA_STREAM
 import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
@@ -51,7 +51,7 @@ class ExternalPlayerActivity : ComponentActivity() {
                 AppThemeMode.LIGHT -> false
                 else -> systemDarkTheme
             }
-            PixelPlayTheme(darkTheme = useDarkTheme) {
+            PixelPlayerTheme(darkTheme = useDarkTheme) {
                 ExternalPlayerOverlay(
                     playerViewModel = playerViewModel,
                     onDismiss = { finish() },

@@ -4834,19 +4834,19 @@ class PlayerViewModel @Inject constructor(
                     musicRepository.getAllSongsOnce()
                 }
                 Log.i(
-                    "PixelPlayBenchmark",
+                    "PixelPlayerBenchmark",
                     "prepare player attempt=$attempt controllerReady=$controllerReady songs=${songs.size}"
                 )
                 if (controllerReady && songs.isNotEmpty()) {
                     playSongs(songs, songs.first(), "Benchmark Player")
                     delay(700L)
                     collapsePlayerSheet()
-                    Log.i("PixelPlayBenchmark", "Benchmark player prepared with ${songs.first().title}")
+                    Log.i("PixelPlayerBenchmark", "Benchmark player prepared with ${songs.first().title}")
                     return@launch
                 }
                 delay(500L)
             }
-            Log.w("PixelPlayBenchmark", "Unable to prepare benchmark player from library")
+            Log.w("PixelPlayerBenchmark", "Unable to prepare benchmark player from library")
         }
     }
 

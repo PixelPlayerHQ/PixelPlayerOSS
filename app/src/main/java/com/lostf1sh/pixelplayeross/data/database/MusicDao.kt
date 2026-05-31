@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 private val SONG_SEARCH_QUERY_TOKEN_REGEX = Regex("""[\p{L}\p{N}]+""")
-private const val EMPTY_SONG_SEARCH_MATCH_QUERY = "pixelplayemptyquery*"
+private const val EMPTY_SONG_SEARCH_MATCH_QUERY = "pixelplayeremptyquery*"
 
 private fun buildSongTitleSearchMatchQuery(query: String): String {
     val tokens = SONG_SEARCH_QUERY_TOKEN_REGEX

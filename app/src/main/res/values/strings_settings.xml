@@ -52,6 +52,11 @@
     <string name="toast_full_rescan_started">Full rescan started…</string>
     <string name="setcat_auto_scan_lrc_title">Auto-scan .lrc files</string>
     <string name="setcat_auto_scan_lrc_subtitle">Automatically scan and assign .lrc files in the same folder during library sync.</string>
+    <string name="setcat_online_services">Optional online services</string>
+    <string name="setcat_external_lyrics_title">Online lyrics from LRCLIB</string>
+    <string name="setcat_external_lyrics_subtitle">Allow searches and manual fetches from lrclib.net when lyrics are missing locally.</string>
+    <string name="setcat_external_artist_images_title">Artist artwork from Deezer</string>
+    <string name="setcat_external_artist_images_subtitle">Allow missing artist images to be fetched from Deezer and cached locally.</string>
     <string name="setcat_lyrics_management">Lyrics Management</string>
     <string name="setcat_lyrics_source_priority_label">Lyrics Source Priority</string>
     <string name="setcat_lyrics_source_priority_desc">Choose which source to try first when fetching lyrics.</string>

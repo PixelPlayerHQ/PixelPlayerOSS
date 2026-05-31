@@ -36,6 +36,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.database.NavidromePlaylistEntity
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import com.lostf1sh.pixelplayeross.utils.formatTimeAgo
@@ -53,6 +54,8 @@ fun NavidromeDashboardScreen(
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
     val syncProgress by viewModel.syncProgress.collectAsStateWithLifecycle()
     val syncMessage by viewModel.syncMessage.collectAsStateWithLifecycle()
+    val selectedPlaylistSongs by viewModel.selectedPlaylistSongs.collectAsStateWithLifecycle()
+    val selectedPlaylistName by viewModel.selectedPlaylistName.collectAsStateWithLifecycle()
 
     val cardShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = 20.dp, cornerRadiusTL = 20.dp,
@@ -97,12 +100,14 @@ fun NavidromeDashboardScreen(
             isSyncing = isSyncing,
             syncProgress = syncProgress,
             syncMessage = syncMessage,
+            selectedPlaylistSongs = selectedPlaylistSongs,
+            selectedPlaylistName = selectedPlaylistName,
             username = viewModel.username,
             lastSyncTime = viewModel.lastSyncTime,
             onSyncAll = { viewModel.syncAllPlaylistsAndSongs() },
             onSyncPlaylist = { viewModel.syncPlaylistSongs(it) },
             onDeletePlaylist = { viewModel.deletePlaylist(it) },
-            onLoadPlaylistSongs = { viewModel.loadPlaylistSongs(it) },
+            onLoadPlaylistSongs = { playlist -> viewModel.loadPlaylistSongs(playlist.id, playlist.name) },
             onLogout = {
                 viewModel.logout()
                 onBack()
@@ -119,12 +124,14 @@ private fun DashboardContent(
     isSyncing: Boolean,
     syncProgress: Float?,
     syncMessage: String?,
+    selectedPlaylistSongs: List<Song>,
+    selectedPlaylistName: String?,
     username: String?,
     lastSyncTime: Long,
     onSyncAll: () -> Unit,
     onSyncPlaylist: (String) -> Unit,
     onDeletePlaylist: (String) -> Unit,
-    onLoadPlaylistSongs: (String) -> Unit,
+    onLoadPlaylistSongs: (NavidromePlaylistEntity) -> Unit,
     onLogout: () -> Unit,
     cardShape: AbsoluteSmoothCornerShape,
     paddingValues: PaddingValues
@@ -328,21 +335,46 @@ private fun DashboardContent(
             }
         } else {
             LazyColumn(
+                modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(
                     items = playlists,
-                    key = { it.id }
+                    key = { "playlist_${it.id}" }
                 ) { playlist ->
+                    val isLibraryFallback = playlist.id == NavidromeRepository.LIBRARY_PLAYLIST_ID
                     PlaylistCard(
                         playlist = playlist,
                         onSyncClick = { onSyncPlaylist(playlist.id) },
-                        onDeleteClick = { onDeletePlaylist(playlist.id) },
-                        onClick = { onLoadPlaylistSongs(playlist.id) },
+                        onDeleteClick = { if (!isLibraryFallback) onDeletePlaylist(playlist.id) },
+                        onClick = { onLoadPlaylistSongs(playlist) },
                         cardShape = cardShape,
-                        isSyncing = isSyncing
+                        isSyncing = isSyncing,
+                        canDelete = !isLibraryFallback
                     )
+                }
+
+                if (selectedPlaylistName != null && selectedPlaylistSongs.isNotEmpty()) {
+                    item(key = "selected_playlist_header") {
+                        Text(
+                            text = selectedPlaylistName,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontFamily = RoundedSans,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(start = 8.dp, top = 14.dp, bottom = 4.dp)
+                        )
+                    }
+
+                    items(
+                        items = selectedPlaylistSongs,
+                        key = { "song_${it.id}" }
+                    ) { song ->
+                        SongCard(
+                            song = song,
+                            cardShape = cardShape
+                        )
+                    }
                 }
             }
         }
@@ -510,7 +542,8 @@ private fun PlaylistCard(
     onDeleteClick: () -> Unit,
     onClick: () -> Unit,
     cardShape: AbsoluteSmoothCornerShape,
-    isSyncing: Boolean
+    isSyncing: Boolean,
+    canDelete: Boolean
 ) {
     Card(
         modifier = Modifier
@@ -587,20 +620,22 @@ private fun PlaylistCard(
                 )
             }
 
-            Spacer(Modifier.width(8.dp))
+            if (canDelete) {
+                Spacer(Modifier.width(8.dp))
 
-            FilledTonalIconButton(
-                onClick = onDeleteClick,
-                colors = IconButtonDefaults.filledTonalIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer,
-                    contentColor = MaterialTheme.colorScheme.onErrorContainer
-                )
-            ) {
-                Icon(
-                    Icons.Rounded.Delete,
-                    contentDescription = stringResource(R.string.cd_remove),
-                    modifier = Modifier.size(20.dp)
-                )
+                FilledTonalIconButton(
+                    onClick = onDeleteClick,
+                    colors = IconButtonDefaults.filledTonalIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        Icons.Rounded.Delete,
+                        contentDescription = stringResource(R.string.cd_remove),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
         }
     }

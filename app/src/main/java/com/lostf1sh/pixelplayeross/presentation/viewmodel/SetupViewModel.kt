@@ -42,6 +42,8 @@ data class SetupUiState(
     val libraryNavigationMode: String = "tab_row",
     val navBarStyle: String = "default",
     val navBarCornerRadius: Int = 28,
+    val externalLyricsEnabled: Boolean = false,
+    val externalArtistImagesEnabled: Boolean = false,
     val alarmsPermissionGranted: Boolean = false,
     val appThemeMode: String = AppThemeMode.DARK,
     val isInspectingBackup: Boolean = false,
@@ -108,14 +110,26 @@ class SetupViewModel @Inject constructor(
 
         // Consolidated collectors using combine() to reduce coroutine overhead
         viewModelScope.launch {
-            combine(
+            combine<Any?, SetupPrefsUpdate>(
                 userPreferencesRepository.blockedDirectoriesFlow,
                 userPreferencesRepository.libraryNavigationModeFlow,
                 userPreferencesRepository.navBarStyleFlow,
                 userPreferencesRepository.navBarCornerRadiusFlow,
+                userPreferencesRepository.externalLyricsEnabledFlow,
+                userPreferencesRepository.externalArtistImagesEnabledFlow,
                 themePreferencesRepository.appThemeModeFlow
-            ) { blocked, mode, style, radius, appThemeMode ->
-                SetupPrefsUpdate(blocked, mode, style, radius, appThemeMode)
+            ) { values ->
+                @Suppress("UNCHECKED_CAST")
+                val blockedDirectories = values[0] as Set<String>
+                SetupPrefsUpdate(
+                    blocked = blockedDirectories,
+                    mode = values[1] as String,
+                    style = values[2] as String,
+                    radius = values[3] as Int,
+                    externalLyricsEnabled = values[4] as Boolean,
+                    externalArtistImagesEnabled = values[5] as Boolean,
+                    appThemeMode = values[6] as String
+                )
             }.collect { update ->
                 _uiState.update { state ->
                     state.copy(
@@ -123,6 +137,8 @@ class SetupViewModel @Inject constructor(
                         libraryNavigationMode = update.mode,
                         navBarStyle = update.style,
                         navBarCornerRadius = update.radius,
+                        externalLyricsEnabled = update.externalLyricsEnabled,
+                        externalArtistImagesEnabled = update.externalArtistImagesEnabled,
                         appThemeMode = update.appThemeMode
                     )
                 }
@@ -141,6 +157,8 @@ class SetupViewModel @Inject constructor(
         val mode: String,
         val style: String,
         val radius: Int,
+        val externalLyricsEnabled: Boolean,
+        val externalArtistImagesEnabled: Boolean,
         val appThemeMode: String
     )
 
@@ -249,6 +267,18 @@ class SetupViewModel @Inject constructor(
     fun setNavBarCornerRadius(radius: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setNavBarCornerRadius(radius)
+        }
+    }
+
+    fun setExternalLyricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setExternalLyricsEnabled(enabled)
+        }
+    }
+
+    fun setExternalArtistImagesEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setExternalArtistImagesEnabled(enabled)
         }
     }
 

@@ -8,6 +8,7 @@ import com.lostf1sh.pixelplayeross.data.worker.SyncManager
 import com.lostf1sh.pixelplayeross.data.worker.SyncProgress
 import com.lostf1sh.pixelplayeross.utils.LogUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -35,12 +36,12 @@ class MainViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
-            initialValue = true // 乐观策略：默认已同步
+            initialValue = true // Optimistic strategy: assume synced by default
         )
 
     /**
-     * Un Flow que emite `true` si el SyncWorker está encolado o en ejecución.
-     * Ideal para mostrar un indicador de carga.
+     * A Flow that emits `true` if the SyncWorker is queued or running.
+     * Ideal for showing a loading indicator.
      */
     val isSyncing: StateFlow<Boolean> = syncManager.isSyncing
         .stateIn(
@@ -60,8 +61,14 @@ class MainViewModel @Inject constructor(
         )
 
     /**
-     * Un Flow que emite `true` si la base de datos de Room no tiene canciones.
-     * Nos ayuda a saber si es la primera vez que se abre la app.
+     * Emits once each time a library sync ends in failure, so the UI can surface a
+     * one-shot toast (the progress flow alone silently reverts to idle on failure).
+     */
+    val syncFailed: Flow<Unit> = syncManager.syncFailed
+
+    /**
+     * A Flow that emits `true` if the Room database has no songs.
+     * Helps us know whether this is the first time the app is opened.
      */
     val isLibraryEmpty: StateFlow<Boolean> = musicRepository
         .getAudioFiles()
@@ -73,8 +80,8 @@ class MainViewModel @Inject constructor(
         )
 
     /**
-     * Función para iniciar la sincronización de la biblioteca de música.
-     * Se debe llamar después de que los permisos hayan sido concedidos.
+     * Function to start syncing the music library.
+     * Should be called after permissions have been granted.
      */
     fun startSync() {
         LogUtils.i(this, "startSync called")
@@ -85,5 +92,10 @@ class MainViewModel @Inject constructor(
                 syncManager.sync()
             }
         }
+    }
+
+    /** Re-runs the library sync after a failure (e.g. from a retry affordance). */
+    fun retrySync() {
+        viewModelScope.launch { syncManager.sync() }
     }
 }

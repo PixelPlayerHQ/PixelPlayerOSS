@@ -500,7 +500,7 @@ class SettingsViewModel @Inject constructor(
 
     fun explorerRoot(): File = fileExplorerStateHolder.rootDirectory()
 
-    // Método para guardar la preferencia de tema del reproductor
+    // Method to save the player theme preference
     fun setPlayerThemePreference(preference: String) {
         viewModelScope.launch {
             themePreferencesRepository.setPlayerThemePreference(preference)
@@ -621,6 +621,15 @@ class SettingsViewModel @Inject constructor(
     fun setCrossfadeDuration(duration: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setCrossfadeDuration(duration)
+        }
+    }
+
+    val playbackSpeed: StateFlow<Float> = userPreferencesRepository.playbackSpeedFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 1.0f)
+
+    fun setPlaybackSpeed(speed: Float) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPlaybackSpeed(speed)
         }
     }
 

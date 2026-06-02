@@ -73,7 +73,7 @@ class UserPreferencesRepository
 @Inject
 constructor(
         private val dataStore: DataStore<Preferences>,
-        private val json: Json // Inyectar Json para serialización
+        private val json: Json // Inject Json for serialization
 ) {
 
     private val backupExcludedKeyNames = setOf(
@@ -136,6 +136,7 @@ constructor(
         val IS_CROSSFADE_ENABLED = booleanPreferencesKey("is_crossfade_enabled")
         val HI_FI_MODE_ENABLED = booleanPreferencesKey("hi_fi_mode_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
+        val PLAYBACK_SPEED = androidx.datastore.preferences.core.floatPreferencesKey("playback_speed")
         val CUSTOM_GENRES = androidx.datastore.preferences.core.stringSetPreferencesKey("custom_genres")
         val CUSTOM_GENRE_ICONS = stringPreferencesKey("custom_genre_icons") // JSON Map<String, Int>
         val REPEAT_MODE = intPreferencesKey("repeat_mode")
@@ -307,6 +308,17 @@ constructor(
     suspend fun setCrossfadeDuration(duration: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.CROSSFADE_DURATION] = duration.coerceIn(1000, 12000)
+        }
+    }
+
+    val playbackSpeedFlow: Flow<Float> =
+            dataStore.data.map { preferences ->
+                (preferences[PreferencesKeys.PLAYBACK_SPEED] ?: 1.0f).coerceIn(0.25f, 3.0f)
+            }
+
+    suspend fun setPlaybackSpeed(speed: Float) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PLAYBACK_SPEED] = speed.coerceIn(0.25f, 3.0f)
         }
     }
 
@@ -892,7 +904,7 @@ constructor(
         }
 
     val favoriteSongIdsFlow: Flow<Set<String>> =
-            dataStore.data // Nuevo flujo para favoritos
+            dataStore.data // New flow for favorites
                     .map { preferences ->
                 preferences[PreferencesKeys.FAVORITE_SONG_IDS] ?: emptySet()
             }
@@ -998,7 +1010,7 @@ constructor(
     suspend fun toggleFavoriteSong(
             songId: String,
             removing: Boolean = false
-    ) { // Nueva función para favoritos
+    ) { // New function for favorites
         dataStore.edit { preferences ->
             val currentFavorites = preferences[PreferencesKeys.FAVORITE_SONG_IDS] ?: emptySet()
             val contains = currentFavorites.contains(songId)
@@ -1467,12 +1479,12 @@ constructor(
                         preferences[PreferencesKeys.LIBRARY_TABS_ORDER] = json.encodeToString(order)
                     }
                 } catch (e: Exception) {
-                    // Si la deserialización falla, no hacemos nada para evitar sobrescribir los
-                    // datos del usuario.
+                    // If deserialization fails, do nothing to avoid overwriting the
+                    // user's data.
                 }
             }
-            // Si orderJson es nulo, significa que el usuario nunca ha reordenado,
-            // por lo que se utilizará el orden predeterminado que ya incluye FOLDERS.
+            // If orderJson is null, it means the user has never reordered,
+            // so the default order that already includes FOLDERS will be used.
         }
     }
 

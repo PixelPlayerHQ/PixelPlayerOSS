@@ -1,7 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.worker
 
 import android.content.Context
-import android.util.Log
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
@@ -18,6 +17,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
@@ -26,6 +26,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import timber.log.Timber
+import java.util.UUID
 
 /**
  * Data class representing the progress of the sync operation.
@@ -68,8 +70,10 @@ class SyncManager @Inject constructor(
     // In-memory only: lives in this @Singleton for the process lifetime, so no leak.
     @Volatile
     private var lastForegroundSyncTime = 0L
+    @Volatile
+    private var currentSyncWorkId: UUID? = null
 
-    // EXPONE UN FLOW<BOOLEAN> SIMPLE
+    // Exposes a simple Flow<Boolean>.
     val isSyncing: Flow<Boolean> =
         workManager.getWorkInfosForUniqueWorkFlow(SyncWorker.WORK_NAME)
             .map { workInfos ->
@@ -82,6 +86,25 @@ class SyncManager @Inject constructor(
                 scope = sharingScope,
                 started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
                 replay = 1
+            )
+
+    /**
+     * Emits once each time the library sync finishes in a FAILED state with no other
+     * run still active. Used to surface a one-shot "sync failed" message to the user,
+     * which the [syncProgress] flow alone cannot do (it silently reverts to idle).
+     */
+    val syncFailed: Flow<Unit> =
+        workManager.getWorkInfosForUniqueWorkFlow(SyncWorker.WORK_NAME)
+            .map { workInfos ->
+                latestForegroundSyncWork(workInfos)?.state == WorkInfo.State.FAILED
+            }
+            .distinctUntilChanged()
+            .filter { it }
+            .map { }
+            .shareIn(
+                scope = sharingScope,
+                started = SharingStarted.WhileSubscribed(stopTimeoutMillis = 5_000),
+                replay = 0
             )
 
     init {
@@ -197,11 +220,11 @@ class SyncManager @Inject constructor(
 
             if (!shouldRunSync) {
                 val ageSeconds = (now - lastSyncTimestamp) / 1000
-                Log.d(TAG, "Skipping startup sync (last sync ${ageSeconds}s ago)")
+                Timber.tag(TAG).d("Skipping startup sync (last sync ${ageSeconds}s ago)")
                 return@launch
             }
 
-            Log.i(TAG, "Startup sync requested - Scheduling Incremental Sync")
+            Timber.tag(TAG).i("Startup sync requested - Scheduling Incremental Sync")
             enqueueSyncWork(
                 request = SyncWorker.incrementalSyncWork(),
                 policy = ExistingWorkPolicy.KEEP,
@@ -216,7 +239,7 @@ class SyncManager @Inject constructor(
      * This is the recommended sync method for pull-to-refresh actions.
      */
     fun incrementalSync() {
-        Log.i(TAG, "Incremental sync requested - Scheduling incremental worker")
+        Timber.tag(TAG).i("Incremental sync requested - Scheduling incremental worker")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
             policy = ExistingWorkPolicy.REPLACE
@@ -228,7 +251,7 @@ class SyncManager @Inject constructor(
      * Use this when the user explicitly wants to force a complete rescan.
      */
     fun fullSync(deepScan: Boolean = true) {
-        Log.i(TAG, "Full sync requested - Scheduling full sync worker")
+        Timber.tag(TAG).i("Full sync requested - Scheduling full sync worker")
         enqueueSyncWork(
             request = SyncWorker.fullSyncWork(deepScan = deepScan),
             policy = ExistingWorkPolicy.REPLACE
@@ -241,7 +264,7 @@ class SyncManager @Inject constructor(
      * Use when local library data is corrupted or songs are missing.
      */
     fun rebuildDatabase() {
-        Log.i(TAG, "Rebuild database requested - Scheduling rebuild worker")
+        Timber.tag(TAG).i("Rebuild database requested - Scheduling rebuild worker")
         enqueueSyncWork(
             request = SyncWorker.rebuildDatabaseWork(),
             policy = ExistingWorkPolicy.REPLACE
@@ -254,7 +277,7 @@ class SyncManager @Inject constructor(
      * when the caller just changed the selected folders.
      */
     fun forceRefresh() {
-        Log.i(TAG, "Manual local refresh requested - Scheduling incremental worker")
+        Timber.tag(TAG).i("Manual local refresh requested - Scheduling incremental worker")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
             policy = ExistingWorkPolicy.REPLACE
@@ -269,6 +292,20 @@ class SyncManager @Inject constructor(
             .getLong(SyncWorker.OUTPUT_TOTAL_SONGS, 0L)
             .coerceAtMost(Int.MAX_VALUE.toLong())
             .toInt()
+    }
+
+    private fun latestForegroundSyncWork(workInfos: List<WorkInfo>): WorkInfo? {
+        val activeWork = workInfos.firstOrNull {
+            it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+        }
+        if (activeWork != null) {
+            currentSyncWorkId = activeWork.id
+            return activeWork
+        }
+
+        return currentSyncWorkId?.let { id ->
+            workInfos.firstOrNull { it.id == id }
+        }
     }
 
     private fun observeStorageChanges() {
@@ -290,7 +327,7 @@ class SyncManager @Inject constructor(
 
     private suspend fun runLocalAutoSyncAfterDebounce() {
         delay(MEDIASTORE_CHANGE_DEBOUNCE_MS)
-        Log.i(TAG, "Storage change detected - scheduling local incremental sync")
+        Timber.tag(TAG).i("Storage change detected - scheduling local incremental sync")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
             policy = ExistingWorkPolicy.KEEP,
@@ -317,11 +354,11 @@ class SyncManager @Inject constructor(
     private fun maybeRunForegroundCatchUpSync() {
         val now = System.currentTimeMillis()
         if (now - lastForegroundSyncTime < FOREGROUND_SYNC_COOLDOWN_MS) {
-            Log.d(TAG, "Skipping foreground catch-up sync (cooldown active)")
+            Timber.tag(TAG).d("Skipping foreground catch-up sync (cooldown active)")
             return
         }
         lastForegroundSyncTime = now
-        Log.i(TAG, "Foreground catch-up - scheduling local incremental sync")
+        Timber.tag(TAG).i("Foreground catch-up - scheduling local incremental sync")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
             policy = ExistingWorkPolicy.KEEP,
@@ -334,6 +371,7 @@ class SyncManager @Inject constructor(
         policy: ExistingWorkPolicy,
         notifyObserver: Boolean = true
     ) {
+        currentSyncWorkId = request.id
         workManager.enqueueUniqueWork(
             SyncWorker.WORK_NAME,
             policy,

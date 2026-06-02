@@ -212,6 +212,17 @@
     <string name="batch_edit_remove_all_art">Remove All Cover Art</string>
     <string name="batch_edit_multiple_covers">(Multiple different covers)</string>
 
+    <!-- Error visibility -->
+    <string name="player_error_skipping">Couldn\'t play this track — skipping</string>
+    <string name="sync_failed_toast">Library sync failed. Pull down to refresh and try again.</string>
+
+    <!-- Accessibility -->
+    <string name="a11y_toggle_on">On</string>
+    <string name="a11y_toggle_off">Off</string>
+
+    <!-- Playback -->
+    <string name="setcat_playback_speed">Playback speed</string>
+
     <!-- Duplicate tracks -->
     <string name="duplicates_title">Duplicate tracks</string>
     <string name="duplicates_none">No duplicate tracks found.</string>

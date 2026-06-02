@@ -97,7 +97,7 @@ import coil.size.Precision
 import javax.inject.Inject
 import androidx.core.net.toUri
 
-// Acciones personalizadas para compatibilidad con el widget existente
+// Custom actions for compatibility with the existing widget
 
 suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? {
     val appContext = context.applicationContext
@@ -167,6 +167,7 @@ class MusicService : MediaLibraryService() {
     lateinit var appScope: CoroutineScope
 
     private var replayGainEnabled = false
+    private var userPlaybackSpeed = 1f
     private var replayGainUseAlbumGain = false
     private var replayGainJob: Job? = null
     private var replayGainRequestToken = 0L
@@ -261,6 +262,7 @@ class MusicService : MediaLibraryService() {
     private val playerSwapListener: (Player) -> Unit = { newPlayer ->
         publishMediaSessionPlayer(newPlayer, "Swapped MediaSession player to new instance.")
         prepareReplayGainForTransitionPlayer(newPlayer)
+        applyPlaybackSpeed(newPlayer)
     }
 
     private val transitionDisplayPlayerListener: (Player) -> Unit = { displayPlayer ->
@@ -269,6 +271,7 @@ class MusicService : MediaLibraryService() {
             "Published incoming crossfade player to MediaSession."
         )
         prepareReplayGainForTransitionPlayer(displayPlayer)
+        applyPlaybackSpeed(displayPlayer)
     }
 
     private val transitionFinishedListener: () -> Unit = {
@@ -468,6 +471,15 @@ class MusicService : MediaLibraryService() {
                 replayGainUseAlbumGain = useAlbum
                 // Re-apply to current track when mode changes
                 applyReplayGain(mediaSession?.player?.currentMediaItem)
+            }
+        }
+
+        // Playback speed preference — applied to whichever player is currently master,
+        // and re-applied on player swaps/crossfades (see the swap/transition listeners).
+        serviceScope.launch {
+            userPreferencesRepository.playbackSpeedFlow.collect { speed ->
+                userPlaybackSpeed = speed
+                applyPlaybackSpeed(mediaSession?.player ?: engine.masterPlayer)
             }
         }
 
@@ -1104,6 +1116,10 @@ class MusicService : MediaLibraryService() {
         navidromePlaybackReportJob = null
     }
 
+    // Guards against an infinite skip loop when many consecutive tracks fail to play.
+    private var consecutivePlaybackErrors = 0
+    private val maxConsecutivePlaybackErrors = 5
+
     private val playerListener = object : Player.Listener {
         override fun onVolumeChanged(volume: Float) {
             if (engine.isTransitionRunning()) return
@@ -1170,6 +1186,10 @@ class MusicService : MediaLibraryService() {
 
         override fun onPlaybackStateChanged(playbackState: Int) {
             Timber.tag(TAG).d("Playback state changed: $playbackState")
+            if (playbackState == Player.STATE_READY) {
+                // A track started successfully; reset the consecutive-error guard.
+                consecutivePlaybackErrors = 0
+            }
             if (playbackState == Player.STATE_ENDED) {
                 listeningStatsTracker.finalizeCurrentSession()
                 val mediaItem = (mediaSession?.player ?: engine.masterPlayer).currentMediaItem
@@ -1293,12 +1313,13 @@ class MusicService : MediaLibraryService() {
             // Force an immediate publish for real-time widget/media metadata.
             requestWidgetFullUpdate(force = true)
             mediaSession?.let { refreshMediaSessionUiWithFollowUp(it) }
+            val activePlayer = mediaSession?.player ?: engine.masterPlayer
             // Only recompute RG if the track actually changed — onMediaMetadataChanged
             // also fires on queue edits (add/remove) without a track change, which would
             // launch a redundant IO coroutine and cause a brief volume spike.
-            val currentMediaId = mediaSession?.player?.currentMediaItem?.mediaId
+            val currentMediaId = activePlayer.currentMediaItem?.mediaId
             if (currentMediaId != null && currentMediaId != lastReplayGainMediaId) {
-                applyReplayGain(mediaSession?.player?.currentMediaItem)
+                applyReplayGain(activePlayer.currentMediaItem)
             } else if (currentMediaId != null) {
                 lastAppliedReplayGainVolume?.let {
                     if (!engine.isTransitionRunning()) setPlayerVolume(engine.masterPlayer, it)
@@ -1321,7 +1342,24 @@ class MusicService : MediaLibraryService() {
         }
 
         override fun onPlayerError(error: PlaybackException) {
-            Timber.tag(TAG).e(error, "Error en el reproductor: ")
+            val player = mediaSession?.player ?: engine.masterPlayer
+            Timber.tag(TAG).e(error, "Player error on item %s", player.currentMediaItem?.mediaId)
+            // Skip a single unplayable track instead of halting the whole queue, but
+            // bail out after several consecutive failures to avoid an infinite skip loop.
+            if (player.hasNextMediaItem() && consecutivePlaybackErrors < maxConsecutivePlaybackErrors) {
+                consecutivePlaybackErrors++
+                player.seekToNextMediaItem()
+                player.prepare()
+            } else {
+                consecutivePlaybackErrors = 0
+            }
+        }
+    }
+
+    /** Applies the user's playback speed to [player], preserving pitch (time-stretch). */
+    private fun applyPlaybackSpeed(player: Player) {
+        if (abs(player.playbackParameters.speed - userPlaybackSpeed) > 0.001f) {
+            player.setPlaybackSpeed(userPlaybackSpeed)
         }
     }
 
@@ -1779,7 +1817,7 @@ class MusicService : MediaLibraryService() {
         )
     }
 
-    // --- LÓGICA PARA ACTUALIZACIÓN DE WIDGETS Y DATOS ---
+    // --- WIDGET AND DATA UPDATE LOGIC ---
     private var debouncedWidgetUpdateJob: Job? = null
     private var followUpWidgetUpdateJob: Job? = null
     private var followUpMediaSessionUiRefreshJob: Job? = null
@@ -1951,10 +1989,10 @@ class MusicService : MediaLibraryService() {
         if (!snapshotTimeline.isEmpty) {
             val window = Timeline.Window()
 
-            // Empezar desde la siguiente canción en la cola
+            // Start from the next song in the queue
             val startIndex = if (snapshotWindowIndex + 1 < snapshotTimeline.windowCount) snapshotWindowIndex + 1 else 0
 
-            // Limitar el número de elementos de la cola a 4
+            // Limit the number of queue items to 4
             val endIndex = (startIndex + 4).coerceAtMost(snapshotTimeline.windowCount)
             for (i in startIndex until endIndex) {
                 snapshotTimeline.getWindow(i, window)
@@ -2271,12 +2309,12 @@ class MusicService : MediaLibraryService() {
             
             if (glanceIds.isNotEmpty() || barGlanceIds.isNotEmpty() || controlGlanceIds.isNotEmpty() || gridGlanceIds.isNotEmpty()) {
                 Timber.tag(TAG)
-                    .d("Widgets actualizados: ${playerInfo.songTitle} (Original: ${glanceIds.size}, Bar: ${barGlanceIds.size}, Control: ${controlGlanceIds.size})")
+                    .d("Widgets updated: ${playerInfo.songTitle} (Original: ${glanceIds.size}, Bar: ${barGlanceIds.size}, Control: ${controlGlanceIds.size})")
             } else {
-                Timber.tag(TAG).w("No se encontraron widgets para actualizar")
+                Timber.tag(TAG).w("No widgets found to update")
             }
         } catch (e: Exception) {
-            Timber.tag(TAG).e(e, "Error al actualizar el widget")
+            Timber.tag(TAG).e(e, "Error updating the widget")
         }
     }
 

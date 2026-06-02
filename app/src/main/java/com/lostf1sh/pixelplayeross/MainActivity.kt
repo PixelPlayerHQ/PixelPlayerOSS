@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Trace
 import android.provider.Settings
-import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -73,6 +73,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -128,6 +129,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
@@ -198,18 +200,17 @@ class MainActivity : ComponentActivity() {
         // Data loading is handled via optimistic UI and smooth transitions.
         splashScreen.setKeepOnScreenCondition { false }
 
-        // LEER SEÑAL DE BENCHMARK
+        // READ BENCHMARK SIGNAL
         val isBenchmarkMode = intent.getBooleanExtra("is_benchmark", false)
         val shouldBenchmarkRebuildDatabase =
             isBenchmarkMode && intent.getBooleanExtra("benchmark_rebuild_database", false)
-        Log.i(
-            "PixelPlayerBenchmark",
+        Timber.tag("PixelPlayerBenchmark").i(
             "onCreate benchmark=$isBenchmarkMode rebuildDatabase=$shouldBenchmarkRebuildDatabase"
         )
         if (shouldBenchmarkRebuildDatabase) {
             lifecycleScope.launch {
                 userPreferencesRepository.setInitialSetupDone(true)
-                Log.i("PixelPlayerBenchmark", "Enqueueing benchmark database rebuild")
+                Timber.tag("PixelPlayerBenchmark").i("Enqueueing benchmark database rebuild")
                 syncManager.rebuildDatabase()
                 delay(1_500L)
                 playerViewModel.prepareBenchmarkPlayerFromLibrary()
@@ -339,7 +340,7 @@ class MainActivity : ComponentActivity() {
         when {
             // Handle shuffle all shortcut / tile
             intent.action == MainActivityIntentContract.ACTION_SHUFFLE_ALL -> {
-                android.util.Log.d("TileDebug", "handleIntent: ACTION_SHUFFLE_ALL received")
+                Timber.tag("TileDebug").d("handleIntent: ACTION_SHUFFLE_ALL received")
                 playerViewModel.triggerShuffleAllFromTile()
                 intent.action = null // Clear action to prevent re-triggering
             }
@@ -415,9 +416,9 @@ class MainActivity : ComponentActivity() {
                     try {
                         contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     } catch (securityException: SecurityException) {
-                        android.util.Log.w("MainActivity", "Unable to persist URI permission for $uri", securityException)
+                        Timber.tag("MainActivity").w(securityException, "Unable to persist URI permission for $uri")
                     } catch (illegalArgumentException: IllegalArgumentException) {
-                        android.util.Log.w("MainActivity", "Persistable URI permission not granted for $uri", illegalArgumentException)
+                        Timber.tag("MainActivity").w(illegalArgumentException, "Persistable URI permission not granted for $uri")
                     }
                 }
             }
@@ -462,7 +463,19 @@ class MainActivity : ComponentActivity() {
         val isLibraryEmpty by mainViewModel.isLibraryEmpty.collectAsStateWithLifecycle()
         val hasCompletedInitialSync by mainViewModel.hasCompletedInitialSync.collectAsStateWithLifecycle()
         val syncProgress by mainViewModel.syncProgress.collectAsStateWithLifecycle()
-        
+
+        // Surface a failed library sync to the user (the progress flow silently reverts to idle).
+        val context = LocalContext.current
+        LaunchedEffect(Unit) {
+            mainViewModel.syncFailed.collect {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.sync_failed_toast),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+
         // isMediaControllerReady used below for playlist navigation gate
         val isMediaControllerReady by playerViewModel.isMediaControllerReady.collectAsStateWithLifecycle()
         
@@ -498,7 +511,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Estado para controlar si el indicador de carga puede mostrarse después de un delay
+        // State controlling whether the loading indicator may be shown after a delay
         var canShowLoadingIndicator by remember { mutableStateOf(false) }
         // Track when the loading indicator was first shown for minimum display time
         var loadingShownTimestamp by remember { mutableStateOf(0L) }
@@ -508,11 +521,11 @@ class MainActivity : ComponentActivity() {
 
         LaunchedEffect(shouldPotentiallyShowLoading) {
             if (shouldPotentiallyShowLoading) {
-                // Espera un breve período antes de permitir que se muestre el indicador de carga
-                // Ajusta este valor según sea necesario (por ejemplo, 300-500 ms)
+                // Wait a short period before allowing the loading indicator to be shown
+                // Adjust this value as needed (e.g. 300-500 ms)
                 delay(300L)
-                // Vuelve a verificar la condición después del delay,
-                // ya que el estado podría haber cambiado.
+                // Re-check the condition after the delay,
+                // since the state may have changed.
                 if (mainViewModel.isSyncing.value && mainViewModel.isLibraryEmpty.value) {
                     canShowLoadingIndicator = true
                     loadingShownTimestamp = System.currentTimeMillis()
@@ -534,7 +547,7 @@ class MainActivity : ComponentActivity() {
         Box(modifier = Modifier.fillMaxSize()) {
             MainUI(playerViewModel, navController)
 
-            // Muestra el LoadingOverlay solo si las condiciones se cumplen Y el delay ha pasado
+            // Show the LoadingOverlay only if the conditions are met AND the delay has passed
             if (canShowLoadingIndicator) {
                 LoadingOverlay(syncProgress)
             }

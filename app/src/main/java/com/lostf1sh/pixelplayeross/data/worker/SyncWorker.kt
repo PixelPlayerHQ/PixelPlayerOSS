@@ -6,7 +6,6 @@ import android.content.Context
 import android.os.Build
 import android.os.Trace // Import Trace
 import android.provider.MediaStore
-import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -387,13 +386,12 @@ constructor(
                                         )
                                     }
                             totalScannedCount += idBatch.size
-                            Log.d(
-                                    TAG,
+                            Timber.tag(TAG).d(
                                     "LRC Scan: Processed batch of ${idBatch.size}, total assigned so far: $batchScannedCount"
                             )
                         }
 
-                        Log.i(TAG, "LRC Scan finished for $totalToScan songs.")
+                        Timber.tag(TAG).i("LRC Scan finished for $totalToScan songs.")
                     }
 
                     // Clean orphaned album art cache files
@@ -420,7 +418,7 @@ constructor(
 
                     Result.success(workDataOf(OUTPUT_TOTAL_SONGS to finalTotalSongs))
                 } catch (e: Exception) {
-                    Log.e(TAG, "Error during MediaStore synchronization", e)
+                    Timber.tag(TAG).e(e, "Error during MediaStore synchronization")
                     Result.failure()
                 } finally {
                     Trace.endSection() // End SyncWorker.doWork
@@ -612,7 +610,7 @@ constructor(
         val now = System.currentTimeMillis()
         val cacheAge = now - genreMapCacheTimestamp
         if (!forceRefresh && genreMapCache.isNotEmpty() && cacheAge < GENRE_CACHE_TTL_MS) {
-            Log.d(TAG, "Using cached genre map (${genreMapCache.size} entries, age: ${cacheAge/1000}s)")
+            Timber.tag(TAG).d("Using cached genre map (${genreMapCache.size} entries, age: ${cacheAge/1000}s)")
             return@coroutineScope genreMapCache
         }
         
@@ -689,14 +687,14 @@ constructor(
             }.awaitAll()
             
         } catch (e: Exception) {
-            Log.e(TAG, "Error fetching genre map", e)
+            Timber.tag(TAG).e(e, "Error fetching genre map")
         }
         
         // Update cache
         if (genreMap.isNotEmpty()) {
             genreMapCache = genreMap.toMap()
             genreMapCacheTimestamp = System.currentTimeMillis()
-            Log.d(TAG, "Genre map cache updated with ${genreMap.size} entries")
+            Timber.tag(TAG).d("Genre map cache updated with ${genreMap.size} entries")
         }
         
         genreMap
@@ -886,7 +884,7 @@ constructor(
                 }
 
         if (rawDataList.isEmpty()) {
-            Log.i(TAG, "MediaStore cursor produced 0 raw songs after directory filtering")
+            Timber.tag(TAG).i("MediaStore cursor produced 0 raw songs after directory filtering")
             Trace.endSection()
             return emptyList()
         }
@@ -919,8 +917,7 @@ constructor(
         rawDataList.clear()
 
         val totalCount = songsToProcess.size
-        Log.i(
-            TAG,
+        Timber.tag(TAG).i(
             "MediaStore raw=$rawSongCount, songsToProcess=$totalCount, forceProcessAll=$forceProcessAll, resetExistingLocalData=$resetExistingLocalData"
         )
         if (totalCount == 0) {
@@ -1084,7 +1081,7 @@ constructor(
                         }
                     }
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to read metadata via TagLib for ${raw.filePath}", e)
+                    Timber.tag(TAG).w(e, "Failed to read metadata via TagLib for ${raw.filePath}")
                 }
             }
         }
@@ -1180,7 +1177,7 @@ constructor(
         fun invalidateGenreCache() {
             genreMapCache = emptyMap()
             genreMapCacheTimestamp = 0L
-            Log.d(TAG, "Genre cache invalidated")
+            Timber.tag(TAG).d("Genre cache invalidated")
         }
 
         fun startUpSyncWork(deepScan: Boolean = false) =

@@ -77,7 +77,10 @@ constructor(
 ) {
 
     private val backupExcludedKeyNames = setOf(
-        PreferencesKeys.INITIAL_SETUP_DONE.name
+        PreferencesKeys.INITIAL_SETUP_DONE.name,
+        // Legacy scrobbling secrets from removed ListenBrainz/Last.fm support.
+        "listenbrainz_token",
+        "lastfm_session_key"
     )
 
     private object PreferencesKeys {

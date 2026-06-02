@@ -10,9 +10,10 @@ The app stores music library metadata, playlists, favorites, lyrics, preferences
 
 Network features are optional and user-controlled:
 
-- Navidrome/Subsonic and Jellyfin are used only after the user signs in to a self-hosted server.
+- Navidrome/Subsonic and Jellyfin are used only after the user signs in to a self-hosted server. Those servers may receive the authentication, library, playback state, and play history requests needed for their protocols.
 - LRCLIB lyric lookup is used only when online lyrics are enabled.
 - Deezer artist artwork lookup is used only when online artist images are enabled.
+- PixelPlayerOSS does not submit listening activity to public scrobbling services such as ListenBrainz or Last.fm.
 
 Server credentials and preferences are stored locally. The app does not sell or share user data.
 

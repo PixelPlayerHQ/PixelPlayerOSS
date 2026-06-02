@@ -1,0 +1,16 @@
+PixelPlayerOSS is a FOSS Android music player focused on local playback, self-hosted music libraries, and user-controlled online lookups.
+
+The app works offline by default. Network features are optional and must be enabled by the user.
+
+Features:
+
+* Local music scanning and playback for common audio formats
+* Gapless playback, crossfade, custom transitions, queue controls, shuffle, repeat, and sleep timer
+* Albums, artists, genres, folders, favorites, playlists, lyrics, and listening stats
+* Smart playlists generated from local listening history and favorites
+* Self-hosted Navidrome/Subsonic and Jellyfin library sync and streaming
+* Optional LRCLIB lyric lookup and Deezer artist artwork lookup
+* Material 3 UI, dynamic color, light/dark themes, and Glance widgets
+* Backup and restore for preferences, playlists, favorites, lyrics, stats, and app state
+
+PixelPlayerOSS does not include analytics, ads, Firebase, Crashlytics, Play Store billing, or Google Play Services runtime dependencies.

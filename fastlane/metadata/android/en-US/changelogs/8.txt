@@ -1,0 +1,7 @@
+PixelPlayerOSS 0.7.0-beta:
+
+* Prepared the OSS edition for public source builds with release, privacy, and security documentation.
+* Removed non-OSS-oriented integrations and Google Play Services runtime dependencies.
+* Kept optional online lookups user-controlled: Navidrome/Subsonic, Jellyfin, LRCLIB, and Deezer artwork.
+* Added smart playlist creation from local listening history and favorites.
+* Improved release builds so missing local signing keys produce unsigned artifacts instead of dummy-signed APKs.

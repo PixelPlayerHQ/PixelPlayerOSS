@@ -1,0 +1,33 @@
+# Keeps Gradle dependencies (incl. the gradle/libs.versions.toml catalog) and
+# GitHub Actions up to date. Security updates are enabled by default; the
+# schedules below cover routine version bumps. Minor/patch bumps are grouped
+# into a single PR to keep review load manageable; majors open individually.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "deps"
+    groups:
+      gradle-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        update-types:
+          - "minor"
+          - "patch"

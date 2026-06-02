@@ -7,16 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Added Fastlane store metadata and F-Droid readiness notes for OSS app-store submission.
+- Added dynamic smart playlist persistence and refresh for rule-based generated playlists.
+- Added a Retry action to the album and artist detail screens when their content fails to load.
+- Added an adjustable playback speed control (0.5×–2.0×, pitch-preserving) in Settings, applied across gapless transitions.
+- Added a duplicate-track finder reachable from Settings → Sync &amp; scanning.
+
 ### Changed
 - Removed bundled translations and the in-app language selector; the first public release ships with English resources only.
 - Removed full-player expand background blur to reduce transition overhead.
 - Release builds now stay unsigned when no local `keystore.properties` is present instead of relying on dummy signing values.
+- Playlist sorting now runs off the main thread, and image loading reuses the app's shared HTTP client.
+- Extracted smart-playlist selection into a unit-tested builder and translated leftover Spanish/Chinese source comments to English.
 
 ### Fixed
 - Fixed debug lint blockers and several release-readiness warnings around locale-stable formatting and manifest labels.
+- Unplayable tracks are now skipped with a brief notice instead of stalling the queue, and failed library syncs surface a message.
+- Routed remaining raw `Log` calls and `printStackTrace()` swallows through Timber so they respect the release log filter.
+
+### Security
+- The loopback cloud-stream proxy now requires a per-session token, preventing other apps on the device from streaming the user's cloud library.
+- Backup restore ignores preference keys owned by dedicated module handlers, and release builds no longer log HTTP request headers.
+
+### Accessibility
+- Shuffle/repeat/favorite toggles now announce their on/off state to TalkBack, and song rows expose a button role with click and long-press actions.
 
 ### Documentation
 - Added release, privacy, and security documentation for the public repository.
+- Added `CONTRIBUTING.md` and a Dependabot config.
 
 ## [0.7.0-beta] - 2026-05-25
 

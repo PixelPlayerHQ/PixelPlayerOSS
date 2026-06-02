@@ -129,6 +129,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import com.lostf1sh.pixelplayeross.presentation.components.LibrarySortBottomSheet
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.PlaylistShapeType
+import com.lostf1sh.pixelplayeross.data.model.isSmartPlaylist
 import kotlinx.coroutines.launch
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -175,6 +176,8 @@ fun PlaylistDetailScreen(
     val toastPlayingNext = stringResource(R.string.toast_playing_next)
     val currentPlaylist = uiState.currentPlaylistDetails
     val isFolderPlaylist = currentPlaylist?.id?.startsWith(FOLDER_PLAYLIST_PREFIX) == true
+    val isSmartPlaylist = currentPlaylist?.isSmartPlaylist == true
+    val isEditablePlaylist = !isFolderPlaylist && !isSmartPlaylist
     val songsInPlaylist = uiState.currentPlaylistSongs
 
     LaunchedEffect(playlistId) {
@@ -201,7 +204,7 @@ fun PlaylistDetailScreen(
     }
 
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
-    val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle() // Reintroducir favoriteIds aquí
+    val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle() // Reintroduce favoriteIds here
     val stableOnMoreOptionsClick: (Song) -> Unit = remember {
         { song ->
             playerViewModel.selectSongForInfo(song)
@@ -234,14 +237,14 @@ fun PlaylistDetailScreen(
         }
     )
 
-    LaunchedEffect(reorderableState.isAnyItemDragging, isFolderPlaylist) {
-        if (!isFolderPlaylist && !reorderableState.isAnyItemDragging && lastMovedFrom != null && lastMovedTo != null) {
+    LaunchedEffect(reorderableState.isAnyItemDragging, isEditablePlaylist) {
+        if (isEditablePlaylist && !reorderableState.isAnyItemDragging && lastMovedFrom != null && lastMovedTo != null) {
             currentPlaylist?.let {
                 playlistViewModel.reorderSongsInPlaylist(it.id, lastMovedFrom!!, lastMovedTo!!)
             }
             lastMovedFrom = null
             lastMovedTo = null
-        } else if (isFolderPlaylist && !reorderableState.isAnyItemDragging) {
+        } else if (!isEditablePlaylist && !reorderableState.isAnyItemDragging) {
             lastMovedFrom = null
             lastMovedTo = null
         }
@@ -421,7 +424,7 @@ fun PlaylistDetailScreen(
                     }
                 }
 
-                if (!isFolderPlaylist) {
+                if (isEditablePlaylist) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -548,10 +551,10 @@ fun PlaylistDetailScreen(
                             Icon(Icons.Filled.MusicOff, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.height(8.dp))
                             Text(playlistEmptyTitle, style = MaterialTheme.typography.titleMedium)
-                            val emptyMessage = if (isFolderPlaylist) {
-                                playlistEmptyFolder
-                            } else {
-                                playlistEmptyAddHint
+                            val emptyMessage = when {
+                                isFolderPlaylist -> playlistEmptyFolder
+                                isSmartPlaylist -> stringResource(R.string.presentation_batch_b_playlist_empty_smart_body)
+                                else -> playlistEmptyAddHint
                             }
                             Text(emptyMessage, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -624,7 +627,7 @@ fun PlaylistDetailScreen(
                                         isPlaying = playerStableState.isPlaying,
                                         isDragging = isDragging,
                                         onRemoveClick = {
-                                            if (!isFolderPlaylist) {
+                                            if (isEditablePlaylist) {
                                                 currentPlaylist.let {
                                                     playlistViewModel.removeSongFromPlaylist(it.id, song.id)
                                                 }
@@ -632,8 +635,8 @@ fun PlaylistDetailScreen(
                                         },
                                         isFromPlaylist = true,
                                         isReorderModeEnabled = isReorderModeEnabled,
-                                        isDragHandleVisible = isReorderModeEnabled,
-                                        isRemoveButtonVisible = isRemoveModeEnabled,
+                                        isDragHandleVisible = isReorderModeEnabled && isEditablePlaylist,
+                                        isRemoveButtonVisible = isRemoveModeEnabled && isEditablePlaylist,
                                         onMoreOptionsClick = stableOnMoreOptionsClick,
                                         dragHandle = {
                                             IconButton(
@@ -685,7 +688,7 @@ fun PlaylistDetailScreen(
         }
     }
 
-    if (showAddSongsSheet && currentPlaylist != null && !isFolderPlaylist) {
+    if (showAddSongsSheet && currentPlaylist != null && isEditablePlaylist) {
         SongPickerBottomSheet(
             initiallySelectedSongIds = currentPlaylist.songIds.toSet(),
             onDismiss = { showAddSongsSheet = false },

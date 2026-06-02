@@ -2,12 +2,12 @@ package com.lostf1sh.pixelplayeross.data.backup.module
 
 import android.content.Context
 import android.util.Base64
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import com.lostf1sh.pixelplayeross.data.model.Playlist
 import com.lostf1sh.pixelplayeross.data.model.SortOption
+import com.lostf1sh.pixelplayeross.data.model.isSmartPlaylistSource
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupSection
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SongSummary
@@ -19,6 +19,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,7 +40,7 @@ class PlaylistsModuleHandler @Inject constructor(
 
         // Only export local playlists. Cloud playlists are tied to service auth
         // and would be empty on restore.
-        val playlists = allPlaylists.filter { it.source in LOCAL_SOURCES }
+        val playlists = allPlaylists.filter { isBackedUpPlaylistSource(it.source) }
 
         // Build a set of cloud song IDs to exclude from backup
         val cloudSongIds = buildCloudSongIdSet()
@@ -87,7 +88,7 @@ class PlaylistsModuleHandler @Inject constructor(
 
     override suspend fun countEntries(): Int = withContext(Dispatchers.IO) {
         val playlists = playlistPreferencesRepository.getPlaylistsOnce()
-            .count { it.source in LOCAL_SOURCES }
+            .count { isBackedUpPlaylistSource(it.source) }
         val orderModes = playlistPreferencesRepository.playlistSongOrderModesFlow.first()
         val sortOption = playlistPreferencesRepository.playlistsSortOptionFlow.first()
         playlists + orderModes.size + if (sortOption.isNotBlank()) 1 else 0
@@ -152,7 +153,7 @@ class PlaylistsModuleHandler @Inject constructor(
             val bytes = file.readBytes()
             Base64.encodeToString(bytes, Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to read cover image: $path", e)
+            Timber.tag(TAG).w(e, "Failed to read cover image: $path")
             null
         }
     }
@@ -170,7 +171,7 @@ class PlaylistsModuleHandler @Inject constructor(
                 file.writeBytes(bytes)
                 playlist.copy(coverImageUri = file.absolutePath)
             } catch (e: Exception) {
-                Log.w(TAG, "Failed to restore cover image for playlist ${playlist.id}", e)
+                Timber.tag(TAG).w(e, "Failed to restore cover image for playlist ${playlist.id}")
                 playlist.copy(coverImageUri = null)
             }
         }
@@ -220,7 +221,7 @@ class PlaylistsModuleHandler @Inject constructor(
         }
 
         if (unresolvedCount > 0) {
-            Log.w(TAG, "Playlist restore: $resolvedCount/$totalSongs songs resolved, $unresolvedCount unresolved")
+            Timber.tag(TAG).w("Playlist restore: $resolvedCount/$totalSongs songs resolved, $unresolvedCount unresolved")
         }
 
         // Apply resolution to playlists, dropping unresolved songs
@@ -372,7 +373,8 @@ class PlaylistsModuleHandler @Inject constructor(
         private const val DURATION_TOLERANCE_MS = 2000L
 
         /** Playlist sources that are backed up. Cloud-sourced playlists are excluded. */
-        private val LOCAL_SOURCES = setOf("LOCAL")
+        private fun isBackedUpPlaylistSource(source: String): Boolean =
+            source == "LOCAL" || isSmartPlaylistSource(source)
 
         const val LEGACY_USER_PLAYLISTS_KEY = "user_playlists_json_v1"
         const val LEGACY_PLAYLIST_ORDER_MODES_KEY = "playlist_song_order_modes"

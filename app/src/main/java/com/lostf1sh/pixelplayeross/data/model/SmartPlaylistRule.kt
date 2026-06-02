@@ -36,3 +36,19 @@ enum class SmartPlaylistRule(
         }
     }
 }
+
+const val SMART_PLAYLIST_SOURCE_LEGACY = "SMART"
+const val SMART_PLAYLIST_SOURCE_PREFIX = "$SMART_PLAYLIST_SOURCE_LEGACY:"
+
+fun SmartPlaylistRule.toPlaylistSource(): String = "$SMART_PLAYLIST_SOURCE_PREFIX$storageKey"
+
+fun SmartPlaylistRule.Companion.fromPlaylistSource(source: String): SmartPlaylistRule? {
+    if (!source.startsWith(SMART_PLAYLIST_SOURCE_PREFIX)) return null
+    return fromStorageKey(source.removePrefix(SMART_PLAYLIST_SOURCE_PREFIX))
+}
+
+fun isSmartPlaylistSource(source: String): Boolean =
+    source == SMART_PLAYLIST_SOURCE_LEGACY || source.startsWith(SMART_PLAYLIST_SOURCE_PREFIX)
+
+val Playlist.isSmartPlaylist: Boolean
+    get() = isSmartPlaylistSource(source)

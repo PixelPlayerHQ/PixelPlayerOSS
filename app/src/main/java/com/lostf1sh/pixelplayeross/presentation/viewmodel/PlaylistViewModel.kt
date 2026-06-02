@@ -1,7 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.viewmodel
 
 import android.net.Uri
-import android.util.Log
 import android.content.Intent
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
@@ -11,7 +10,11 @@ import com.lostf1sh.pixelplayeross.data.model.Playlist
 import com.lostf1sh.pixelplayeross.data.model.SmartPlaylistRule
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.SortOption
+import com.lostf1sh.pixelplayeross.data.model.fromPlaylistSource
+import com.lostf1sh.pixelplayeross.data.model.isSmartPlaylist
+import com.lostf1sh.pixelplayeross.data.model.toPlaylistSource
 import com.lostf1sh.pixelplayeross.data.playlist.M3uManager
+import com.lostf1sh.pixelplayeross.data.playlist.SmartPlaylistBuilder
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,6 +43,7 @@ import java.io.IOException
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import timber.log.Timber
 
 data class PlaylistUiState(
     val playlists: List<Playlist> = emptyList(),
@@ -147,7 +151,7 @@ class PlaylistViewModel @Inject constructor(
                     currentPlaylistDetails = if (shouldKeepExisting) it.currentPlaylistDetails else null,
                     currentPlaylistSongs = if (shouldKeepExisting) it.currentPlaylistSongs else emptyList()
                 )
-            } // Resetear detalles y canciones
+            } // Reset details and songs
             try {
                 if (isFolderPlaylistId(playlistId)) {
                     val folderPath = Uri.decode(playlistId.removePrefix(FOLDER_PLAYLIST_PREFIX))
@@ -169,17 +173,21 @@ class PlaylistViewModel @Inject constructor(
                             songIds = songsList.map { it.id }
                         )
 
+                        val folderSortOption = _uiState.value.currentPlaylistSongsSortOption
+                        val sortedFolderSongs = withContext(Dispatchers.Default) {
+                            applySortToSongs(songsList, folderSortOption)
+                        }
                         _uiState.update {
                             it.copy(
                                 currentPlaylistDetails = pseudoPlaylist,
-                                currentPlaylistSongs = applySortToSongs(songsList, it.currentPlaylistSongsSortOption),
-                                playlistSongsOrderMode = PlaylistSongsOrderMode.Sorted(it.currentPlaylistSongsSortOption),
+                                currentPlaylistSongs = sortedFolderSongs,
+                                playlistSongsOrderMode = PlaylistSongsOrderMode.Sorted(folderSortOption),
                                 isLoading = false,
                                 playlistNotFound = false
                             )
                         }
                     } else {
-                        Log.w("PlaylistVM", "Folder playlist with path $folderPath not found.")
+                        Timber.tag("PlaylistVM").w("Folder playlist with path $folderPath not found.")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -190,28 +198,31 @@ class PlaylistViewModel @Inject constructor(
                         }
                     }
                 } else {
-                    // Obtener la playlist de las preferencias del usuario
+                    // Get the playlist from the user's preferences
                     val playlist = playlistPreferencesRepository.userPlaylistsFlow.first()
                         .find { it.id == playlistId }
 
                     if (playlist != null) {
+                        val playlistForDisplay = refreshSmartPlaylistIfNeeded(playlist)
                         val orderMode = _uiState.value.playlistOrderModes[playlistId]
                             ?: PlaylistSongsOrderMode.Manual
 
-                        // Colectar la lista de canciones del Flow devuelto por el repositorio en un hilo de IO
+                        // Collect the song list from the Flow returned by the repository on an IO thread
                         val songsList: List<Song> = withContext(kotlinx.coroutines.Dispatchers.IO) {
-                            musicRepository.getSongsByIds(playlist.songIds).first()
+                            musicRepository.getSongsByIds(playlistForDisplay.songIds).first()
                         }
 
                         val orderedSongs = when (orderMode) {
-                            is PlaylistSongsOrderMode.Sorted -> applySortToSongs(songsList, orderMode.option)
+                            is PlaylistSongsOrderMode.Sorted -> withContext(Dispatchers.Default) {
+                                applySortToSongs(songsList, orderMode.option)
+                            }
                             PlaylistSongsOrderMode.Manual -> songsList
                         }
 
-                        // La actualización del UI se hace en el hilo principal
+                        // The UI update is done on the main thread
                         _uiState.update {
                             it.copy(
-                                currentPlaylistDetails = playlist,
+                                currentPlaylistDetails = playlistForDisplay,
                                 currentPlaylistSongs = orderedSongs,
                                 currentPlaylistSongsSortOption = (orderMode as? PlaylistSongsOrderMode.Sorted)?.option
                                     ?: it.currentPlaylistSongsSortOption,
@@ -222,7 +233,7 @@ class PlaylistViewModel @Inject constructor(
                             )
                         }
                     } else {
-                        Log.w("PlaylistVM", "Playlist with id $playlistId not found.")
+                        Timber.tag("PlaylistVM").w("Playlist with id $playlistId not found.")
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
@@ -230,12 +241,12 @@ class PlaylistViewModel @Inject constructor(
                                 currentPlaylistDetails = null,
                                 currentPlaylistSongs = emptyList()
                             )
-                        } // Mantener isLoading en false
-                        // Opcional: podrías establecer un error o un estado específico de "no encontrado"
+                        } // Keep isLoading as false
+                        // Optional: you could set an error or a specific "not found" state
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PlaylistVM", "Error loading playlist details for id $playlistId", e)
+                Timber.tag("PlaylistVM").e(e, "Error loading playlist details for id $playlistId")
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -290,10 +301,7 @@ class PlaylistViewModel @Inject constructor(
             } else {
                 songIds
             }
-            val resolvedSource = when {
-                resolvedSmartRule != null && source == "LOCAL" -> "SMART"
-                else -> source
-            }
+            val resolvedSource = resolvedSmartRule?.toPlaylistSource() ?: source
 
             playlistPreferencesRepository.createPlaylist(
                 name = name,
@@ -320,69 +328,31 @@ class PlaylistViewModel @Inject constructor(
         val allSongs = musicRepository.getAllSongsOnce()
         if (allSongs.isEmpty()) return emptyList()
 
-        val engagements = dailyMixManager.getAllEngagementStats()
-        val now = System.currentTimeMillis()
-        val songById = allSongs.associateBy { it.id }
-        val favoriteIds = musicRepository.getFavoriteSongIdsOnce()
-        val safeLimit = limit.coerceAtLeast(1).coerceAtMost(allSongs.size)
+        return SmartPlaylistBuilder.buildSongIds(
+            rule = rule,
+            allSongs = allSongs,
+            engagements = dailyMixManager.getAllEngagementStats(),
+            favoriteIds = musicRepository.getFavoriteSongIdsOnce(),
+            now = System.currentTimeMillis(),
+            limit = limit
+        )
+    }
 
-        val pickedSongs = when (rule) {
-            SmartPlaylistRule.TOP_PLAYED -> {
-                engagements.entries
-                    .sortedWith(
-                        compareByDescending<Map.Entry<String, DailyMixManager.SongEngagementStats>> { it.value.playCount }
-                            .thenByDescending { it.value.totalPlayDurationMs }
-                            .thenByDescending { it.value.lastPlayedTimestamp }
-                    )
-                    .mapNotNull { (songId, _) -> songById[songId] }
-                    .take(safeLimit)
-            }
+    private suspend fun refreshSmartPlaylistIfNeeded(playlist: Playlist): Playlist {
+        val smartRule = SmartPlaylistRule.fromPlaylistSource(playlist.source) ?: return playlist
+        val refreshedSongIds = buildSmartPlaylistSongIds(
+            rule = smartRule,
+            limit = SMART_PLAYLIST_MAX_ITEMS
+        )
 
-            SmartPlaylistRule.RECENTLY_PLAYED -> {
-                engagements.entries
-                    .filter { it.value.lastPlayedTimestamp > 0L }
-                    .sortedByDescending { it.value.lastPlayedTimestamp }
-                    .mapNotNull { (songId, _) -> songById[songId] }
-                    .take(safeLimit)
-            }
+        if (refreshedSongIds == playlist.songIds) return playlist
 
-            SmartPlaylistRule.FORGOTTEN_FAVORITES -> {
-                val staleThreshold = now - TimeUnit.DAYS.toMillis(30)
-                allSongs
-                    .asSequence()
-                    .filter { favoriteIds.contains(it.id) }
-                    .sortedWith(
-                        compareBy<Song> { engagements[it.id]?.lastPlayedTimestamp ?: 0L }
-                            .thenBy { it.title.lowercase() }
-                    )
-                    .filter { song ->
-                        (engagements[song.id]?.lastPlayedTimestamp ?: 0L) < staleThreshold
-                    }
-                    .take(safeLimit)
-                    .toList()
-            }
-
-            SmartPlaylistRule.NEW_GEMS -> {
-                allSongs
-                    .asSequence()
-                    .sortedWith(
-                        compareByDescending<Song> { it.dateAdded }
-                            .thenBy { engagements[it.id]?.playCount ?: 0 }
-                    )
-                    .filter { song -> (engagements[song.id]?.playCount ?: 0) <= 2 }
-                    .take(safeLimit)
-                    .toList()
-            }
-        }
-
-        if (pickedSongs.isNotEmpty()) {
-            return pickedSongs.map { it.id }.distinct()
-        }
-
-        return allSongs
-            .sortedByDescending { it.dateAdded }
-            .take(safeLimit)
-            .map { it.id }
+        val refreshedPlaylist = playlist.copy(
+            songIds = refreshedSongIds,
+            lastModified = System.currentTimeMillis()
+        )
+        playlistPreferencesRepository.updatePlaylist(refreshedPlaylist)
+        return refreshedPlaylist
     }
 
 
@@ -478,7 +448,7 @@ class PlaylistViewModel @Inject constructor(
 
                 file.absolutePath
             } catch (e: Exception) {
-                e.printStackTrace()
+                Timber.e(e)
                 null
             }
         }
@@ -499,7 +469,7 @@ class PlaylistViewModel @Inject constructor(
                     playlistPreferencesRepository.createPlaylist(name, songIds)
                 }
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error importing M3U", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error importing M3U")
             }
         }
     }
@@ -515,7 +485,7 @@ class PlaylistViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error exporting M3U", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error exporting M3U")
             }
         }
     }
@@ -615,6 +585,9 @@ class PlaylistViewModel @Inject constructor(
     fun addSongsToPlaylist(playlistId: String, songIdsToAdd: List<String>) {
         if (isFolderPlaylistId(playlistId)) return
         viewModelScope.launch {
+            if (playlistPreferencesRepository.getPlaylistsOnce().any { it.id == playlistId && it.isSmartPlaylist }) {
+                return@launch
+            }
             playlistPreferencesRepository.addSongsToPlaylist(playlistId, songIdsToAdd)
             if (_uiState.value.currentPlaylistDetails?.id == playlistId) {
                 loadPlaylistDetails(playlistId)
@@ -631,8 +604,13 @@ class PlaylistViewModel @Inject constructor(
         currentPlaylistId: String?
     ) {
         viewModelScope.launch {
+            val smartPlaylistIds = playlistPreferencesRepository.getPlaylistsOnce()
+                .filter { it.isSmartPlaylist }
+                .map { it.id }
+                .toSet()
+            val editablePlaylistIds = playlistIds.filterNot { it in smartPlaylistIds }
             val removedFromPlaylists =
-                playlistPreferencesRepository.addOrRemoveSongFromPlaylists(songId, playlistIds)
+                playlistPreferencesRepository.addOrRemoveSongFromPlaylists(songId, editablePlaylistIds)
             if (currentPlaylistId != null && removedFromPlaylists.contains (currentPlaylistId)) {
                 removeSongFromPlaylist(currentPlaylistId, songId)
             }
@@ -641,7 +619,11 @@ class PlaylistViewModel @Inject constructor(
 
     fun addSongsToPlaylists(songIds: List<String>, playlistIds: List<String>) {
         viewModelScope.launch {
-            playlistIds.forEach { playlistId ->
+            val smartPlaylistIds = playlistPreferencesRepository.getPlaylistsOnce()
+                .filter { it.isSmartPlaylist }
+                .map { it.id }
+                .toSet()
+            playlistIds.filterNot { it in smartPlaylistIds }.forEach { playlistId ->
                 playlistPreferencesRepository.addSongsToPlaylist(playlistId, songIds)
             }
         }
@@ -650,6 +632,9 @@ class PlaylistViewModel @Inject constructor(
     fun removeSongFromPlaylist(playlistId: String, songIdToRemove: String) {
         if (isFolderPlaylistId(playlistId)) return
         viewModelScope.launch {
+            if (playlistPreferencesRepository.getPlaylistsOnce().any { it.id == playlistId && it.isSmartPlaylist }) {
+                return@launch
+            }
             playlistPreferencesRepository.removeSongFromPlaylist(playlistId, songIdToRemove)
             if (_uiState.value.currentPlaylistDetails?.id == playlistId) {
                 _uiState.update {
@@ -661,6 +646,8 @@ class PlaylistViewModel @Inject constructor(
 
     fun reorderSongsInPlaylist(playlistId: String, fromIndex: Int, toIndex: Int) {
         if (isFolderPlaylistId(playlistId)) return
+        val currentPlaylist = _uiState.value.currentPlaylistDetails ?: return
+        if (currentPlaylist.id != playlistId || currentPlaylist.isSmartPlaylist) return
         viewModelScope.launch {
             val currentSongs = _uiState.value.currentPlaylistSongs.toMutableList()
             if (fromIndex in currentSongs.indices && toIndex in currentSongs.indices) {
@@ -722,33 +709,36 @@ class PlaylistViewModel @Inject constructor(
         }
 
         val currentSongs = _uiState.value.currentPlaylistSongs
-        val sortedSongs = sortSongsList(currentSongs, sortOption)
-
-        _uiState.update {
-            val updatedModes = if (playlistId != null) {
-                it.playlistOrderModes + (playlistId to PlaylistSongsOrderMode.Sorted(sortOption))
-            } else {
-                it.playlistOrderModes
+        viewModelScope.launch {
+            // Sort off the main thread; large playlists otherwise jank the UI on tap.
+            val sortedSongs = withContext(Dispatchers.Default) {
+                sortSongsList(currentSongs, sortOption)
             }
-            it.copy(
-                currentPlaylistSongs = sortedSongs,
-                currentPlaylistSongsSortOption = sortOption,
-                playlistSongsOrderMode = PlaylistSongsOrderMode.Sorted(sortOption),
-                playlistOrderModes = updatedModes
-            )
-        }
 
-        if (playlistId != null) {
-            viewModelScope.launch {
+            _uiState.update {
+                if (playlistId != it.currentPlaylistDetails?.id) {
+                    return@update it
+                }
+                val updatedModes = if (playlistId != null) {
+                    it.playlistOrderModes + (playlistId to PlaylistSongsOrderMode.Sorted(sortOption))
+                } else {
+                    it.playlistOrderModes
+                }
+                it.copy(
+                    currentPlaylistSongs = sortedSongs,
+                    currentPlaylistSongsSortOption = sortOption,
+                    playlistSongsOrderMode = PlaylistSongsOrderMode.Sorted(sortOption),
+                    playlistOrderModes = updatedModes
+                )
+            }
+
+            if (playlistId != null) {
                 playlistPreferencesRepository.setPlaylistSongOrderMode(
                     playlistId,
                     sortOption.storageKey
                 )
             }
         }
-
-        // Persist local sort preference if needed (optional, not requested but good UX)
-        // For now, we keep it in memory as per request focus.
     }
 
     private fun isFolderPlaylistId(playlistId: String): Boolean =
@@ -913,7 +903,7 @@ class PlaylistViewModel @Inject constructor(
                     _playlistCreationEvent.emit(true)
                 }
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error merging playlists", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error merging playlists")
             }
         }
     }
@@ -929,7 +919,7 @@ class PlaylistViewModel @Inject constructor(
                 playlist to songs
             }
         } catch (e: Exception) {
-            Log.e("PlaylistViewModel", "Error getting playlists with songs", e)
+            Timber.tag("PlaylistViewModel").e(e, "Error getting playlists with songs")
             emptyList()
         }
     }
@@ -939,18 +929,18 @@ class PlaylistViewModel @Inject constructor(
      */
     fun shareSelectedPlaylistsAsZip(playlistIds: List<String>, activity: android.app.Activity?) {
         if (activity == null) {
-            Log.w("PlaylistViewModel", "Activity is null, cannot share")
+            Timber.tag("PlaylistViewModel").w("Activity is null, cannot share")
             return
         }
 
         viewModelScope.launch {
             try {
-                Log.d("PlaylistViewModel", "Starting share of ${playlistIds.size} playlists")
+                Timber.tag("PlaylistViewModel").d("Starting share of ${playlistIds.size} playlists")
                 // Get all selected playlists with their songs
                 val playlistsWithSongs = getPlaylistsWithSongs(playlistIds)
 
                 if (playlistsWithSongs.isEmpty()) {
-                    Log.w("PlaylistViewModel", "No playlists found to share")
+                    Timber.tag("PlaylistViewModel").w("No playlists found to share")
                     Toast.makeText(context, context.getString(R.string.playlist_none_to_share), Toast.LENGTH_SHORT).show()
                     return@launch
                 }
@@ -967,7 +957,7 @@ class PlaylistViewModel @Inject constructor(
                     shareFile = File(context.cacheDir, shareFileName)
                     shareFile.writeText(m3uContent)
                     shareMimeType = "audio/mpegurl"
-                    Log.d("PlaylistViewModel", "Created M3U file: ${shareFile.absolutePath}, size: ${shareFile.length()} bytes")
+                    Timber.tag("PlaylistViewModel").d("Created M3U file: ${shareFile.absolutePath}, size: ${shareFile.length()} bytes")
                 } else {
                     // Multiple playlists: create ZIP file
                     val zipFileName = "Playlists_${playlistsWithSongs.first().first.name}_and_${playlistsWithSongs.size - 1}_more.zip"
@@ -986,7 +976,7 @@ class PlaylistViewModel @Inject constructor(
 
                     shareFileName = zipFileName
                     shareMimeType = "application/zip"
-                    Log.d("PlaylistViewModel", "Created ZIP file: ${shareFile.absolutePath}, size: ${shareFile.length()} bytes")
+                    Timber.tag("PlaylistViewModel").d("Created ZIP file: ${shareFile.absolutePath}, size: ${shareFile.length()} bytes")
                 }
 
                 // Share the file
@@ -1002,14 +992,14 @@ class PlaylistViewModel @Inject constructor(
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 
-                Log.d("PlaylistViewModel", "Launching share intent for: $shareFileName")
+                Timber.tag("PlaylistViewModel").d("Launching share intent for: $shareFileName")
                 activity.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.playlist_share_chooser_title)))
                 val n = playlistsWithSongs.size
                 val sharingMsg = context.resources.getQuantityString(R.plurals.sharing_playlists_message, n, n)
                 Toast.makeText(context, sharingMsg, Toast.LENGTH_SHORT).show()
 
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error sharing playlists", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error sharing playlists")
                 Toast.makeText(context, context.getString(R.string.playlist_share_failed, e.message ?: ""), Toast.LENGTH_LONG).show()
             }
         }
@@ -1053,10 +1043,10 @@ class PlaylistViewModel @Inject constructor(
                     isQueueGenerated = false
                 )
 
-                Log.d("PlaylistViewModel", "Successfully merged ${playlistIds.size} playlists into '$newPlaylistName' with ${allSongs.size} total unique songs")
+                Timber.tag("PlaylistViewModel").d("Successfully merged ${playlistIds.size} playlists into '$newPlaylistName' with ${allSongs.size} total unique songs")
 
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error merging playlists", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error merging playlists")
             }
         }
     }
@@ -1069,7 +1059,7 @@ class PlaylistViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                Log.d("PlaylistViewModel", "Starting export of ${playlistIds.size} playlists")
+                Timber.tag("PlaylistViewModel").d("Starting export of ${playlistIds.size} playlists")
                 val musicDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC)
                 if (!musicDir.exists()) {
                     musicDir.mkdirs()
@@ -1082,7 +1072,7 @@ class PlaylistViewModel @Inject constructor(
 
                 val playlistsWithSongs = getPlaylistsWithSongs(playlistIds)
                 if (playlistsWithSongs.isEmpty()) {
-                    Log.w("PlaylistViewModel", "No playlists found to export")
+                    Timber.tag("PlaylistViewModel").w("No playlists found to export")
                     Toast.makeText(context, context.getString(R.string.playlist_none_to_export), Toast.LENGTH_SHORT).show()
                     return@launch
                 }
@@ -1091,17 +1081,17 @@ class PlaylistViewModel @Inject constructor(
                     val m3uContent = m3uManager.generateM3u(playlist, songs)
                     val file = File(exportDir, "${playlist.name}.m3u")
                     file.writeText(m3uContent)
-                    Log.d("PlaylistViewModel", "Exported playlist '${playlist.name}' to ${file.absolutePath}")
+                    Timber.tag("PlaylistViewModel").d("Exported playlist '${playlist.name}' to ${file.absolutePath}")
                 }
 
-                Log.d("PlaylistViewModel", "Successfully exported ${playlistIds.size} playlists to $exportDir")
+                Timber.tag("PlaylistViewModel").d("Successfully exported ${playlistIds.size} playlists to $exportDir")
                 val count = playlistsWithSongs.size
                 val folderLabel = context.getString(R.string.playlist_export_folder_display)
                 val exportedMsg = context.resources.getQuantityString(R.plurals.exported_playlists_message, count, count, folderLabel)
                 Toast.makeText(context, exportedMsg, Toast.LENGTH_SHORT).show()
 
             } catch (e: Exception) {
-                Log.e("PlaylistViewModel", "Error exporting playlists", e)
+                Timber.tag("PlaylistViewModel").e(e, "Error exporting playlists")
                 Toast.makeText(context, context.getString(R.string.playlist_export_failed, e.message ?: ""), Toast.LENGTH_SHORT).show()
             }
         }

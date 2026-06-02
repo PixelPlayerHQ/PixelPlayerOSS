@@ -20,20 +20,29 @@ Builds:
       - apt-get install -y -t trixie openjdk-21-jdk-headless
     output: app/build/outputs/apk/release/app-release-unsigned.apk
     prebuild:
-      - sed -i "/org.gradle.toolchains.foojay-resolver-convention/d" settings.gradle.kts
+      - foojay=org.gradle.toolchains.foojay-resolver-convention
+      - sed -i "/$foojay/d" settings.gradle.kts
       - sed -i "s/ -XX:+ParallelRefParsingEnabled//" gradle.properties
     build:
       - gradle_version=9.5.1
       - gradle_zip=/tmp/gradle-${gradle_version}-bin.zip
-      - 'curl --fail --location --retry 3 --output "$gradle_zip" "https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip"'
-      - 'echo "bafc141b619ad6350fd975fc903156dd5c151998cc8b058e8c1044ab5f7b031f  $gradle_zip" | sha256sum -c -'
-      - 'rm -rf "/tmp/gradle-${gradle_version}"'
-      - 'unzip -q "$gradle_zip" -d /tmp'
-      - 'if [ -d /usr/lib/jvm/java-21-openjdk-amd64 ]; then export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64; else export JAVA_HOME=/usr/lib/jvm/java-21-openjdk; fi'
-      - 'export PATH="$JAVA_HOME/bin:$PATH"'
-      - '"/tmp/gradle-${gradle_version}/bin/gradle" :app:assembleRelease -Ppixelplayer.enableAbiSplits=false -Ppixelplayer.disableReleaseSigning=true'
+      - gradle_url=https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip
+      - gradle_sha=bafc141b619ad6350fd975fc903156dd5c151998cc8b058e8c1044ab5f7b031f
+      - curl --fail --location --retry 3 --output "$gradle_zip" "$gradle_url"
+      - printf "%s  %s\n" "$gradle_sha" "$gradle_zip" | sha256sum -c -
+      - rm -rf "/tmp/gradle-${gradle_version}"
+      - unzip -q "$gradle_zip" -d /tmp
+      - java_home=/usr/lib/jvm/java-21-openjdk-amd64
+      - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+      - if [ -d "$java_home" ]; then export JAVA_HOME="$java_home"; fi
+      - export PATH="$JAVA_HOME/bin:$PATH"
+      - gradle_bin=/tmp/gradle-${gradle_version}/bin/gradle
+      - no_splits=-Ppixelplayer.enableAbiSplits=false
+      - no_signing=-Ppixelplayer.disableReleaseSigning=true
+      - $gradle_bin :app:assembleRelease $no_splits $no_signing
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
+UpdateCheckData: gradle.properties|CODE=(\d+)|.|NAME=(.+)
 CurrentVersion: 0.7.0-foss
 CurrentVersionCode: 8

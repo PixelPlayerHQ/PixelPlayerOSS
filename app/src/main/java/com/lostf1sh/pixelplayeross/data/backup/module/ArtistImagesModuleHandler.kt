@@ -2,7 +2,6 @@ package com.lostf1sh.pixelplayeross.data.backup.module
 
 import android.content.Context
 import android.util.Base64
-import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.lostf1sh.pixelplayeross.data.backup.model.ArtistImageBackupEntry
@@ -12,6 +11,7 @@ import com.lostf1sh.pixelplayeross.di.BackupGson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -70,7 +70,7 @@ class ArtistImagesModuleHandler @Inject constructor(
                     file.writeBytes(bytes)
                     musicDao.updateArtistCustomImage(artistId, file.absolutePath)
                 } catch (e: Exception) {
-                    Log.w(TAG, "Failed to restore custom image for artist: ${entry.artistName}", e)
+                    Timber.tag(TAG).w(e, "Failed to restore custom image for artist: ${entry.artistName}")
                 }
             }
         }
@@ -85,7 +85,7 @@ class ArtistImagesModuleHandler @Inject constructor(
             val bytes = file.readBytes()
             Base64.encodeToString(bytes, Base64.NO_WRAP)
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to read artist image: $path", e)
+            Timber.tag(TAG).w(e, "Failed to read artist image: $path")
             null
         }
     }

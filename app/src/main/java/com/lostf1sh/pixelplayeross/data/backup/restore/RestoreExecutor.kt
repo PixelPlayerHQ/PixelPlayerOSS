@@ -1,7 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.backup.restore
 
 import android.net.Uri
-import android.util.Log
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupReader
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupOperationType
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupSection
@@ -13,6 +12,7 @@ import com.lostf1sh.pixelplayeross.data.backup.module.BackupModuleHandler
 import com.lostf1sh.pixelplayeross.data.backup.validation.ValidationPipeline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +47,7 @@ class RestoreExecutor @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Snapshot phase failed", e)
+            Timber.tag(TAG).e(e, "Snapshot phase failed")
             return@withContext RestoreResult.TotalFailure("Failed to capture current state: ${e.message}")
         }
 
@@ -101,7 +101,7 @@ class RestoreExecutor @Inject constructor(
                 restoredModules.add(section)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Restore failed while processing backup module, rolling back", e)
+            Timber.tag(TAG).e(e, "Restore failed while processing backup module, rolling back")
             // Roll back in reverse restore order, including the module that failed mid-restore.
             var rollbackSuccess = true
             val rollbackOrder = (restoredModules + listOfNotNull(currentSection)).distinct().asReversed()
@@ -112,7 +112,7 @@ class RestoreExecutor @Inject constructor(
                         handlers[section]?.rollback(snapshot)
                     }
                 } catch (rollbackError: Exception) {
-                    Log.e(TAG, "Rollback failed for ${section.key}", rollbackError)
+                    Timber.tag(TAG).e(rollbackError, "Rollback failed for ${section.key}")
                     rollbackSuccess = false
                 }
             }

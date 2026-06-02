@@ -35,14 +35,18 @@ class GlobalSettingsModuleHandler @Inject constructor(
     override suspend fun restore(payload: String) = withContext(Dispatchers.IO) {
         val type = TypeToken.getParameterized(List::class.java, PreferenceBackupEntry::class.java).type
         val entries: List<PreferenceBackupEntry> = gson.fromJson(payload, type)
+        // Defense in depth: a crafted global-settings payload must not be able to write
+        // keys owned by the dedicated handlers (playlist, quickfill, equalizer), which
+        // would bypass their own validation. Only restore keys this handler legitimately owns.
+        val safeEntries = entries.filter { it.key !in EXCLUDED_KEYS }
         // Clear only the keys this handler owns (exclude playlist, quickfill, equalizer keys)
         userPreferencesRepository.clearPreferencesExceptKeys(
             PlaylistsModuleHandler.PLAYLIST_KEYS +
             QuickFillModuleHandler.QUICK_FILL_KEYS +
             EqualizerModuleHandler.EQUALIZER_KEYS
         )
-        if (entries.isNotEmpty()) {
-            userPreferencesRepository.importPreferencesFromBackup(entries, clearExisting = false)
+        if (safeEntries.isNotEmpty()) {
+            userPreferencesRepository.importPreferencesFromBackup(safeEntries, clearExisting = false)
         }
     }
 

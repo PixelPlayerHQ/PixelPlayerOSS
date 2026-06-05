@@ -87,6 +87,11 @@ class PlaylistViewModel @Inject constructor(
         const val FOLDER_PLAYLIST_PREFIX = "folder_playlist:"
         private const val MANUAL_ORDER_MODE = "manual"
         private const val SMART_PLAYLIST_MAX_ITEMS = 100
+
+        fun sanitizeFileName(name: String): String {
+            val sanitized = name.replace(Regex("[\\\\/:*?\"<>|\\s]+"), "_").trim('_')
+            return sanitized.ifEmpty { "Playlist" }
+        }
     }
 
     // Helper function to resolve stored playlist sort keys
@@ -953,21 +958,33 @@ class PlaylistViewModel @Inject constructor(
                     // Single playlist: share M3U file directly
                     val (playlist, songs) = playlistsWithSongs.first()
                     val m3uContent = m3uManager.generateM3u(playlist, songs)
-                    shareFileName = "${playlist.name}.m3u"
+                    val sanitizedName = sanitizeFileName(playlist.name)
+                    shareFileName = "$sanitizedName.m3u"
                     shareFile = File(context.cacheDir, shareFileName)
                     shareFile.writeText(m3uContent)
                     shareMimeType = "audio/mpegurl"
                     Timber.tag("PlaylistViewModel").d("Created M3U file: ${shareFile.absolutePath}, size: ${shareFile.length()} bytes")
                 } else {
                     // Multiple playlists: create ZIP file
-                    val zipFileName = "Playlists_${playlistsWithSongs.first().first.name}_and_${playlistsWithSongs.size - 1}_more.zip"
+                    val firstPlaylistName = sanitizeFileName(playlistsWithSongs.first().first.name)
+                    val zipFileName = "Playlists_${firstPlaylistName}_and_${playlistsWithSongs.size - 1}_more.zip"
                     shareFile = File(context.cacheDir, zipFileName)
                     val outputStream = FileOutputStream(shareFile)
 
                     java.util.zip.ZipOutputStream(outputStream).use { zipOut ->
+                        val usedNames = mutableSetOf<String>()
                         playlistsWithSongs.forEach { (playlist, songs) ->
                             val m3uContent = m3uManager.generateM3u(playlist, songs)
-                            val entry = java.util.zip.ZipEntry("${playlist.name}.m3u")
+                            val baseName = sanitizeFileName(playlist.name)
+                            var entryName = "$baseName.m3u"
+                            var counter = 1
+                            while (usedNames.contains(entryName)) {
+                                entryName = "${baseName}_$counter.m3u"
+                                counter++
+                            }
+                            usedNames.add(entryName)
+
+                            val entry = java.util.zip.ZipEntry(entryName)
                             zipOut.putNextEntry(entry)
                             zipOut.write(m3uContent.toByteArray())
                             zipOut.closeEntry()
@@ -1079,7 +1096,13 @@ class PlaylistViewModel @Inject constructor(
 
                 playlistsWithSongs.forEach { (playlist, songs) ->
                     val m3uContent = m3uManager.generateM3u(playlist, songs)
-                    val file = File(exportDir, "${playlist.name}.m3u")
+                    val baseName = sanitizeFileName(playlist.name)
+                    var file = File(exportDir, "$baseName.m3u")
+                    var counter = 1
+                    while (file.exists()) {
+                        file = File(exportDir, "${baseName}_$counter.m3u")
+                        counter++
+                    }
                     file.writeText(m3uContent)
                     Timber.tag("PlaylistViewModel").d("Exported playlist '${playlist.name}' to ${file.absolutePath}")
                 }

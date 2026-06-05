@@ -765,7 +765,10 @@ fun PlaylistDetailScreen(
                     label = exportPlaylistLabel,
                     onClick = {
                         showPlaylistOptionsSheet = false
-                        m3uExportLauncher.launch("${currentPlaylist?.name ?: fallbackPlaylistName}.m3u")
+                        val sanitizedName = PlaylistViewModel.sanitizeFileName(
+                            currentPlaylist?.name ?: fallbackPlaylistName
+                        )
+                        m3uExportLauncher.launch("$sanitizedName.m3u")
                     }
                 )
             }

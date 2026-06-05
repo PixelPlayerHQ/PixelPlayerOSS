@@ -108,12 +108,12 @@ object MultiLangRomanizer {
     private val KYRGYZ_SPECIFIC_CYRILLIC_LETTERS = setOf("Ң", "ң", "Ө", "ө", "Ү", "ү")
     private val MACEDONIAN_SPECIFIC_CYRILLIC_LETTERS = setOf("Ѓ", "ѓ", "Ѕ", "ѕ", "Ќ", "ќ")
 
-    fun isJapanese(text: String): Boolean {
+    fun isJapanese(text: String, entireLyricsHasKana: Boolean = false): Boolean {
         // Detect Hiragana or Katakana
         if (text.any { it in '\u3040'..'\u309F' || it in '\u30A0'..'\u30FF' }) return true
         
-        // Treat Kanji-only lines as Japanese (prioritized over Chinese in the main parsing loop)
-        return text.any { it in '\u4E00'..'\u9FFF' }
+        // Treat Kanji-only lines as Japanese only when the overall lyrics contain kana.
+        return entireLyricsHasKana && text.any { it in '\u4E00'..'\u9FFF' }
     }
     fun isKorean(text: String) = text.any { it in '\uAC00'..'\uD7A3' }
     fun isHindi(text: String) = text.any { it in '\u0900'..'\u097F' }
@@ -380,28 +380,6 @@ object MultiLangRomanizer {
                             .let { if (!it.endsWith("r")) it + "r" else it }
                         sb.append(erhua).append(" ")
                         idx += 2 // consume both 儿 and current char
-                        continue
-                    }
-
-                    // ── Tonal sandhi: 一 (yī) ──────────────────────────────────
-                    // Before 4th-tone syllable → yí; before 1st/2nd/3rd → yì
-                    c == '一' -> {
-                        val nextPinyin = next?.let { getPinyin(it, format) } ?: ""
-                        // Pinyin4j without-tone loses tone info; we approximate:
-                        // characters that are typically 4th tone starters
-                        val fourthToneInitials = setOf("是","不","去","做","看","用","要","过","太","对","大","会","在","上","下","个","万","次","号")
-                        val tone = if (next != null && fourthToneInitials.contains(next.toString())) "yi2" else "yi4"
-                        sb.append(tone.dropLast(1)).append(" ")
-                        idx++
-                        continue
-                    }
-
-                    // ── Tonal sandhi: 不 (bù) → bú before 4th-tone syllable ──
-                    c == '不' -> {
-                        val fourthToneChars = setOf("是","去","做","看","用","要","过","太","对","大","会","在","上","下","个","万","次","号","不")
-                        val isBefore4th = next != null && fourthToneChars.contains(next.toString())
-                        sb.append(if (isBefore4th) "bu2" else "bu4").append(" ")
-                        idx++
                         continue
                     }
 
@@ -753,6 +731,8 @@ object LyricsUtils {
             return Lyrics(plain = emptyList(), synced = emptyList())
         }
 
+        val entireLyricsHasKana = lyricsText.any { it in '\u3040'..'\u309F' || it in '\u30A0'..'\u30FF' }
+
         val normalizedInput = stripLeadingLyricsDocumentNoise(lyricsText)
         if (looksLikeTtmlDocument(normalizedInput)) {
             val converted = TtmlLyricsParser.parseToEnhancedLrc(normalizedInput)
@@ -889,7 +869,7 @@ object LyricsUtils {
             val pairedLines = pairTranslationLines(sortedSyncedLines).map { line ->
 
                 val romanized = when {
-                    MultiLangRomanizer.isJapanese(line.line) -> MultiLangRomanizer.romanizeJapanese(line.line)
+                    MultiLangRomanizer.isJapanese(line.line, entireLyricsHasKana) -> MultiLangRomanizer.romanizeJapanese(line.line)
                     MultiLangRomanizer.isChinese(line.line) -> MultiLangRomanizer.romanizeChinese(line.line)
                     MultiLangRomanizer.isKorean(line.line) -> MultiLangRomanizer.romanizeKorean(line.line)
                     MultiLangRomanizer.isHindi(line.line) -> MultiLangRomanizer.romanizeHindi(line.line)
@@ -911,7 +891,7 @@ object LyricsUtils {
         } else {
             val processedPlain = plainLines.map { line ->
                 val romanized = when {
-                    MultiLangRomanizer.isJapanese(line) -> MultiLangRomanizer.romanizeJapanese(line)
+                    MultiLangRomanizer.isJapanese(line, entireLyricsHasKana) -> MultiLangRomanizer.romanizeJapanese(line)
                     MultiLangRomanizer.isChinese(line) -> MultiLangRomanizer.romanizeChinese(line)
                     MultiLangRomanizer.isKorean(line) -> MultiLangRomanizer.romanizeKorean(line)
                     MultiLangRomanizer.isHindi(line) -> MultiLangRomanizer.romanizeHindi(line)

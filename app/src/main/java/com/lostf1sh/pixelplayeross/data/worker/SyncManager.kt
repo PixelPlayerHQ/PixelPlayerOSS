@@ -78,8 +78,12 @@ class SyncManager @Inject constructor(
         workManager.getWorkInfosForUniqueWorkFlow(SyncWorker.WORK_NAME)
             .map { workInfos ->
                 val isRunning = workInfos.any { it.state == WorkInfo.State.RUNNING }
-                val isEnqueued = workInfos.any { it.state == WorkInfo.State.ENQUEUED }
-                isRunning || isEnqueued
+                // Fresh enqueued work is about to start. Retried enqueued work is in
+                // backoff and does no work, so it should not keep the UI in syncing state.
+                val isFreshlyEnqueued = workInfos.any {
+                    it.state == WorkInfo.State.ENQUEUED && it.runAttemptCount == 0
+                }
+                isRunning || isFreshlyEnqueued
             }
             .distinctUntilChanged()
             .shareIn(
@@ -165,7 +169,11 @@ class SyncManager @Inject constructor(
                         )
                     }
                     enqueuedWork != null -> {
-                        SyncProgress(isRunning = true, isCompleted = false, phase = SyncProgress.SyncPhase.IDLE)
+                        if (enqueuedWork.runAttemptCount == 0) {
+                            SyncProgress(isRunning = true, isCompleted = false, phase = SyncProgress.SyncPhase.IDLE)
+                        } else {
+                            SyncProgress()
+                        }
                     }
                     else -> SyncProgress()
                 }

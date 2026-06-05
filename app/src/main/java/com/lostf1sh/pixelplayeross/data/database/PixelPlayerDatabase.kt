@@ -25,7 +25,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         JellyfinSongEntity::class,
         JellyfinPlaylistEntity::class
     ],
-    version = 44,
+    version = 45,
     exportSchema = true
 )
 abstract class PixelPlayerDatabase : RoomDatabase() {
@@ -546,6 +546,12 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
                     "UPDATE songs SET media_store_date_added = media_store_date_modified " +
                         "WHERE media_store_date_added = 0"
                 )
+            }
+        }
+
+        val MIGRATION_44_45 = object : Migration(44, 45) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                recreateNavidromeSongsTable(db)
             }
         }
 
@@ -1157,7 +1163,7 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
                         cover_art_id TEXT,
                         duration INTEGER NOT NULL,
                         track_number INTEGER NOT NULL,
-                        disc_number INTEGER,
+                        disc_number INTEGER NOT NULL,
                         year INTEGER NOT NULL,
                         genre TEXT,
                         bitRate INTEGER,
@@ -1180,7 +1186,6 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
                     "album",
                     "duration",
                     "track_number",
-                    "disc_number",
                     "year",
                     "path",
                     "date_added"
@@ -1194,6 +1199,7 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
                     val bitRateExpr = columnExpr(columns, "bitRate", "NULL")
                     val mimeTypeExpr = columnExpr(columns, "mime_type", "NULL")
                     val suffixExpr = columnExpr(columns, "suffix", "NULL")
+                    val discNumberExpr = if ("disc_number" in columns) "COALESCE(disc_number, 0)" else "0"
 
                     db.execSQL(
                         """
@@ -1209,7 +1215,7 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
                                 cover_art_id,
                                 duration,
                                 track_number,
-                                disc_number,
+                                $discNumberExpr,
                                 year,
                                 genre,
                                 bitRate,

@@ -45,7 +45,7 @@ fun AutoScrollingTextOnDemand(
 
 
 // Use a "measuring" Text only on the first composition to detect overflow.
-    if (!canStart) {
+    if (!overflow) {
         Text(
             text = text,
             style = style,
@@ -61,7 +61,7 @@ fun AutoScrollingTextOnDemand(
             textAlign = TextAlign.Start,
             gradientEdgeColor = gradientEdgeColor,
             modifier = modifier,
-            canScroll = canScroll
+            canScroll = canScroll && canStart
         )
     }
 }

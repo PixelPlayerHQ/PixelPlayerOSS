@@ -376,9 +376,9 @@ class JellyfinRepository @Inject constructor(
                 } catch (e: Exception) {
                     Timber.e(e, "$TAG: Failed to sync unified library after playlist fetch failure")
                 }
-                return@withContext Result.success(
-                    BulkSyncResult(playlistCount = 0, syncedSongCount = syncedSongCount, failedPlaylistCount = 0)
-                )
+                // Propagate the playlist-fetch failure instead of masking it as success, so the
+                // dashboard surfaces an error (and the stale-gate retries) rather than a green banner.
+                return@withContext Result.failure(it)
             }
 
             playlistResult.forEach { playlist ->

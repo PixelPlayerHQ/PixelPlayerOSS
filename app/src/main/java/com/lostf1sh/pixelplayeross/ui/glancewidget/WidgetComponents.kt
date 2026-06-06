@@ -74,7 +74,10 @@ fun AlbumArtImage(
         }
         bitmap?.let { ImageProvider(it) }
     } ?: albumArtUri?.let { rawUri ->
-        val cacheKey = "uri:$rawUri"
+        // Key by URI *and* requested size so the same artwork at different widget sizes doesn't
+        // collide (a smaller cached bitmap served to a larger slot), matching the size-keyed
+        // embedded path above. These widgets don't prewarm, so there's no shared key to honor.
+        val cacheKey = "uri:$rawUri@${size.value}"
         var bitmap = AlbumArtBitmapCache.getBitmap(cacheKey)
         if (bitmap == null) {
             bitmap = decodeAlbumArtFromUri(

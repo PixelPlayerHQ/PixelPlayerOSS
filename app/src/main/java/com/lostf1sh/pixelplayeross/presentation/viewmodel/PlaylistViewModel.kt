@@ -1077,15 +1077,6 @@ class PlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 Timber.tag("PlaylistViewModel").d("Starting export of ${playlistIds.size} playlists")
-                val musicDir = android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_MUSIC)
-                if (!musicDir.exists()) {
-                    musicDir.mkdirs()
-                }
-
-                val exportDir = File(musicDir, "PixelPlayerOSS Exports")
-                if (!exportDir.exists()) {
-                    exportDir.mkdirs()
-                }
 
                 val playlistsWithSongs = getPlaylistsWithSongs(playlistIds)
                 if (playlistsWithSongs.isEmpty()) {
@@ -1094,20 +1085,45 @@ class PlaylistViewModel @Inject constructor(
                     return@launch
                 }
 
-                playlistsWithSongs.forEach { (playlist, songs) ->
-                    val m3uContent = m3uManager.generateM3u(playlist, songs)
-                    val baseName = sanitizeFileName(playlist.name)
-                    var file = File(exportDir, "$baseName.m3u")
-                    var counter = 1
-                    while (file.exists()) {
-                        file = File(exportDir, "${baseName}_$counter.m3u")
-                        counter++
+                // Scoped-storage compliant write (minSdk 30): insert into the public Music
+                // directory via MediaStore instead of java.io.File, which a non-legacy app
+                // cannot use to create files in shared storage on Android 11+.
+                val relativePath = "${android.os.Environment.DIRECTORY_MUSIC}/PixelPlayerOSS Exports"
+                val collection = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val resolver = context.contentResolver
+
+                withContext(Dispatchers.IO) {
+                    playlistsWithSongs.forEach { (playlist, songs) ->
+                        val m3uContent = m3uManager.generateM3u(playlist, songs)
+                        val baseName = sanitizeFileName(playlist.name)
+                        val values = android.content.ContentValues().apply {
+                            put(MediaStore.Audio.Media.DISPLAY_NAME, "$baseName.m3u")
+                            put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-mpegurl")
+                            put(MediaStore.Audio.Media.RELATIVE_PATH, relativePath)
+                            put(MediaStore.Audio.Media.IS_PENDING, 1)
+                        }
+
+                        val itemUri = resolver.insert(collection, values)
+                            ?: throw IOException("MediaStore insert returned null for ${playlist.name}")
+                        try {
+                            resolver.openOutputStream(itemUri)?.use { out ->
+                                out.write(m3uContent.toByteArray())
+                            } ?: throw IOException("Could not open output stream for ${playlist.name}")
+
+                            val finalize = android.content.ContentValues().apply {
+                                put(MediaStore.Audio.Media.IS_PENDING, 0)
+                            }
+                            resolver.update(itemUri, finalize, null, null)
+                            Timber.tag("PlaylistViewModel").d("Exported playlist '${playlist.name}' to $itemUri")
+                        } catch (e: Exception) {
+                            // Remove the half-written pending entry so it does not linger.
+                            runCatching { resolver.delete(itemUri, null, null) }
+                            throw e
+                        }
                     }
-                    file.writeText(m3uContent)
-                    Timber.tag("PlaylistViewModel").d("Exported playlist '${playlist.name}' to ${file.absolutePath}")
                 }
 
-                Timber.tag("PlaylistViewModel").d("Successfully exported ${playlistIds.size} playlists to $exportDir")
+                Timber.tag("PlaylistViewModel").d("Successfully exported ${playlistIds.size} playlists to $relativePath")
                 val count = playlistsWithSongs.size
                 val folderLabel = context.getString(R.string.playlist_export_folder_display)
                 val exportedMsg = context.resources.getQuantityString(R.plurals.exported_playlists_message, count, count, folderLabel)

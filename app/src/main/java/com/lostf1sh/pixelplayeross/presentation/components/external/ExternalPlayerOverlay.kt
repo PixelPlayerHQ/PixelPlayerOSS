@@ -58,8 +58,17 @@ import com.lostf1sh.pixelplayeross.presentation.components.WavySliderExpressive
 import com.lostf1sh.pixelplayeross.presentation.components.player.AnimatedPlaybackControls
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.utils.formatDuration
+import kotlinx.coroutines.delay
 import kotlin.math.roundToLong
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+
+/**
+ * Maximum time the overlay waits for [PlayerViewModel.playExternalUri] to resolve the incoming
+ * URI into a playable song. If resolution fails, [PlayerViewModel.playExternalUri] only emits a
+ * toast and never sets `currentSong`, which would otherwise leave this overlay showing an
+ * indefinite spinner. After this timeout we auto-dismiss so the surface cannot hang.
+ */
+private const val EXTERNAL_SONG_RESOLUTION_TIMEOUT_MS = 15_000L
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -105,6 +114,19 @@ fun ExternalPlayerOverlay(
         } else if (!awaitingSong) {
             sheetVisible = false
             onDismiss()
+        }
+    }
+
+    // Guard against an indefinite spinner: if URI resolution fails, playExternalUri only emits a
+    // toast and never sets currentSong, so the awaiting state would never clear. Auto-dismiss after
+    // a bounded wait so the overlay cannot hang on a common, externally-triggered failure path.
+    LaunchedEffect(awaitingSong) {
+        if (awaitingSong) {
+            delay(EXTERNAL_SONG_RESOLUTION_TIMEOUT_MS)
+            if (awaitingSong && currentSong == null) {
+                sheetVisible = false
+                onDismiss()
+            }
         }
     }
 

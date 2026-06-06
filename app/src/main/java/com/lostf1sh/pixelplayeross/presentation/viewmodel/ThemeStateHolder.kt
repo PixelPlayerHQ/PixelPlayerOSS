@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -82,7 +83,10 @@ class ThemeStateHolder @Inject constructor(
                         colorAccuracyLevel = accuracy
                     )
                     _currentAlbumArtColorSchemePair.value = refreshedScheme
-                    individualAlbumColorSchemes[uri]?.value = refreshedScheme
+                    val refreshTarget = synchronized(individualAlbumColorSchemesLock) {
+                        individualAlbumColorSchemes[uri]
+                    }
+                    refreshTarget?.value = refreshedScheme
                 }
         }
 
@@ -133,7 +137,14 @@ class ThemeStateHolder @Inject constructor(
         }
     }
 
-    // LRU Cache for individual album schemes
+    // LRU Cache for individual album schemes.
+    //
+    // This map uses accessOrder=true, so even get() relinks an entry (a structural
+    // modification). It is touched from the Compose main thread (list composition),
+    // from IO coroutines (forceRegenerateColorScheme / palette refresh) and from
+    // Application.onTrimMemory, so every access MUST hold [individualAlbumColorSchemesLock]
+    // to avoid corrupting the linked list / ConcurrentModificationException.
+    private val individualAlbumColorSchemesLock = Any()
     private val individualAlbumColorSchemes = object : LinkedHashMap<String, MutableStateFlow<ColorSchemePair?>>(
         32, 0.75f, true
     ) {
@@ -198,29 +209,27 @@ class ThemeStateHolder @Inject constructor(
     ): StateFlow<ColorSchemePair?> {
         if (uriString.isBlank()) return emptyAlbumColorScheme
 
-        val existingFlow = individualAlbumColorSchemes[uriString]
-        if (existingFlow != null) {
-            if (eager && existingFlow.value == null) {
-                requestAlbumColorSchemeGeneration(uriString, existingFlow)
-            }
-            return existingFlow.asStateFlow()
+        // Resolve (or create) the cached flow under the lock; only launch generation
+        // outside it so we never hold the monitor across a coroutine launch.
+        val targetFlow = synchronized(individualAlbumColorSchemesLock) {
+            individualAlbumColorSchemes[uriString]
+                ?: MutableStateFlow<ColorSchemePair?>(null).also { individualAlbumColorSchemes[uriString] = it }
         }
 
-        val newFlow = MutableStateFlow<ColorSchemePair?>(null)
-        individualAlbumColorSchemes[uriString] = newFlow
-
-        if (eager) {
-            requestAlbumColorSchemeGeneration(uriString, newFlow)
+        if (eager && targetFlow.value == null) {
+            requestAlbumColorSchemeGeneration(uriString, targetFlow)
         }
 
-        return newFlow.asStateFlow()
+        return targetFlow.asStateFlow()
     }
 
     fun ensureAlbumColorScheme(uriString: String) {
         if (uriString.isBlank()) return
 
-        val targetFlow = individualAlbumColorSchemes[uriString]
-            ?: MutableStateFlow<ColorSchemePair?>(null).also { individualAlbumColorSchemes[uriString] = it }
+        val targetFlow = synchronized(individualAlbumColorSchemesLock) {
+            individualAlbumColorSchemes[uriString]
+                ?: MutableStateFlow<ColorSchemePair?>(null).also { individualAlbumColorSchemes[uriString] = it }
+        }
 
         if (targetFlow.value != null) return
         requestAlbumColorSchemeGeneration(uriString, targetFlow)
@@ -244,8 +253,8 @@ class ThemeStateHolder @Inject constructor(
              return
          }
 
-         android.util.Log.d("ThemeStateHolder", "forceRegenerateColorScheme called for: $uriString")
-         android.util.Log.d("ThemeStateHolder", "Current tracked global URI: ${_currentAlbumArtUri.value}")
+         Timber.tag("ThemeStateHolder").d("forceRegenerateColorScheme called for: %s", uriString)
+         Timber.tag("ThemeStateHolder").d("Current tracked global URI: %s", _currentAlbumArtUri.value)
          
          colorSchemeProcessor.invalidateScheme(uriString)
 
@@ -273,7 +282,9 @@ class ThemeStateHolder @Inject constructor(
          }
 
          // Iterate if there is an active flow for this URI and update it
-         val activeFlow = individualAlbumColorSchemes[uriString]
+         val activeFlow = synchronized(individualAlbumColorSchemesLock) {
+             individualAlbumColorSchemes[uriString]
+         }
          if (activeFlow != null) {
              activeFlow.value = newScheme
          }
@@ -281,10 +292,10 @@ class ThemeStateHolder @Inject constructor(
          // Also update the main current album art scheme if it matches the one we are tracking
          // We use equality check. If they are the same string object or equal content.
          if (_currentAlbumArtUri.value == uriString) {
-             android.util.Log.d("ThemeStateHolder", "Updating global color scheme flow directly.")
+             Timber.tag("ThemeStateHolder").d("Updating global color scheme flow directly.")
              _currentAlbumArtColorSchemePair.value = newScheme
          } else {
-             android.util.Log.d("ThemeStateHolder", "Global URI did not match. Skipping global update.")
+             Timber.tag("ThemeStateHolder").d("Global URI did not match. Skipping global update.")
          }
     }
 
@@ -298,7 +309,9 @@ class ThemeStateHolder @Inject constructor(
             level >= ComponentCallbacks2.TRIM_MEMORY_BACKGROUND ||
             level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN
         ) {
-            individualAlbumColorSchemes.clear()
+            synchronized(individualAlbumColorSchemesLock) {
+                individualAlbumColorSchemes.clear()
+            }
         }
 
         if (
@@ -311,7 +324,10 @@ class ThemeStateHolder @Inject constructor(
         }
     }
 
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only null the scope if it belongs to the
+        // PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         scope = null
     }
 

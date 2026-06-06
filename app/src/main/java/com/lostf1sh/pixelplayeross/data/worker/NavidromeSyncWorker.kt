@@ -2,7 +2,10 @@ package com.lostf1sh.pixelplayeross.data.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
+import androidx.work.BackoffPolicy
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -10,6 +13,7 @@ import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 @HiltWorker
 class NavidromeSyncWorker @AssistedInject constructor(
@@ -48,8 +52,13 @@ class NavidromeSyncWorker @AssistedInject constructor(
             }
             Result.success()
         } catch (e: Exception) {
-            Timber.e(e, "NavidromeSyncWorker: Sync failed")
-            Result.failure(workDataOf(ERROR_MESSAGE to e.message))
+            if (runAttemptCount < MAX_RETRY_ATTEMPTS) {
+                Timber.w(e, "NavidromeSyncWorker: Sync failed (attempt ${runAttemptCount + 1}), retrying")
+                Result.retry()
+            } else {
+                Timber.e(e, "NavidromeSyncWorker: Sync failed permanently after $runAttemptCount attempts")
+                Result.failure(workDataOf(ERROR_MESSAGE to e.message))
+            }
         }
     }
 
@@ -65,16 +74,35 @@ class NavidromeSyncWorker @AssistedInject constructor(
         const val PROGRESS_MESSAGE = "progress_message"
         const val ERROR_MESSAGE = "error_message"
 
+        private const val MAX_RETRY_ATTEMPTS = 3
+        private const val BACKOFF_DELAY_SECONDS = 30L
+
+        private val networkConstraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         fun startAllSync() = OneTimeWorkRequestBuilder<NavidromeSyncWorker>()
             .setInputData(workDataOf(KEY_SYNC_TYPE to SYNC_TYPE_ALL))
+            .setConstraints(networkConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                BACKOFF_DELAY_SECONDS,
+                TimeUnit.SECONDS
+            )
             .build()
-            
+
         fun startPlaylistSync(playlistId: String) = OneTimeWorkRequestBuilder<NavidromeSyncWorker>()
             .setInputData(
                 workDataOf(
                     KEY_SYNC_TYPE to SYNC_TYPE_PLAYLIST_SONGS,
                     KEY_PLAYLIST_ID to playlistId
                 )
+            )
+            .setConstraints(networkConstraints)
+            .setBackoffCriteria(
+                BackoffPolicy.EXPONENTIAL,
+                BACKOFF_DELAY_SECONDS,
+                TimeUnit.SECONDS
             )
             .build()
     }

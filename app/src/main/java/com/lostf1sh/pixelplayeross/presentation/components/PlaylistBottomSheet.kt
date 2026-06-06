@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -78,19 +79,19 @@ fun PlaylistBottomSheet(
         if (searchQuery.isBlank()) editablePlaylists
         else editablePlaylists.filter { it.name.contains(searchQuery, true) }
     }
-    val selectedPlaylists = remember {
-        mutableStateMapOf<String, Boolean>().apply {
-            if (songs.size == 1) {
-                // Single song: pre-select playlists containing it
-                val songId = songs.first().id
-                filteredPlaylists.forEach {
-                    put(it.id, it.songIds.contains(songId))
-                }
-            } else {
-                // Multiple songs: start empty (additive only)
-                filteredPlaylists.forEach {
-                    put(it.id, false)
-                }
+    // Stable map across recompositions; PlaylistContainer mutates it on checkbox toggles.
+    val selectedPlaylists = remember { mutableStateMapOf<String, Boolean>() }
+
+    // Reconcile entries when the playlist set changes (async load, in-sheet creation,
+    // or search filtering). Only seed playlist ids that have no entry yet, so existing
+    // user toggles are preserved, while newly appearing playlists get their initial
+    // (and, for the single-song case, "already contains this song") state evaluated.
+    LaunchedEffect(filteredPlaylists, songs) {
+        val singleSongId = songs.singleOrNull()?.id
+        filteredPlaylists.forEach { playlist ->
+            if (playlist.id !in selectedPlaylists) {
+                selectedPlaylists[playlist.id] =
+                    singleSongId != null && playlist.songIds.contains(singleSongId)
             }
         }
     }

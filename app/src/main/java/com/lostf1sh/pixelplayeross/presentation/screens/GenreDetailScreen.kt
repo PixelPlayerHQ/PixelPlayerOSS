@@ -522,7 +522,7 @@ fun GenreDetailScreen(
                         onNavigateToGenre = {
                             song.genre?.let {
                                 navController.navigateSafelyReplacing(
-                                    route = com.lostf1sh.pixelplayeross.presentation.navigation.Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")),
+                                    route = com.lostf1sh.pixelplayeross.presentation.navigation.Screen.GenreDetail.createRoute(it),
                                     patternToPop = com.lostf1sh.pixelplayeross.presentation.navigation.Screen.GenreDetail.route
                                 )
                             }

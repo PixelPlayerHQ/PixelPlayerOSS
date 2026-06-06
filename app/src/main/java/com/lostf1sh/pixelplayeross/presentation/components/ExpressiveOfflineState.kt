@@ -43,8 +43,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -52,10 +54,15 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 fun ExpressiveOfflineState(
     modifier: Modifier = Modifier,
     onRetry: () -> Unit,
-    message: String = "You're Offline",
-    description: String = "Please checking your internet connection to continue.",
+    message: String? = null,
+    description: String? = null,
     isDialog: Boolean = false
 ) {
+    // Default copy cannot be a default-parameter value because stringResource is @Composable,
+    // so resolve here in the composable body.
+    val resolvedMessage = message ?: stringResource(R.string.offline_title)
+    val resolvedDescription = description ?: stringResource(R.string.offline_description)
+
     var isVisible by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) {
@@ -124,7 +131,7 @@ fun ExpressiveOfflineState(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = message,
+            text = resolvedMessage,
             style = if (isDialog) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineMedium,
             fontFamily = RoundedSans,
             fontWeight = FontWeight.Bold,
@@ -135,7 +142,7 @@ fun ExpressiveOfflineState(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = description,
+            text = resolvedDescription,
             style = MaterialTheme.typography.bodyLarge,
             fontFamily = RoundedSans,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -163,7 +170,7 @@ fun ExpressiveOfflineState(
             )
             Spacer(modifier = Modifier.size(8.dp))
             Text(
-                "Try Again",
+                stringResource(R.string.offline_retry),
                 fontFamily = RoundedSans,
                 fontWeight = FontWeight.SemiBold
             )
@@ -198,7 +205,7 @@ fun ExpressiveOfflineDialog(
                     onDismiss()
                 },
                 isDialog = true,
-                description = "You need an internet connection to play this uncached song."
+                description = stringResource(R.string.offline_uncached_song_description)
             )
         }
     }

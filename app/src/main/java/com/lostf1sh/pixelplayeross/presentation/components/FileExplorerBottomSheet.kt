@@ -82,6 +82,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextGeometricTransform
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 import androidx.compose.ui.unit.sp
@@ -191,7 +192,7 @@ fun FileExplorerContent(
     onStorageSelected: (Int) -> Unit,
     onDone: () -> Unit,
     onDismiss: () -> Unit,
-    title: String = "Excluded folders",
+    title: String = stringResource(R.string.setup_excluded_folders_title),
     leadingContent: @Composable (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
@@ -214,16 +215,20 @@ fun FileExplorerContent(
             isLoading || isPriming || !isReady || !isCurrentDirectoryResolved
         )
     }
-    val loadingMessage = remember(isPriming, isReady) {
+    // stringResource is @Composable, so resolve outside the remember{} lambdas and key on them.
+    val preparingFoldersText = stringResource(R.string.presentation_batch_g_file_explorer_loading_preparing)
+    val loadingFoldersText = stringResource(R.string.presentation_batch_g_file_explorer_loading)
+    val loadingFoldersHintText = stringResource(R.string.presentation_batch_g_file_explorer_loading_hint)
+    val loadingMessage = remember(isPriming, isReady, preparingFoldersText, loadingFoldersText) {
         if (isPriming || !isReady) {
-            "Preparing folders…"
+            preparingFoldersText
         } else {
-            "Loading folders…"
+            loadingFoldersText
         }
     }
-    val loadingHint = remember(isPriming, isReady) {
+    val loadingHint = remember(isPriming, isReady, loadingFoldersHintText) {
         if (isPriming || !isReady) {
-            "This can take a moment while PixelPlayerOSS scans the available subfolders."
+            loadingFoldersHintText
         } else {
             null
         }
@@ -592,10 +597,13 @@ private fun FileExplorerItem(
             ) {
                 Text(
                     text = when {
-                        audioCount < 0 -> "Scanning..."
-                        audioCount == 1 -> "1 song"
-                        audioCount > 99 -> "99+ songs"
-                        else -> "$audioCount songs"
+                        audioCount < 0 -> stringResource(R.string.presentation_batch_g_file_explorer_count_scanning)
+                        audioCount > 99 -> stringResource(R.string.presentation_batch_g_file_explorer_count_99plus)
+                        else -> pluralStringResource(
+                            R.plurals.presentation_batch_g_file_explorer_song_count,
+                            audioCount,
+                            audioCount
+                        )
                     },
                     style = MaterialTheme.typography.labelMedium,
                     color = badgeColor,
@@ -620,7 +628,7 @@ private fun FileExplorerItem(
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = if (isBlocked) "Excluded" else "Included",
+                text = if (isBlocked) stringResource(R.string.presentation_batch_g_file_explorer_badge_excluded) else stringResource(R.string.presentation_batch_g_file_explorer_badge_included),
                 style = MaterialTheme.typography.labelMedium,
                 color = if (isBlocked) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -664,9 +672,10 @@ private fun FileExplorerHeader(
         })
     }
 
-    val rootLabel = remember(rootDirectory) {
+    val internalStorageLabel = stringResource(R.string.presentation_batch_g_file_explorer_internal_storage)
+    val rootLabel = remember(rootDirectory, internalStorageLabel) {
         when (rootDirectory.name) {
-            "0", "" -> "Internal storage"
+            "0", "" -> internalStorageLabel
             else -> rootDirectory.name
         }
     }

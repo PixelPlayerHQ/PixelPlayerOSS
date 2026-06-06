@@ -518,4 +518,14 @@ Backslash (\) can be used to escape character delimiters.</string>
         <item>Release logging is tightened so HTTP request headers and raw Android logs do not bypass the Timber release filter.</item>
         <item>Also includes smart playlist persistence, duplicate-track scanning, playback speed control, clearer playback/sync failure messages, and improved accessibility.</item>
     </string-array>
+
+    <!-- File explorer bottom sheet (F212) -->
+    <string name="presentation_batch_g_file_explorer_loading_preparing">Preparing folders…</string>
+    <string name="presentation_batch_g_file_explorer_loading">Loading folders…</string>
+    <string name="presentation_batch_g_file_explorer_loading_hint">This can take a moment while PixelPlayerOSS scans the available subfolders.</string>
+    <string name="presentation_batch_g_file_explorer_count_scanning">Scanning…</string>
+    <string name="presentation_batch_g_file_explorer_count_99plus">99+ songs</string>
+    <string name="presentation_batch_g_file_explorer_badge_excluded">Excluded</string>
+    <string name="presentation_batch_g_file_explorer_badge_included">Included</string>
+    <string name="presentation_batch_g_file_explorer_internal_storage">Internal storage</string>
 </resources>

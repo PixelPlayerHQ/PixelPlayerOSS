@@ -22,6 +22,22 @@ interface TransitionDao {
     suspend fun setRules(rules: List<TransitionRuleEntity>)
 
     /**
+     * Upserts a single rule, deduping the per-playlist default rule (both track ids null) by hand.
+     * The unique index on (playlistId, fromTrackId, toTrackId) treats SQL NULLs as distinct, so a plain
+     * @Upsert keeps inserting duplicate default rules instead of replacing the existing one. Deleting any
+     * existing default first also cleans up duplicates left by the previous behavior (F76).
+     */
+    @Transaction
+    suspend fun upsertRule(rule: TransitionRuleEntity) {
+        if (rule.fromTrackId == null && rule.toTrackId == null) {
+            deletePlaylistDefaultRule(rule.playlistId)
+            setRule(rule.copy(id = 0))
+        } else {
+            setRule(rule)
+        }
+    }
+
+    /**
      * Gets the default transition rule for a given playlist.
      * A default rule is one where fromTrackId and toTrackId are both null.
      */

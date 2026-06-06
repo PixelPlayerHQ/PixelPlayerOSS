@@ -314,7 +314,7 @@ fun RecentlyPlayedScreen(
                 },
                 onNavigateToGenre = {
                     song.genre?.let {
-                        navController.navigateSafely(Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")))
+                        navController.navigateSafely(Screen.GenreDetail.createRoute(it))
                     }
                     showSongInfoBottomSheet = false
                 },

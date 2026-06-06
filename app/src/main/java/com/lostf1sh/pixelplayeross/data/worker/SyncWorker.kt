@@ -8,7 +8,10 @@ import android.os.Trace // Import Trace
 import android.provider.MediaStore
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
+import android.content.pm.ServiceInfo
+import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequest
@@ -23,6 +26,8 @@ import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SourceType
 import com.lostf1sh.pixelplayeross.data.database.serializeArtistRefs
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
+import com.lostf1sh.pixelplayeross.PixelPlayerApplication
+import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.media.AudioMetadataReader
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
@@ -104,6 +109,18 @@ constructor(
 
                     Timber.tag(TAG)
                         .i("Starting MediaStore synchronization (Mode: $syncMode, ForceMetadata: $requestedForceMetadata)...")
+
+                    // Promote long full rescans / rebuilds to a foreground service so Android does not
+                    // kill them when the app is backgrounded (F138). Best-effort: if the app cannot start
+                    // an FGS (background restrictions), keep running as ordinary background work.
+                    if (syncMode == SyncMode.FULL || syncMode == SyncMode.REBUILD) {
+                        try {
+                            setForeground(buildSyncForegroundInfo())
+                        } catch (e: Exception) {
+                            Timber.tag(TAG).w(e, "Could not promote SyncWorker to foreground")
+                        }
+                    }
+
                     val startTime = System.currentTimeMillis()
 
                     val artistDelimiters = userPreferencesRepository.artistDelimitersFlow.first()
@@ -138,32 +155,33 @@ constructor(
                                 "(current=$directoryRulesVersion, applied=$lastAppliedDirectoryRulesVersion)"
                         )
 
-                    // --- DELETION PHASE ---
-                    // Detect and remove deleted songs efficiently using ID comparison
-                    // We do this for INCREMENTAL and FULL modes. REBUILD clears everything anyway.
-                    if (syncMode != SyncMode.REBUILD) {
-                        // Only compare MediaStore-backed songs; cloud sources are excluded.
-                        val localSongIds = musicDao.getAllMediaStoreSongIds().toHashSet()
-                        val mediaStoreIds = fetchMediaStoreIds(directoryResolver)
+                    // --- DELETION DETECTION PHASE ---
+                    // Detect deleted songs efficiently using ID comparison. We do this for
+                    // INCREMENTAL and FULL modes. REBUILD clears everything anyway.
+                    //
+                    // NOTE: detection only — the actual removal is deferred and folded into the
+                    // same @Transaction as the upsert below (incrementalSyncMusicData accepts a
+                    // deletedSongIds parameter). Deleting here in a separate transaction risked a
+                    // failure between the committed delete and the upsert, leaving rows deleted but
+                    // their replacements unwritten until the next successful sync.
+                    val deletedIds: List<Long> =
+                        if (syncMode != SyncMode.REBUILD) {
+                            // Only compare MediaStore-backed songs; cloud sources are excluded.
+                            val localSongIds = musicDao.getAllMediaStoreSongIds().toHashSet()
+                            val mediaStoreIds = fetchMediaStoreIds(directoryResolver)
 
-                        // Identify IDs that are in local DB but not in MediaStore
-                        val deletedIds = localSongIds - mediaStoreIds
-
-                        if (deletedIds.isNotEmpty()) {
-                            Timber.tag(TAG)
-                                .i("Found ${deletedIds.size} deleted songs. Removing from database...")
-                            setProgress(
-                                workDataOf(
-                                    PROGRESS_CURRENT to 0,
-                                    PROGRESS_TOTAL to deletedIds.size,
-                                    PROGRESS_PHASE to SyncProgress.SyncPhase.SAVING_TO_DATABASE.ordinal
-                                )
-                            )
-                            musicDao.deleteSongsAndRelatedData(deletedIds.toList())
+                            // Identify IDs that are in local DB but not in MediaStore
+                            val ids = (localSongIds - mediaStoreIds).toList()
+                            if (ids.isNotEmpty()) {
+                                Timber.tag(TAG)
+                                    .i("Found ${ids.size} deleted songs. Removal deferred to upsert transaction...")
+                            } else {
+                                Timber.tag(TAG).d("No deleted songs found.")
+                            }
+                            ids
                         } else {
-                            Timber.tag(TAG).d("No deleted songs found.")
+                            emptyList()
                         }
-                    }
 
                     // --- FETCH PHASE ---
                     // Determine what to fetch based on mode
@@ -278,14 +296,15 @@ constructor(
                                     PROGRESS_PHASE to SyncProgress.SyncPhase.SAVING_TO_DATABASE.ordinal
                                 )
                             )
-                            // incrementalSyncMusicData handles upserts efficiently
-                            // processing deleted songs was already handled at the start
+                            // incrementalSyncMusicData applies the deletions and the upsert
+                            // inside a single @Transaction, so an interrupted run can never
+                            // leave songs deleted without their replacements being written.
                             musicDao.incrementalSyncMusicData(
                                     songs = correctedSongs,
                                     albums = albums,
                                     artists = artists,
                                     crossRefs = crossRefs,
-                                    deletedSongIds = emptyList() // Already handled
+                                    deletedSongIds = deletedIds
                             )
                         }
                     } else if (syncMode == SyncMode.REBUILD) {
@@ -301,6 +320,24 @@ constructor(
                             albums = emptyList(),
                             artists = emptyList(),
                             crossRefs = emptyList()
+                        )
+                    } else if (deletedIds.isNotEmpty()) {
+                        // No new/modified songs to upsert, but there are deletions to apply.
+                        // Run them through the same atomic path (its own @Transaction) instead
+                        // of a standalone delete, keeping the deletion semantics consistent.
+                        setProgress(
+                            workDataOf(
+                                PROGRESS_CURRENT to 0,
+                                PROGRESS_TOTAL to deletedIds.size,
+                                PROGRESS_PHASE to SyncProgress.SyncPhase.SAVING_TO_DATABASE.ordinal
+                            )
+                        )
+                        musicDao.incrementalSyncMusicData(
+                            songs = emptyList(),
+                            albums = emptyList(),
+                            artists = emptyList(),
+                            crossRefs = emptyList(),
+                            deletedSongIds = deletedIds
                         )
                     }
 
@@ -741,6 +778,14 @@ constructor(
             existing.trackNumber == raw.trackNumber &&
             existing.discNumber == raw.discNumber &&
             existing.year == raw.year &&
+            // Pick up external genre/album-artist edits that don't bump DATE_MODIFIED.
+            // Genre is only a change signal when the cursor actually supplied one
+            // (raw.genre != null, i.e. the API 30+ GENRE column); on older APIs genre
+            // is sourced from a separate query/cache and raw.genre is null, so skip it
+            // there to avoid spuriously reprocessing every song each incremental sync.
+            // User-edited genres are honored via genreUserEdited, like title/artist/album.
+            (existing.genreUserEdited || raw.genre == null || existing.genre == raw.genre) &&
+            existing.albumArtist == raw.albumArtist &&
             existingDateAddedSeconds == raw.dateAdded &&
             existingDateModifiedSeconds == raw.dateModified
     }
@@ -1148,8 +1193,32 @@ constructor(
         return ids
     }
 
+    override suspend fun getForegroundInfo(): ForegroundInfo = buildSyncForegroundInfo()
+
+    private fun buildSyncForegroundInfo(): ForegroundInfo {
+        val notification = NotificationCompat.Builder(
+            applicationContext,
+            PixelPlayerApplication.SYNC_NOTIFICATION_CHANNEL_ID
+        )
+            .setContentTitle(applicationContext.getString(R.string.sync_notification_title))
+            .setSmallIcon(R.drawable.monochrome_player)
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            ForegroundInfo(
+                SYNC_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            ForegroundInfo(SYNC_NOTIFICATION_ID, notification)
+        }
+    }
+
     companion object {
         const val WORK_NAME = "com.lostf1sh.pixelplayeross.data.worker.SyncWorker"
+        private const val SYNC_NOTIFICATION_ID = 47_001
         // Distinct unique name so background maintenance never feeds the WORK_NAME-bound
         // isSyncing/syncProgress flows — the loading indicator stays silent for it.
         const val PERIODIC_MAINTENANCE_WORK_NAME =

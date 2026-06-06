@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -262,18 +263,33 @@ class ListeningStatsTracker @Inject constructor(
     }
 
     @Synchronized
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only finalize and null the scope if it belongs to
+        // the PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         finalizeCurrentSession(forceSynchronousPersistence = true)
         scope = null
     }
 
-    @Suppress("UNUSED_PARAMETER")
     private fun persistPlayback(
         songId: String,
         listened: Long,
         timestamp: Long,
         forceSynchronous: Boolean
     ) {
+        if (forceSynchronous) {
+            // Teardown path (onCleared): block until the final session is durably written so
+            // it is not lost if the process is killed immediately after. Stats are a protected
+            // data domain, and a detached coroutine on persistenceScope may not finish in time.
+            runCatching {
+                runBlocking(Dispatchers.IO) {
+                    persistPlaybackInternal(songId = songId, listened = listened, timestamp = timestamp)
+                }
+            }.onFailure { throwable ->
+                Timber.e(throwable, "Failed to persist final listening session for song=%s", songId)
+            }
+            return
+        }
         persistenceScope.launch {
             runCatching {
                 persistPlaybackInternal(songId = songId, listened = listened, timestamp = timestamp)

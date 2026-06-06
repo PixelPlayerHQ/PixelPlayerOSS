@@ -1,6 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.navigation
 
 import androidx.compose.runtime.Immutable
+import java.net.URLEncoder
 
 
 @Immutable
@@ -25,7 +26,7 @@ sealed class Screen(val route: String) {
     object Stats : Screen("stats")
     object Duplicates : Screen("duplicates")
     object GenreDetail : Screen("genre_detail/{genreId}") { // New screen
-        fun createRoute(genreId: String) = "genre_detail/$genreId"
+        fun createRoute(genreId: String) = "genre_detail/" + URLEncoder.encode(genreId, "UTF-8")
     }
     object DJSpace : Screen("dj_space")
     // The base route is "album_detail". The full route with the argument is defined in AppNavigation.

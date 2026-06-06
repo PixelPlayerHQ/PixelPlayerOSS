@@ -9,9 +9,11 @@ import com.lostf1sh.pixelplayeross.data.model.TransitionRule
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.repository.TransitionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +22,6 @@ data class TransitionUiState(
     val rule: TransitionRule? = null,
     val globalSettings: TransitionSettings = TransitionSettings(),
     val isLoading: Boolean = true,
-    val isSaved: Boolean = false,
     val useGlobalDefaults: Boolean = false,
     val playlistId: String? = null
 )
@@ -35,6 +36,11 @@ class TransitionViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(TransitionUiState())
     val uiState = _uiState.asStateFlow()
+
+    // One-shot save confirmation event. The emitted Boolean carries the "using global"
+    // context so the screen can pick the snackbar message without keying on mutable UI state.
+    private val _savedEvents = Channel<Boolean>(Channel.CONFLATED)
+    val savedEvents = _savedEvents.receiveAsFlow()
 
     init {
         loadSettings()
@@ -52,7 +58,6 @@ class TransitionViewModel @Inject constructor(
                     globalSettings = globalSettings,
                     isLoading = false,
                     useGlobalDefaults = playlistRule == null,
-                    isSaved = false,
                     playlistId = playlistId
                 )
             }
@@ -100,7 +105,6 @@ class TransitionViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 rule = ruleToUpdate.copy(settings = newSettings),
-                isSaved = false,
                 useGlobalDefaults = false
             )
         }
@@ -111,8 +115,7 @@ class TransitionViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 rule = null,
-                useGlobalDefaults = true,
-                isSaved = false
+                useGlobalDefaults = true
             )
         }
     }
@@ -127,8 +130,7 @@ class TransitionViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 rule = rule.copy(settings = baseSettings),
-                useGlobalDefaults = false,
-                isSaved = false
+                useGlobalDefaults = false
             )
         }
     }
@@ -136,6 +138,8 @@ class TransitionViewModel @Inject constructor(
     fun saveSettings() {
         viewModelScope.launch {
             val ruleToSave = _uiState.value.rule
+            // Capture the "using global" context before loadSettings() mutates the state.
+            val usingGlobal = playlistId != null && _uiState.value.useGlobalDefaults
 
             if (playlistId != null) {
                 when {
@@ -148,7 +152,7 @@ class TransitionViewModel @Inject constructor(
                 transitionRepository.saveGlobalSettings(getCurrentSettings())
             }
             loadSettings()
-            _uiState.update { it.copy(isSaved = true) }
+            _savedEvents.send(usingGlobal)
         }
     }
 }

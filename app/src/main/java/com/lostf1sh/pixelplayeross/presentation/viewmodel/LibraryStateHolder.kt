@@ -217,7 +217,10 @@ class LibraryStateHolder @Inject constructor(
         }
     }
 
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only null the scope if it belongs to the
+        // PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         scope = null
     }
 

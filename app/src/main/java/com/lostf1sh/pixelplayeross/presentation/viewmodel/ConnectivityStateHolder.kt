@@ -575,9 +575,13 @@ class ConnectivityStateHolder @Inject constructor(
         wifiStateReceiver?.let { 
             runCatching { context.unregisterReceiver(it) }
         }
-        bluetoothStateReceiver?.let { 
+        bluetoothStateReceiver?.let {
             runCatching { context.unregisterReceiver(it) }
         }
+        audioDeviceCallback?.let {
+            runCatching { audioManager.unregisterAudioDeviceCallback(it) }
+        }
+        audioDeviceCallback = null
         if (hasBluetoothScanPermission()) {
             bluetoothAdapter?.takeIf { isBluetoothDiscoveryActive(it) }?.let {
                 cancelBluetoothDiscovery(it)

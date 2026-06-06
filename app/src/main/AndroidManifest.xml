@@ -17,6 +17,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <!-- Long full library rescans run as a dataSync foreground service so they are not killed (F138). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission
         android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
@@ -121,6 +123,12 @@
                 <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
         </service>
+
+        <!-- Allow WorkManager's foreground service to run as dataSync for long library syncs (F138). -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="dataSync"
+            tools:node="merge" />
 
         <receiver
             android:name=".ui.glancewidget.PixelPlayerGlanceWidgetReceiver"

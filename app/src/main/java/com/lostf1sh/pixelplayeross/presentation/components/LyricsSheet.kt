@@ -390,29 +390,6 @@ fun LyricsSheet(
         }
     }
 
-    DisposableEffect(keepScreenOn, lifecycleOwner) {
-        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
-            if (event == androidx.lifecycle.Lifecycle.Event.ON_STOP && keepScreenOn) {
-                keepScreenOn = false
-                coroutineScope.launch {
-                    context.dataStore.edit { prefs ->
-                        prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false
-                    }
-                }
-            }
-        }
-        
-        if (keepScreenOn) {
-            view.keepScreenOn = true
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            view.keepScreenOn = false
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
     val resolvedAutoscrollSpec = autoscrollAnimationSpec ?: if (useAnimatedLyrics) {
         spring(
             stiffness = Spring.StiffnessMediumLow,

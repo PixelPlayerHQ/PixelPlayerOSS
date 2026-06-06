@@ -49,7 +49,7 @@ fun JellyfinDashboardScreen(
 ) {
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val isSyncing by viewModel.isSyncing.collectAsStateWithLifecycle()
-    val syncMessage by viewModel.syncMessage.collectAsStateWithLifecycle()
+    val syncBanner by viewModel.syncBanner.collectAsStateWithLifecycle()
 
     val cardShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = 20.dp, cornerRadiusTL = 20.dp,
@@ -92,7 +92,7 @@ fun JellyfinDashboardScreen(
         JellyfinDashboardContent(
             playlists = playlists,
             isSyncing = isSyncing,
-            syncMessage = syncMessage,
+            syncBanner = syncBanner,
             username = viewModel.username,
             onSyncAll = { viewModel.syncAllPlaylistsAndSongs() },
             onSyncPlaylist = { viewModel.syncPlaylistSongs(it) },
@@ -112,7 +112,7 @@ fun JellyfinDashboardScreen(
 private fun JellyfinDashboardContent(
     playlists: List<JellyfinPlaylistEntity>,
     isSyncing: Boolean,
-    syncMessage: String?,
+    syncBanner: JellyfinSyncBanner?,
     username: String?,
     onSyncAll: () -> Unit,
     onSyncPlaylist: (String) -> Unit,
@@ -129,24 +129,46 @@ private fun JellyfinDashboardContent(
     ) {
         // Sync status banner
         AnimatedVisibility(
-            visible = syncMessage != null,
+            visible = syncBanner != null,
             enter = slideInVertically(
                 animationSpec = spring(stiffness = Spring.StiffnessMedium)
             ) + fadeIn(),
             exit = fadeOut()
         ) {
-            syncMessage?.let { message ->
+            syncBanner?.let { banner ->
+                val message = when (banner) {
+                    JellyfinSyncBanner.SyncingAll -> stringResource(R.string.jellyfin_syncing_all)
+                    JellyfinSyncBanner.SyncingPlaylists -> stringResource(R.string.jellyfin_syncing_playlists)
+                    JellyfinSyncBanner.SyncingSongs -> stringResource(R.string.jellyfin_syncing_songs)
+                    is JellyfinSyncBanner.SyncedSummary ->
+                        if (banner.failedCount == 0) {
+                            stringResource(R.string.jellyfin_synced_summary, banner.playlistCount, banner.songCount)
+                        } else {
+                            stringResource(
+                                R.string.jellyfin_synced_summary_with_failures,
+                                banner.playlistCount,
+                                banner.songCount,
+                                banner.failedCount
+                            )
+                        }
+                    is JellyfinSyncBanner.SyncedPlaylists ->
+                        stringResource(R.string.jellyfin_synced_playlists, banner.count)
+                    is JellyfinSyncBanner.SyncedSongs ->
+                        stringResource(R.string.jellyfin_synced_songs, banner.count)
+                    is JellyfinSyncBanner.Failed ->
+                        stringResource(R.string.jellyfin_sync_failed, banner.message ?: "")
+                }
+                val containerColor = when (banner.status) {
+                    JellyfinSyncStatus.Error -> MaterialTheme.colorScheme.errorContainer
+                    JellyfinSyncStatus.Partial -> MaterialTheme.colorScheme.tertiaryContainer
+                    else -> MaterialTheme.colorScheme.primaryContainer
+                }
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     shape = cardShape,
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (message.contains("failed"))
-                            MaterialTheme.colorScheme.errorContainer
-                        else
-                            MaterialTheme.colorScheme.primaryContainer
-                    )
+                    colors = CardDefaults.cardColors(containerColor = containerColor)
                 ) {
                     Row(
                         modifier = Modifier.padding(16.dp),

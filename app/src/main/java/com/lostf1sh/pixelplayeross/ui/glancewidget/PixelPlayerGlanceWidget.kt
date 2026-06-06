@@ -25,6 +25,7 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -51,6 +52,8 @@ import androidx.glance.unit.ColorProvider
 import com.lostf1sh.pixelplayeross.data.model.QueueItem
 import com.lostf1sh.pixelplayeross.utils.createScalableBackgroundBitmap
 import java.util.Locale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class PixelPlayerGlanceWidget : GlanceAppWidget() {
@@ -75,6 +78,15 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
     override val stateDefinition = PlayerInfoStateDefinition
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        // Pre-decode album art (URI-backed) off the composition path, before provideContent,
+        // so the @Composable body hits AlbumArtBitmapCache instead of performing blocking
+        // ContentResolver/file I/O synchronously during Glance composition.
+        runCatching {
+            getAppWidgetState(context, PlayerInfoStateDefinition, id)
+        }.getOrNull()?.let { state ->
+            prewarmArtworkCache(context, state)
+        }
+
         provideContent {
             val playerInfo = currentState<PlayerInfo>()
             val currentSize = LocalSize.current
@@ -85,6 +97,50 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
             GlanceTheme {
                 WidgetUi(playerInfo = playerInfo, size = currentSize, context = context)
             }
+        }
+    }
+
+    /**
+     * Decodes URI-backed album art into [AlbumArtBitmapCache] off the composition thread.
+     * The composable reads the same cache keys ("uri:<rawUri>"), so after this runs its
+     * lookups hit the cache and it never performs blocking ContentResolver/file I/O during
+     * Glance composition. Embedded [PlayerInfo.albumArtBitmapData] is left to the composable
+     * (in-memory decode, no I/O). Failures are swallowed so the widget still renders.
+     */
+    private suspend fun prewarmArtworkCache(context: Context, playerInfo: PlayerInfo) {
+        withContext(Dispatchers.IO) {
+            val density = context.resources.displayMetrics.density
+
+            // Primary art only when there is no embedded bitmap (the composable's URI fallback).
+            if (playerInfo.albumArtBitmapData == null) {
+                playerInfo.albumArtUri?.let { rawUri ->
+                    val targetPx = (220f * density).toInt().coerceAtLeast(1)
+                    decodeIntoCacheIfAbsent(context, rawUri, targetPx)
+                }
+            }
+
+            // Queue thumbnails (ExtraLarge layout) decode at 58.dp; match that exactly.
+            val queueTargetPx = (58f * density).toInt().coerceAtLeast(1)
+            playerInfo.queue.forEach { item ->
+                item.albumArtUri?.let { rawUri ->
+                    decodeIntoCacheIfAbsent(context, rawUri, queueTargetPx)
+                }
+            }
+        }
+    }
+
+    private fun decodeIntoCacheIfAbsent(context: Context, rawUri: String, targetPx: Int) {
+        val cacheKey = "uri:$rawUri"
+        if (AlbumArtBitmapCache.getBitmap(cacheKey) != null) return
+        runCatching {
+            decodeWidgetAlbumArtBitmap(
+                context = context,
+                rawUri = rawUri,
+                targetWidthPx = targetPx,
+                targetHeightPx = targetPx,
+            )
+        }.getOrNull()?.let { bitmap ->
+            AlbumArtBitmapCache.putBitmap(cacheKey, bitmap)
         }
     }
 
@@ -104,8 +160,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         Timber.tag("PixelPlayerGlanceWidget")
             .d("WidgetUi: PlayerInfo received. Title: $title, Artist: $artist, HasBitmapData: ${albumArtBitmapData != null}, BitmapDataSize: ${albumArtBitmapData?.size ?: "N/A"}")
 
-        val actualBackgroundColor = GlanceTheme.colors.surface
-        val onBackgroundColor = GlanceTheme.colors.onSurface
+        // Source colors from the album-art theme palette computed by MusicService
+        // (PlayerInfo.themeColors), falling back to GlanceTheme when it is null. This
+        // mirrors the sibling widgets (BarWidget4x1, ControlWidget4x2, GridWidget2x2)
+        // so the primary widget honors the same accent instead of discarding it.
+        val colors = playerInfo.getWidgetColors()
+        val actualBackgroundColor = colors.surface
+        val onBackgroundColor = colors.onSurface
 
         val baseModifier = GlanceModifier
             .fillMaxSize()
@@ -123,7 +184,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         modifier = baseModifier,
                         backgroundColor = actualBackgroundColor,
                         bgCornerRadius = 60.dp,
-                        isPlaying = isPlaying
+                        isPlaying = isPlaying,
+                        colors = colors
                     )
                     size.height <= GABE_TWO_HEIGHT_LAYOUT_SIZE.height -> GabeTwoHeightWidgetLayout(
                         modifier = baseModifier,
@@ -132,7 +194,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         albumArtBitmapData = albumArtBitmapData,
                         albumArtUri = albumArtUri,
                         isPlaying = isPlaying,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                     else -> GabeWidgetLayout(
                         modifier = baseModifier,
@@ -141,7 +204,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         albumArtBitmapData = albumArtBitmapData,
                         albumArtUri = albumArtUri,
                         isPlaying = isPlaying,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                 }
             } else if (isSmallHeight) {
@@ -153,7 +217,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         albumArtBitmapData = albumArtBitmapData,
                         albumArtUri = albumArtUri,
                         isPlaying = isPlaying,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                     size.width < THIN_LAYOUT_SIZE.width -> VeryThinWidgetLayout(
                         modifier = baseModifier,
@@ -165,7 +230,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         textColor = onBackgroundColor,
                         context = context,
                         backgroundColor = actualBackgroundColor,
-                        bgCornerRadius = 60.dp
+                        bgCornerRadius = 60.dp,
+                        colors = colors
                     )
                     else -> ThinWidgetLayout(
                         modifier = baseModifier,
@@ -177,7 +243,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         albumArtUri = albumArtUri,
                         isPlaying = isPlaying,
                         textColor = onBackgroundColor,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                 }
             } else {
@@ -189,7 +256,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         albumArtBitmapData = albumArtBitmapData,
                         albumArtUri = albumArtUri,
                         isPlaying = isPlaying,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                     size.width < LARGE_LAYOUT_SIZE.width || size.height < LARGE_LAYOUT_SIZE.height -> MediumWidgetLayout(
                         modifier = baseModifier,
@@ -201,7 +269,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         textColor = onBackgroundColor,
                         context = context,
                         backgroundColor = actualBackgroundColor,
-                        bgCornerRadius = 28.dp
+                        bgCornerRadius = 28.dp,
+                        colors = colors
                     )
                     size.width < EXTRA_LARGE_LAYOUT_SIZE.width || size.height < EXTRA_LARGE_LAYOUT_SIZE.height -> LargeWidgetLayout(
                         modifier = baseModifier,
@@ -214,7 +283,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         isPlaying = isPlaying,
                         isFavorite = isFavorite,
                         textColor = onBackgroundColor,
-                        context = context
+                        context = context,
+                        colors = colors
                     )
                     else -> ExtraLargeWidgetLayout(
                         modifier = baseModifier,
@@ -227,7 +297,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         bgCornerRadius = 28.dp,
                         textColor = onBackgroundColor,
                         context = context,
-                        queue = playerInfo.queue
+                        queue = playerInfo.queue,
+                        colors = colors
                     )
                 }
             }
@@ -245,12 +316,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtUri: String?,
         isPlaying: Boolean,
         textColor: ColorProvider,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
         val size = LocalSize.current
         val albumArtSize = size.height - 32.dp
 
@@ -280,7 +352,7 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(text = title, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColor), maxLines = 1)
                     if (artist.isNotEmpty() && artist != context.getString(R.string.widget_tap_to_open)) {
-                        Text(text = artist, style = TextStyle(fontSize = 14.sp, color = textColor), maxLines = 1)
+                        Text(text = artist, style = TextStyle(fontSize = 14.sp, color = colors.artist), maxLines = 1)
                     }
                 }
                 Spacer(GlanceModifier.width(8.dp))
@@ -322,12 +394,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtUri: String?,
         isPlaying: Boolean,
         textColor: ColorProvider,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
         val size = LocalSize.current
         val albumArtSize = size.height - 32.dp
 
@@ -358,7 +431,7 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                 Column(modifier = GlanceModifier.defaultWeight()) {
                     Text(text = title, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColor), maxLines = 1)
                     if (artist.isNotEmpty() && artist != context.getString(R.string.widget_tap_to_open)) {
-                        Text(text = artist, style = TextStyle(fontSize = 14.sp, color = textColor), maxLines = 1)
+                        Text(text = artist, style = TextStyle(fontSize = 14.sp, color = colors.artist), maxLines = 1)
                     }
                 }
                 Spacer(GlanceModifier.width(8.dp))
@@ -396,12 +469,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtBitmapData: ByteArray?,
         albumArtUri: String?,
         isPlaying: Boolean,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
 
         Box(
             modifier = modifier
@@ -466,12 +540,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtBitmapData: ByteArray?,
         albumArtUri: String?,
         isPlaying: Boolean,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
 
         Box(
             modifier = modifier
@@ -540,10 +615,11 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         modifier: GlanceModifier,
         backgroundColor: ColorProvider,
         bgCornerRadius: Dp,
-        isPlaying: Boolean
+        isPlaying: Boolean,
+        colors: WidgetColors
     ) {
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
 
         Box(
             modifier = modifier
@@ -571,10 +647,11 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtBitmapData: ByteArray?,
         albumArtUri: String?,
         isPlaying: Boolean,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
 
         Box(
             modifier = modifier
@@ -620,12 +697,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtBitmapData: ByteArray?,
         albumArtUri: String?,
         isPlaying: Boolean,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
         val buttonCornerRadius = 16.dp
         val playButtonCornerRadius = if (isPlaying) 12.dp else 60.dp
 
@@ -711,12 +789,13 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         albumArtUri: String?,
         isPlaying: Boolean,
         textColor: ColorProvider,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
-        val secondaryColor = GlanceTheme.colors.secondaryContainer
-        val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-        val primaryContainerColor = GlanceTheme.colors.primaryContainer
-        val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+        val secondaryColor = colors.prevNextBackground
+        val onSecondaryColor = colors.prevNextIcon
+        val primaryContainerColor = colors.playPauseBackground
+        val onPrimaryContainerColor = colors.playPauseIcon
         val buttonCornerRadius = 60.dp
         val playButtonCornerRadius = if (isPlaying) 14.dp else 60.dp
 
@@ -758,7 +837,7 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         Spacer(GlanceModifier.height(4.dp))
                         Text(
                             text = artist,
-                            style = TextStyle(fontSize = 13.sp, color = textColor),
+                            style = TextStyle(fontSize = 13.sp, color = colors.artist),
                             maxLines = 2
                         )
                     }
@@ -818,7 +897,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         isPlaying: Boolean,
         isFavorite: Boolean,
         textColor: ColorProvider,
-        context: Context
+        context: Context,
+        colors: WidgetColors
     ) {
         // *** FIX: Apply padding to the outer Box for consistency ***
         Box(
@@ -840,7 +920,7 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                     Spacer(GlanceModifier.width(12.dp))
                     Column(modifier = GlanceModifier.defaultWeight()) {
                         Text(text = title, style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = textColor), maxLines = 1)
-                        Text(text = artist, style = TextStyle(fontSize = 13.sp, color = textColor), maxLines = 1)
+                        Text(text = artist, style = TextStyle(fontSize = 13.sp, color = colors.artist), maxLines = 1)
                     }
                     Spacer(GlanceModifier.width(4.dp))
                     Image(
@@ -865,10 +945,10 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         .fillMaxHeight(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val secondaryColor = GlanceTheme.colors.secondaryContainer
-                    val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-                    val primaryContainerColor = GlanceTheme.colors.primaryContainer
-                    val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+                    val secondaryColor = colors.prevNextBackground
+                    val onSecondaryColor = colors.prevNextIcon
+                    val primaryContainerColor = colors.playPauseBackground
+                    val onPrimaryContainerColor = colors.playPauseIcon
                     val buttonCornerRadius = 60.dp
                     val playButtonCornerRadius = if (isPlaying) 14.dp else 60.dp
 
@@ -911,7 +991,8 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
         isPlaying: Boolean, backgroundColor: ColorProvider, bgCornerRadius: Dp,
         textColor: ColorProvider,
         context: Context,
-        queue: List<QueueItem>
+        queue: List<QueueItem>,
+        colors: WidgetColors
     ) {
         val playButtonCornerRadius = if (isPlaying) 16.dp else 60.dp
 
@@ -945,7 +1026,7 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                         )
                         Text(
                             text = artist,
-                            style = TextStyle(fontSize = 16.sp, color = textColor),
+                            style = TextStyle(fontSize = 16.sp, color = colors.artist),
                             maxLines = 1
                         )
                     }
@@ -962,10 +1043,10 @@ class PixelPlayerGlanceWidget : GlanceAppWidget() {
                     ,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val secondaryColor = GlanceTheme.colors.secondaryContainer
-                    val onSecondaryColor = GlanceTheme.colors.onSecondaryContainer
-                    val primaryContainerColor = GlanceTheme.colors.primaryContainer
-                    val onPrimaryContainerColor = GlanceTheme.colors.onPrimaryContainer
+                    val secondaryColor = colors.prevNextBackground
+                    val onSecondaryColor = colors.prevNextIcon
+                    val primaryContainerColor = colors.playPauseBackground
+                    val onPrimaryContainerColor = colors.playPauseIcon
                     val buttonCornerRadius = 60.dp
 
                     PreviousButtonGlance(

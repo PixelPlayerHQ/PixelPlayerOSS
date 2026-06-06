@@ -736,11 +736,18 @@ class PlaybackStateHolder @Inject constructor(
 
         val coroutineScope = scope ?: return
         shuffleToggleJob = coroutineScope.launch {
+                // Resolve the controller before flipping any UI state or arming the cooldown.
+                // If the controller has not connected yet (cold start / widget / media-button
+                // launch), bail out cleanly without setting isShuffleTransitionInProgress or
+                // lastShuffleToggleFinishedAtMs, so the UI stays consistent and a retry is not
+                // swallowed by SHUFFLE_TOGGLE_COOLDOWN_MS.
+                val player = mediaController
+                if (player == null || currentSongs.isEmpty()) {
+                    shuffleToggleJob = null
+                    return@launch
+                }
                 _stablePlayerState.update { it.copy(isShuffleTransitionInProgress = true) }
                 try {
-                    val player = mediaController ?: return@launch
-                    if (currentSongs.isEmpty()) return@launch
-
                     val isCurrentlyShuffled = _stablePlayerState.value.isShuffleEnabled
 
                     if (!isCurrentlyShuffled) {
@@ -905,7 +912,11 @@ class PlaybackStateHolder @Inject constructor(
             }
     }
 
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only tear down if the scope being cleared is the
+        // one this holder is currently bound to. A sibling PlayerViewModel must not
+        // null a scope it does not own (see F15).
+        if (this.scope !== owningScope) return
         stopProgressUpdates()
         shuffleToggleJob?.cancel()
         shuffleToggleJob = null

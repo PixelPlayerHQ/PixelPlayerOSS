@@ -64,6 +64,8 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     // ADD THE COMPANION OBJECT
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "pixelplayer_music_channel"
+        // Low-importance channel for the background library-sync foreground notification (F138).
+        const val SYNC_NOTIFICATION_CHANNEL_ID = "pixelplayer_sync_channel"
     }
 
     private val appLifecycleObserver = object : DefaultLifecycleObserver {
@@ -94,8 +96,14 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
                 "PixelPlayerOSS Music Playback",
                 NotificationManager.IMPORTANCE_LOW
             )
+            val syncChannel = NotificationChannel(
+                SYNC_NOTIFICATION_CHANNEL_ID,
+                getString(R.string.sync_notification_channel_name),
+                NotificationManager.IMPORTANCE_LOW
+            )
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(syncChannel)
         }
 
         ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)

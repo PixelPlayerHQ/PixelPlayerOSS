@@ -175,7 +175,10 @@ class DailyMixStateHolder @Inject constructor(
         return dailyMixManager.generateDailyMix(allSongs, favoriteIds, maxSize)
     }
 
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only tear down if the scope belongs to the
+        // PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         updateJob?.cancel()
         scope = null
     }

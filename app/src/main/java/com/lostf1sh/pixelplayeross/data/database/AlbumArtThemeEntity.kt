@@ -2,8 +2,6 @@ package com.lostf1sh.pixelplayeross.data.database
 
 import androidx.room.Embedded
 import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
 
 // For simplicity, we store colors as hexadecimal Strings.
 // Stores the color values for ONE scheme (either light or dark)
@@ -60,12 +58,12 @@ data class StoredColorSchemeValues(
 
 @Entity(
     tableName = "album_art_themes",
-    indices = [
-        Index(value = ["albumArtUriString", "paletteStyle"])
-    ]
+    // Composite primary key so each (album art, palette style) variant is cached as its own row.
+    // Previously the PK was albumArtUriString alone, which collapsed all styles onto one row (F71).
+    primaryKeys = ["albumArtUriString", "paletteStyle"]
 )
 data class AlbumArtThemeEntity(
-    @PrimaryKey val albumArtUriString: String,
+    val albumArtUriString: String,
     val paletteStyle: String,
     @Embedded(prefix = "light_") val lightThemeValues: StoredColorSchemeValues,
     @Embedded(prefix = "dark_") val darkThemeValues: StoredColorSchemeValues

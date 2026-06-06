@@ -520,7 +520,7 @@ fun ArtistDetailScreen(
                 onNavigateToGenre = {
                     currentSong.genre?.let {
                         navController.navigateSafelyReplacing(
-                            route = Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")),
+                            route = Screen.GenreDetail.createRoute(it),
                             patternToPop = Screen.GenreDetail.route
                         )
                     }

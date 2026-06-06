@@ -213,6 +213,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import timber.log.Timber
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -450,7 +451,7 @@ fun LibraryScreen(
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             // Only toggle selection, don't show sheet immediately (similar to songs multi-selection)
             playlistMultiSelectionState.toggleSelection(playlist)
-            android.util.Log.d("PlaylistMultiSelect", "Toggled: ${playlist.name}, total selected: ${playlistMultiSelectionState.selectedPlaylists.value.size}")
+            Timber.tag("PlaylistMultiSelect").d("Toggled playlist, total selected: %d", playlistMultiSelectionState.selectedPlaylists.value.size)
         }
     }
 
@@ -1520,7 +1521,7 @@ fun LibraryScreen(
                 onNavigateToGenre = {
                     currentSong.genre?.let {
                         navController.navigateSafelyReplacing(
-                            route = Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")),
+                            route = Screen.GenreDetail.createRoute(it),
                             patternToPop = Screen.GenreDetail.route
                         )
                     }
@@ -2497,17 +2498,17 @@ fun LibraryFoldersTab(
         val isRoot = targetPath == FOLDER_NAVIGATION_ROOT_KEY
         val activeFolder = if (isRoot) null else currentFolder
         val showPlaylistCards = playlistMode && activeFolder == null
-        val itemsToShow = remember(activeFolder, folders, flattenedFolders, currentSortOption) {
+        val itemsToShow = remember(activeFolder, folders, flattenedFolders, currentSortOption, showPlaylistCards) {
             when {
                 showPlaylistCards -> flattenedFolders
                 activeFolder != null -> sortMusicFoldersByOption(activeFolder.subFolders, currentSortOption)
                 else -> sortMusicFoldersByOption(folders, currentSortOption)
-            }
-        }.toImmutableList()
+            }.toImmutableList()
+        }
 
         val songsToShow = remember(activeFolder, currentSortOption) {
-            sortSongsForFolderView(activeFolder?.songs ?: emptyList(), currentSortOption)
-        }.toImmutableList()
+            sortSongsForFolderView(activeFolder?.songs ?: emptyList(), currentSortOption).toImmutableList()
+        }
         val currentSong = stablePlayerState.currentSong
         val currentSongId = currentSong?.id
         val currentSongIndexInSongs = remember(songsToShow, currentSongId) {

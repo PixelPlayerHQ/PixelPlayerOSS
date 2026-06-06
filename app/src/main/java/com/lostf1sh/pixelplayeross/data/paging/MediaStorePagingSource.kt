@@ -28,29 +28,26 @@ class MediaStorePagingSource(
     }
 
     override fun getRefreshKey(state: PagingState<Int, Song>): Int? {
+        // Keys are absolute item offsets into filteredIds. Recover the offset of the
+        // page closest to the anchor so a refresh reloads from roughly the same spot,
+        // independent of any per-load loadSize variation.
         return state.anchorPosition?.let { anchorPosition ->
             val anchorPage = state.closestPageToPosition(anchorPosition)
-            anchorPage?.prevKey?.plus(1) ?: anchorPage?.nextKey?.minus(1)
+            anchorPage?.prevKey?.plus(state.config.pageSize)
+                ?: anchorPage?.nextKey?.minus(state.config.pageSize)
         }
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Song> = withContext(Dispatchers.IO) {
+        // The page key is an absolute item offset into filteredIds (not a page index),
+        // so the math stays correct even when Paging3 uses a different loadSize for the
+        // initial refresh (initialLoadSize) than for subsequent append/prepend loads.
+        val start = (params.key ?: 0).coerceAtLeast(0)
         try {
-            val pageIndex = params.key ?: 0
-
-            if (filteredIds.isEmpty()) {
+            if (filteredIds.isEmpty() || start >= filteredIds.size) {
                 return@withContext LoadResult.Page(
                     data = emptyList(),
-                    prevKey = null,
-                    nextKey = null
-                )
-            }
-
-            val start = pageIndex * params.loadSize
-            if (start >= filteredIds.size) {
-                 return@withContext LoadResult.Page(
-                    data = emptyList(),
-                    prevKey = if (pageIndex > 0) pageIndex - 1 else null,
+                    prevKey = if (start > 0) (start - params.loadSize).coerceAtLeast(0) else null,
                     nextKey = null
                 )
             }
@@ -64,8 +61,8 @@ class MediaStorePagingSource(
             val songsMap = songs.associateBy { it.id.toLong() }
             val orderedSongs = idsToLoad.mapNotNull { songsMap[it] }
 
-            val nextKey = if (end < filteredIds.size) pageIndex + 1 else null
-            val prevKey = if (pageIndex > 0) pageIndex - 1 else null
+            val nextKey = if (end < filteredIds.size) end else null
+            val prevKey = if (start > 0) (start - params.loadSize).coerceAtLeast(0) else null
 
             LoadResult.Page(
                 data = orderedSongs,
@@ -75,7 +72,7 @@ class MediaStorePagingSource(
         } catch (e: Exception) {
             Timber.tag(TAG).e(
                 e,
-                "Failed loading page (pageIndex=${params.key ?: 0}, loadSize=${params.loadSize}, totalIds=${filteredIds.size})"
+                "Failed loading page (start=$start, loadSize=${params.loadSize}, totalIds=${filteredIds.size})"
             )
             LoadResult.Error(e)
         }

@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -623,8 +624,14 @@ private fun EditSongContent(
                                 val encodedTitle = URLEncoder.encode(title, "UTF-8")
                                 val encodedArtist = URLEncoder.encode(artist, "UTF-8")
                                 val url = "https://lrclib.net/search/$encodedTitle%20$encodedArtist"
-                                val intent = Intent(Intent.ACTION_VIEW).setData(Uri.parse(url))
-                                context.startActivity(intent)
+                                val intent = Intent(Intent.ACTION_VIEW)
+                                    .setData(Uri.parse(url))
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: ActivityNotFoundException) {
+                                    Timber.w(e, "No activity found to handle LRCLIB lyrics search URL")
+                                }
                             },
                         ) {
                             Icon(

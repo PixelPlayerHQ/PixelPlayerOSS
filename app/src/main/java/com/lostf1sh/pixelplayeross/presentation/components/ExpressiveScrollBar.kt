@@ -266,6 +266,15 @@ fun ExpressiveScrollBar(
         val coarseJumpThresholdPx = with(density) { 16.dp.toPx() }
         val smoothJumpMinDistancePx = with(density) { 10.dp.toPx() }
 
+        // scrollableHeight depends only on the (stable) viewport height and handle height,
+        // so it is invariant per composition. The Canvas draw block and the offset{} layout
+        // lambdas only need this value; reading it directly avoids re-running the heavy
+        // getScrollStats() metrics computation (and its non-snapshot tracker mutations) from
+        // the draw/layout phases on every frame during scroll.
+        val scrollableHeightPx = with(density) {
+            (constraintsMaxHeight.toPx() - minHeight.toPx()).coerceAtLeast(1f)
+        }
+
         val canScrollForward by remember { derivedStateOf { listState?.canScrollForward ?: gridState?.canScrollForward ?: false } }
         val canScrollBackward by remember { derivedStateOf { listState?.canScrollBackward ?: gridState?.canScrollBackward ?: false } }
         
@@ -591,8 +600,7 @@ fun ExpressiveScrollBar(
             val trackX = rightAnchorX - with(density) { thickness.toPx() / 2 }
 
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val stats = getScrollStats()
-                val scrollableHeight = stats.scrollableHeight
+                val scrollableHeight = scrollableHeightPx
 
                 val visualProgress = displayedProgress.value
                 val displayProgress = if (isDragging && dragProgress >= 0f) dragProgress else visualProgress
@@ -652,8 +660,7 @@ fun ExpressiveScrollBar(
                Box(
                    modifier = Modifier
                        .offset {
-                           val stats = getScrollStats()
-                           val scrollableHeight = stats.scrollableHeight
+                           val scrollableHeight = scrollableHeightPx
                            val visualProgress = displayedProgress.value
                            val displayProgress = if (isDragging && dragProgress >= 0f) dragProgress else visualProgress
                            val handleY = displayProgress * scrollableHeight
@@ -690,8 +697,7 @@ fun ExpressiveScrollBar(
                 Surface(
                     modifier = Modifier
                         .offset {
-                            val stats = getScrollStats()
-                            val scrollableHeight = stats.scrollableHeight
+                            val scrollableHeight = scrollableHeightPx
                             val visualProgress = displayedProgress.value
                             val displayProgress = if (isDragging && dragProgress >= 0f) dragProgress else visualProgress
                             val handleY = displayProgress * scrollableHeight

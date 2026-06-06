@@ -343,7 +343,9 @@ fun LibraryAlbumsTab(
                                     val album = albums[index]
                                     if (album != null) {
                                         val albumSpecificColorSchemeFlow =
-                                            playerViewModel.themeStateHolder.getAlbumColorSchemeFlow(album.albumArtUriString ?: "")
+                                            remember(album.albumArtUriString) {
+                                                playerViewModel.themeStateHolder.getAlbumColorSchemeFlow(album.albumArtUriString ?: "")
+                                            }
                                         val rememberedOnClick = remember(album.id, onAlbumClick) {
                                             { onAlbumClick(album.id) }
                                         }
@@ -413,7 +415,9 @@ fun LibraryAlbumsTab(
                                     val album = albums[index]
                                     if (album != null) {
                                         val albumSpecificColorSchemeFlow =
-                                            playerViewModel.themeStateHolder.getAlbumColorSchemeFlow(album.albumArtUriString ?: "")
+                                            remember(album.albumArtUriString) {
+                                                playerViewModel.themeStateHolder.getAlbumColorSchemeFlow(album.albumArtUriString ?: "")
+                                            }
                                         val rememberedOnClick = remember(album.id, onAlbumClick) {
                                             { onAlbumClick(album.id) }
                                         }

@@ -1497,7 +1497,10 @@ interface MusicDao {
     @Query("DELETE FROM albums WHERE NOT EXISTS (SELECT 1 FROM songs WHERE songs.album_id = albums.id)")
     suspend fun deleteOrphanedAlbums()
 
-    @Query("DELETE FROM artists WHERE NOT EXISTS (SELECT 1 FROM song_artist_cross_ref WHERE song_artist_cross_ref.artist_id = artists.id)")
+    // Guard against deleting an artist still referenced by songs.artist_id: that column is NOT NULL but its
+    // foreign key is declared ON DELETE SET NULL, so deleting a referenced artist would abort the transaction
+    // with a NOT NULL violation. Excluding still-referenced artists keeps cleanup safe (F72).
+    @Query("DELETE FROM artists WHERE NOT EXISTS (SELECT 1 FROM song_artist_cross_ref WHERE song_artist_cross_ref.artist_id = artists.id) AND NOT EXISTS (SELECT 1 FROM songs WHERE songs.artist_id = artists.id)")
     suspend fun deleteOrphanedArtists()
 
     // --- Favorite Operations ---

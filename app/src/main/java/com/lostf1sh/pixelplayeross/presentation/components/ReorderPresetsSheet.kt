@@ -52,6 +52,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -127,7 +128,15 @@ fun ReorderPresetsSheet(
     }
 
     var localItems by remember { mutableStateOf(initialList) }
-    
+
+    // Re-seed the editable model when the source inputs change (e.g. after a save
+    // updates pinnedPresetsNames upstream, or a custom preset is added/removed),
+    // mirroring ReorderTabsSheet. Without this the first-captured list goes stale
+    // on reopen and a later save would silently revert the user's reorder.
+    LaunchedEffect(initialList) {
+        localItems = initialList
+    }
+
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(

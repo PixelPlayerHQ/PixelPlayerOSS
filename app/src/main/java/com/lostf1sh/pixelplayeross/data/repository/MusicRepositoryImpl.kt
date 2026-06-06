@@ -118,6 +118,14 @@ class MusicRepositoryImpl @Inject constructor(
     /** Cached directory filter — recomputed only when allowed/blocked dirs preferences change. */
     data class CachedDirFilter(val allowedParentDirs: List<String> = emptyList(), val applyFilter: Boolean = false)
 
+    /**
+     * Becomes true once [cachedDirFilter] has produced its first real value (i.e. the
+     * DataStore-backed directory preferences have emitted and the filter has been computed).
+     * Until then [cachedDirFilter] still holds the seeded default (applyFilter = false), which
+     * would incorrectly bypass the directory filter for users who have blocked directories.
+     */
+    @Volatile private var dirFilterResolved = false
+
     private val cachedDirFilter: StateFlow<CachedDirFilter> = combine(
         userPreferencesRepository.allowedDirectoriesFlow,
         userPreferencesRepository.blockedDirectoriesFlow
@@ -129,7 +137,22 @@ class MusicRepositoryImpl @Inject constructor(
             normalizePath = ::normalizePath
         )
         CachedDirFilter(dirs, apply)
-    }.stateIn(repositoryScope, SharingStarted.Eagerly, CachedDirFilter())
+    }.onEach { dirFilterResolved = true }
+        .stateIn(repositoryScope, SharingStarted.Eagerly, CachedDirFilter())
+
+    /**
+     * Returns a resolved directory filter for one-shot reads. If [cachedDirFilter] has not yet
+     * produced its first real value (cold-start window), computes a fresh filter from the
+     * preference flows instead of returning the seeded default — otherwise blocked-directory
+     * songs could leak into queues/library on the first access after process start.
+     */
+    private suspend fun resolvedDirFilter(): CachedDirFilter {
+        if (dirFilterResolved) return cachedDirFilter.value
+        val allowedDirs = userPreferencesRepository.allowedDirectoriesFlow.first()
+        val blockedDirs = userPreferencesRepository.blockedDirectoriesFlow.first()
+        val (allowedParentDirs, applyFilter) = computeAllowedDirs(allowedDirs, blockedDirs)
+        return CachedDirFilter(allowedParentDirs, applyFilter)
+    }
 
     private fun List<Artist>.missingImageCandidates(): List<Pair<Long, String>> =
         asSequence()
@@ -249,7 +272,7 @@ class MusicRepositoryImpl @Inject constructor(
         sortOption: SortOption,
         storageFilter: StorageFilter
     ): List<Song> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getFavoriteSongsPage(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -273,7 +296,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getRandomSongs(limit: Int): List<Song> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getRandomSongs(limit, filter.allowedParentDirs, filter.applyFilter).map { it.toSong() }
     }
 
@@ -283,7 +306,7 @@ class MusicRepositoryImpl @Inject constructor(
         sortOption: SortOption,
         storageFilter: StorageFilter
     ): List<Song> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getSongsPage(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -301,7 +324,7 @@ class MusicRepositoryImpl @Inject constructor(
         storageFilter: StorageFilter,
         minTracks: Int
     ): List<Album> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getAlbumsPage(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -319,7 +342,7 @@ class MusicRepositoryImpl @Inject constructor(
         sortOption: SortOption,
         storageFilter: StorageFilter
     ): List<Artist> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getArtistsPage(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -517,14 +540,40 @@ class MusicRepositoryImpl @Inject constructor(
 
     override fun searchAlbums(query: String, minTracks: Int): Flow<List<Album>> {
         if (query.isBlank()) return flowOf(emptyList())
-        return musicDao.searchAlbums(query, emptyList(), false, minTracks).map { entities ->
+        return combine(
+            userPreferencesRepository.allowedDirectoriesFlow,
+            userPreferencesRepository.blockedDirectoriesFlow
+        ) { allowedDirs, blockedDirs ->
+            allowedDirs to blockedDirs
+        }.flatMapLatest { (allowedDirs, blockedDirs) ->
+            flow {
+                val (allowedParentDirs, applyDirectoryFilter) =
+                    computeAllowedDirs(allowedDirs, blockedDirs)
+                emit(
+                    musicDao.searchAlbums(query, allowedParentDirs, applyDirectoryFilter, minTracks)
+                )
+            }.flatMapLatest { it }
+        }.map { entities ->
             entities.map { it.toAlbum() }
         }.flowOn(Dispatchers.IO)
     }
 
     override fun searchArtists(query: String): Flow<List<Artist>> {
         if (query.isBlank()) return flowOf(emptyList())
-        return musicDao.searchArtists(query, emptyList(), false).map { entities ->
+        return combine(
+            userPreferencesRepository.allowedDirectoriesFlow,
+            userPreferencesRepository.blockedDirectoriesFlow
+        ) { allowedDirs, blockedDirs ->
+            allowedDirs to blockedDirs
+        }.flatMapLatest { (allowedDirs, blockedDirs) ->
+            flow {
+                val (allowedParentDirs, applyDirectoryFilter) =
+                    computeAllowedDirs(allowedDirs, blockedDirs)
+                emit(
+                    musicDao.searchArtists(query, allowedParentDirs, applyDirectoryFilter)
+                )
+            }.flatMapLatest { it }
+        }.map { entities ->
             entities.map { it.toArtist() }
         }.flowOn(Dispatchers.IO)
     }
@@ -708,7 +757,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllAlbumsOnce(storageFilter: StorageFilter, minTracks: Int): List<Album> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getAlbumsPage(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -721,7 +770,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllArtistsOnce(): List<Artist> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getArtistsWithSongCountsFiltered(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -931,7 +980,7 @@ class MusicRepositoryImpl @Inject constructor(
         sortOption: SortOption,
         storageFilter: com.lostf1sh.pixelplayeross.data.model.StorageFilter
     ): List<Long> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getSongIdsSorted(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
@@ -944,7 +993,7 @@ class MusicRepositoryImpl @Inject constructor(
         sortOption: SortOption,
         storageFilter: com.lostf1sh.pixelplayeross.data.model.StorageFilter
     ): List<Long> = withContext(Dispatchers.IO) {
-        val filter = cachedDirFilter.value
+        val filter = resolvedDirFilter()
         musicDao.getFavoriteSongIdsSorted(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,

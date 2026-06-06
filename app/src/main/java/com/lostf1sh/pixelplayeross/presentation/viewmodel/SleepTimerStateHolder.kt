@@ -292,7 +292,10 @@ class SleepTimerStateHolder @Inject constructor(
     /**
      * Cleanup when ViewModel is cleared.
      */
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only tear down if the scope belongs to the
+        // PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         sleepTimerJob?.cancel()
         eotSongMonitorJob?.cancel()
         scope = null

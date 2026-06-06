@@ -80,7 +80,8 @@ class PlaylistPreferencesRepository @Inject constructor(
 
     suspend fun deletePlaylist(playlistId: String) {
         ensureMigratedIfNeeded()
-        localPlaylistDao.deletePlaylist(playlistId)
+        // Clear the playlist's song rows in the same transaction so they aren't orphaned (F73).
+        localPlaylistDao.deletePlaylistWithSongs(playlistId)
         clearPlaylistSongOrderMode(playlistId)
     }
 

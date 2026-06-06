@@ -1,3 +1,5 @@
+package com.lostf1sh.pixelplayeross.presentation.screens
+
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring

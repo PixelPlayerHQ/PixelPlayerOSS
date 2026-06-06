@@ -48,24 +48,15 @@ class MashupViewModel @Inject constructor(
     private lateinit var deck2Controller: DeckController
 
     private var progressJob: Job? = null
+    private var loadSongsForPickerJob: Job? = null
 
     init {
         initializeDecks()
-        loadAllSongs()
-        startProgressUpdater()
     }
 
     private fun initializeDecks() {
         deck1Controller = DeckController(application)
         deck2Controller = DeckController(application)
-    }
-
-    private fun loadAllSongs() {
-        viewModelScope.launch {
-            musicRepository.getAudioFiles().collect { songs ->
-                _uiState.update { it.copy(allSongs = songs) }
-            }
-        }
     }
 
     fun loadSong(deck: Int, song: Song) {
@@ -76,6 +67,7 @@ class MashupViewModel @Inject constructor(
         controller.player?.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 updateDeckState(deck) { it.copy(isPlaying = isPlaying) }
+                syncProgressUpdater()
             }
         })
         closeSongPicker()
@@ -87,8 +79,14 @@ class MashupViewModel @Inject constructor(
     }
 
     fun playPause(deck: Int) { if (deck == 1) deck1Controller.playPause() else deck2Controller.playPause() }
-    fun seek(deck: Int, progress: Float) { if (deck == 1) deck1Controller.seek(progress) else deck2Controller.seek(progress) }
-    fun nudge(deck: Int, amountMs: Long) { if (deck == 1) deck1Controller.nudge(amountMs) else deck2Controller.nudge(amountMs) }
+    fun seek(deck: Int, progress: Float) {
+        if (deck == 1) deck1Controller.seek(progress) else deck2Controller.seek(progress)
+        pushDeckProgress()
+    }
+    fun nudge(deck: Int, amountMs: Long) {
+        if (deck == 1) deck1Controller.nudge(amountMs) else deck2Controller.nudge(amountMs)
+        pushDeckProgress()
+    }
 
     fun setVolume(deck: Int, volume: Float) {
         updateDeckState(deck) { it.copy(volume = volume.coerceIn(0f, 1f)) }
@@ -115,24 +113,76 @@ class MashupViewModel @Inject constructor(
         deck2Controller.setDeckVolume(state.deck2.volume * vol2Multiplier)
     }
 
+    /**
+     * Starts the progress ticker when at least one deck is playing and stops it
+     * once neither deck is playing. Avoids the always-on 10Hz loop that drained
+     * CPU/battery while both decks were idle (mirrors the subscription/playback
+     * gating the rest of the app uses for its position ticker).
+     */
+    private fun syncProgressUpdater() {
+        if (deck1Controller.player?.isPlaying == true || deck2Controller.player?.isPlaying == true) {
+            startProgressUpdater()
+        } else {
+            stopProgressUpdater()
+        }
+    }
+
     private fun startProgressUpdater() {
-        progressJob?.cancel()
+        if (progressJob?.isActive == true) return
         progressJob = viewModelScope.launch {
-            while (isActive) {
-                updateDeckState(1) { it.copy(progress = deck1Controller.getProgress()) }
-                updateDeckState(2) { it.copy(progress = deck2Controller.getProgress()) }
-                delay(100)
+            while (isActive &&
+                (deck1Controller.player?.isPlaying == true || deck2Controller.player?.isPlaying == true)
+            ) {
+                pushDeckProgress()
+                delay(PROGRESS_TICK_MS)
+            }
+            progressJob = null
+        }
+    }
+
+    private fun stopProgressUpdater() {
+        progressJob?.cancel()
+        progressJob = null
+        // Emit a final snapshot so the slider lands on the paused/finished position.
+        pushDeckProgress()
+    }
+
+    private fun pushDeckProgress() {
+        val progress1 = deck1Controller.getProgress()
+        val progress2 = deck2Controller.getProgress()
+        updateDeckState(1) { if (it.progress == progress1) it else it.copy(progress = progress1) }
+        updateDeckState(2) { if (it.progress == progress2) it else it.copy(progress = progress2) }
+    }
+
+    fun openSongPicker(deck: Int) {
+        _uiState.update { it.copy(showSongPickerForDeck = deck) }
+        loadSongsForPickerJob?.cancel()
+        loadSongsForPickerJob = viewModelScope.launch {
+            val songs = musicRepository.getAllSongsOnce()
+            // Only publish if the picker is still open (it may have been dismissed).
+            _uiState.update {
+                if (it.showSongPickerForDeck != null) it.copy(allSongs = songs) else it
             }
         }
     }
 
-    fun openSongPicker(deck: Int) { _uiState.update { it.copy(showSongPickerForDeck = deck) } }
-    fun closeSongPicker() { _uiState.update { it.copy(showSongPickerForDeck = null) } }
+    fun closeSongPicker() {
+        loadSongsForPickerJob?.cancel()
+        loadSongsForPickerJob = null
+        _uiState.update { it.copy(showSongPickerForDeck = null, allSongs = emptyList()) }
+    }
 
     override fun onCleared() {
         super.onCleared()
         deck1Controller.release()
         deck2Controller.release()
         progressJob?.cancel()
+        loadSongsForPickerJob?.cancel()
+    }
+
+    private companion object {
+        // Aligns with the slider tick used elsewhere in the app (>=250ms keeps the
+        // slider smooth without the previous 100ms/10Hz battery drain).
+        private const val PROGRESS_TICK_MS = 250L
     }
 }

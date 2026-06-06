@@ -1,6 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.navigation
 
-import DelimiterConfigScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.DelimiterConfigScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.WordDelimiterConfigScreen
 import android.annotation.SuppressLint
 import androidx.annotation.OptIn

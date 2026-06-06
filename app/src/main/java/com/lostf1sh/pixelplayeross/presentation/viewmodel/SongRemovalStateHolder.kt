@@ -61,8 +61,13 @@ class SongRemovalStateHolder @Inject constructor(
     }
 
     suspend fun removeSongFromLibrary(song: Song) {
-        libraryStateHolder.removeSong(song.id)
-        musicRepository.deleteById(song.id.toLong())
+        // These two stores cannot share a transaction: playlists live in DataStore,
+        // the canonical song row lives in Room. Remove the playlist references first so
+        // that if the second op throws or the process dies in between, the worst residual
+        // state is an in-library song with no playlist entry (cosmetically harmless and
+        // self-correcting) rather than a playlist holding a dangling, deleted song id.
         playlistPreferencesRepository.removeSongFromAllPlaylists(song.id)
+        musicRepository.deleteById(song.id.toLong())
+        libraryStateHolder.removeSong(song.id)
     }
 }

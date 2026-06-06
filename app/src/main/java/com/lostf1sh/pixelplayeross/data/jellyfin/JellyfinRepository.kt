@@ -54,6 +54,8 @@ class JellyfinRepository @Inject constructor(
         private const val KEY_USERNAME = "username"
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_USER_ID = "user_id"
+        private const val KEY_LAST_FULL_SYNC = "last_full_sync"
+        private const val SYNC_THRESHOLD_MS = 24 * 60 * 60 * 1000L // 24 hours
 
         private const val JELLYFIN_SONG_ID_OFFSET = 12_000_000_000_000L
         private const val JELLYFIN_ALBUM_ID_OFFSET = 13_000_000_000_000L
@@ -82,6 +84,17 @@ class JellyfinRepository @Inject constructor(
 
     private val _isLoggedInFlow = MutableStateFlow(false)
     val isLoggedInFlow: StateFlow<Boolean> = _isLoggedInFlow.asStateFlow()
+
+    /** Wall-clock millis of the last successful full library+playlist sync (0 if never). */
+    private var lastFullSyncTime: Long
+        get() = prefs.getLong(KEY_LAST_FULL_SYNC, 0L)
+        set(value) {
+            prefs.edit().putLong(KEY_LAST_FULL_SYNC, value).apply()
+        }
+
+    /** True when the cached library has not been fully synced within the staleness threshold (F111). */
+    fun isLibrarySyncStale(): Boolean =
+        System.currentTimeMillis() - lastFullSyncTime > SYNC_THRESHOLD_MS
 
     init {
         initFromSavedCredentials()
@@ -380,6 +393,9 @@ class JellyfinRepository @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "$TAG: Failed to sync unified library")
             }
+
+            // Mark a successful full sync so the dashboard/home don't re-sync on every open (F111).
+            lastFullSyncTime = System.currentTimeMillis()
 
             Result.success(
                 BulkSyncResult(

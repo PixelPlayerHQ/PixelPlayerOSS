@@ -198,7 +198,10 @@ class SearchStateHolder @Inject constructor(
         }
     }
 
-    fun onCleared() {
+    fun onCleared(owningScope: CoroutineScope) {
+        // Identity-safe release: only tear down if the scope belongs to the
+        // PlayerViewModel being cleared, so a sibling VM can't strand this holder (F15).
+        if (this.scope !== owningScope) return
         searchJob?.cancel()
         scope = null
     }

@@ -6,6 +6,7 @@ import com.lostf1sh.pixelplayeross.data.database.JellyfinPlaylistEntity
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,46 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+/** Typed status of the sync banner so the UI can color it without parsing English text (F113). */
+enum class JellyfinSyncStatus { InProgress, Success, Partial, Error }
+
+/**
+ * Sync banner state. Carries structured data so the UI renders localized strings via
+ * stringResource instead of pre-formatted English text (F112).
+ */
+sealed interface JellyfinSyncBanner {
+    val status: JellyfinSyncStatus
+
+    data object SyncingAll : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.InProgress
+    }
+
+    data object SyncingPlaylists : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.InProgress
+    }
+
+    data object SyncingSongs : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.InProgress
+    }
+
+    data class SyncedSummary(val playlistCount: Int, val songCount: Int, val failedCount: Int) : JellyfinSyncBanner {
+        override val status: JellyfinSyncStatus
+            get() = if (failedCount == 0) JellyfinSyncStatus.Success else JellyfinSyncStatus.Partial
+    }
+
+    data class SyncedPlaylists(val count: Int) : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.Success
+    }
+
+    data class SyncedSongs(val count: Int) : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.Success
+    }
+
+    data class Failed(val message: String?) : JellyfinSyncBanner {
+        override val status = JellyfinSyncStatus.Error
+    }
+}
 
 @HiltViewModel
 class JellyfinDashboardViewModel @Inject constructor(
@@ -26,34 +67,39 @@ class JellyfinDashboardViewModel @Inject constructor(
     private val _isSyncing = MutableStateFlow(false)
     val isSyncing: StateFlow<Boolean> = _isSyncing.asStateFlow()
 
-    private val _syncMessage = MutableStateFlow<String?>(null)
-    val syncMessage: StateFlow<String?> = _syncMessage.asStateFlow()
+    private val _syncBanner = MutableStateFlow<JellyfinSyncBanner?>(null)
+    val syncBanner: StateFlow<JellyfinSyncBanner?> = _syncBanner.asStateFlow()
 
     private val _selectedPlaylistSongs = MutableStateFlow<List<Song>>(emptyList())
     val selectedPlaylistSongs: StateFlow<List<Song>> = _selectedPlaylistSongs.asStateFlow()
+
+    private var loadPlaylistSongsJob: Job? = null
 
     val username: String? get() = repository.username
     val serverUrl: String? get() = repository.serverUrl
     val isLoggedIn: StateFlow<Boolean> = repository.isLoggedInFlow
 
     init {
-        syncAllPlaylistsAndSongs()
+        // Only auto-sync when the cached library is stale, instead of on every dashboard/home open (F111).
+        if (repository.isLibrarySyncStale()) {
+            syncAllPlaylistsAndSongs()
+        }
     }
 
     fun syncAllPlaylistsAndSongs() {
         viewModelScope.launch {
             _isSyncing.value = true
-            _syncMessage.value = "Syncing all playlists and songs..."
+            _syncBanner.value = JellyfinSyncBanner.SyncingAll
             val result = repository.syncAllPlaylistsAndSongs()
             result.fold(
                 onSuccess = { summary ->
-                    _syncMessage.value = if (summary.failedPlaylistCount == 0) {
-                        "Synced ${summary.playlistCount} playlists, ${summary.syncedSongCount} songs"
-                    } else {
-                        "Synced ${summary.playlistCount} playlists, ${summary.syncedSongCount} songs (${summary.failedPlaylistCount} failed)"
-                    }
+                    _syncBanner.value = JellyfinSyncBanner.SyncedSummary(
+                        playlistCount = summary.playlistCount,
+                        songCount = summary.syncedSongCount,
+                        failedCount = summary.failedPlaylistCount
+                    )
                 },
-                onFailure = { _syncMessage.value = "Sync failed: ${it.message}" }
+                onFailure = { _syncBanner.value = JellyfinSyncBanner.Failed(it.message) }
             )
             _isSyncing.value = false
         }
@@ -62,11 +108,11 @@ class JellyfinDashboardViewModel @Inject constructor(
     fun syncPlaylists() {
         viewModelScope.launch {
             _isSyncing.value = true
-            _syncMessage.value = "Syncing playlists..."
+            _syncBanner.value = JellyfinSyncBanner.SyncingPlaylists
             val result = repository.syncPlaylists()
             result.fold(
-                onSuccess = { _syncMessage.value = "Synced ${it.size} playlists" },
-                onFailure = { _syncMessage.value = "Sync failed: ${it.message}" }
+                onSuccess = { _syncBanner.value = JellyfinSyncBanner.SyncedPlaylists(it.size) },
+                onFailure = { _syncBanner.value = JellyfinSyncBanner.Failed(it.message) }
             )
             _isSyncing.value = false
         }
@@ -75,7 +121,7 @@ class JellyfinDashboardViewModel @Inject constructor(
     fun syncPlaylistSongs(playlistId: String) {
         viewModelScope.launch {
             _isSyncing.value = true
-            _syncMessage.value = "Syncing songs..."
+            _syncBanner.value = JellyfinSyncBanner.SyncingSongs
             val result = repository.syncPlaylistSongs(playlistId)
             result.fold(
                 onSuccess = { count ->
@@ -84,16 +130,17 @@ class JellyfinDashboardViewModel @Inject constructor(
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to sync unified library after playlist sync")
                     }
-                    _syncMessage.value = "Synced $count songs"
+                    _syncBanner.value = JellyfinSyncBanner.SyncedSongs(count)
                 },
-                onFailure = { _syncMessage.value = "Sync failed: ${it.message}" }
+                onFailure = { _syncBanner.value = JellyfinSyncBanner.Failed(it.message) }
             )
             _isSyncing.value = false
         }
     }
 
     fun loadPlaylistSongs(playlistId: String) {
-        viewModelScope.launch {
+        loadPlaylistSongsJob?.cancel()
+        loadPlaylistSongsJob = viewModelScope.launch {
             repository.getPlaylistSongs(playlistId).collect { songs ->
                 _selectedPlaylistSongs.value = songs
             }
@@ -107,7 +154,7 @@ class JellyfinDashboardViewModel @Inject constructor(
     }
 
     fun clearSyncMessage() {
-        _syncMessage.value = null
+        _syncBanner.value = null
     }
 
     fun logout() {

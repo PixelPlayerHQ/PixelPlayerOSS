@@ -81,6 +81,14 @@ class NavidromeRepository @Inject constructor(
         const val LIBRARY_PLAYLIST_ID = "__library__"
     }
 
+    private val _credentialsUnencryptedFlow = MutableStateFlow(false)
+
+    /**
+     * Emits true when secure storage (EncryptedSharedPreferences) was unavailable and credentials
+     * had to fall back to plaintext SharedPreferences. The UI surfaces a warning when this is true.
+     */
+    val credentialsUnencryptedFlow: StateFlow<Boolean> = _credentialsUnencryptedFlow.asStateFlow()
+
     private val prefs: SharedPreferences = try {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
@@ -94,6 +102,7 @@ class NavidromeRepository @Inject constructor(
         )
     } catch (e: Exception) {
         Timber.e(e, "$TAG: Failed to create EncryptedSharedPreferences, falling back to plain")
+        _credentialsUnencryptedFlow.value = true
         context.getSharedPreferences("${PREFS_NAME}_plain", Context.MODE_PRIVATE)
     }
 

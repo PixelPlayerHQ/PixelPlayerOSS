@@ -108,9 +108,9 @@ fun EditTransitionScreen(
     // Configuration for the collapsible TopBar behavior (Material 3)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    LaunchedEffect(uiState.isSaved, isPlaylistScope, uiState.useGlobalDefaults) {
-        if (uiState.isSaved) {
-            val messageRes = if (isPlaylistScope && uiState.useGlobalDefaults) {
+    LaunchedEffect(Unit) {
+        viewModel.savedEvents.collect { usingGlobal ->
+            val messageRes = if (usingGlobal) {
                 R.string.presentation_batch_d_transition_snackbar_using_global
             } else {
                 R.string.presentation_batch_d_transition_snackbar_saved

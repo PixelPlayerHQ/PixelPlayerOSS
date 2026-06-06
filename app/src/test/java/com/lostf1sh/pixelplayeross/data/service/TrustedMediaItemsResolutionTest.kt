@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.data.service
 import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Test
@@ -20,10 +21,12 @@ class TrustedMediaItemsResolutionTest {
             artworkUri = "content://com.lostf1sh.pixelplayeross.provider/cache/album.png"
         )
 
-        val resolution = resolveMediaItemsWithTrustedArtworkGrants(
-            requestedItems = listOf(attackerSuppliedItem, trustedItem)
-        ) { mediaId ->
-            if (mediaId == trustedItem.mediaId) trustedItem else null
+        val resolution = runBlocking {
+            resolveMediaItemsWithTrustedArtworkGrants(
+                requestedItems = listOf(attackerSuppliedItem, trustedItem)
+            ) { mediaId ->
+                if (mediaId == trustedItem.mediaId) trustedItem else null
+            }
         }
 
         assertSame(attackerSuppliedItem, resolution.mediaItems[0])
@@ -39,13 +42,15 @@ class TrustedMediaItemsResolutionTest {
         val trustedFirst = mediaItem("song-1")
         val trustedSecond = mediaItem("song-2")
 
-        val resolution = resolveMediaItemsWithTrustedArtworkGrants(
-            requestedItems = listOf(requestedFirst, requestedSecond, requestedThird)
-        ) { mediaId ->
-            when (mediaId) {
-                trustedFirst.mediaId -> trustedFirst
-                trustedSecond.mediaId -> trustedSecond
-                else -> null
+        val resolution = runBlocking {
+            resolveMediaItemsWithTrustedArtworkGrants(
+                requestedItems = listOf(requestedFirst, requestedSecond, requestedThird)
+            ) { mediaId ->
+                when (mediaId) {
+                    trustedFirst.mediaId -> trustedFirst
+                    trustedSecond.mediaId -> trustedSecond
+                    else -> null
+                }
             }
         }
 

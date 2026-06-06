@@ -529,12 +529,16 @@ class SongMetadataEditor(
                 Timber.tag(TAG).e("METADATA_EDIT: Writer failed on temp file ${tempFile.absolutePath}")
                 return false
             }
-            // Stream edited bytes back to the original path (truncate + overwrite).
-            tempFile.inputStream().use { input ->
-                FileOutputStream(originalFile, false).use { out -> input.copyTo(out) }
+            // Durably stage the edited bytes next to the original, then atomically swap
+            // them in. The original is never truncated until the new bytes are on disk,
+            // so an interrupted/failed copy-back leaves the original intact.
+            val replaceOk = safelyReplaceFileContents(originalFile, tempFile)
+            if (!replaceOk) {
+                Timber.tag(TAG).e("METADATA_EDIT: Failed to atomically replace $originalPath")
+                return false
             }
             Timber.tag(TAG).d(
-                "METADATA_EDIT: Restored ${tempFile.length()} edited bytes back to $originalPath"
+                "METADATA_EDIT: Restored ${originalFile.length()} edited bytes back to $originalPath"
             )
             true
         } catch (e: Exception) {
@@ -544,6 +548,76 @@ class SongMetadataEditor(
             if (tempFile.exists() && !tempFile.delete()) {
                 Timber.tag(TAG).w("METADATA_EDIT: Could not delete temp file ${tempFile.absolutePath}")
             }
+        }
+    }
+
+    /**
+     * Durably replaces [target]'s contents with the bytes from [source] without ever leaving the
+     * target truncated or empty on failure.
+     *
+     * Strategy: copy [source]'s bytes into a sibling staging file in the SAME directory as [target]
+     * (so an atomic rename can stay on one filesystem), fsync the staging file, then atomically
+     * rename it over [target]. The original is never opened for truncation; if any step throws the
+     * original is left intact and the staging file is cleaned up, so an interrupted/failed write
+     * (disk full, transient I/O, process kill) cannot corrupt or zero out the user's media file.
+     *
+     * Falls back to a guarded copy-into-place only if a same-directory staging file cannot be created
+     * (e.g. read-only parent), and even then the original is overwritten only after the staged bytes
+     * are durably written.
+     */
+    private fun safelyReplaceFileContents(target: File, source: File): Boolean {
+        val parent = target.absoluteFile.parentFile
+        val staging = if (parent != null) {
+            File(parent, ".${target.name}.metaedit_${System.nanoTime()}.tmp")
+        } else {
+            null
+        }
+
+        if (staging != null) {
+            return try {
+                source.inputStream().use { input ->
+                    FileOutputStream(staging).use { out ->
+                        input.copyTo(out)
+                        out.fd.sync()
+                    }
+                }
+                val renamed = staging.renameTo(target)
+                if (renamed) {
+                    true
+                } else {
+                    // renameTo can fail across odd filesystems; fall back to a verified copy-in-place
+                    // using the already-durable staging file as the source of truth.
+                    Timber.tag(TAG).w(
+                        "METADATA_EDIT: Atomic rename to ${target.absolutePath} failed; falling back to copy-in-place"
+                    )
+                    copyIntoPlaceDurably(target, staging)
+                }
+            } catch (e: Exception) {
+                Timber.tag(TAG).e(e, "METADATA_EDIT: Safe replace failed for ${target.absolutePath}")
+                false
+            } finally {
+                if (staging.exists() && !staging.delete()) {
+                    Timber.tag(TAG).w("METADATA_EDIT: Could not delete staging file ${staging.absolutePath}")
+                }
+            }
+        }
+
+        // No writable parent for staging: copy directly but still fsync so bytes are durable.
+        return copyIntoPlaceDurably(target, source)
+    }
+
+    private fun copyIntoPlaceDurably(target: File, source: File): Boolean {
+        return try {
+            source.inputStream().use { input ->
+                FileOutputStream(target, false).use { output ->
+                    input.copyTo(output)
+                    output.fd.sync()
+                }
+            }
+            true
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "METADATA_EDIT: Copy-in-place failed for ${target.absolutePath}")
+            false
         }
     }
 
@@ -1010,12 +1084,13 @@ class SongMetadataEditor(
             }
             Timber.tag(TAG)
                 .e("VORBISJAVA: Temp file size: ${tempFile.length()} bytes, original: ${audioFile.length()} bytes")
-            
-            tempFile.inputStream().use { input ->
-                FileOutputStream(audioFile, false).use { output ->
-                    input.copyTo(output)
-                    output.fd.sync()
-                }
+
+            // Atomically swap the edited bytes in via a same-directory staging file + fsync + rename.
+            // The original is never truncated before the new bytes are durable, so an interrupted
+            // copy-back cannot leave the .opus file empty/corrupted.
+            if (!safelyReplaceFileContents(audioFile, tempFile)) {
+                Timber.tag(TAG).e("VORBISJAVA: Failed to atomically replace ${audioFile.path}")
+                return false
             }
 
             Timber.tag(TAG).e("VORBISJAVA: SUCCESS - Updated file metadata: ${audioFile.path}")

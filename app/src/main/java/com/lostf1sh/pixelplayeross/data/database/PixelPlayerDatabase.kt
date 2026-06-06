@@ -25,7 +25,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         JellyfinSongEntity::class,
         JellyfinPlaylistEntity::class
     ],
-    version = 45,
+    version = 46,
     exportSchema = true
 )
 abstract class PixelPlayerDatabase : RoomDatabase() {
@@ -553,6 +553,52 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 recreateNavidromeSongsTable(db)
             }
+        }
+
+        val MIGRATION_45_46 = object : Migration(45, 46) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // album_art_themes' primary key changes from (albumArtUriString) to
+                // (albumArtUriString, paletteStyle) so every palette-style variant is cached as its
+                // own row instead of overwriting the single row for that art (F71). SQLite cannot
+                // ALTER a primary key, and the table is a regenerable palette cache, so drop and
+                // recreate it with the new schema; entries are recomputed on demand.
+                recreateAlbumArtThemesTableWithCompositeKey(db)
+            }
+        }
+
+        private fun recreateAlbumArtThemesTableWithCompositeKey(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE IF EXISTS album_art_themes")
+
+            val colorColumns = listOf(
+                "primary", "onPrimary", "primaryContainer", "onPrimaryContainer",
+                "secondary", "onSecondary", "secondaryContainer", "onSecondaryContainer",
+                "tertiary", "onTertiary", "tertiaryContainer", "onTertiaryContainer",
+                "background", "onBackground", "surface", "onSurface",
+                "surfaceVariant", "onSurfaceVariant", "error", "onError",
+                "outline", "errorContainer", "onErrorContainer",
+                "inversePrimary", "inverseSurface", "inverseOnSurface",
+                "surfaceTint", "outlineVariant", "scrim",
+                "surfaceBright", "surfaceDim",
+                "surfaceContainer", "surfaceContainerHigh", "surfaceContainerHighest", "surfaceContainerLow", "surfaceContainerLowest",
+                "primaryFixed", "primaryFixedDim", "onPrimaryFixed", "onPrimaryFixedVariant",
+                "secondaryFixed", "secondaryFixedDim", "onSecondaryFixed", "onSecondaryFixedVariant",
+                "tertiaryFixed", "tertiaryFixedDim", "onTertiaryFixed", "onTertiaryFixedVariant"
+            )
+
+            val themePrefixes = listOf("light_", "dark_")
+            val columnDefinitions = StringBuilder()
+            columnDefinitions.append("albumArtUriString TEXT NOT NULL, ")
+            columnDefinitions.append("paletteStyle TEXT NOT NULL, ")
+            themePrefixes.forEach { prefix ->
+                colorColumns.forEach { column ->
+                    columnDefinitions.append("${prefix}${column} TEXT NOT NULL, ")
+                }
+            }
+            val columnsSql = columnDefinitions.toString().trimEnd(',', ' ')
+
+            db.execSQL(
+                "CREATE TABLE IF NOT EXISTS album_art_themes ($columnsSql, PRIMARY KEY(albumArtUriString, paletteStyle))"
+            )
         }
 
         private fun ensureSongsTableHasDateAdded(db: SupportSQLiteDatabase) {

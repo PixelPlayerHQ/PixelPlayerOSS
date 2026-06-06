@@ -55,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -364,8 +365,7 @@ fun SearchScreen(
                         onGenreClick = { genre ->
                             Timber.tag("SearchScreen")
                                 .d("Genre clicked: ${genre.name} (ID: ${genre.id})")
-                            val encodedGenreId = java.net.URLEncoder.encode(genre.id, "UTF-8")
-                            navController.navigateSafely(Screen.GenreDetail.createRoute(encodedGenreId))
+                            navController.navigateSafely(Screen.GenreDetail.createRoute(genre.id))
                         },
                         playerViewModel = playerViewModel,
                         modifier = Modifier.padding(top = 12.dp)
@@ -491,7 +491,7 @@ fun SearchScreen(
                 },
                 onNavigateToGenre = {
                     currentSong.genre?.let {
-                        navController.navigateSafely(Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")))
+                        navController.navigateSafely(Screen.GenreDetail.createRoute(it))
                     }
                     showSongInfoBottomSheet = false
                 },
@@ -858,9 +858,15 @@ fun SearchResultsList(
                             }
 
                             is SearchResultItem.PlaylistItem -> {
-                                val playlistSongs by remember(item.playlist.songIds, playerViewModel) {
-                                    playerViewModel.observeSongs(item.playlist.songIds)
-                                }.collectAsStateWithLifecycle(initialValue = emptyList())
+                                // One-shot snapshot for the cover collage instead of a live
+                                // per-row Room Flow subscription (only thumbnails are needed).
+                                val playlistSongs by produceState(
+                                    initialValue = emptyList<Song>(),
+                                    item.playlist.songIds,
+                                    playerViewModel
+                                ) {
+                                    value = playerViewModel.getSongs(item.playlist.songIds)
+                                }
                                 val coroutineScope = rememberCoroutineScope()
                                 val onPlayClick: () -> Unit = {
                                     coroutineScope.launch {

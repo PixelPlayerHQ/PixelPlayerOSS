@@ -42,7 +42,11 @@ internal class MiniPlayerDismissGestureHandler(
     private var accumulatedDragX: Float = 0f
     private var offsetJob: Job? = null
 
+    /** Whether a dismiss animation is currently running. */
+    private var isDismissing: Boolean = false
+
     fun onDragStart() {
+        if (isDismissing) return
         dragPhase = MiniDismissDragPhase.TENSION
         accumulatedDragX = 0f
         offsetJob?.cancel()
@@ -52,6 +56,7 @@ internal class MiniPlayerDismissGestureHandler(
     }
 
     fun onHorizontalDrag(dragAmount: Float) {
+        if (isDismissing) return
         accumulatedDragX += dragAmount
 
         when (dragPhase) {
@@ -103,22 +108,28 @@ internal class MiniPlayerDismissGestureHandler(
     }
 
     fun onDragEnd() {
+        if (isDismissing) return
         dragPhase = MiniDismissDragPhase.IDLE
         offsetJob?.cancel()
         val dismissThreshold = screenWidthPx * 0.4f
         if (abs(accumulatedDragX) > dismissThreshold) {
+            isDismissing = true
             onDismissStarted()
             val targetDismissOffset = if (accumulatedDragX < 0) -screenWidthPx else screenWidthPx
             offsetJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
-                offsetAnimatable.animateTo(
-                    targetValue = targetDismissOffset,
-                    animationSpec = tween(
-                        durationMillis = 200,
-                        easing = FastOutSlowInEasing
+                try {
+                    offsetAnimatable.animateTo(
+                        targetValue = targetDismissOffset,
+                        animationSpec = tween(
+                            durationMillis = 200,
+                            easing = FastOutSlowInEasing
+                        )
                     )
-                )
-                onDismissPlaylistAndShowUndo()
-                offsetAnimatable.snapTo(0f)
+                    onDismissPlaylistAndShowUndo()
+                    offsetAnimatable.snapTo(0f)
+                } finally {
+                    isDismissing = false
+                }
             }
         } else {
             offsetJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {

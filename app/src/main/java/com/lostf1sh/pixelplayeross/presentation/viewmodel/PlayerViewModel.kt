@@ -2225,7 +2225,7 @@ class PlayerViewModel @Inject constructor(
                 awaitPlayerCollapse()
             }
 
-            _artistNavigationRequests.emit(artistId)
+            _artistNavigationRequests.emit(resolvedId)
         }
     }
 
@@ -3470,9 +3470,10 @@ class PlayerViewModel @Inject constructor(
             val favIds = favoriteSongIds.value.toMutableSet()
             var likedCount = 0
             songs.forEach { song ->
-                if (!favIds.contains(song.id)) {
-                    setFavoriteStatusEverywhere(song.id, true)
-                    favIds.add(song.id)
+                val favoriteSongId = resolveFavoriteSongId(song) ?: return@forEach
+                if (!favIds.contains(favoriteSongId)) {
+                    setFavoriteStatusEverywhere(favoriteSongId, true)
+                    favIds.add(favoriteSongId)
                     likedCount++
                 }
             }
@@ -3496,9 +3497,10 @@ class PlayerViewModel @Inject constructor(
             val favIds = favoriteSongIds.value.toMutableSet()
             var unlikedCount = 0
             songs.forEach { song ->
-                if (favIds.contains(song.id)) {
-                    setFavoriteStatusEverywhere(song.id, false)
-                    favIds.remove(song.id)
+                val favoriteSongId = resolveFavoriteSongId(song) ?: return@forEach
+                if (favIds.contains(favoriteSongId)) {
+                    setFavoriteStatusEverywhere(favoriteSongId, false)
+                    favIds.remove(favoriteSongId)
                     unlikedCount++
                 }
             }
@@ -4070,14 +4072,14 @@ class PlayerViewModel @Inject constructor(
         mediaControllerFuture.cancel(true)
         super.onCleared()
         stopProgressUpdates()
-        playbackStateHolder.onCleared()
-        listeningStatsTracker.onCleared()
-        dailyMixStateHolder.onCleared()
-        lyricsStateHolder.onCleared()
-        themeStateHolder.onCleared()
-        searchStateHolder.onCleared()
-        libraryStateHolder.onCleared()
-        sleepTimerStateHolder.onCleared()
+        playbackStateHolder.onCleared(viewModelScope)
+        listeningStatsTracker.onCleared(viewModelScope)
+        dailyMixStateHolder.onCleared(viewModelScope)
+        lyricsStateHolder.onCleared(viewModelScope)
+        themeStateHolder.onCleared(viewModelScope)
+        searchStateHolder.onCleared(viewModelScope)
+        libraryStateHolder.onCleared(viewModelScope)
+        sleepTimerStateHolder.onCleared(viewModelScope)
         connectivityStateHolder.onCleared()
         queueUndoStateHolder.onCleared()
         playlistDismissUndoStateHolder.onCleared()

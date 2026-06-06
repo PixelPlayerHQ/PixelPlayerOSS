@@ -72,6 +72,12 @@ class SyncManager @Inject constructor(
     private var lastForegroundSyncTime = 0L
     @Volatile
     private var currentSyncWorkId: UUID? = null
+    // Tracks the most recent work the user explicitly asked for (pull-to-refresh, full
+    // rescan, rebuild). Opportunistic runs (startup, storage-change, foreground catch-up)
+    // leave this untouched, so [syncFailed] only surfaces a toast for failures the user
+    // initiated. Unique work means at most one foreground sync is active at a time.
+    @Volatile
+    private var lastUserInitiatedSyncWorkId: UUID? = null
 
     // Exposes a simple Flow<Boolean>.
     val isSyncing: Flow<Boolean> =
@@ -93,14 +99,21 @@ class SyncManager @Inject constructor(
             )
 
     /**
-     * Emits once each time the library sync finishes in a FAILED state with no other
-     * run still active. Used to surface a one-shot "sync failed" message to the user,
-     * which the [syncProgress] flow alone cannot do (it silently reverts to idle).
+     * Emits once each time a *user-initiated* library sync finishes in a FAILED state with
+     * no other run still active. Used to surface a one-shot "sync failed" message to the
+     * user, which the [syncProgress] flow alone cannot do (it silently reverts to idle).
+     *
+     * Opportunistic background runs (startup sync, storage-change auto-sync, foreground
+     * catch-up) share [SyncWorker.WORK_NAME] but are intentionally excluded here: a
+     * transient failure on a sync the user never asked for must not raise a toast. Only
+     * work enqueued via [enqueueSyncWork] with `userInitiated = true` is eligible.
      */
     val syncFailed: Flow<Unit> =
         workManager.getWorkInfosForUniqueWorkFlow(SyncWorker.WORK_NAME)
             .map { workInfos ->
-                latestForegroundSyncWork(workInfos)?.state == WorkInfo.State.FAILED
+                val failedWork = latestForegroundSyncWork(workInfos)
+                    ?.takeIf { it.state == WorkInfo.State.FAILED }
+                failedWork != null && failedWork.id == lastUserInitiatedSyncWorkId
             }
             .distinctUntilChanged()
             .filter { it }
@@ -250,7 +263,8 @@ class SyncManager @Inject constructor(
         Timber.tag(TAG).i("Incremental sync requested - Scheduling incremental worker")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
-            policy = ExistingWorkPolicy.REPLACE
+            policy = ExistingWorkPolicy.REPLACE,
+            userInitiated = true
         )
     }
 
@@ -262,7 +276,8 @@ class SyncManager @Inject constructor(
         Timber.tag(TAG).i("Full sync requested - Scheduling full sync worker")
         enqueueSyncWork(
             request = SyncWorker.fullSyncWork(deepScan = deepScan),
-            policy = ExistingWorkPolicy.REPLACE
+            policy = ExistingWorkPolicy.REPLACE,
+            userInitiated = true
         )
     }
 
@@ -275,7 +290,8 @@ class SyncManager @Inject constructor(
         Timber.tag(TAG).i("Rebuild database requested - Scheduling rebuild worker")
         enqueueSyncWork(
             request = SyncWorker.rebuildDatabaseWork(),
-            policy = ExistingWorkPolicy.REPLACE
+            policy = ExistingWorkPolicy.REPLACE,
+            userInitiated = true
         )
     }
 
@@ -288,7 +304,8 @@ class SyncManager @Inject constructor(
         Timber.tag(TAG).i("Manual local refresh requested - Scheduling incremental worker")
         enqueueSyncWork(
             request = SyncWorker.incrementalSyncWork(runMaintenance = false),
-            policy = ExistingWorkPolicy.REPLACE
+            policy = ExistingWorkPolicy.REPLACE,
+            userInitiated = true
         )
     }
 
@@ -377,9 +394,13 @@ class SyncManager @Inject constructor(
     private fun enqueueSyncWork(
         request: OneTimeWorkRequest,
         policy: ExistingWorkPolicy,
-        notifyObserver: Boolean = true
+        notifyObserver: Boolean = true,
+        userInitiated: Boolean = false
     ) {
         currentSyncWorkId = request.id
+        if (userInitiated) {
+            lastUserInitiatedSyncWorkId = request.id
+        }
         workManager.enqueueUniqueWork(
             SyncWorker.WORK_NAME,
             policy,

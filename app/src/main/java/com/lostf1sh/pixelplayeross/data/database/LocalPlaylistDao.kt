@@ -36,6 +36,14 @@ interface LocalPlaylistDao {
     @Query("DELETE FROM playlists WHERE id = :playlistId")
     suspend fun deletePlaylist(playlistId: String)
 
+    // playlist_songs has no FK/cascade, so deleting a playlist must also clear its song rows in the
+    // same transaction or they are orphaned forever (F73).
+    @Transaction
+    suspend fun deletePlaylistWithSongs(playlistId: String) {
+        clearPlaylistSongs(playlistId)
+        deletePlaylist(playlistId)
+    }
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertPlaylistSongs(entities: List<PlaylistSongEntity>)
 

@@ -53,7 +53,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.ViewCompat
 import android.view.HapticFeedbackConstants
 import com.lostf1sh.pixelplayeross.R
-import com.lostf1sh.pixelplayeross.presentation.library.LibraryTabId
 import com.lostf1sh.pixelplayeross.presentation.utils.LocalAppHapticsConfig
 import com.lostf1sh.pixelplayeross.presentation.utils.performAppCompatHapticFeedback
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans

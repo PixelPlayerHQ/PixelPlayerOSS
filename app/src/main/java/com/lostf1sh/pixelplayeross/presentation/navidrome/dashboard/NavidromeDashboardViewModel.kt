@@ -50,6 +50,9 @@ class NavidromeDashboardViewModel @Inject constructor(
     val isLoggedIn: StateFlow<Boolean> = repository.isLoggedInFlow
     val lastSyncTime: Long get() = repository.lastFullSyncTime
 
+    /** True when secure storage was unavailable and credentials are stored unencrypted. */
+    val credentialsUnencrypted: StateFlow<Boolean> = repository.credentialsUnencryptedFlow
+
     init {
         observeSyncWorker()
         // Auto sync full library (songs + playlists) if it's been more than 24 hours

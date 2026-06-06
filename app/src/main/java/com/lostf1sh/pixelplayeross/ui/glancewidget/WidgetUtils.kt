@@ -2,6 +2,7 @@ package com.lostf1sh.pixelplayeross.ui.glancewidget
 
 import android.graphics.Bitmap
 import android.util.LruCache
+import java.security.MessageDigest
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.glance.GlanceTheme
@@ -20,14 +21,27 @@ object AlbumArtBitmapCache {
     fun getBitmap(key: String): Bitmap? = lruCache.get(key)
 
     fun putBitmap(key: String, bitmap: Bitmap) {
-        if (getBitmap(key) == null) {
-            lruCache.put(key, bitmap)
-        }
+        // Always store the freshly decoded bitmap so a stale entry (e.g. a
+        // URI-keyed entry whose underlying artwork changed) is replaced rather
+        // than kept for the LRU lifetime.
+        lruCache.put(key, bitmap)
     }
 
     fun getKey(byteArray: ByteArray): String {
-        return byteArray.contentHashCode().toString()
+        // Use a strong content digest (SHA-256) instead of the 32-bit
+        // contentHashCode() so two distinct album-art byte arrays do not collide
+        // onto the same cache entry and surface the wrong artwork.
+        val digest = MessageDigest.getInstance("SHA-256").digest(byteArray)
+        return buildString(digest.size * 2) {
+            for (b in digest) {
+                val v = b.toInt() and 0xFF
+                append(HEX_CHARS[v ushr 4])
+                append(HEX_CHARS[v and 0x0F])
+            }
+        }
     }
+
+    private val HEX_CHARS = "0123456789abcdef".toCharArray()
 }
 
 data class WidgetColors(

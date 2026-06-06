@@ -163,7 +163,8 @@ object AppModule {
             PixelPlayerDatabase.MIGRATION_41_42,
             PixelPlayerDatabase.MIGRATION_42_43,
             PixelPlayerDatabase.MIGRATION_43_44,
-            PixelPlayerDatabase.MIGRATION_44_45
+            PixelPlayerDatabase.MIGRATION_44_45,
+            PixelPlayerDatabase.MIGRATION_45_46
         )
             .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
@@ -387,6 +388,11 @@ object AppModule {
             redactHeader("X-Emby-Token")
             redactHeader("X-Emby-Authorization")
             redactHeader("X-MediaBrowser-Token")
+            // Redact credential-bearing URL query params. HEADERS level still logs the
+            // request line (--> GET <url>), and Navidrome/Subsonic carries its session
+            // token+salt in the URL ("t"/"s"), while Jellyfin appends "api_key". Without
+            // this they would be written to logcat for every API/stream/cover-art request.
+            redactQueryParams("t", "s", "api_key")
         }
         
         // Connection pool with optimized connections for better performance

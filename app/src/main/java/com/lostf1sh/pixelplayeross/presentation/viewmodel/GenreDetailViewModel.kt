@@ -132,18 +132,18 @@ class GenreDetailViewModel @Inject constructor(
             try {
                 // Step 1: Fast load of the Genre object to stabilize the UI theme as early as possible.
                 // This prevents a major recomposition (theme switch) mid-animation.
-                val initialGenre = withContext(Dispatchers.Default) {
-                    val genres = musicRepository.getGenres().first()
-                    genres.find { it.id.equals(genreId, ignoreCase = true) }
+                // Collect getGenres() once and reuse the list in Step 2 to avoid re-running the aggregation.
+                val genres = withContext(Dispatchers.Default) {
+                    musicRepository.getGenres().first()
                 }
-                
+                val initialGenre = genres.find { it.id.equals(genreId, ignoreCase = true) }
+
                 if (initialGenre != null) {
                     _uiState.value = _uiState.value.copy(genre = initialGenre, isLoadingGenreName = false)
                 }
 
                 // Step 2: Heavy data processing for songs and sections
                 val result = withContext(Dispatchers.Default) {
-                    val genres = musicRepository.getGenres().first()
                     val genre = initialGenre ?: genres.find { it.id.equals(genreId, ignoreCase = true) }
                         ?: Genre(
                             id = genreId,

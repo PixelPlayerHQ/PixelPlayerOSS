@@ -979,7 +979,10 @@ class SettingsViewModel @Inject constructor(
                     _dataTransferEvents.emit(
                         context.getString(R.string.restore_partial_unresolved_format, failedNames),
                     )
-                    if (result.succeeded.isNotEmpty() || !result.rolledBack) {
+                    // Only sync when data was actually restored. Previously this also synced when
+                    // !rolledBack was true, which conflated "something succeeded" with "rollback did
+                    // not happen" and ran a full sync over a partially-written, non-rolled-back DB.
+                    if (result.succeeded.isNotEmpty()) {
                         syncManager.sync()
                     }
                 }

@@ -72,7 +72,8 @@ class TransitionRepositoryImpl @Inject constructor(
     }
 
     override suspend fun saveRule(rule: TransitionRule) {
-        transitionDao.setRule(rule.toEntity())
+        // upsertRule dedupes the default rule, which a plain @Upsert cannot because of NULL track ids (F76).
+        transitionDao.upsertRule(rule.toEntity())
     }
 
     override suspend fun deleteRule(ruleId: Long) {

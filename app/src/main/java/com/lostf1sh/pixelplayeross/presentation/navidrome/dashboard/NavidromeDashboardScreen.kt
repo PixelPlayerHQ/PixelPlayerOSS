@@ -56,6 +56,7 @@ fun NavidromeDashboardScreen(
     val syncMessage by viewModel.syncMessage.collectAsStateWithLifecycle()
     val selectedPlaylistSongs by viewModel.selectedPlaylistSongs.collectAsStateWithLifecycle()
     val selectedPlaylistName by viewModel.selectedPlaylistName.collectAsStateWithLifecycle()
+    val credentialsUnencrypted by viewModel.credentialsUnencrypted.collectAsStateWithLifecycle()
 
     val cardShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = 20.dp, cornerRadiusTL = 20.dp,
@@ -102,6 +103,7 @@ fun NavidromeDashboardScreen(
             syncMessage = syncMessage,
             selectedPlaylistSongs = selectedPlaylistSongs,
             selectedPlaylistName = selectedPlaylistName,
+            credentialsUnencrypted = credentialsUnencrypted,
             username = viewModel.username,
             lastSyncTime = viewModel.lastSyncTime,
             onSyncAll = { viewModel.syncAllPlaylistsAndSongs() },
@@ -126,6 +128,7 @@ private fun DashboardContent(
     syncMessage: String?,
     selectedPlaylistSongs: List<Song>,
     selectedPlaylistName: String?,
+    credentialsUnencrypted: Boolean,
     username: String?,
     lastSyncTime: Long,
     onSyncAll: () -> Unit,
@@ -141,6 +144,27 @@ private fun DashboardContent(
             .fillMaxSize()
             .padding(paddingValues)
     ) {
+        // Unencrypted-credentials security warning (shown only when secure storage was unavailable)
+        if (credentialsUnencrypted) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = cardShape,
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = stringResource(R.string.navidrome_credentials_unencrypted_warning),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = RoundedSans,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
         // Sync status banner
         AnimatedVisibility(
             visible = syncMessage != null,

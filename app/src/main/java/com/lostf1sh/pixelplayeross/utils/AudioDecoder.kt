@@ -17,69 +17,68 @@ object AudioDecoder {
     private const val ENCODING_PCM_FLOAT = 4
 
     suspend fun decodeToFloatArray(context: Context, uri: Uri, requiredSamples: Int): Result<FloatArray> = withContext(Dispatchers.IO) {
+        var extractor: MediaExtractor? = null
+        var decoder: MediaCodec? = null
         runCatching {
-            val extractor = MediaExtractor()
-            extractor.setDataSource(context, uri, null)
+            val activeExtractor = MediaExtractor().also { extractor = it }
+            activeExtractor.setDataSource(context, uri, null)
 
-            val trackIndex = findAudioTrack(extractor)
+            val trackIndex = findAudioTrack(activeExtractor)
             if (trackIndex == -1) {
-                extractor.release()
                 error("No audio track found in the file.")
             }
-            extractor.selectTrack(trackIndex)
-            val format = extractor.getTrackFormat(trackIndex)
+            activeExtractor.selectTrack(trackIndex)
+            val format = activeExtractor.getTrackFormat(trackIndex)
 
             val mime = format.getString(MediaFormat.KEY_MIME) ?: error("MIME type not found.")
-            val decoder = MediaCodec.createDecoderByType(mime)
-            decoder.configure(format, null, null, 0)
-            decoder.start()
+            val activeDecoder = MediaCodec.createDecoderByType(mime).also { decoder = it }
+            activeDecoder.configure(format, null, null, 0)
+            activeDecoder.start()
 
             val pcmData = mutableListOf<Float>()
             val bufferInfo = MediaCodec.BufferInfo()
             var isEndOfStream = false
 
             while (!isEndOfStream && pcmData.size < requiredSamples) { // --- MODIFIED: stop condition ---
-                val inputBufferIndex = decoder.dequeueInputBuffer(TIMEOUT_US)
+                val inputBufferIndex = activeDecoder.dequeueInputBuffer(TIMEOUT_US)
                 if (inputBufferIndex >= 0) {
-                    val inputBuffer = decoder.getInputBuffer(inputBufferIndex)
+                    val inputBuffer = activeDecoder.getInputBuffer(inputBufferIndex)
                     if (inputBuffer == null) {
                         Timber.tag("AudioDecoder").w("Decoder input buffer was null, ending decode early")
-                        decoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                        activeDecoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                         isEndOfStream = true
                         continue
                     }
-                    val sampleSize = extractor.readSampleData(inputBuffer, 0)
+                    val sampleSize = activeExtractor.readSampleData(inputBuffer, 0)
                     if (sampleSize < 0) {
-                        decoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
+                        activeDecoder.queueInputBuffer(inputBufferIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
                         isEndOfStream = true
                     } else {
-                        decoder.queueInputBuffer(inputBufferIndex, 0, sampleSize, extractor.sampleTime, 0)
-                        extractor.advance()
+                        activeDecoder.queueInputBuffer(inputBufferIndex, 0, sampleSize, activeExtractor.sampleTime, 0)
+                        activeExtractor.advance()
                     }
                 }
 
-                var outputBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
+                var outputBufferIndex = activeDecoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
                 while (outputBufferIndex >= 0) {
-                    val outputBuffer = decoder.getOutputBuffer(outputBufferIndex)
+                    val outputBuffer = activeDecoder.getOutputBuffer(outputBufferIndex)
                     if (outputBuffer == null) {
                         Timber.tag("AudioDecoder").w("Decoder output buffer was null, skipping chunk")
-                        decoder.releaseOutputBuffer(outputBufferIndex, false)
-                        outputBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
+                        activeDecoder.releaseOutputBuffer(outputBufferIndex, false)
+                        outputBufferIndex = activeDecoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
                         continue
                     }
                     pcmData.addAll(byteBufferToFloatArray(outputBuffer, format).asList())
-                    decoder.releaseOutputBuffer(outputBufferIndex, false)
+                    activeDecoder.releaseOutputBuffer(outputBufferIndex, false)
 
                     // If we already have enough samples, exit the inner loop
                     if (pcmData.size >= requiredSamples) break
 
-                    outputBufferIndex = decoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
+                    outputBufferIndex = activeDecoder.dequeueOutputBuffer(bufferInfo, TIMEOUT_US)
                 }
             }
 
-            decoder.stop()
-            decoder.release()
-            extractor.release()
+            activeDecoder.stop()
 
             Timber.tag("AudioDecoder").d("Successfully decoded ${pcmData.size} samples.")
 
@@ -91,6 +90,10 @@ object AudioDecoder {
 
             // Return the array at the exact size
             pcmData.toFloatArray().copyOf(requiredSamples)
+        }.also {
+            // Release native resources on both success and failure paths.
+            runCatching { decoder?.release() }
+            runCatching { extractor?.release() }
         }
     }
 

@@ -1,11 +1,13 @@
 package com.lostf1sh.pixelplayeross.data.preferences
 
 import android.content.Context
+import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey // Added import
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -18,7 +20,6 @@ import com.lostf1sh.pixelplayeross.data.model.SortOption // Added import
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
 import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
-import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset // Added import
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,8 +32,15 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import timber.log.Timber
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
+        name = "settings",
+        // If the backing settings file is unreadable/corrupt (unclean shutdown, disk error,
+        // partial Platform Auto Backup restore), fall back to empty preferences instead of
+        // propagating an IOException through every preference flow and crashing on launch.
+        corruptionHandler = ReplaceFileCorruptionHandler { emptyPreferences() }
+)
 
 object ThemePreference {
     const val DEFAULT = "default"
@@ -68,6 +76,181 @@ enum class AlbumArtQuality(val maxSize: Int, val label: String) {
     ORIGINAL(0, "Original - Maximum quality")
 }
 
+/**
+ * Expected DataStore value type for a known preference key. Used by backup import to validate the
+ * backup-supplied [PreferenceBackupEntry.type] against what live code actually reads a key as, so a
+ * crafted/old backup cannot write a key under a different type than the app expects (which would
+ * throw ClassCastException on the next typed read).
+ */
+enum class PrefType {
+    STRING,
+    INT,
+    LONG,
+    BOOLEAN,
+    FLOAT,
+    DOUBLE,
+    STRING_SET
+}
+
+/**
+ * Per-key expected-type registry covering all DataStore keys owned by [UserPreferencesRepository],
+ * [EqualizerPreferencesRepository] and [ThemePreferencesRepository] (they share one DataStore).
+ *
+ * This is the single source of truth for backup type validation. A key NOT present here is treated
+ * as unknown and is restored on trust (the backup-supplied type wins) so that legitimately-restored
+ * keys we forgot to register, or keys added by newer app versions, are never silently dropped on an
+ * older build — i.e. the registry only *repairs/skips* known type mismatches, it never rejects
+ * unknown keys.
+ */
+internal object PreferenceTypeRegistry {
+
+    val expectedTypes: Map<String, PrefType> = buildMap {
+        // --- UserPreferencesRepository keys ---
+        put("app_rebrand_dialog_shown", PrefType.BOOLEAN)
+        put("beta_05_clean_install_disclaimer_dismissed", PrefType.BOOLEAN)
+        put("allowed_directories", PrefType.STRING_SET)
+        put("blocked_directories", PrefType.STRING_SET)
+        put("initial_setup_done", PrefType.BOOLEAN)
+        put("player_theme_preference_v2", PrefType.STRING)
+        put("album_art_palette_style_v1", PrefType.STRING)
+        put("app_theme_mode", PrefType.STRING)
+        put("favorite_song_ids", PrefType.STRING_SET)
+        put("user_playlists_json_v1", PrefType.STRING)
+        put("playlist_song_order_modes", PrefType.STRING)
+        put("songs_sort_option", PrefType.STRING)
+        put("songs_sort_option_migrated_v2", PrefType.BOOLEAN)
+        put("albums_sort_option", PrefType.STRING)
+        put("artists_sort_option", PrefType.STRING)
+        put("playlists_sort_option", PrefType.STRING)
+        put("folders_sort_option", PrefType.STRING)
+        put("liked_songs_sort_option", PrefType.STRING)
+        put("last_library_tab_index", PrefType.INT)
+        put("last_storage_filter", PrefType.STRING)
+        put("mock_genres_enabled", PrefType.BOOLEAN)
+        put("last_daily_mix_update", PrefType.LONG)
+        put("daily_mix_song_ids", PrefType.STRING)
+        put("your_mix_song_ids", PrefType.STRING)
+        put("nav_bar_corner_radius", PrefType.INT)
+        put("nav_bar_style", PrefType.STRING)
+        put("nav_bar_compact_mode", PrefType.BOOLEAN)
+        put("carousel_style", PrefType.STRING)
+        put("library_navigation_mode", PrefType.STRING)
+        put("launch_tab", PrefType.STRING)
+        put("global_transition_settings_json", PrefType.STRING)
+        put("library_tabs_order", PrefType.STRING)
+        put("is_folder_filter_active", PrefType.BOOLEAN)
+        put("is_folders_playlist_view", PrefType.BOOLEAN)
+        put("hide_local_media", PrefType.BOOLEAN)
+        put("folders_source", PrefType.STRING)
+        put("folder_back_gesture_navigation", PrefType.BOOLEAN)
+        put("use_smooth_corners", PrefType.BOOLEAN)
+        put("keep_playing_in_background", PrefType.BOOLEAN)
+        put("is_crossfade_enabled", PrefType.BOOLEAN)
+        put("hi_fi_mode_enabled", PrefType.BOOLEAN)
+        put("crossfade_duration", PrefType.INT)
+        put("playback_speed", PrefType.FLOAT)
+        put("custom_genres", PrefType.STRING_SET)
+        put("custom_genre_icons", PrefType.STRING)
+        put("repeat_mode", PrefType.INT)
+        put("is_shuffle_on", PrefType.BOOLEAN)
+        put("persistent_shuffle_enabled", PrefType.BOOLEAN)
+        put("resume_on_headset_reconnect", PrefType.BOOLEAN)
+        put("show_queue_history", PrefType.BOOLEAN)
+        put("playback_queue_snapshot_v1", PrefType.STRING)
+        put("full_player_show_file_info", PrefType.BOOLEAN)
+        put("full_player_delay_all", PrefType.BOOLEAN)
+        put("full_player_delay_album", PrefType.BOOLEAN)
+        put("full_player_delay_metadata", PrefType.BOOLEAN)
+        put("full_player_delay_progress", PrefType.BOOLEAN)
+        put("full_player_delay_controls", PrefType.BOOLEAN)
+        put("full_player_placeholders", PrefType.BOOLEAN)
+        put("full_player_placeholder_transparent", PrefType.BOOLEAN)
+        put("full_player_placeholders_on_close", PrefType.BOOLEAN)
+        put("full_player_switch_on_drag_release", PrefType.BOOLEAN)
+        put("full_player_delay_threshold_percent", PrefType.INT)
+        put("full_player_close_threshold_percent", PrefType.INT)
+        put("use_player_sheet_v2", PrefType.BOOLEAN)
+        put("artist_delimiters", PrefType.STRING)
+        put("artist_word_delimiters", PrefType.STRING)
+        put("extract_artists_from_title", PrefType.BOOLEAN)
+        put("group_by_album_artist", PrefType.BOOLEAN)
+        put("artist_settings_rescan_required", PrefType.BOOLEAN)
+        put("backup_info_dismissed", PrefType.BOOLEAN)
+        put("last_sync_timestamp", PrefType.LONG)
+        put("directory_rules_version", PrefType.INT)
+        put("last_applied_directory_rules_version", PrefType.INT)
+        put("lyrics_sync_offsets_json", PrefType.STRING)
+        put("lyrics_source_preference", PrefType.STRING)
+        put("auto_scan_lrc_files", PrefType.BOOLEAN)
+        put("external_lyrics_enabled", PrefType.BOOLEAN)
+        put("external_artist_images_enabled", PrefType.BOOLEAN)
+        put("album_art_quality", PrefType.STRING)
+        put("album_art_cache_limit_mb", PrefType.INT)
+        put("tap_background_closes_player", PrefType.BOOLEAN)
+        put("haptics_enabled", PrefType.BOOLEAN)
+        put("immersive_lyrics_enabled", PrefType.BOOLEAN)
+        put("immersive_lyrics_timeout", PrefType.LONG)
+        put("use_animated_lyrics", PrefType.BOOLEAN)
+        put("animated_lyrics_blur_enabled", PrefType.BOOLEAN)
+        put("animated_lyrics_blur_strength", PrefType.FLOAT)
+        put("is_genre_grid_view", PrefType.BOOLEAN)
+        put("is_albums_list_view", PrefType.BOOLEAN)
+        put("collage_pattern", PrefType.STRING)
+        put("collage_auto_rotate", PrefType.BOOLEAN)
+        put("last_playlist_id", PrefType.STRING)
+        put("last_playlist_name", PrefType.STRING)
+        put("min_song_duration_ms", PrefType.INT)
+        put("min_tracks_per_album", PrefType.INT)
+        put("replaygain_enabled", PrefType.BOOLEAN)
+        put("replaygain_use_album_gain", PrefType.BOOLEAN)
+
+        // --- EqualizerPreferencesRepository keys ---
+        put("equalizer_enabled", PrefType.BOOLEAN)
+        put("equalizer_preset", PrefType.STRING)
+        put("equalizer_custom_bands", PrefType.STRING)
+        put("bass_boost_strength", PrefType.INT)
+        put("virtualizer_strength", PrefType.INT)
+        put("bass_boost_enabled", PrefType.BOOLEAN)
+        put("virtualizer_enabled", PrefType.BOOLEAN)
+        put("loudness_enhancer_enabled", PrefType.BOOLEAN)
+        put("loudness_enhancer_strength", PrefType.INT)
+        put("bass_boost_dismissed", PrefType.BOOLEAN)
+        put("virtualizer_dismissed", PrefType.BOOLEAN)
+        put("loudness_dismissed", PrefType.BOOLEAN)
+        put("equalizer_view_mode", PrefType.STRING)
+        put("custom_presets_json", PrefType.STRING)
+        put("pinned_presets_json", PrefType.STRING)
+        put("is_graph_view", PrefType.BOOLEAN) // legacy fallback key still read by EqualizerPreferencesRepository
+
+        // --- ThemePreferencesRepository keys (player_theme_preference_v2 / album_art_palette_style_v1
+        //     / app_theme_mode already registered above; only the unique one is added here) ---
+        put("album_art_color_accuracy_v1", PrefType.INT)
+    }
+
+    /** The backup-entry `type` discriminator string corresponding to each [PrefType]. */
+    fun wireName(type: PrefType): String = when (type) {
+        PrefType.STRING -> "string"
+        PrefType.INT -> "int"
+        PrefType.LONG -> "long"
+        PrefType.BOOLEAN -> "boolean"
+        PrefType.FLOAT -> "float"
+        PrefType.DOUBLE -> "double"
+        PrefType.STRING_SET -> "string_set"
+    }
+}
+
+/**
+ * Keys that hold secrets / device-specific endpoints which must be redacted from a backup export.
+ * Matched by substring (case-insensitive) so future token/secret/password/URL keys are caught
+ * automatically. This is an opt-in redaction filter layered on top of [backupExcludedKeyNames].
+ */
+private val SECRET_KEY_SUBSTRINGS = listOf("token", "secret", "password", "url")
+
+private fun isLikelySecretKey(keyName: String): Boolean {
+    val lower = keyName.lowercase()
+    return SECRET_KEY_SUBSTRINGS.any { lower.contains(it) }
+}
+
 @Singleton
 class UserPreferencesRepository
 @Inject
@@ -81,6 +264,19 @@ constructor(
         // Legacy scrobbling secrets from removed ListenBrainz/Last.fm support.
         "listenbrainz_token",
         "lastfm_session_key"
+    )
+
+    // Transient/derived runtime state that is not really a user "setting". A restore that wipes
+    // existing prefs must NOT clear these: doing so drops the resume-playback queue and resets
+    // the directory-rules/sync version markers, forcing a surprising full library re-sync. They
+    // are still imported normally if the backup actually carries them; this set only protects
+    // them from the clear step when the backup omits them.
+    private val restorePreservedKeyNames = setOf(
+        PreferencesKeys.PLAYBACK_QUEUE_SNAPSHOT.name,
+        PreferencesKeys.LAST_SYNC_TIMESTAMP.name,
+        PreferencesKeys.DIRECTORY_RULES_VERSION.name,
+        PreferencesKeys.LAST_APPLIED_DIRECTORY_RULES_VERSION.name,
+        PreferencesKeys.LAST_DAILY_MIX_UPDATE.name
     )
 
     private object PreferencesKeys {
@@ -168,30 +364,14 @@ constructor(
         val ARTIST_SETTINGS_RESCAN_REQUIRED =
                 booleanPreferencesKey("artist_settings_rescan_required")
 
-        // Equalizer Settings
-        val EQUALIZER_ENABLED = booleanPreferencesKey("equalizer_enabled")
-        val EQUALIZER_PRESET = stringPreferencesKey("equalizer_preset")
-        val EQUALIZER_CUSTOM_BANDS = stringPreferencesKey("equalizer_custom_bands")
-        val BASS_BOOST_STRENGTH = intPreferencesKey("bass_boost_strength")
-        val VIRTUALIZER_STRENGTH = intPreferencesKey("virtualizer_strength")
-        val BASS_BOOST_ENABLED = booleanPreferencesKey("bass_boost_enabled")
-        val VIRTUALIZER_ENABLED = booleanPreferencesKey("virtualizer_enabled")
-        val LOUDNESS_ENHANCER_ENABLED = booleanPreferencesKey("loudness_enhancer_enabled")
-        val LOUDNESS_ENHANCER_STRENGTH = intPreferencesKey("loudness_enhancer_strength")
+        // Equalizer settings (enabled/preset/custom bands, bass boost, virtualizer, loudness
+        // enhancer, dismissed-warning flags, view mode, custom/pinned presets) are owned solely
+        // by EqualizerPreferencesRepository over the same DataStore. Their key declarations used
+        // to be duplicated here but were dead (no flow/setter referenced them); they were removed
+        // to keep EqualizerPreferencesRepository the single owner of those key names.
 
         // Dismissed Warning States
-        val BASS_BOOST_DISMISSED = booleanPreferencesKey("bass_boost_dismissed")
-        val VIRTUALIZER_DISMISSED = booleanPreferencesKey("virtualizer_dismissed")
-        val LOUDNESS_DISMISSED = booleanPreferencesKey("loudness_dismissed")
         val BACKUP_INFO_DISMISSED = booleanPreferencesKey("backup_info_dismissed")
-
-        // View Mode
-        // val IS_GRAPH_VIEW = booleanPreferencesKey("is_graph_view") // Deprecated
-        val VIEW_MODE = stringPreferencesKey("equalizer_view_mode")
-
-        // Custom Presets
-        val CUSTOM_PRESETS = stringPreferencesKey("custom_presets_json") // List<EqualizerPreset>
-        val PINNED_PRESETS = stringPreferencesKey("pinned_presets_json") // List<String> (names)
 
         // Library Sync
         val LAST_SYNC_TIMESTAMP = longPreferencesKey("last_sync_timestamp")
@@ -1627,7 +1807,7 @@ constructor(
     }
 
     suspend fun clearPreferencesExceptKeys(excludedKeyNames: Set<String>) {
-        val protectedKeyNames = excludedKeyNames + backupExcludedKeyNames
+        val protectedKeyNames = excludedKeyNames + backupExcludedKeyNames + restorePreservedKeyNames
         dataStore.edit { preferences ->
             preferences.asMap().keys
                 .filterNot { key -> key.name in protectedKeyNames }
@@ -1643,6 +1823,12 @@ constructor(
         return snapshot.mapNotNull { (key, value) ->
             val keyName = key.name
             if (keyName in backupExcludedKeyNames) {
+                return@mapNotNull null
+            }
+            // Redact secret/endpoint-bearing keys (token/secret/password/url) from exports. None of
+            // the registered keys above match these substrings, so legitimate settings are kept;
+            // this only guards against a future credential key leaking into a shareable backup file.
+            if (isLikelySecretKey(keyName)) {
                 return@mapNotNull null
             }
             when (value) {
@@ -1695,8 +1881,9 @@ constructor(
     ) {
         dataStore.edit { preferences ->
             if (clearExisting) {
+                val protectedKeyNames = backupExcludedKeyNames + restorePreservedKeyNames
                 preferences.asMap().keys
-                    .filterNot { key -> key.name in backupExcludedKeyNames }
+                    .filterNot { key -> key.name in protectedKeyNames }
                     .forEach { key ->
                         @Suppress("UNCHECKED_CAST")
                         preferences.remove(key as Preferences.Key<Any>)
@@ -1707,7 +1894,25 @@ constructor(
                 if (entry.key in backupExcludedKeyNames) {
                     return@forEach
                 }
-                when (entry.type) {
+
+                // Per-key type validation: for any key we know the live type of, ignore the
+                // backup-supplied `entry.type` and write under the EXPECTED type. This repairs an
+                // entry whose declared type drifted from what the app reads it as (which would
+                // otherwise throw ClassCastException on the next typed read). Numeric expected
+                // types can repair across the other numeric carriers; a fundamentally
+                // incompatible value (e.g. string expected but only a boolean supplied) is skipped.
+                // Keys NOT in the registry fall back to the backup-supplied type so newer/unknown
+                // keys are still restored.
+                val expectedType = PreferenceTypeRegistry.expectedTypes[entry.key]
+                val effectiveType = expectedType?.let { PreferenceTypeRegistry.wireName(it) } ?: entry.type
+                if (expectedType != null && entry.type != effectiveType) {
+                    Timber.w(
+                        "Backup entry '%s' declared type '%s' but expected '%s'; coercing to expected type",
+                        entry.key, entry.type, effectiveType
+                    )
+                }
+
+                when (effectiveType) {
                     "string" -> {
                         val value = entry.stringValue ?: return@forEach
                         preferences[stringPreferencesKey(entry.key)] = value
@@ -1733,12 +1938,16 @@ constructor(
                     "float" -> {
                         val value = entry.floatValue
                             ?: entry.doubleValue?.toFloat()
+                            ?: entry.intValue?.toFloat()
+                            ?: entry.longValue?.toFloat()
                             ?: return@forEach
                         preferences[androidx.datastore.preferences.core.floatPreferencesKey(entry.key)] = value
                     }
                     "double" -> {
                         val value = entry.doubleValue
                             ?: entry.floatValue?.toDouble()
+                            ?: entry.intValue?.toDouble()
+                            ?: entry.longValue?.toDouble()
                             ?: return@forEach
                         preferences[androidx.datastore.preferences.core.doublePreferencesKey(entry.key)] = value
                     }

@@ -16,7 +16,7 @@ import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.service.loadArtworkBytesViaCoil
 import java.io.File
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 object MediaItemBuilder {
     private const val EXTERNAL_MEDIA_ID_PREFIX = "external:"
@@ -110,7 +110,13 @@ object MediaItemBuilder {
             .build()
     }
 
-    fun buildForExternalController(context: Context, song: Song): MediaItem {
+    suspend fun buildForExternalController(context: Context, song: Song): MediaItem {
+        val exposedArtworkUri = externalControllerArtworkUri(context, song.albumArtUriString)
+        val artworkData = exposedArtworkUri?.let { artworkUri ->
+            withContext(Dispatchers.IO) {
+                loadArtworkBytesViaCoil(context, artworkUri)
+            }
+        }
         return MediaItem.Builder()
             .setMediaId(song.id)
             .setUri(playbackUri(song))
@@ -118,8 +124,8 @@ object MediaItemBuilder {
             .setMediaMetadata(
                 buildMediaMetadataForSong(
                     song = song,
-                    context = context,
-                    exposedArtworkUri = externalControllerArtworkUri(context, song.albumArtUriString)
+                    exposedArtworkUri = exposedArtworkUri,
+                    artworkData = artworkData
                 )
             )
             .build()
@@ -269,8 +275,8 @@ object MediaItemBuilder {
     @OptIn(UnstableApi::class)
     private fun buildMediaMetadataForSong(
         song: Song,
-        context: Context? = null,
-        exposedArtworkUri: Uri? = artworkUri(song.albumArtUriString)
+        exposedArtworkUri: Uri? = artworkUri(song.albumArtUriString),
+        artworkData: ByteArray? = null
     ): MediaMetadata {
         val metadataBuilder = MediaMetadata.Builder()
             .setTitle(song.title)
@@ -279,12 +285,8 @@ object MediaItemBuilder {
 
         exposedArtworkUri?.let { artworkUri ->
             metadataBuilder.setArtworkUri(artworkUri)
-            context?.let { appContext ->
-                runBlocking(Dispatchers.IO) {
-                    loadArtworkBytesViaCoil(appContext, artworkUri)
-                }?.let { artworkData ->
-                    metadataBuilder.setArtworkData(artworkData, PICTURE_TYPE_FRONT_COVER)
-                }
+            artworkData?.let { data ->
+                metadataBuilder.setArtworkData(data, PICTURE_TYPE_FRONT_COVER)
             }
         }
 

@@ -277,7 +277,7 @@ fun SettingsScreen(
                     ExpressiveCategoryItem(
                         category = SettingsCategory.ABOUT,
                         customColors = getCategoryColors(SettingsCategory.ABOUT, isDark),
-                        onClick = { navController.navigateSafely("about") },
+                        onClick = { navController.navigateSafely(Screen.About.route) },
                         shape = shapeFor(itemIndex)
                     )
                 }

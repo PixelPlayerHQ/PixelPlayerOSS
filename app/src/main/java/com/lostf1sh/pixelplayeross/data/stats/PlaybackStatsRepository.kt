@@ -179,8 +179,12 @@ class PlaybackStatsRepository @Inject constructor(
             startTimestamp = start,
             endTimestamp = coercedTimestamp
         )
+        // Derive the prune reference from wall-clock now, never from the (possibly future-dated)
+        // event end, so a single play recorded under a skewed/forward clock cannot purge the
+        // entire legitimate history in one write.
+        val pruneReference = min(System.currentTimeMillis(), sanitizedEvent.endMillis())
         val writeSucceeded = updateEventsAtomically { events ->
-            val cutoff = sanitizedEvent.endMillis() - MAX_HISTORY_AGE_MS
+            val cutoff = pruneReference - MAX_HISTORY_AGE_MS
             if (cutoff > 0) {
                 events.removeAll { it.endMillis() < cutoff }
             }
@@ -507,10 +511,13 @@ class PlaybackStatsRepository @Inject constructor(
     }
 
     private fun readEvents(): List<PlaybackEvent> {
-        synchronized(fileLock) { cachedEvents }?.let { return it }
-        val raw = synchronized(fileLock) { readRawHistoryLocked() }
-        return parseEvents(raw).also { parsed ->
-            synchronized(fileLock) { if (cachedEvents == null) cachedEvents = parsed }
+        // Read, parse and cache under a single lock so a concurrent write (which nulls
+        // cachedEvents) cannot interleave between the parse and the cache store and leave an
+        // older snapshot cached. Parsing a single small JSON file under the lock is cheap.
+        return synchronized(fileLock) {
+            cachedEvents ?: parseEvents(readRawHistoryLocked()).also { parsed ->
+                cachedEvents = parsed
+            }
         }
     }
 
@@ -818,28 +825,15 @@ class PlaybackStatsRepository @Inject constructor(
     private fun updateEventsAtomically(
         transform: (MutableList<PlaybackEvent>) -> MutableList<PlaybackEvent>
     ): Boolean {
-        repeat(MAX_FILE_UPDATE_RETRIES) {
-            val rawSnapshot = synchronized(fileLock) { readRawHistoryLocked() }
+        // Hold fileLock across the whole read-modify-write so the operation is genuinely atomic.
+        // The previous optimistic compare-and-swap left a fallback path that wrote unconditionally
+        // after 3 CAS failures (clobbering concurrent writes) and relied on byte-identical Gson
+        // round-trips for correctness. The transforms here are bounded in-memory list operations,
+        // so serializing them under the lock is cheap and removes the read/transform/write race.
+        return synchronized(fileLock) {
+            val rawSnapshot = readRawHistoryLocked()
             val updatedEvents = transform(parseEvents(rawSnapshot))
             val payload = serializeEvents(updatedEvents)
-
-            val writeSucceeded = synchronized(fileLock) {
-                val latestRaw = readRawHistoryLocked()
-                if (latestRaw != rawSnapshot) {
-                    return@synchronized false
-                }
-                val result = writePayloadLocked(payload)
-                if (result) cachedEvents = null
-                result
-            }
-            if (writeSucceeded) {
-                return true
-            }
-        }
-
-        val fallbackRawSnapshot = synchronized(fileLock) { readRawHistoryLocked() }
-        val payload = serializeEvents(transform(parseEvents(fallbackRawSnapshot)))
-        return synchronized(fileLock) {
             val result = writePayloadLocked(payload)
             if (result) cachedEvents = null
             result
@@ -1095,7 +1089,6 @@ class PlaybackStatsRepository @Inject constructor(
     companion object {
         private const val DEFAULT_PLAYBACK_HISTORY_LIMIT = 500
         private const val MAX_PLAYBACK_HISTORY_LIMIT = 5_000
-        private const val MAX_FILE_UPDATE_RETRIES = 3
         private const val UNKNOWN_ARTIST = "Unknown Artist"
         private val MAX_HISTORY_AGE_MS = TimeUnit.DAYS.toMillis(730) // Keep roughly two years of history
         private const val SEGMENT_JOIN_TOLERANCE_MS = 0L

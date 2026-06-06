@@ -431,38 +431,46 @@ fun SongInfoBottomSheet(
                                                     )
                                                 }
 
-                                                FilledTonalIconButton(
-                                                    modifier = Modifier
-                                                        .weight(0.25f)
-                                                        .fillMaxHeight(),
-                                                    onClick = {
-                                                        try {
-                                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                                type = "audio/*"
-                                                                putExtra(Intent.EXTRA_STREAM, song.contentUriString.toUri())
-                                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                                            }
-                                                            context.startActivity(
-                                                                Intent.createChooser(
-                                                                    shareIntent,
-                                                                    context.getString(R.string.song_info_share_chooser_title)
+                                                // Cloud songs (Navidrome/Jellyfin) expose a
+                                                // navidrome://<id> / jellyfin://<id> contentUriString
+                                                // with no ContentProvider behind it, so EXTRA_STREAM
+                                                // would produce a broken, unresolvable attachment with
+                                                // no local error feedback. Only offer file-sharing for
+                                                // local songs.
+                                                if (!songLocationInfo.isCloud) {
+                                                    FilledTonalIconButton(
+                                                        modifier = Modifier
+                                                            .weight(0.25f)
+                                                            .fillMaxHeight(),
+                                                        onClick = {
+                                                            try {
+                                                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                                    type = "audio/*"
+                                                                    putExtra(Intent.EXTRA_STREAM, song.contentUriString.toUri())
+                                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                                }
+                                                                context.startActivity(
+                                                                    Intent.createChooser(
+                                                                        shareIntent,
+                                                                        context.getString(R.string.song_info_share_chooser_title)
+                                                                    )
                                                                 )
-                                                            )
-                                                        } catch (e: Exception) {
-                                                            Toast.makeText(
-                                                            context,
-                                                            context.getString(R.string.error_share_song_format, e.localizedMessage ?: ""),
-                                                            Toast.LENGTH_LONG
-                                                        ).show()
-                                                        }
-                                                    },
-                                                    shape = CircleShape
-                                                ) {
-                                                    Icon(
-                                                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
-                                                        imageVector = Icons.Rounded.Share,
-                                                        contentDescription = stringResource(R.string.cd_share_song_file)
-                                                    )
+                                                            } catch (e: Exception) {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    context.getString(R.string.error_share_song_format, e.localizedMessage ?: ""),
+                                                                    Toast.LENGTH_LONG
+                                                                ).show()
+                                                            }
+                                                        },
+                                                        shape = CircleShape
+                                                    ) {
+                                                        Icon(
+                                                            modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
+                                                            imageVector = Icons.Rounded.Share,
+                                                            contentDescription = stringResource(R.string.cd_share_song_file)
+                                                        )
+                                                    }
                                                 }
                                             }
                                         }

@@ -116,7 +116,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil.ImageLoader
+import coil.imageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -335,7 +335,7 @@ private fun CreatePlaylistContent(
 
     LaunchedEffect(selectedImageUri) {
          if (selectedImageUri != null) {
-             val loader = ImageLoader(context)
+             val loader = context.imageLoader
              val request = ImageRequest.Builder(context)
                  .data(selectedImageUri)
                  .allowHardware(false)
@@ -780,7 +780,7 @@ fun EditPlaylistContent(
     // Image Loader
     LaunchedEffect(selectedImageUri) {
          if (selectedImageUri != null) {
-             val loader = ImageLoader(context)
+             val loader = context.imageLoader
              val request = ImageRequest.Builder(context)
                  .data(selectedImageUri)
                  .allowHardware(false)

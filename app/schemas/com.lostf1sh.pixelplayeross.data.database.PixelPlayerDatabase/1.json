@@ -1,12 +1,12 @@
 {
   "formatVersion": 1,
   "database": {
-    "version": 44,
-    "identityHash": "64e27ca265af41c69f0cbe917ea25b4d",
+    "version": 1,
+    "identityHash": "c8f25afd12794dbf0e8312cd1587092f",
     "entities": [
       {
         "tableName": "album_art_themes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`albumArtUriString` TEXT NOT NULL, `paletteStyle` TEXT NOT NULL, `light_primary` TEXT NOT NULL, `light_onPrimary` TEXT NOT NULL, `light_primaryContainer` TEXT NOT NULL, `light_onPrimaryContainer` TEXT NOT NULL, `light_secondary` TEXT NOT NULL, `light_onSecondary` TEXT NOT NULL, `light_secondaryContainer` TEXT NOT NULL, `light_onSecondaryContainer` TEXT NOT NULL, `light_tertiary` TEXT NOT NULL, `light_onTertiary` TEXT NOT NULL, `light_tertiaryContainer` TEXT NOT NULL, `light_onTertiaryContainer` TEXT NOT NULL, `light_background` TEXT NOT NULL, `light_onBackground` TEXT NOT NULL, `light_surface` TEXT NOT NULL, `light_onSurface` TEXT NOT NULL, `light_surfaceVariant` TEXT NOT NULL, `light_onSurfaceVariant` TEXT NOT NULL, `light_error` TEXT NOT NULL, `light_onError` TEXT NOT NULL, `light_outline` TEXT NOT NULL, `light_errorContainer` TEXT NOT NULL, `light_onErrorContainer` TEXT NOT NULL, `light_inversePrimary` TEXT NOT NULL, `light_inverseSurface` TEXT NOT NULL, `light_inverseOnSurface` TEXT NOT NULL, `light_surfaceTint` TEXT NOT NULL, `light_outlineVariant` TEXT NOT NULL, `light_scrim` TEXT NOT NULL, `light_surfaceBright` TEXT NOT NULL, `light_surfaceDim` TEXT NOT NULL, `light_surfaceContainer` TEXT NOT NULL, `light_surfaceContainerHigh` TEXT NOT NULL, `light_surfaceContainerHighest` TEXT NOT NULL, `light_surfaceContainerLow` TEXT NOT NULL, `light_surfaceContainerLowest` TEXT NOT NULL, `light_primaryFixed` TEXT NOT NULL, `light_primaryFixedDim` TEXT NOT NULL, `light_onPrimaryFixed` TEXT NOT NULL, `light_onPrimaryFixedVariant` TEXT NOT NULL, `light_secondaryFixed` TEXT NOT NULL, `light_secondaryFixedDim` TEXT NOT NULL, `light_onSecondaryFixed` TEXT NOT NULL, `light_onSecondaryFixedVariant` TEXT NOT NULL, `light_tertiaryFixed` TEXT NOT NULL, `light_tertiaryFixedDim` TEXT NOT NULL, `light_onTertiaryFixed` TEXT NOT NULL, `light_onTertiaryFixedVariant` TEXT NOT NULL, `dark_primary` TEXT NOT NULL, `dark_onPrimary` TEXT NOT NULL, `dark_primaryContainer` TEXT NOT NULL, `dark_onPrimaryContainer` TEXT NOT NULL, `dark_secondary` TEXT NOT NULL, `dark_onSecondary` TEXT NOT NULL, `dark_secondaryContainer` TEXT NOT NULL, `dark_onSecondaryContainer` TEXT NOT NULL, `dark_tertiary` TEXT NOT NULL, `dark_onTertiary` TEXT NOT NULL, `dark_tertiaryContainer` TEXT NOT NULL, `dark_onTertiaryContainer` TEXT NOT NULL, `dark_background` TEXT NOT NULL, `dark_onBackground` TEXT NOT NULL, `dark_surface` TEXT NOT NULL, `dark_onSurface` TEXT NOT NULL, `dark_surfaceVariant` TEXT NOT NULL, `dark_onSurfaceVariant` TEXT NOT NULL, `dark_error` TEXT NOT NULL, `dark_onError` TEXT NOT NULL, `dark_outline` TEXT NOT NULL, `dark_errorContainer` TEXT NOT NULL, `dark_onErrorContainer` TEXT NOT NULL, `dark_inversePrimary` TEXT NOT NULL, `dark_inverseSurface` TEXT NOT NULL, `dark_inverseOnSurface` TEXT NOT NULL, `dark_surfaceTint` TEXT NOT NULL, `dark_outlineVariant` TEXT NOT NULL, `dark_scrim` TEXT NOT NULL, `dark_surfaceBright` TEXT NOT NULL, `dark_surfaceDim` TEXT NOT NULL, `dark_surfaceContainer` TEXT NOT NULL, `dark_surfaceContainerHigh` TEXT NOT NULL, `dark_surfaceContainerHighest` TEXT NOT NULL, `dark_surfaceContainerLow` TEXT NOT NULL, `dark_surfaceContainerLowest` TEXT NOT NULL, `dark_primaryFixed` TEXT NOT NULL, `dark_primaryFixedDim` TEXT NOT NULL, `dark_onPrimaryFixed` TEXT NOT NULL, `dark_onPrimaryFixedVariant` TEXT NOT NULL, `dark_secondaryFixed` TEXT NOT NULL, `dark_secondaryFixedDim` TEXT NOT NULL, `dark_onSecondaryFixed` TEXT NOT NULL, `dark_onSecondaryFixedVariant` TEXT NOT NULL, `dark_tertiaryFixed` TEXT NOT NULL, `dark_tertiaryFixedDim` TEXT NOT NULL, `dark_onTertiaryFixed` TEXT NOT NULL, `dark_onTertiaryFixedVariant` TEXT NOT NULL, PRIMARY KEY(`albumArtUriString`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`albumArtUriString` TEXT NOT NULL, `paletteStyle` TEXT NOT NULL, `light_primary` TEXT NOT NULL, `light_onPrimary` TEXT NOT NULL, `light_primaryContainer` TEXT NOT NULL, `light_onPrimaryContainer` TEXT NOT NULL, `light_secondary` TEXT NOT NULL, `light_onSecondary` TEXT NOT NULL, `light_secondaryContainer` TEXT NOT NULL, `light_onSecondaryContainer` TEXT NOT NULL, `light_tertiary` TEXT NOT NULL, `light_onTertiary` TEXT NOT NULL, `light_tertiaryContainer` TEXT NOT NULL, `light_onTertiaryContainer` TEXT NOT NULL, `light_background` TEXT NOT NULL, `light_onBackground` TEXT NOT NULL, `light_surface` TEXT NOT NULL, `light_onSurface` TEXT NOT NULL, `light_surfaceVariant` TEXT NOT NULL, `light_onSurfaceVariant` TEXT NOT NULL, `light_error` TEXT NOT NULL, `light_onError` TEXT NOT NULL, `light_outline` TEXT NOT NULL, `light_errorContainer` TEXT NOT NULL, `light_onErrorContainer` TEXT NOT NULL, `light_inversePrimary` TEXT NOT NULL, `light_inverseSurface` TEXT NOT NULL, `light_inverseOnSurface` TEXT NOT NULL, `light_surfaceTint` TEXT NOT NULL, `light_outlineVariant` TEXT NOT NULL, `light_scrim` TEXT NOT NULL, `light_surfaceBright` TEXT NOT NULL, `light_surfaceDim` TEXT NOT NULL, `light_surfaceContainer` TEXT NOT NULL, `light_surfaceContainerHigh` TEXT NOT NULL, `light_surfaceContainerHighest` TEXT NOT NULL, `light_surfaceContainerLow` TEXT NOT NULL, `light_surfaceContainerLowest` TEXT NOT NULL, `light_primaryFixed` TEXT NOT NULL, `light_primaryFixedDim` TEXT NOT NULL, `light_onPrimaryFixed` TEXT NOT NULL, `light_onPrimaryFixedVariant` TEXT NOT NULL, `light_secondaryFixed` TEXT NOT NULL, `light_secondaryFixedDim` TEXT NOT NULL, `light_onSecondaryFixed` TEXT NOT NULL, `light_onSecondaryFixedVariant` TEXT NOT NULL, `light_tertiaryFixed` TEXT NOT NULL, `light_tertiaryFixedDim` TEXT NOT NULL, `light_onTertiaryFixed` TEXT NOT NULL, `light_onTertiaryFixedVariant` TEXT NOT NULL, `dark_primary` TEXT NOT NULL, `dark_onPrimary` TEXT NOT NULL, `dark_primaryContainer` TEXT NOT NULL, `dark_onPrimaryContainer` TEXT NOT NULL, `dark_secondary` TEXT NOT NULL, `dark_onSecondary` TEXT NOT NULL, `dark_secondaryContainer` TEXT NOT NULL, `dark_onSecondaryContainer` TEXT NOT NULL, `dark_tertiary` TEXT NOT NULL, `dark_onTertiary` TEXT NOT NULL, `dark_tertiaryContainer` TEXT NOT NULL, `dark_onTertiaryContainer` TEXT NOT NULL, `dark_background` TEXT NOT NULL, `dark_onBackground` TEXT NOT NULL, `dark_surface` TEXT NOT NULL, `dark_onSurface` TEXT NOT NULL, `dark_surfaceVariant` TEXT NOT NULL, `dark_onSurfaceVariant` TEXT NOT NULL, `dark_error` TEXT NOT NULL, `dark_onError` TEXT NOT NULL, `dark_outline` TEXT NOT NULL, `dark_errorContainer` TEXT NOT NULL, `dark_onErrorContainer` TEXT NOT NULL, `dark_inversePrimary` TEXT NOT NULL, `dark_inverseSurface` TEXT NOT NULL, `dark_inverseOnSurface` TEXT NOT NULL, `dark_surfaceTint` TEXT NOT NULL, `dark_outlineVariant` TEXT NOT NULL, `dark_scrim` TEXT NOT NULL, `dark_surfaceBright` TEXT NOT NULL, `dark_surfaceDim` TEXT NOT NULL, `dark_surfaceContainer` TEXT NOT NULL, `dark_surfaceContainerHigh` TEXT NOT NULL, `dark_surfaceContainerHighest` TEXT NOT NULL, `dark_surfaceContainerLow` TEXT NOT NULL, `dark_surfaceContainerLowest` TEXT NOT NULL, `dark_primaryFixed` TEXT NOT NULL, `dark_primaryFixedDim` TEXT NOT NULL, `dark_onPrimaryFixed` TEXT NOT NULL, `dark_onPrimaryFixedVariant` TEXT NOT NULL, `dark_secondaryFixed` TEXT NOT NULL, `dark_secondaryFixedDim` TEXT NOT NULL, `dark_onSecondaryFixed` TEXT NOT NULL, `dark_onSecondaryFixedVariant` TEXT NOT NULL, `dark_tertiaryFixed` TEXT NOT NULL, `dark_tertiaryFixedDim` TEXT NOT NULL, `dark_onTertiaryFixed` TEXT NOT NULL, `dark_onTertiaryFixedVariant` TEXT NOT NULL, PRIMARY KEY(`albumArtUriString`, `paletteStyle`))",
         "fields": [
           {
             "fieldPath": "albumArtUriString",
@@ -600,21 +600,10 @@
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "albumArtUriString"
+            "albumArtUriString",
+            "paletteStyle"
           ]
-        },
-        "indices": [
-          {
-            "name": "index_album_art_themes_albumArtUriString_paletteStyle",
-            "unique": false,
-            "columnNames": [
-              "albumArtUriString",
-              "paletteStyle"
-            ],
-            "orders": [],
-            "createSql": "CREATE INDEX IF NOT EXISTS `index_album_art_themes_albumArtUriString_paletteStyle` ON `${TABLE_NAME}` (`albumArtUriString`, `paletteStyle`)"
-          }
-        ]
+        }
       },
       {
         "tableName": "search_history",
@@ -2004,7 +1993,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '64e27ca265af41c69f0cbe917ea25b4d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c8f25afd12794dbf0e8312cd1587092f')"
     ]
   }
 }

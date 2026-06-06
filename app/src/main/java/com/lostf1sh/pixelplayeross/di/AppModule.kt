@@ -121,57 +121,18 @@ object AppModule {
             context.applicationContext,
             PixelPlayerDatabase::class.java,
             "pixelplayer_database"
-        ).addMigrations(
-            PixelPlayerDatabase.MIGRATION_3_4,
-            PixelPlayerDatabase.MIGRATION_4_5,
-            PixelPlayerDatabase.MIGRATION_5_6,
-            PixelPlayerDatabase.MIGRATION_6_7,
-            PixelPlayerDatabase.MIGRATION_7_8,
-            PixelPlayerDatabase.MIGRATION_8_9,
-            PixelPlayerDatabase.MIGRATION_9_10,
-            PixelPlayerDatabase.MIGRATION_10_11,
-            PixelPlayerDatabase.MIGRATION_11_12,
-            PixelPlayerDatabase.MIGRATION_12_13,
-            PixelPlayerDatabase.MIGRATION_13_14,
-            PixelPlayerDatabase.MIGRATION_14_15,
-            PixelPlayerDatabase.MIGRATION_15_16,
-            PixelPlayerDatabase.MIGRATION_16_17,
-            PixelPlayerDatabase.MIGRATION_17_18,
-            PixelPlayerDatabase.MIGRATION_18_19,
-            PixelPlayerDatabase.MIGRATION_19_20,
-            PixelPlayerDatabase.MIGRATION_20_21,
-            PixelPlayerDatabase.MIGRATION_21_22,
-            PixelPlayerDatabase.MIGRATION_22_23,
-            PixelPlayerDatabase.MIGRATION_23_24,
-            PixelPlayerDatabase.MIGRATION_24_25,
-            PixelPlayerDatabase.MIGRATION_25_26,
-            PixelPlayerDatabase.MIGRATION_26_27,
-            PixelPlayerDatabase.MIGRATION_27_28,
-            PixelPlayerDatabase.MIGRATION_28_29,
-            PixelPlayerDatabase.MIGRATION_29_30,
-            PixelPlayerDatabase.MIGRATION_30_31,
-            PixelPlayerDatabase.MIGRATION_31_32,
-            PixelPlayerDatabase.MIGRATION_32_33,
-            PixelPlayerDatabase.MIGRATION_33_34,
-            PixelPlayerDatabase.MIGRATION_34_35,
-            PixelPlayerDatabase.MIGRATION_35_36,
-            PixelPlayerDatabase.MIGRATION_36_37,
-            PixelPlayerDatabase.MIGRATION_37_38,
-            PixelPlayerDatabase.MIGRATION_38_39,
-            PixelPlayerDatabase.MIGRATION_39_40,
-            PixelPlayerDatabase.MIGRATION_40_41,
-            PixelPlayerDatabase.MIGRATION_41_42,
-            PixelPlayerDatabase.MIGRATION_42_43,
-            PixelPlayerDatabase.MIGRATION_43_44,
-            PixelPlayerDatabase.MIGRATION_44_45,
-            PixelPlayerDatabase.MIGRATION_45_46
         )
             .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            // Schema starts at version 1 for the first public (F-Droid) release, so there are no
+            // upgrade migrations yet. If a throwaway pre-release build with a higher DB version is
+            // present, wipe-and-recreate on downgrade instead of crashing (no real data exists yet).
+            // Forward migrations are added normally from version 2 onward.
+            .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
 
-        // P2-4: Only allow destructive migration in debug builds.
-        // In release, a migration bug will crash the app (revealing the problem)
-        // rather than silently wiping user data (playlists, favorites, statistics).
+        // P2-4: Only allow full destructive migration in debug builds. In release, a future
+        // migration bug should crash the app (revealing the problem) rather than silently wiping
+        // user data (playlists, favorites, statistics).
         if (BuildConfig.DEBUG) {
             builder.fallbackToDestructiveMigration(dropAllTables = true)
         }

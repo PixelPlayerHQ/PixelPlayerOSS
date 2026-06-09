@@ -130,6 +130,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.LibrarySortBottomShee
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.PlaylistShapeType
 import com.lostf1sh.pixelplayeross.data.model.isSmartPlaylist
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -147,7 +149,13 @@ fun PlaylistDetailScreen(
     navController: NavController
 ) {
     val uiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
+    // Only the "is a song loaded" transition matters at screen level — per-song playback
+    // highlighting is isolated per item below so the song list does not recompose
+    // wholesale on every playback-state change.
     val playerStableState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
+    val hasCurrentSong by remember {
+        derivedStateOf { playerStableState.currentSong != null }
+    }
     val context = LocalContext.current
     val fallbackPlaylistName = stringResource(R.string.shortcut_playlist_short)
     val sortSongsLabel = stringResource(R.string.presentation_batch_b_sort_songs)
@@ -597,6 +605,20 @@ fun PlaylistDetailScreen(
                                 localReorderableSongs,
                                 key = { _, item -> item.id },
                                 contentType = { _, _ -> "playlist_song" }) { _, song ->
+                                // Per-item playback observation (same pattern as
+                                // LibraryPlaybackAwareSongItem): keeps a track change from
+                                // recomposing every visible row.
+                                val playbackUiState by remember(song.id, playerViewModel) {
+                                    playerViewModel.stablePlayerState
+                                        .map { state ->
+                                            val isCurrent = state.currentSong?.id == song.id
+                                            LibrarySongPlaybackUiState(
+                                                isCurrentSong = isCurrent,
+                                                isPlaying = isCurrent && state.isPlaying
+                                            )
+                                        }
+                                        .distinctUntilChanged()
+                                }.collectAsStateWithLifecycle(initialValue = LibrarySongPlaybackUiState())
                                 ReorderableItem(
                                     state = reorderableState,
                                     key = song.id,
@@ -623,8 +645,8 @@ fun PlaylistDetailScreen(
                                             )
                                         },
                                         song = song,
-                                        isCurrentSong = playerStableState.currentSong?.id == song.id,
-                                        isPlaying = playerStableState.isPlaying,
+                                        isCurrentSong = playbackUiState.isCurrentSong,
+                                        isPlaying = playbackUiState.isPlaying,
                                         isDragging = isDragging,
                                         onRemoveClick = {
                                             if (isEditablePlaylist) {
@@ -677,7 +699,7 @@ fun PlaylistDetailScreen(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(
-                                    bottom = if (playerStableState.currentSong != null) MiniPlayerHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 20.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
+                                    bottom = if (hasCurrentSong) MiniPlayerHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 20.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
                                     end = 14.dp,
                                     top = 18.dp // Increased to 16.dp as requested
                                 )

@@ -76,7 +76,38 @@ class ArtistImagesModuleHandler @Inject constructor(
         }
     }
 
-    override suspend fun rollback(snapshot: String) = restore(snapshot)
+    /**
+     * restore() is additive — it never writes blank values — so replaying the snapshot
+     * through it cannot undo image data a failed restore wrote onto artists that had none
+     * before. Rollback instead forces every artist back to exactly its snapshot state,
+     * clearing URLs/custom images for artists absent from the snapshot.
+     */
+    override suspend fun rollback(snapshot: String): Unit = withContext(Dispatchers.IO) {
+        val type = TypeToken.getParameterized(List::class.java, ArtistImageBackupEntry::class.java).type
+        val entries: List<ArtistImageBackupEntry> = gson.fromJson(snapshot, type) ?: emptyList()
+        val snapshotByName = entries.associateBy { it.artistName }
+
+        musicDao.getAllArtistsListRaw().forEach { artist ->
+            val entry = snapshotByName[artist.name]
+            musicDao.updateArtistImageUrl(artist.id, entry?.imageUrl.orEmpty())
+
+            val customBase64 = entry?.customImageBase64
+            if (customBase64 != null) {
+                try {
+                    val bytes = Base64.decode(customBase64, Base64.NO_WRAP)
+                    val file = File(context.filesDir, "artist_art_${artist.id}.jpg")
+                    file.writeBytes(bytes)
+                    musicDao.updateArtistCustomImage(artist.id, file.absolutePath)
+                } catch (e: Exception) {
+                    Timber.tag(TAG).w(e, "Failed to roll back custom image for artist: ${artist.name}")
+                }
+            } else {
+                // No custom image in the snapshot — remove anything the failed restore wrote.
+                File(context.filesDir, "artist_art_${artist.id}.jpg").delete()
+                musicDao.updateArtistCustomImage(artist.id, null)
+            }
+        }
+    }
 
     private fun readFileAsBase64(path: String): String? {
         return try {

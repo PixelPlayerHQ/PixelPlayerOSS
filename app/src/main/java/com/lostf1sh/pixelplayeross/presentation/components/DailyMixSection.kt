@@ -185,8 +185,9 @@ private fun DailyMixCard(
     playerViewModel: PlayerViewModel,
     onMoreOptionsClick: (Song) -> Unit
 ) {
-    val headerSongs = songs.take(3).toImmutableList()
-    val visibleSongs = songs.take(4).toImmutableList()
+    // O(n) copies — keyed on songs so they don't re-allocate on every recomposition.
+    val headerSongs = remember(songs) { songs.take(3).toImmutableList() }
+    val visibleSongs = remember(songs) { songs.take(4).toImmutableList() }
     val cornerRadius = 30.dp
     Card(
         shape = AbsoluteSmoothCornerShape(

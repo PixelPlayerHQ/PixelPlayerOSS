@@ -118,24 +118,23 @@ object CloudStreamSecurity {
         val httpUrl = url.toHttpUrlOrNull() ?: return false
         val host = httpUrl.host.lowercase()
 
-        // Allow private IPs and .local for Subsonic/Navidrome/Jellyfin servers which are often self-hosted
-        val isNavidromeStream = httpUrl.pathSegments.contains("stream.view")
-        val isJellyfinStream = httpUrl.pathSegments.contains("Audio") && httpUrl.pathSegments.contains("universal")
-        
-        if (!isNavidromeStream && !isJellyfinStream) {
-            if (host in FORBIDDEN_HOSTS) return false
-            if (host.endsWith(".local")) return false
-            if (isPrivateIpv4Literal(host)) return false
-        }
-        
         if (httpUrl.username.isNotEmpty() || httpUrl.password.isNotEmpty()) return false
 
-        val hostAllowed = hostMatchesAllowedSuffix(host, allowedHostSuffixes)
-        if (!hostAllowed) return false
+        // Loopback is never a valid upstream — the proxy itself lives there.
+        if (host in FORBIDDEN_HOSTS) return false
+
+        // The proxy may only ever talk to the user's configured server. An empty allowlist
+        // means no server is configured (or its URL failed to parse, e.g. right after
+        // logout while stream URLs are still cached) — deny instead of falling open.
+        // Private-IP and .local hosts (common for self-hosted servers) are allowed when,
+        // and only when, they match the configured server; the URL path is server-supplied
+        // data and must never influence host-safety decisions.
+        if (allowedHostSuffixes.isEmpty()) return false
+        if (!hostMatchesAllowedSuffix(host, allowedHostSuffixes)) return false
 
         return when (httpUrl.scheme.lowercase()) {
             "https" -> true
-            "http" -> allowHttpForAllowedHosts && allowedHostSuffixes.isNotEmpty()
+            "http" -> allowHttpForAllowedHosts
             else -> false
         }
     }
@@ -154,13 +153,14 @@ object CloudStreamSecurity {
     }
 
     private fun hostMatchesAllowedSuffix(host: String, allowedHostSuffixes: Set<String>): Boolean {
-        if (allowedHostSuffixes.isEmpty()) return true
+        if (allowedHostSuffixes.isEmpty()) return false
         return allowedHostSuffixes.any { suffix ->
             val normalized = suffix.lowercase()
             host == normalized || host.endsWith(".$normalized")
         }
     }
 
+    /** Used by login-time server-URL validation to decide whether cleartext HTTP is acceptable. */
     internal fun isPrivateIpv4Literal(host: String): Boolean {
         val parts = host.split('.')
         if (parts.size != 4) return false

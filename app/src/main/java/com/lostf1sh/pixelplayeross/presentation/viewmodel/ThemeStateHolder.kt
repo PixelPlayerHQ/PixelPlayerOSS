@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -244,8 +245,8 @@ class ThemeStateHolder @Inject constructor(
              return
          }
 
-         android.util.Log.d("ThemeStateHolder", "forceRegenerateColorScheme called for: $uriString")
-         android.util.Log.d("ThemeStateHolder", "Current tracked global URI: ${_currentAlbumArtUri.value}")
+         Timber.tag("ThemeStateHolder").d("forceRegenerateColorScheme called for: $uriString")
+         Timber.tag("ThemeStateHolder").d("Current tracked global URI: ${_currentAlbumArtUri.value}")
          
          colorSchemeProcessor.invalidateScheme(uriString)
 
@@ -281,10 +282,10 @@ class ThemeStateHolder @Inject constructor(
          // Also update the main current album art scheme if it matches the one we are tracking
          // We use equality check. If they are the same string object or equal content.
          if (_currentAlbumArtUri.value == uriString) {
-             android.util.Log.d("ThemeStateHolder", "Updating global color scheme flow directly.")
+             Timber.tag("ThemeStateHolder").d("Updating global color scheme flow directly.")
              _currentAlbumArtColorSchemePair.value = newScheme
          } else {
-             android.util.Log.d("ThemeStateHolder", "Global URI did not match. Skipping global update.")
+             Timber.tag("ThemeStateHolder").d("Global URI did not match. Skipping global update.")
          }
     }
 

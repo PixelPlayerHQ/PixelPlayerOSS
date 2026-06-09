@@ -1522,6 +1522,9 @@ class PlayerViewModel @Inject constructor(
     }
 
     init {
+        // Must pair with the Trace.endSection() at the bottom of this init block — an
+        // unmatched endSection pops whatever section the caller had open on this thread.
+        Trace.beginSection("PlayerViewModel.init")
         Timber.tag("PlayerViewModel").i("init started.")
 
 
@@ -1721,12 +1724,16 @@ class PlayerViewModel @Inject constructor(
         // Initialize connectivity monitoring (WiFi/Bluetooth)
         connectivityStateHolder.initialize()
 
-        // Initialize sleep timer state holder
+        // Initialize sleep timer state holder. The song-id flow is created once and shared:
+        // building a new stateIn(...) inside the provider would spin up a permanently-hot
+        // flow on every end-of-track timer activation, none of which ever get cancelled.
+        val currentSongIdFlow = stablePlayerState.map { it.currentSong?.id }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, null)
         sleepTimerStateHolder.initialize(
             scope = viewModelScope,
             toastEmitter = { msg -> _toastEvents.emit(msg) },
             mediaControllerProvider = { mediaController },
-            currentSongIdProvider = { stablePlayerState.map { it.currentSong?.id }.stateIn(viewModelScope, SharingStarted.Eagerly, null) },
+            currentSongIdProvider = { currentSongIdFlow },
             songTitleResolver = { songId -> libraryStateHolder.allSongsById.value[songId]?.title ?: "Unknown" }
         )
 
@@ -2225,7 +2232,7 @@ class PlayerViewModel @Inject constructor(
                 awaitPlayerCollapse()
             }
 
-            _artistNavigationRequests.emit(artistId)
+            _artistNavigationRequests.emit(resolvedId)
         }
     }
 

@@ -166,6 +166,16 @@ class BackupManager @Inject constructor(
         plan: RestorePlan,
         onProgress: (BackupTransferProgressUpdate) -> Unit
     ): RestoreResult = withContext(Dispatchers.IO) {
+        // Re-run the file-level safety checks (zip-bomb, path traversal, size limits) here
+        // rather than trusting that the caller went through inspectBackup() first — restore()
+        // is public API and must not be a validation bypass.
+        val fileValidation = validationPipeline.validateFile(uri)
+        if (fileValidation is BackupValidationResult.Invalid && fileValidation.fatalErrors.isNotEmpty()) {
+            return@withContext RestoreResult.TotalFailure(
+                "Backup file failed validation: ${fileValidation.fatalErrors.first().message}"
+            )
+        }
+
         val result = restoreExecutor.execute(uri, plan, onProgress)
 
         // Add to backup history on successful inspection/restore

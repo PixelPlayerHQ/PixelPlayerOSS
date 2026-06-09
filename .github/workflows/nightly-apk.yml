@@ -96,8 +96,26 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
+      # The keystore password must never be hardcoded here: this file is public and the
+      # cached .jks is restorable by fork-PR workflow runs, so a literal password hands
+      # out the CI signing identity. Use the CI_KEYSTORE_PASSWORD repo secret for a
+      # stable cached keystore; without the secret, fall back to an uncached throwaway
+      # keystore with a random one-off password (signature varies per run).
+      - name: Resolve CI keystore password
+        env:
+          CI_KEYSTORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$CI_KEYSTORE_PASSWORD" ]; then
+            echo "KEYSTORE_PASSWORD=$CI_KEYSTORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "CI_KEYSTORE_SECRET_SET=true" >> "$GITHUB_ENV"
+          else
+            echo "KEYSTORE_PASSWORD=$(openssl rand -hex 24)" >> "$GITHUB_ENV"
+            echo "CI_KEYSTORE_SECRET_SET=false" >> "$GITHUB_ENV"
+          fi
+
       - name: Cache nightly keystore
         id: cache-keystore
+        if: env.CI_KEYSTORE_SECRET_SET == 'true'
         uses: actions/cache@v5
         with:
           path: pixelplayeross-nightly-ci.jks
@@ -107,15 +125,15 @@ jobs:
         if: steps.cache-keystore.outputs.cache-hit != 'true'
         run: |
           keytool -genkey -v -keystore pixelplayeross-nightly-ci.jks -alias pixelplayeross-nightly-key -keyalg RSA -keysize 4096 -validity 10000 \
-            -storepass 994273 -keypass 994273 \
+            -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
             -dname "CN=PixelPlayerOSS Nightly, OU=Dev, O=PixelPlayerOSS, L=World, S=World, C=US"
 
       - name: Create keystore.properties
         run: |
           echo "storeFile=pixelplayeross-nightly-ci.jks" > keystore.properties
-          echo "storePassword=994273" >> keystore.properties
+          echo "storePassword=$KEYSTORE_PASSWORD" >> keystore.properties
           echo "keyAlias=pixelplayeross-nightly-key" >> keystore.properties
-          echo "keyPassword=994273" >> keystore.properties
+          echo "keyPassword=$KEYSTORE_PASSWORD" >> keystore.properties
 
       - name: Build Phone nightly release APKs
         run: ./gradlew :app:assembleRelease -Ppixelplayer.enableAbiSplits=true

@@ -96,7 +96,10 @@ class SleepTimerStateHolder @Inject constructor(
         songTitleResolver: (String?) -> String
     ) {
         this.scope = scope
-        this.toastEmitter = { msg -> scope.launch { toastEmitter(msg) } }
+        // Store the suspend lambda as-is: call sites already invoke it inside scope.launch,
+        // so wrapping it in another scope.launch here would nest a second coroutine per toast
+        // and capture this (possibly stale after re-initialize) scope in the closure.
+        this.toastEmitter = toastEmitter
         this.mediaControllerProvider = mediaControllerProvider
         this.currentSongIdProvider = currentSongIdProvider
         this.songTitleResolver = songTitleResolver

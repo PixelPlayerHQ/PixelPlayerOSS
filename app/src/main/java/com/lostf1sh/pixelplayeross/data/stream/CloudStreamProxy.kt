@@ -26,10 +26,10 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
-import java.net.ServerSocket
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 /**
  * Abstract base class for local HTTP proxy servers that stream cloud music audio.
@@ -74,6 +74,16 @@ abstract class CloudStreamProxy<K : Any>(
     private val proxyScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var startJob: Job? = null
 
+    // The injected client's short read timeout suits REST calls, not long-lived audio
+    // streams: OkHttp applies readTimeout per socket read, so a single slow window
+    // mid-stream would kill playback. Use a generous (but finite, so stalled upstreams
+    // can't pin proxy threads forever) timeout for the streaming fetches instead.
+    private val streamingClient: OkHttpClient by lazy {
+        okHttpClient.newBuilder()
+            .readTimeout(STREAM_READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .build()
+    }
+
     // Per-session secret embedded in proxy URLs. Without it, any other app on the
     // device could stream the user's cloud library just by hitting the loopback
     // port with a valid song ID. Regenerated on every server (re)start.
@@ -84,6 +94,10 @@ abstract class CloudStreamProxy<K : Any>(
 
     private data class CachedUrl(val url: String, val timestamp: Long, val expirationMs: Long) {
         fun isExpired(): Boolean = System.currentTimeMillis() - timestamp > expirationMs
+    }
+
+    private companion object {
+        const val STREAM_READ_TIMEOUT_SECONDS = 60L
     }
 
     // ─── Public API ────────────────────────────────────────────────────
@@ -135,12 +149,15 @@ abstract class CloudStreamProxy<K : Any>(
         startJob?.cancel()
         startJob = proxyScope.launch {
             try {
-                val freePort = ServerSocket(0).use { it.localPort }
                 sessionToken = generateSessionToken()
-                val createdServer = createServer(freePort)
+                // Bind to port 0 and let the OS assign the port. Probing a free port with
+                // a throwaway ServerSocket and binding afterwards is a TOCTOU race: another
+                // process can grab the port in between, leaving actualPort pointing at a
+                // server that never bound (or at someone else's socket).
+                val createdServer = createServer(0)
                 createdServer.start(wait = false)
                 server = createdServer
-                actualPort = freePort
+                actualPort = createdServer.engine.resolvedConnectors().first().port
                 Timber.d("$proxyTag started on port $actualPort")
             } catch (_: CancellationException) {
                 Timber.d("$proxyTag start cancelled")
@@ -166,6 +183,13 @@ abstract class CloudStreamProxy<K : Any>(
 
     /** Extract the raw ID string from a parsed URI. Override for custom URI layouts. */
     protected open fun extractIdFromUri(uri: Uri): String? = uri.host
+
+    /**
+     * Extra headers for the upstream stream request. Lets subclasses send auth tokens as
+     * headers instead of baking them into the cached stream URL (where they'd end up in
+     * URL caches and server access logs).
+     */
+    protected open fun upstreamHeaders(): Map<String, String> = emptyMap()
 
     // ─── Internal ──────────────────────────────────────────────────────
 
@@ -246,9 +270,12 @@ abstract class CloudStreamProxy<K : Any>(
                         rangeValidation.normalizedHeader?.let {
                             requestBuilder.header("Range", it)
                         }
+                        upstreamHeaders().forEach { (name, value) ->
+                            requestBuilder.header(name, value)
+                        }
 
                         val response = withContext(Dispatchers.IO) {
-                            okHttpClient.newCall(requestBuilder.build()).execute()
+                            streamingClient.newCall(requestBuilder.build()).execute()
                         }
 
                         response.use { upstream ->

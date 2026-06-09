@@ -30,7 +30,9 @@ class BackupFileValidator @Inject constructor(
         val errors = mutableListOf<ValidationError>()
         val docFile = DocumentFile.fromSingleUri(context, uri)
         val fileName = docFile?.name
-        val fileSize = docFile?.length()?.takeIf { it >= 0L }
+        // DocumentFile.length() returns 0 when the provider doesn't report a size — treat
+        // that as unknown rather than "0 bytes" so downstream checks don't trust it.
+        val fileSize = docFile?.length()?.takeIf { it > 0L }
 
         // Check URI accessibility
         val format = try {

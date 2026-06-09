@@ -73,6 +73,10 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.ui.text.style.TextOverflow
 
+// Shared placeholder for loading skeletons: allocating a fresh MutableStateFlow inline in
+// composition would create a new object on every recomposition of every skeleton row.
+private val EmptyColorSchemePairFlow: StateFlow<ColorSchemePair?> = MutableStateFlow(null)
+
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun LibraryAlbumsTab(
@@ -257,7 +261,7 @@ fun LibraryAlbumsTab(
                     items(8, key = { "skeleton_album_list_$it" }) {
                         AlbumListItem(
                             album = Album.empty(),
-                            albumColorSchemePairFlow = MutableStateFlow<ColorSchemePair?>(null),
+                            albumColorSchemePairFlow = EmptyColorSchemePairFlow,
                             onClick = {},
                             isLoading = true
                         )
@@ -285,7 +289,7 @@ fun LibraryAlbumsTab(
                     items(8, key = { "skeleton_album_grid_$it" }) {
                         AlbumGridItemRedesigned(
                             album = Album.empty(),
-                            albumColorSchemePairFlow = MutableStateFlow<ColorSchemePair?>(null),
+                            albumColorSchemePairFlow = EmptyColorSchemePairFlow,
                             onClick = {},
                             isLoading = true
                         )
@@ -367,7 +371,7 @@ fun LibraryAlbumsTab(
                                     } else {
                                         AlbumListItem(
                                             album = Album.empty(),
-                                            albumColorSchemePairFlow = MutableStateFlow<ColorSchemePair?>(null),
+                                            albumColorSchemePairFlow = EmptyColorSchemePairFlow,
                                             onClick = {},
                                             isLoading = true
                                         )
@@ -437,7 +441,7 @@ fun LibraryAlbumsTab(
                                     } else {
                                         AlbumGridItemRedesigned(
                                             album = Album.empty(),
-                                            albumColorSchemePairFlow = MutableStateFlow<ColorSchemePair?>(null),
+                                            albumColorSchemePairFlow = EmptyColorSchemePairFlow,
                                             onClick = {},
                                             isLoading = true
                                         )

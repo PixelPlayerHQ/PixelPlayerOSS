@@ -243,6 +243,7 @@ import androidx.paging.LoadState
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.LibrarySortBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.EnhancedSongListItem
+import timber.log.Timber
 import java.io.File
 import kotlin.math.abs
 
@@ -450,7 +451,7 @@ fun LibraryScreen(
             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             // Only toggle selection, don't show sheet immediately (similar to songs multi-selection)
             playlistMultiSelectionState.toggleSelection(playlist)
-            android.util.Log.d("PlaylistMultiSelect", "Toggled: ${playlist.name}, total selected: ${playlistMultiSelectionState.selectedPlaylists.value.size}")
+            Timber.tag("PlaylistMultiSelect").d("Toggled: ${playlist.name}, total selected: ${playlistMultiSelectionState.selectedPlaylists.value.size}")
         }
     }
 

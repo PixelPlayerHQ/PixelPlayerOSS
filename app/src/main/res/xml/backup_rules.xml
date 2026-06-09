@@ -11,4 +11,8 @@
 
     <!-- Exclude DataStore preferences that may contain API keys/sensitive settings -->
     <exclude domain="file" path="datastore/settings.preferences_pb"/>
+
+    <!-- Crash handler persists full stack traces (internal paths, possibly
+         user-derived strings) — keep them out of backups -->
+    <exclude domain="sharedpref" path="crash_handler_prefs.xml"/>
 </full-backup-content>

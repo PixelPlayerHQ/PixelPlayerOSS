@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -75,6 +76,16 @@ interface NavidromeDao {
 
     @Query("DELETE FROM navidrome_songs WHERE playlist_id = '__library__'")
     suspend fun clearLibrarySongs()
+
+    /**
+     * Atomically replaces the cached library songs — clear+insert as two separate calls
+     * leaves the cache empty if the process dies in between.
+     */
+    @Transaction
+    suspend fun replaceLibrarySongs(songs: List<NavidromeSongEntity>) {
+        clearLibrarySongs()
+        insertSongs(songs)
+    }
 
     // ─── Clear All ─────────────────────────────────────────────────────
 

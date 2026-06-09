@@ -312,12 +312,14 @@ class JellyfinApiService @Inject constructor(
     fun getStreamUrl(itemId: String, maxBitRate: Int = 0): String {
         val cred = credentials ?: throw IllegalStateException("No credentials configured")
 
+        // Deliberately no api_key query parameter: these URLs get cached and logged
+        // (proxy URL cache, server access logs), so the token travels in the
+        // Authorization header instead — see CloudStreamProxy.upstreamHeaders().
         val urlBuilder = "${cred.normalizedServerUrl}/Audio/$itemId/universal".toHttpUrl().newBuilder()
             .addQueryParameter("UserId", cred.userId)
             .addQueryParameter("DeviceId", DEVICE_ID)
             .addQueryParameter("Container", "mp3,flac,m4a,ogg,wav,aac,opus,webm")
             .addQueryParameter("AudioCodec", "mp3,flac,aac,opus")
-            .addQueryParameter("api_key", cred.accessToken)
 
         if (maxBitRate > 0) {
             urlBuilder.addQueryParameter("MaxStreamingBitrate", (maxBitRate * 1000).toString())

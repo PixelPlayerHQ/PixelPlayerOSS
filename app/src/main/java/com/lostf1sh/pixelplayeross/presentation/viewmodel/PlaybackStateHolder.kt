@@ -68,8 +68,11 @@ class PlaybackStateHolder @Inject constructor(
         private const val SHUFFLE_TOGGLE_COOLDOWN_MS = 400L
     }
 
+    // Written on the main thread in initialize(), read from coroutines on other
+    // dispatchers — @Volatile so those readers can't observe a stale null.
+    @Volatile
     private var scope: CoroutineScope? = null
-    
+
     // MediaController
     var mediaController: MediaController? = null
         private set

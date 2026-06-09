@@ -38,7 +38,7 @@ class TransitionController @Inject constructor(
     private val transitionRepository: TransitionRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
 ) {
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var transitionListener: Player.Listener? = null
     private var transitionSchedulerJob: Job? = null
     private var currentObservedPlayer: Player? = null
@@ -64,6 +64,13 @@ class TransitionController @Inject constructor(
         if (transitionListener != null) return // Already initialized
 
         Timber.tag("TransitionDebug").d("Initializing TransitionController...")
+
+        // This singleton outlives the service: release() cancels the scope, so a
+        // re-initialize after a service restart must recreate it (same pattern as
+        // DualPlayerEngine) or every scheduled transition is silently dropped.
+        if (scope.coroutineContext[Job]?.isActive != true) {
+            scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+        }
 
         transitionListener = object : Player.Listener {
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {

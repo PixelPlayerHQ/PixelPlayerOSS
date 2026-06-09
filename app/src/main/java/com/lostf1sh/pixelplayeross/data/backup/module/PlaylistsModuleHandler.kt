@@ -111,9 +111,14 @@ class PlaylistsModuleHandler @Inject constructor(
             return@withContext
         }
 
+        // A payload that fails to deserialize must abort the restore (the executor rolls back
+        // the snapshot) — silently treating it as an empty payload would wipe all playlists
+        // via replaceAllPlaylists(emptyList()) below while reporting success.
         val parsed = runCatching {
             gson.fromJson(payload, PlaylistsBackupPayload::class.java)
-        }.getOrNull() ?: PlaylistsBackupPayload()
+        }.getOrElse { e ->
+            throw IllegalStateException("Playlists payload could not be parsed: ${e.message}", e)
+        } ?: throw IllegalStateException("Playlists payload could not be parsed: empty JSON document")
 
         val backupPlaylists = parsed.playlists.orEmpty()
         val songMetadata = parsed.songMetadata

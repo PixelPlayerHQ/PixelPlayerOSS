@@ -1049,6 +1049,7 @@ class MusicService : MediaLibraryService() {
             release()
             mediaSession = null
         }
+        equalizerManager.release()
         engine.release()
         controller.release()
         serviceScope.cancel()
@@ -2441,6 +2442,7 @@ class MusicService : MediaLibraryService() {
 
         clearHeadsetReconnectResume()
         cancelDurationSleepTimerInternal()
+        stopCountedPlay()
         endOfTrackTimerSongId = null
 
         if (preservePlaybackSnapshot) {

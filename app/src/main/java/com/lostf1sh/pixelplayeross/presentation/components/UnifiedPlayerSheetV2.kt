@@ -174,8 +174,11 @@ fun UnifiedPlayerSheetV2(
     val infrequentPlayerState = infrequentPlayerStateReference.value
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
 
+    // Keyed on the State instance: an unkeyed remember would keep a lambda closing over a
+    // stale State object if collectAsStateWithLifecycle ever returns a new one (e.g. after
+    // a lifecycle-driven recomposition with a fresh collector).
     val currentPositionState = playerViewModel.currentPlaybackPosition.collectAsStateWithLifecycle()
-    val positionToDisplayProvider = remember {
+    val positionToDisplayProvider = remember(currentPositionState) {
         { currentPositionState.value }
     }
 

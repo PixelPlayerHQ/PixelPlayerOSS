@@ -118,7 +118,13 @@ fun AlbumDetailScreen(
     playlistViewModel: PlaylistViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Only the "is a song loaded" transition matters at screen level — per-song playback
+    // highlighting is isolated inside LibraryPlaybackAwareSongItem so the song list does
+    // not recompose wholesale on every playback-state change.
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
+    val isMiniPlayerVisible by remember {
+        derivedStateOf { stablePlayerState.currentSong != null }
+    }
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
 
@@ -156,7 +162,6 @@ fun AlbumDetailScreen(
         shapes = MaterialTheme.shapes
     ) {
 
-        val isMiniPlayerVisible = stablePlayerState.currentSong != null
         val fabBottomPadding by animateDpAsState(
             targetValue = if (isMiniPlayerVisible) MiniPlayerHeight + 16.dp else 16.dp,
             label = "fabPadding"
@@ -336,10 +341,11 @@ fun AlbumDetailScreen(
                                 key = { song -> "album_song_${song.id}" },
                                 contentType = { "album_song" }
                             ) { song ->
-                                EnhancedSongListItem(
+                                // Per-item playback observation (see LibraryPlaybackAwareSongItem):
+                                // keeps a track change from recomposing every visible row.
+                                LibraryPlaybackAwareSongItem(
                                     song = song,
-                                    isCurrentSong = stablePlayerState.currentSong?.id == song.id,
-                                    isPlaying = stablePlayerState.isPlaying,
+                                    playerViewModel = playerViewModel,
                                     showAlbumArt = false,
                                     onMoreOptionsClick = {
                                         playerViewModel.selectSongForInfo(song)

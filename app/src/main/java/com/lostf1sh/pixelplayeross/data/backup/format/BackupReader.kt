@@ -138,6 +138,11 @@ class BackupReader @Inject constructor(
             ZipInputStream(raw).use { zip ->
                 var entry = zip.nextEntry
                 while (entry != null) {
+                    if (isSuspiciousEntryName(entry.name)) {
+                        zip.closeEntry()
+                        entry = zip.nextEntry
+                        continue
+                    }
                     if (entry.name == entryName) {
                         return zip.bufferedReader(Charsets.UTF_8).use { reader ->
                             readTextLimited(
@@ -163,7 +168,10 @@ class BackupReader @Inject constructor(
                 var entry = zip.nextEntry
                 while (entry != null) {
                     val name = entry.name
-                    if (name != BackupManifest.MANIFEST_FILENAME && name.endsWith(".json")) {
+                    if (!isSuspiciousEntryName(name) &&
+                        name != BackupManifest.MANIFEST_FILENAME &&
+                        name.endsWith(".json")
+                    ) {
                         val key = name.removeSuffix(".json")
                         entries[key] = zip.bufferedReader(Charsets.UTF_8).use { reader ->
                             readTextLimited(
@@ -179,6 +187,20 @@ class BackupReader @Inject constructor(
             }
         } ?: throw IllegalStateException("Unable to open backup file")
         return entries
+    }
+
+    /**
+     * Backup archives are flat: every legitimate entry is a bare `<module>.json` (or the
+     * manifest) with no directory component. Entries with path separators or traversal
+     * sequences can only come from a hand-crafted archive — ignore them entirely so they
+     * can never alias a module key. (Entries are only ever read into memory, never
+     * extracted to disk; this is defense-in-depth.)
+     */
+    private fun isSuspiciousEntryName(name: String): Boolean {
+        return name.contains("..") ||
+            name.contains('/') ||
+            name.contains('\\') ||
+            name.contains(' ')
     }
 
     private fun decompressLegacy(uri: Uri, format: BackupFormatDetector.Format): String {

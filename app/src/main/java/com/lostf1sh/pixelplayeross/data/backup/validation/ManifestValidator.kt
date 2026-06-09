@@ -60,14 +60,20 @@ class ManifestValidator @Inject constructor() {
 
     /**
      * Verifies the checksum of a module payload against the manifest.
+     *
+     * Strict by design: both [com.lostf1sh.pixelplayeross.data.backup.format.BackupWriter]
+     * and [com.lostf1sh.pixelplayeross.data.backup.format.LegacyPayloadAdapter] always emit
+     * `sha256:` checksums, so a missing module entry, a blank checksum, or an unknown
+     * algorithm prefix can only come from a corrupted or tampered archive — treat it as a
+     * verification failure rather than silently skipping the check.
      */
     fun verifyChecksum(moduleKey: String, payload: String, manifest: BackupManifest): Boolean {
-        val expectedChecksum = manifest.modules[moduleKey]?.checksum ?: return true
-        if (!expectedChecksum.startsWith("sha256:")) return true
+        val expectedChecksum = manifest.modules[moduleKey]?.checksum ?: return false
+        if (!expectedChecksum.startsWith("sha256:")) return false
 
         val expectedHash = expectedChecksum.removePrefix("sha256:")
         val actualHash = sha256(payload.toByteArray(Charsets.UTF_8))
-        return expectedHash == actualHash
+        return expectedHash.equals(actualHash, ignoreCase = true)
     }
 
     private fun sha256(data: ByteArray): String {

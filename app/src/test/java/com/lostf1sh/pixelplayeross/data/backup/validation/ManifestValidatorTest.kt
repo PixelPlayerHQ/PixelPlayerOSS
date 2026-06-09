@@ -109,9 +109,22 @@ class ManifestValidatorTest {
     }
 
     @Test
-    fun `verifyChecksum returns true when no checksum in manifest`() {
+    fun `verifyChecksum fails when no checksum in manifest`() {
+        // BackupWriter and LegacyPayloadAdapter always emit sha256 checksums, so a missing
+        // module entry can only come from a corrupted or tampered archive — it must fail
+        // verification rather than silently bypass it.
         val manifest = BackupManifest(modules = emptyMap())
-        assertTrue(validator.verifyChecksum("favorites", "any payload", manifest))
+        assertFalse(validator.verifyChecksum("favorites", "any payload", manifest))
+    }
+
+    @Test
+    fun `verifyChecksum fails for unknown checksum algorithm`() {
+        val manifest = BackupManifest(
+            modules = mapOf(
+                "favorites" to BackupModuleInfo(checksum = "md5:abc123", entryCount = 1, sizeBytes = 10)
+            )
+        )
+        assertFalse(validator.verifyChecksum("favorites", "any payload", manifest))
     }
 
     private fun sha256(data: ByteArray): String {

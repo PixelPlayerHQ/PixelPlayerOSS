@@ -566,7 +566,7 @@ interface MusicDao {
 
     @Query("""
         SELECT id FROM songs
-        WHERE (:applyDirectoryFilter = 0 OR parent_directory_path IN (:allowedParentDirs))
+        WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
         AND (
             :filterMode = 0
             OR (
@@ -603,7 +603,7 @@ interface MusicDao {
     @Query("""
         SELECT songs.id FROM songs
         INNER JOIN favorites ON songs.id = favorites.songId AND favorites.isFavorite = 1
-        WHERE (:applyDirectoryFilter = 0 OR songs.parent_directory_path IN (:allowedParentDirs))
+        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
         AND (
             :filterMode = 0
             OR (
@@ -852,7 +852,7 @@ interface MusicDao {
     @Query("""
         SELECT songs.* FROM songs
         INNER JOIN songs_fts ON songs_fts.rowid = songs.id
-        WHERE (:applyDirectoryFilter = 0 OR songs.parent_directory_path IN (:allowedParentDirs))
+        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
         AND songs_fts MATCH :matchQuery
         ORDER BY songs.title ASC
     """)
@@ -1497,7 +1497,17 @@ interface MusicDao {
     @Query("DELETE FROM albums WHERE NOT EXISTS (SELECT 1 FROM songs WHERE songs.album_id = albums.id)")
     suspend fun deleteOrphanedAlbums()
 
-    @Query("DELETE FROM artists WHERE NOT EXISTS (SELECT 1 FROM song_artist_cross_ref WHERE song_artist_cross_ref.artist_id = artists.id)")
+    /**
+     * An artist is only orphaned when nothing references it: neither the cross-ref table
+     * nor songs.artist_id. The songs.artist_id check is load-bearing — the songs FK is
+     * declared ON DELETE SET NULL but the column is NOT NULL, so deleting an artist that
+     * a song still points at would abort with a constraint error instead of nulling.
+     */
+    @Query("""
+        DELETE FROM artists
+        WHERE NOT EXISTS (SELECT 1 FROM song_artist_cross_ref WHERE song_artist_cross_ref.artist_id = artists.id)
+          AND NOT EXISTS (SELECT 1 FROM songs WHERE songs.artist_id = artists.id)
+    """)
     suspend fun deleteOrphanedArtists()
 
     // --- Favorite Operations ---

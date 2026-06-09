@@ -81,20 +81,36 @@ class NavidromeRepository @Inject constructor(
         const val LIBRARY_PLAYLIST_ID = "__library__"
     }
 
-    private val prefs: SharedPreferences = try {
+    private val prefs: SharedPreferences = createCredentialPrefs()
+
+    private fun createEncryptedPrefs(): SharedPreferences {
         val masterKey = MasterKey.Builder(context)
             .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
             .build()
-        EncryptedSharedPreferences.create(
+        return EncryptedSharedPreferences.create(
             context,
             PREFS_NAME,
             masterKey,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
         )
+    }
+
+    private fun createCredentialPrefs(): SharedPreferences = try {
+        createEncryptedPrefs()
     } catch (e: Exception) {
-        Timber.e(e, "$TAG: Failed to create EncryptedSharedPreferences, falling back to plain")
-        context.getSharedPreferences("${PREFS_NAME}_plain", Context.MODE_PRIVATE)
+        // Most failures here are a pref file that no longer matches the Keystore master
+        // key (e.g. data restored onto a new device). Delete the undecryptable file and
+        // retry: the user has to log in again, but credentials stay encrypted instead of
+        // silently degrading to plaintext storage.
+        Timber.e(e, "$TAG: EncryptedSharedPreferences unreadable, deleting and recreating")
+        context.deleteSharedPreferences(PREFS_NAME)
+        try {
+            createEncryptedPrefs()
+        } catch (e2: Exception) {
+            Timber.e(e2, "$TAG: Encrypted prefs unavailable, falling back to plain")
+            context.getSharedPreferences("${PREFS_NAME}_plain", Context.MODE_PRIVATE)
+        }
     }
 
     private val _isLoggedInFlow = MutableStateFlow(false)
@@ -455,9 +471,8 @@ class NavidromeRepository @Inject constructor(
                     song.toEntity(LIBRARY_PLAYLIST_ID)
                 }
 
-                // Replace all library songs
-                dao.clearLibrarySongs()
-                dao.insertSongs(entities)
+                // Replace all library songs (atomic — see NavidromeDao.replaceLibrarySongs)
+                dao.replaceLibrarySongs(entities)
 
                 Timber.d("$TAG: Synced ${entities.size} library songs from ${fetchedAlbums.size} albums")
                 onProgress?.invoke(1f, context.getString(R.string.dash_status_library_sync_complete))

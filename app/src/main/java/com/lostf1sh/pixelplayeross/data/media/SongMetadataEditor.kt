@@ -529,10 +529,7 @@ class SongMetadataEditor(
                 Timber.tag(TAG).e("METADATA_EDIT: Writer failed on temp file ${tempFile.absolutePath}")
                 return false
             }
-            // Stream edited bytes back to the original path (truncate + overwrite).
-            tempFile.inputStream().use { input ->
-                FileOutputStream(originalFile, false).use { out -> input.copyTo(out) }
-            }
+            replaceFileContentSafely(tempFile, originalFile)
             Timber.tag(TAG).d(
                 "METADATA_EDIT: Restored ${tempFile.length()} edited bytes back to $originalPath"
             )
@@ -543,6 +540,52 @@ class SongMetadataEditor(
         } finally {
             if (tempFile.exists() && !tempFile.delete()) {
                 Timber.tag(TAG).w("METADATA_EDIT: Could not delete temp file ${tempFile.absolutePath}")
+            }
+        }
+    }
+
+    /**
+     * Replaces [target]'s content with [source]'s bytes as atomically as the filesystem allows:
+     * the bytes are first copied (and fsynced) to a sibling temp file in [target]'s directory,
+     * then renamed over [target], so an interruption (crash, ENOSPC) can never leave [target]
+     * truncated. [source] typically lives in cacheDir — a different filesystem than the music
+     * file — which is why a direct rename of [source] itself is not possible. Falls back to a
+     * direct truncate+overwrite only when the sibling cannot be created or renamed (e.g.
+     * scoped-storage grants that cover the file but not its directory).
+     */
+    private fun replaceFileContentSafely(source: File, target: File) {
+        val parent = target.parentFile
+        if (parent != null) {
+            val sibling = File(parent, "${target.name}.${System.nanoTime()}.tmp")
+            try {
+                source.inputStream().use { input ->
+                    FileOutputStream(sibling).use { out ->
+                        input.copyTo(out)
+                        out.fd.sync()
+                    }
+                }
+                if (sibling.renameTo(target)) {
+                    return
+                }
+                Timber.tag(TAG).w(
+                    "METADATA_EDIT: Atomic rename onto ${target.path} failed; falling back to in-place overwrite"
+                )
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(
+                    e,
+                    "METADATA_EDIT: Sibling temp write for ${target.path} failed; falling back to in-place overwrite"
+                )
+            } finally {
+                if (sibling.exists() && !sibling.delete()) {
+                    Timber.tag(TAG).w("METADATA_EDIT: Could not delete temp file ${sibling.absolutePath}")
+                }
+            }
+        }
+        // Last resort — non-atomic truncate+overwrite.
+        source.inputStream().use { input ->
+            FileOutputStream(target, false).use { out ->
+                input.copyTo(out)
+                out.fd.sync()
             }
         }
     }
@@ -1011,12 +1054,7 @@ class SongMetadataEditor(
             Timber.tag(TAG)
                 .e("VORBISJAVA: Temp file size: ${tempFile.length()} bytes, original: ${audioFile.length()} bytes")
             
-            tempFile.inputStream().use { input ->
-                FileOutputStream(audioFile, false).use { output ->
-                    input.copyTo(output)
-                    output.fd.sync()
-                }
-            }
+            replaceFileContentSafely(tempFile, audioFile)
 
             Timber.tag(TAG).e("VORBISJAVA: SUCCESS - Updated file metadata: ${audioFile.path}")
             true

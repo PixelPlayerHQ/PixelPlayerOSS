@@ -46,6 +46,11 @@ class JellyfinStreamProxy @Inject constructor(
     override fun extractIdFromUri(uri: Uri): String? =
         uri.host ?: uri.path?.removePrefix("/")
 
+    // The access token rides in the Authorization header rather than as an api_key query
+    // parameter so it never lands in the URL cache or the server's access logs.
+    override fun upstreamHeaders(): Map<String, String> =
+        repository.getAuthorizationHeader()?.let { mapOf("Authorization" to it) } ?: emptyMap()
+
     fun resolveJellyfinUri(uriString: String): String? = resolveUri(uriString)
 
     suspend fun warmUpStreamUrl(uriString: String) {

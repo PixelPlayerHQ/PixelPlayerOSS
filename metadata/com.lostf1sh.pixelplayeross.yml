@@ -1,5 +1,6 @@
 Categories:
-  - Multimedia
+  - Local Media Player
+  - Online Media Player
 License: MIT
 AuthorName: lostf1sh
 SourceCode: https://github.com/lostf1sh/PixelPlayerOSS
@@ -12,37 +13,21 @@ RepoType: git
 Repo: https://github.com/lostf1sh/PixelPlayerOSS.git
 
 Builds:
-  - versionName: 0.7.0-foss
-    versionCode: 8
-    commit: v0.7.0-foss
-    sudo:
-      - apt-get update
-      - apt-get install -y -t trixie openjdk-21-jdk-headless
-    output: app/build/outputs/apk/release/app-release-unsigned.apk
+  - versionName: 0.1.0
+    versionCode: 1
+    commit: bd7a0f33b48ebeb96c2d1285f4354d41e997e5df
+    subdir: app
+    gradle:
+      - yes
     prebuild:
-      - foojay=org.gradle.toolchains.foojay-resolver-convention
-      - sed -i "/$foojay/d" settings.gradle.kts
-      - sed -i "s/ -XX:+ParallelRefParsingEnabled//" gradle.properties
-    build:
-      - gradle_version=9.5.1
-      - gradle_zip=/tmp/gradle-${gradle_version}-bin.zip
-      - gradle_url=https://services.gradle.org/distributions/gradle-${gradle_version}-bin.zip
-      - gradle_sha=bafc141b619ad6350fd975fc903156dd5c151998cc8b058e8c1044ab5f7b031f
-      - curl --fail --location --retry 3 --output "$gradle_zip" "$gradle_url"
-      - printf "%s  %s\n" "$gradle_sha" "$gradle_zip" | sha256sum -c -
-      - rm -rf "/tmp/gradle-${gradle_version}"
-      - unzip -q "$gradle_zip" -d /tmp
-      - java_home=/usr/lib/jvm/java-21-openjdk-amd64
-      - export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-      - if [ -d "$java_home" ]; then export JAVA_HOME="$java_home"; fi
-      - export PATH="$JAVA_HOME/bin:$PATH"
-      - gradle_bin=/tmp/gradle-${gradle_version}/bin/gradle
-      - no_splits=-Ppixelplayer.enableAbiSplits=false
-      - no_signing=-Ppixelplayer.disableReleaseSigning=true
-      - $gradle_bin :app:assembleRelease $no_splits $no_signing
+      - sed -i -e '/foojay/d' ../settings.gradle.kts
+      - sed -i "s/ -XX:+ParallelRefParsingEnabled//" ../gradle.properties
+    gradleprops:
+      - pixelplayer.enableAbiSplits=false
+      - pixelplayer.disableReleaseSigning=true
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 UpdateCheckData: gradle.properties|CODE=(\d+)|.|NAME=(.+)
-CurrentVersion: 0.7.0-foss
-CurrentVersionCode: 8
+CurrentVersion: 0.1.0
+CurrentVersionCode: 1

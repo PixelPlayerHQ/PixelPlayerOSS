@@ -12,6 +12,9 @@
   <a href="https://github.com/lostf1sh/PixelPlayerOSS/releases/latest">
     <img src="https://img.shields.io/github/v/release/lostf1sh/PixelPlayerOSS?include_prereleases&logo=github&style=for-the-badge&label=Latest%20Release" alt="Latest release">
   </a>
+  <a href="https://f-droid.org/packages/com.lostf1sh.pixelplayeross/">
+    <img src="https://img.shields.io/f-droid/v/com.lostf1sh.pixelplayeross?logo=fdroid&style=for-the-badge&label=F-Droid" alt="F-Droid version">
+  </a>
   <a href="https://github.com/lostf1sh/PixelPlayerOSS/releases">
     <img src="https://img.shields.io/github/downloads/lostf1sh/PixelPlayerOSS/total?logo=github&style=for-the-badge" alt="Total downloads">
   </a>
@@ -116,6 +119,12 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :baselineprofile:generateBaseli
 
 ## Download
 
+PixelPlayerOSS is available on F-Droid:
+
+<a href="https://f-droid.org/packages/com.lostf1sh.pixelplayeross/">
+  <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" height="80">
+</a>
+
 GitHub releases are available at:
 
 ```text
@@ -130,7 +139,9 @@ com.lostf1sh.pixelplayeross
 
 Public releases are planned on a regular weekly cadence when `main` passes the release checklist.
 
-F-Droid metadata is included in `fastlane/metadata/android/en-US`; official listing work is tracked in [docs/FDROID.md](docs/FDROID.md).
+F-Droid listing metadata lives in `fastlane/metadata/android/en-US`; build/release notes for F-Droid are in [docs/FDROID.md](docs/FDROID.md).
+
+> Note: F-Droid builds and signs its own APKs from source, so they may lag behind GitHub releases while the new version works through the F-Droid build cycle. F-Droid and GitHub APK signatures differ — switching between the two requires an uninstall/reinstall.
 
 ## Project Structure
 
@@ -175,7 +186,7 @@ JAVA_HOME=/usr/lib/jvm/java-21-openjdk ./gradlew :app:testDebugUnitTest
 
 Release process: [docs/RELEASE.md](docs/RELEASE.md)
 
-F-Droid readiness: [docs/FDROID.md](docs/FDROID.md)
+F-Droid notes: [docs/FDROID.md](docs/FDROID.md)
 
 Privacy policy: [PRIVACY.md](PRIVACY.md)
 

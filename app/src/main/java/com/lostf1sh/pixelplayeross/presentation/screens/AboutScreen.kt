@@ -146,6 +146,17 @@ private val AboutMaintainers = listOf(
     NonFossMaintainer,
 )
 
+private const val SourceRepoUrl = "https://github.com/lostf1sh/PixelPlayerOSS"
+private const val FDroidUrl = "https://f-droid.org/packages/com.lostf1sh.pixelplayeross/"
+
+private data class ProjectLink(
+    val id: String,
+    val title: String,
+    val subtitle: String,
+    @DrawableRes val iconRes: Int,
+    val url: String,
+)
+
 // AboutTopBar removed, replaced by CollapsibleCommonTopBar
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -163,6 +174,23 @@ fun AboutScreen(
     } catch (_: Exception) {
         "N/A"
     }
+
+    val projectLinks = listOf(
+        ProjectLink(
+            id = "source",
+            title = stringResource(R.string.about_link_source_title),
+            subtitle = stringResource(R.string.about_link_source_subtitle),
+            iconRes = R.drawable.github,
+            url = SourceRepoUrl,
+        ),
+        ProjectLink(
+            id = "fdroid",
+            title = stringResource(R.string.about_link_fdroid_title),
+            subtitle = stringResource(R.string.about_link_fdroid_subtitle),
+            iconRes = R.drawable.fdroid,
+            url = FDroidUrl,
+        ),
+    )
 
     val transitionState = remember { MutableTransitionState(false) }
     LaunchedEffect(Unit) {
@@ -278,6 +306,29 @@ fun AboutScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(top = 8.dp),
+                )
+            }
+
+            item(key = "project_title") {
+                AboutSectionHeader(
+                    title = stringResource(R.string.about_project_title),
+                    subtitle = stringResource(R.string.about_project_subtitle),
+                    modifier = Modifier.padding(top = 24.dp),
+                )
+            }
+
+            itemsIndexed(
+                items = projectLinks,
+                key = { _, link -> "project_${link.id}" },
+            ) { index, link ->
+                AboutLinkCard(
+                    link = link,
+                    shape = expressiveListShape(index = index, count = projectLinks.size),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(top = if (index == 0) 0.dp else 3.dp),
+                    onClick = { openUrl(context, link.url) },
                 )
             }
 
@@ -479,6 +530,81 @@ private fun AboutSectionHeader(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 2.dp),
         )
+    }
+}
+
+@Composable
+private fun AboutLinkCard(
+    link: ProjectLink,
+    shape: AbsoluteSmoothCornerShape,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .clip(shape)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = LocalIndication.current,
+                role = Role.Button,
+                onClickLabel = stringResource(R.string.cd_about_open_link, link.title),
+                onClick = onClick,
+            ),
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 2.dp,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+            ) {
+                Icon(
+                    painter = painterResource(link.iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .size(24.dp),
+                )
+            }
+
+            Spacer(Modifier.width(12.dp))
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp),
+            ) {
+                Text(
+                    text = link.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = link.subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(top = 2.dp),
+                )
+            }
+
+            Icon(
+                painter = painterResource(R.drawable.rounded_chevron_right_24),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(22.dp),
+            )
+        }
     }
 }
 

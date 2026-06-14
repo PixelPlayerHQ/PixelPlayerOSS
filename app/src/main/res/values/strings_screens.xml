@@ -187,6 +187,13 @@
     <string name="screen_about">About</string>
     <string name="about_maintainer_title">Maintainers</string>
     <string name="about_maintainer_subtitle">FOSS and original/non-FOSS maintainership.</string>
+    <string name="about_project_title">Project</string>
+    <string name="about_project_subtitle">Source code and download listing.</string>
+    <string name="about_link_source_title">Source code</string>
+    <string name="about_link_source_subtitle">github.com/lostf1sh/PixelPlayerOSS</string>
+    <string name="about_link_fdroid_title">F-Droid</string>
+    <string name="about_link_fdroid_subtitle">Available on the F-Droid catalog</string>
+    <string name="cd_about_open_link">Open %1$s</string>
     <string name="about_signal_open_source">Open source</string>
     <string name="about_signal_community_first">Community-first</string>
     <string name="about_signal_material3">Material 3 expressive</string>

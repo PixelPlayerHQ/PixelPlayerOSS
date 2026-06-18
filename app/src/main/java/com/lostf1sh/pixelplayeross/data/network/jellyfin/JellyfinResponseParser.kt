@@ -23,8 +23,9 @@ object JellyfinResponseParser {
                 }
             }
         }
+        val albumArtist = json.optString("AlbumArtist").takeIf { it.isNotBlank() }
         val artist = artistNames.joinToString(", ").ifBlank {
-            json.optString("AlbumArtist", "Unknown Artist")
+            albumArtist ?: "Unknown Artist"
         }
 
         val artistIds = buildList {
@@ -51,6 +52,7 @@ object JellyfinResponseParser {
             title = json.optString("Name", "Unknown Title"),
             artist = artist,
             artistId = artistIds.firstOrNull(),
+            albumArtist = albumArtist,
             album = json.optString("Album", "Unknown Album"),
             albumId = json.optString("AlbumId").takeIf { it.isNotBlank() },
             duration = (json.optLong("RunTimeTicks", 0L) / 10_000), // Ticks to milliseconds

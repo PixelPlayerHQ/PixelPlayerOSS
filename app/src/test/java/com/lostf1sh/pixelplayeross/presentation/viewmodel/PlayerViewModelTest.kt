@@ -474,6 +474,13 @@ class PlayerViewModelTest {
             val mockedPlaybackUri = mockk<android.net.Uri>(relaxed = true)
             every { mockedPlaybackUri.scheme } returns "file"
             every { MediaItemBuilder.playbackUri(any<Song>()) } returns mockedPlaybackUri
+
+            // beginPreparingSong() runs on Dispatchers.IO and calls String.toUri() on the
+            // song's albumArtUriString. In JVM unit tests android.net.Uri.parse(...) returns
+            // null (android stub + isReturnDefaultValues), so toUri() throws NPE. Stub the
+            // static parse so the queue-prep path runs to completion under core-ktx 1.19.0.
+            mockkStatic(android.net.Uri::class)
+            every { android.net.Uri.parse(any()) } returns mockk(relaxed = true)
         }
 
         @Test

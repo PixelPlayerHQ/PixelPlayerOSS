@@ -23,6 +23,7 @@ import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeSong
 import com.lostf1sh.pixelplayeross.data.network.navidrome.NavidromeApiService
 import com.lostf1sh.pixelplayeross.data.network.navidrome.NavidromeResponseParser
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.stream.BulkSyncResult
 import com.lostf1sh.pixelplayeross.data.stream.CloudMusicUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -60,6 +61,7 @@ class NavidromeRepository @Inject constructor(
     private val dao: NavidromeDao,
     private val musicDao: MusicDao,
     private val playlistPreferencesRepository: PlaylistPreferencesRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
     @ApplicationContext private val context: Context
 ) {
     companion object {
@@ -735,6 +737,10 @@ class NavidromeRepository @Inject constructor(
             return
         }
 
+        // When on, "Group by Album Artist" makes the album's display artist the album artist;
+        // either way the effective album artist is captured on the song for the Artists tab.
+        val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
+
         val songs = ArrayList<SongEntity>(navidromeSongs.size)
         val artists = LinkedHashMap<Long, ArtistEntity>()
         val albums = LinkedHashMap<Long, AlbumEntity>()
@@ -745,6 +751,25 @@ class NavidromeRepository @Inject constructor(
             val artistNames = parseArtistNames(navidromeSong.artist)
             val primaryArtistName = artistNames.firstOrNull() ?: "Unknown Artist"
             val primaryArtistId = toUnifiedArtistId(primaryArtistName)
+
+            // Effective album artist (Subsonic albumArtist tag, else primary track artist),
+            // registered as a real artist row so songs.album_artist_id can join to it.
+            val effectiveAlbumArtistName = navidromeSong.albumArtist
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: primaryArtistName
+            val albumArtistId = toUnifiedArtistId(effectiveAlbumArtistName)
+            artists.putIfAbsent(
+                albumArtistId,
+                ArtistEntity(
+                    id = albumArtistId,
+                    name = effectiveAlbumArtistName,
+                    trackCount = 0,
+                    imageUrl = null
+                )
+            )
+            val albumDisplayArtistName = if (groupByAlbumArtist) effectiveAlbumArtistName else primaryArtistName
+            val albumDisplayArtistId = if (groupByAlbumArtist) albumArtistId else primaryArtistId
 
             artistNames.forEachIndexed { index, artistName ->
                 val artistId = toUnifiedArtistId(artistName)
@@ -773,13 +798,14 @@ class NavidromeRepository @Inject constructor(
                 AlbumEntity(
                     id = albumId,
                     title = albumName,
-                    artistName = primaryArtistName,
-                    artistId = primaryArtistId,
+                    artistName = albumDisplayArtistName,
+                    artistId = albumDisplayArtistId,
                     songCount = 0,
                     dateAdded = navidromeSong.dateAdded,
                     year = navidromeSong.year,
                     albumArtUriString = navidromeSong.coverArtId?.takeIf { it.isNotBlank() }
-                        ?.let { "navidrome_cover://$it" }
+                        ?.let { "navidrome_cover://$it" },
+                    albumArtist = navidromeSong.albumArtist?.takeIf { it.isNotBlank() }
                 )
             )
 
@@ -789,7 +815,8 @@ class NavidromeRepository @Inject constructor(
                     title = navidromeSong.title,
                     artistName = navidromeSong.artist.ifBlank { primaryArtistName },
                     artistId = primaryArtistId,
-                    albumArtist = null,
+                    albumArtist = navidromeSong.albumArtist?.takeIf { it.isNotBlank() },
+                    albumArtistId = albumArtistId,
                     albumName = albumName,
                     albumId = albumId,
                     contentUriString = "navidrome://${navidromeSong.navidromeId}",

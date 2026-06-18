@@ -22,6 +22,7 @@ import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.network.jellyfin.JellyfinApiService
 import com.lostf1sh.pixelplayeross.data.network.jellyfin.JellyfinResponseParser
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.stream.BulkSyncResult
 import com.lostf1sh.pixelplayeross.data.stream.CloudMusicUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -45,6 +46,7 @@ class JellyfinRepository @Inject constructor(
     private val dao: JellyfinDao,
     private val musicDao: MusicDao,
     private val playlistPreferencesRepository: PlaylistPreferencesRepository,
+    private val userPreferencesRepository: UserPreferencesRepository,
     @ApplicationContext private val context: Context
 ) {
     private companion object {
@@ -496,6 +498,10 @@ class JellyfinRepository @Inject constructor(
             return
         }
 
+        // When on, "Group by Album Artist" makes the album's display artist the album artist;
+        // either way the effective album artist is captured on the song for the Artists tab.
+        val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
+
         val songs = ArrayList<SongEntity>(jellyfinSongs.size)
         val artists = LinkedHashMap<Long, ArtistEntity>()
         val albums = LinkedHashMap<Long, AlbumEntity>()
@@ -506,6 +512,25 @@ class JellyfinRepository @Inject constructor(
             val artistNames = parseArtistNames(jellyfinSong.artist)
             val primaryArtistName = artistNames.firstOrNull() ?: "Unknown Artist"
             val primaryArtistId = toUnifiedArtistId(primaryArtistName)
+
+            // Effective album artist (Jellyfin AlbumArtist, else primary track artist), registered
+            // as a real artist row so songs.album_artist_id can join to it.
+            val effectiveAlbumArtistName = jellyfinSong.albumArtist
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: primaryArtistName
+            val albumArtistId = toUnifiedArtistId(effectiveAlbumArtistName)
+            artists.putIfAbsent(
+                albumArtistId,
+                ArtistEntity(
+                    id = albumArtistId,
+                    name = effectiveAlbumArtistName,
+                    trackCount = 0,
+                    imageUrl = null
+                )
+            )
+            val albumDisplayArtistName = if (groupByAlbumArtist) effectiveAlbumArtistName else primaryArtistName
+            val albumDisplayArtistId = if (groupByAlbumArtist) albumArtistId else primaryArtistId
 
             artistNames.forEachIndexed { index, artistName ->
                 val artistId = toUnifiedArtistId(artistName)
@@ -534,12 +559,13 @@ class JellyfinRepository @Inject constructor(
                 AlbumEntity(
                     id = albumId,
                     title = albumName,
-                    artistName = primaryArtistName,
-                    artistId = primaryArtistId,
+                    artistName = albumDisplayArtistName,
+                    artistId = albumDisplayArtistId,
                     songCount = 0,
                     dateAdded = jellyfinSong.dateAdded,
                     year = jellyfinSong.year,
-                    albumArtUriString = "jellyfin_cover://${jellyfinSong.jellyfinId}"
+                    albumArtUriString = "jellyfin_cover://${jellyfinSong.jellyfinId}",
+                    albumArtist = jellyfinSong.albumArtist?.takeIf { it.isNotBlank() }
                 )
             )
 
@@ -549,7 +575,8 @@ class JellyfinRepository @Inject constructor(
                     title = jellyfinSong.title,
                     artistName = jellyfinSong.artist.ifBlank { primaryArtistName },
                     artistId = primaryArtistId,
-                    albumArtist = null,
+                    albumArtist = jellyfinSong.albumArtist?.takeIf { it.isNotBlank() },
+                    albumArtistId = albumArtistId,
                     albumName = albumName,
                     albumId = albumId,
                     contentUriString = "jellyfin://${jellyfinSong.jellyfinId}",

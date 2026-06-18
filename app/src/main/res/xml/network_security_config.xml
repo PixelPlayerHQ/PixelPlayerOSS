@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <!-- Arbitrary self-hosted Navidrome/Jellyfin servers may be HTTP-only. -->
+    <!--
+        Self-hosted servers commonly use a private/self-signed CA. Trusting
+        user-installed CAs lets a user opt in by importing their root cert via
+        Android Settings > Security > Install a certificate; the app then honors
+        it. This is a declarative, user-controlled trust decision (not a
+        validation bypass) and keeps F-Droid compliance intact.
+    -->
     <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
+            <certificates src="user" />
         </trust-anchors>
     </base-config>
     <domain-config cleartextTrafficPermitted="true">

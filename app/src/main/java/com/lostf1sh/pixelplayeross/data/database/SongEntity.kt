@@ -41,6 +41,7 @@ object SourceType {
         Index(value = ["date_added"], unique = false),
         Index(value = ["duration"], unique = false),
         Index(value = ["source_type"], unique = false),
+        Index(value = ["album_artist_id"], unique = false),
         Index(value = ["parent_directory_path", "source_type", "album_id"], unique = false),
         Index(value = ["parent_directory_path", "source_type", "id"], unique = false)
     ],
@@ -67,6 +68,10 @@ data class SongEntity(
     @ColumnInfo(name = "artist_name") val artistName: String, // Display string (combined or primary)
     @ColumnInfo(name = "artist_id") val artistId: Long, // Primary artist ID for backward compatibility
     @ColumnInfo(name = "album_artist") val albumArtist: String? = null, // Album artist from metadata
+    // Id of the *effective* album artist (album_artist when present, else the primary track
+    // artist). Source-independent and computed at sync time so the "Group by Album Artist"
+    // Artists tab can collapse on it at runtime without a re-sync. 0 = unresolved.
+    @ColumnInfo(name = "album_artist_id", defaultValue = "0") val albumArtistId: Long = 0L,
     @ColumnInfo(name = "album_name") val albumName: String,
     @ColumnInfo(name = "album_id") val albumId: Long, // index = true removed
     @ColumnInfo(name = "content_uri_string") val contentUriString: String,

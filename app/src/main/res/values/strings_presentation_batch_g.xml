@@ -175,7 +175,7 @@
     <string name="presentation_batch_g_artist_extract_from_title_sub">Detect feat., ft., with in song titles</string>
     <string name="presentation_batch_g_artist_section_library_org">Library Organization</string>
     <string name="presentation_batch_g_artist_group_by_album_artist">Group by Album Artist</string>
-    <string name="presentation_batch_g_artist_group_by_album_artist_sub">Show collaboration albums under main artist</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist_sub">Group the Artists tab and albums by album artist, so featured and compilation artists don\'t clutter the list</string>
     <string name="presentation_batch_g_artist_info_title">About Multi-Artist Parsing</string>
     <string name="presentation_batch_g_artist_info_body">PixelPlayerOSS splits artist tags using character delimiters (/, ;, &amp;) and word delimiters (feat., ft., vs., x). Word delimiters are matched case-insensitively.
 

@@ -519,6 +519,20 @@ constructor(
                             ?: songArtistNameTrimmed
             val primaryArtistId = artistNameToId[primaryArtistName] ?: song.artistId
 
+            // Effective album artist = the album_artist tag when usable, else the primary track
+            // artist. Registered as a first-class artist row (even for compilation-only names like
+            // "Various Artists" that never appear as a track artist) so the "Group by Album Artist"
+            // tab can collapse onto songs.album_artist_id. Preference-independent: the toggle only
+            // chooses whether the tab/detail query reads this column, so no re-sync is needed.
+            val effectiveAlbumArtistName = song.albumArtist
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() && !it.equals("<unknown>", ignoreCase = true) }
+                    ?: primaryArtistName
+            if (effectiveAlbumArtistName.isNotEmpty() && !artistNameToId.containsKey(effectiveAlbumArtistName)) {
+                artistNameToId[effectiveAlbumArtistName] = nextArtistId.getAndIncrement()
+            }
+            val albumArtistId = artistNameToId[effectiveAlbumArtistName] ?: primaryArtistId
+
             allArtistsForSong.forEachIndexed { index, artistName ->
                 val normalizedName = artistName.trim()
                 val artistId = artistNameToId[normalizedName]
@@ -550,6 +564,7 @@ constructor(
                     song.copy(
                             artistId = primaryArtistId,
                             artistName = rawArtistName, // Preserving full artist string for display
+                            albumArtistId = albumArtistId,
                             albumId = finalAlbumId,
                             artistsJson = serializeArtistRefs(artistRefsForJson)
                     )

@@ -88,6 +88,7 @@ object NavidromeResponseParser {
             title = json.optString("title", json.optString("name", "Unknown Title")),
             artist = json.optString("artist", "Unknown Artist"),
             artistId = json.optString("artistId").takeIf { it.isNotEmpty() },
+            albumArtist = json.optString("albumArtist").takeIf { it.isNotEmpty() },
             album = json.optString("album", "Unknown Album"),
             albumId = json.optString("albumId").takeIf { it.isNotEmpty() },
             coverArt = json.optString("coverArt").takeIf { it.isNotEmpty() },

@@ -11,6 +11,7 @@ data class JellyfinSong(
     val title: String,
     val artist: String,
     val artistId: String? = null,
+    val albumArtist: String? = null,
     val album: String,
     val albumId: String? = null,
     val duration: Long, // milliseconds
@@ -30,6 +31,7 @@ data class JellyfinSong(
             title = "",
             artist = "",
             artistId = null,
+            albumArtist = null,
             album = "",
             albumId = null,
             duration = 0L,

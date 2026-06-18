@@ -47,6 +47,7 @@ private const val SONG_DETAIL_PROJECTION = """
     songs.artist_name AS artist_name,
     songs.artist_id AS artist_id,
     songs.album_artist AS album_artist,
+    songs.album_artist_id AS album_artist_id,
     songs.album_name AS album_name,
     songs.album_id AS album_id,
     songs.content_uri_string AS content_uri_string,
@@ -77,7 +78,7 @@ private const val SONG_DETAIL_PROJECTION = """
 // Projection for list queries: excludes lyrics to prevent CursorWindow overflow (2MB limit)
 // when loading large libraries. Lyrics are only needed for the Now Playing screen (getSongById).
 private const val SONG_LIST_PROJECTION = """
-    id, title, artist_name, artist_id, album_artist, album_name, album_id,
+    id, title, artist_name, artist_id, album_artist, album_artist_id, album_name, album_id,
     content_uri_string, album_art_uri_string, duration, genre, file_path,
     parent_directory_path, is_favorite, NULL AS lyrics, track_number, disc_number,
     year, date_added, mime_type, bitrate, sample_rate, artists_json, source_type,
@@ -1324,6 +1325,46 @@ interface MusicDao {
         sortOrder: String
     ): PagingSource<Int, ArtistEntity>
 
+    /**
+     * Album-artist variant of [getArtistsPaginated], used when "Group by Album Artist" is on.
+     * Collapses the Artists tab onto each song's effective album artist (songs.album_artist_id)
+     * instead of every track-level artist, so featured/compilation artists stop cluttering the
+     * list. Counts are per-album-artist; sorting and source/directory filtering mirror the
+     * track-artist query so toggling the preference only swaps which query backs the tab.
+     */
+    @Query("""
+        SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
+               COUNT(DISTINCT songs.id) AS track_count
+        FROM songs
+        INNER JOIN artists ON artists.id = songs.album_artist_id
+        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
+        AND (
+            :filterMode = 0
+            OR (
+                :filterMode = 1
+                AND songs.source_type = 0
+            )
+            OR (
+                :filterMode = 2
+                AND songs.source_type != 0
+            )
+        )
+        GROUP BY artists.id
+        ORDER BY
+            CASE WHEN :sortOrder = 'artist_name_az' THEN artists.name END COLLATE NOCASE ASC,
+            CASE WHEN :sortOrder = 'artist_name_za' THEN artists.name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder = 'artist_num_songs_desc' THEN track_count END DESC,
+            CASE WHEN :sortOrder = 'artist_num_songs_asc' THEN track_count END ASC,
+            artists.name COLLATE NOCASE ASC,
+            artists.id ASC
+    """)
+    fun getArtistsPaginatedByAlbumArtist(
+        allowedParentDirs: List<String>,
+        applyDirectoryFilter: Boolean,
+        filterMode: Int,
+        sortOrder: String
+    ): PagingSource<Int, ArtistEntity>
+
     @Query("""
         SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
                COUNT(DISTINCT songs.id) AS track_count
@@ -1498,15 +1539,18 @@ interface MusicDao {
     suspend fun deleteOrphanedAlbums()
 
     /**
-     * An artist is only orphaned when nothing references it: neither the cross-ref table
-     * nor songs.artist_id. The songs.artist_id check is load-bearing — the songs FK is
-     * declared ON DELETE SET NULL but the column is NOT NULL, so deleting an artist that
-     * a song still points at would abort with a constraint error instead of nulling.
+     * An artist is only orphaned when nothing references it: not the cross-ref table, not
+     * songs.artist_id, and not songs.album_artist_id. The songs.artist_id check is load-bearing
+     * — the songs FK is declared ON DELETE SET NULL but the column is NOT NULL, so deleting an
+     * artist a song still points at would abort with a constraint error instead of nulling. The
+     * album_artist_id check keeps album-artist-only rows (e.g. "Various Artists", which never
+     * appear as a track artist and so have no cross-ref) alive for the "Group by Album Artist" tab.
      */
     @Query("""
         DELETE FROM artists
         WHERE NOT EXISTS (SELECT 1 FROM song_artist_cross_ref WHERE song_artist_cross_ref.artist_id = artists.id)
           AND NOT EXISTS (SELECT 1 FROM songs WHERE songs.artist_id = artists.id)
+          AND NOT EXISTS (SELECT 1 FROM songs WHERE songs.album_artist_id = artists.id)
     """)
     suspend fun deleteOrphanedArtists()
 
@@ -1680,6 +1724,19 @@ interface MusicDao {
         ORDER BY songs.title ASC
     """)
     fun getSongsForArtist(artistId: Long): Flow<List<SongEntity>>
+
+    /**
+     * Album-artist variant of [getSongsForArtist]: every song whose effective album artist is
+     * [artistId]. Used by the artist detail screen when "Group by Album Artist" is on so the
+     * detail view stays consistent with the collapsed Artists tab (tapping "Various Artists"
+     * shows the compilation tracks rather than an empty screen).
+     */
+    @Query("""
+        SELECT * FROM songs
+        WHERE album_artist_id = :artistId
+        ORDER BY title ASC
+    """)
+    fun getSongsForArtistByAlbumArtist(artistId: Long): Flow<List<SongEntity>>
 
     /**
      * Get all songs for a specific artist (one-shot).

@@ -24,7 +24,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         JellyfinSongEntity::class,
         JellyfinPlaylistEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class PixelPlayerDatabase : RoomDatabase() {

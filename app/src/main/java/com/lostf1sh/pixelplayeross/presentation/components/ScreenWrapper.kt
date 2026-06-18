@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -67,8 +68,20 @@ fun ScreenWrapper(
     val visibleEntries by navController.visibleEntries.collectAsStateWithLifecycle()
     val myEntry = lifecycleOwner as? androidx.navigation.NavBackStackEntry
     val myIndex = visibleEntries.indexOfFirst { it.id == myEntry?.id }
-    val topIndex = visibleEntries.indexOfLast {
-        it.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+    // topIndex is the topmost visible entry that has actually reached STARTED. visibleEntries
+    // is filtered by each entry's maxLifecycle (the ceiling the NavController targets), so a
+    // mid-transition incoming entry can appear here while its real lifecycle state is still
+    // CREATED — the started-state filter is what excludes it, and it is not redundant. Read
+    // that state snapshot-aware via currentStateAsState() (not the non-snapshot
+    // Lifecycle.currentState getter) so topIndex recomposes when an entry's state changes on
+    // its own, e.g. a transition completing without visibleEntries re-emitting. key(entry.id)
+    // keeps each per-entry lifecycle observer bound to a stable entry across recompositions.
+    var topIndex = -1
+    for ((index, entry) in visibleEntries.withIndex()) {
+        val isStarted = key(entry.id) {
+            entry.lifecycle.currentStateAsState().value.isAtLeast(Lifecycle.State.STARTED)
+        }
+        if (isStarted) topIndex = index
     }
 
     // currentBackStackEntry updates synchronously with navigate()/popBackStack(), so it

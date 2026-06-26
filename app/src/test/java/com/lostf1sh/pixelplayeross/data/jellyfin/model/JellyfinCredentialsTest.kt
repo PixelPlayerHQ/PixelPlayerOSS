@@ -25,14 +25,17 @@ class JellyfinCredentialsTest {
 
     @Test
     fun `http is allowed on local network addresses`() {
-        // localhost, loopback, private RFC1918 ranges, and .local hosts may be HTTP-only.
+        // localhost, loopback, private RFC1918 ranges, Tailscale, and local DNS names may be HTTP-only.
         listOf(
             "http://localhost:8096",
             "http://127.0.0.1:8096",
             "http://192.168.1.50:8096",
             "http://10.0.0.5",
             "http://172.16.4.4",
+            "http://100.64.12.34:8096",
+            "http://musicbox:8096",
             "http://media.local",
+            "http://jellyfin.tailnet.ts.net:8096",
         ).forEach { url ->
             assertNull(creds(url).connectionValidationError(), "expected $url to be allowed over http")
         }

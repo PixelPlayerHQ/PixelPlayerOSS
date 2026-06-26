@@ -833,7 +833,7 @@ fun FullPlayerContent(
             onDismissLyricsSearch = { playerViewModel.resetLyricsSearchState() },
             lyricsSyncOffset = lyricsSyncOffset,
             onLyricsSyncOffsetChange = { currentSong?.id?.let { songId -> playerViewModel.setLyricsSyncOffset(songId, it) } },
-            lyricsTextStyle = MaterialTheme.typography.titleLarge,
+            lyricsTextStyle = MaterialTheme.typography.titleLarge.copy(fontFamily = null),
             colorScheme = LocalMaterialTheme.current,
             onBackClick = { showLyricsSheet = false },
             onSaveLyricsToFile = playerViewModel::saveLyricsToFile,

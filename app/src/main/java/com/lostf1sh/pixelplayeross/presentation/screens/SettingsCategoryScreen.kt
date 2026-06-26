@@ -772,6 +772,13 @@ fun SettingsCategoryScreen(
                                     valueText = { value -> String.format(Locale.US, "%.2f×", value) }
                                 )
                                 SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_pause_on_volume_zero_title),
+                                    subtitle = stringResource(R.string.setcat_pause_on_volume_zero_subtitle),
+                                    checked = uiState.pauseOnVolumeZero,
+                                    onCheckedChange = { settingsViewModel.setPauseOnVolumeZero(it) },
+                                    leadingIcon = { Icon(painterResource(R.drawable.rounded_volume_down_24), null, tint = MaterialTheme.colorScheme.secondary) }
+                                )
+                                SwitchSettingItem(
                                     title = stringResource(R.string.setcat_hifi_mode_title),
                                     subtitle = if (uiState.hiFiModeDeviceSupported)
                                         stringResource(R.string.setcat_hifi_mode_subtitle_supported)

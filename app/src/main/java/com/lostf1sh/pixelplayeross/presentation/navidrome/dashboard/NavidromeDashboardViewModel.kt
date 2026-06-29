@@ -8,6 +8,7 @@ import androidx.work.WorkManager
 import com.lostf1sh.pixelplayeross.data.database.NavidromePlaylistEntity
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
+import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeMusicFolder
 import com.lostf1sh.pixelplayeross.data.worker.NavidromeSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -43,6 +44,18 @@ class NavidromeDashboardViewModel @Inject constructor(
     private val _selectedPlaylistName = MutableStateFlow<String?>(null)
     val selectedPlaylistName: StateFlow<String?> = _selectedPlaylistName.asStateFlow()
 
+    private val _musicFolders = MutableStateFlow<List<NavidromeMusicFolder>>(emptyList())
+    val musicFolders: StateFlow<List<NavidromeMusicFolder>> = _musicFolders.asStateFlow()
+
+    private val _musicFoldersLoadFailed = MutableStateFlow(false)
+    val musicFoldersLoadFailed: StateFlow<Boolean> = _musicFoldersLoadFailed.asStateFlow()
+
+    val selectedMusicFolderIds: StateFlow<Set<String>> = repository.selectedMusicFolderIdsFlow
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptySet())
+
+    private val _librarySelectionNeedsSync = MutableStateFlow(false)
+    val librarySelectionNeedsSync: StateFlow<Boolean> = _librarySelectionNeedsSync.asStateFlow()
+
     private var selectedPlaylistJob: Job? = null
 
     val username: String? get() = repository.username
@@ -52,6 +65,7 @@ class NavidromeDashboardViewModel @Inject constructor(
 
     init {
         observeSyncWorker()
+        loadMusicFolders()
         // Auto sync full library (songs + playlists) if it's been more than 24 hours
         val lastSync = repository.lastFullSyncTime
         val currentTime = System.currentTimeMillis()
@@ -75,6 +89,7 @@ class NavidromeDashboardViewModel @Inject constructor(
                     WorkInfo.State.SUCCEEDED -> {
                         _isSyncing.value = false
                         _syncProgress.value = null
+                        _librarySelectionNeedsSync.value = false
                     }
                     WorkInfo.State.FAILED -> {
                         _isSyncing.value = false
@@ -96,6 +111,28 @@ class NavidromeDashboardViewModel @Inject constructor(
             ExistingWorkPolicy.KEEP,
             NavidromeSyncWorker.startAllSync()
         )
+    }
+
+    fun loadMusicFolders() {
+        viewModelScope.launch {
+            repository.getMusicFolders()
+                .onSuccess { folders ->
+                    _musicFolders.value = folders
+                    _musicFoldersLoadFailed.value = false
+                }
+                .onFailure {
+                    // Music-folder discovery is optional; sync falls back to the server-wide library.
+                    _musicFolders.value = emptyList()
+                    _musicFoldersLoadFailed.value = true
+                }
+        }
+    }
+
+    fun setSelectedMusicFolderIds(folderIds: Set<String>) {
+        viewModelScope.launch {
+            repository.setSelectedMusicFolderIds(folderIds)
+            _librarySelectionNeedsSync.value = true
+        }
     }
 
     fun syncPlaylistSongs(playlistId: String) {

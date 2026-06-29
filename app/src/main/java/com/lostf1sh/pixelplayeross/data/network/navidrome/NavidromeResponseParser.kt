@@ -28,6 +28,10 @@ object NavidromeResponseParser {
         )
     }
 
+    fun parseMusicFolders(jsonArray: List<JSONObject>): List<NavidromeMusicFolder> {
+        return jsonArray.map { parseMusicFolder(it) }
+    }
+
     // ─── Artist Parsing ──────────────────────────────────────────────────
 
     /**

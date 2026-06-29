@@ -217,6 +217,16 @@
     <string name="dash_quick_actions">Quick actions</string>
     <string name="dash_quick_actions_subsonic_subtitle">Manage Navidrome, Airsonic and other Subsonic-compatible servers.</string>
     <string name="dash_quick_actions_jellyfin_subtitle">Manage your Jellyfin server connection.</string>
+    <string name="dash_libraries_title">Libraries</string>
+    <string name="dash_libraries_all">All libraries</string>
+    <string name="dash_libraries_selected_count">%1$d of %2$d selected</string>
+    <string name="dash_libraries_more_count">+%1$d more</string>
+    <string name="dash_libraries_change">Change</string>
+    <string name="dash_libraries_load_failed">Could not load libraries; sync uses all</string>
+    <string name="dash_libraries_sheet_subtitle">Choose which server libraries are included when syncing the main library.</string>
+    <string name="dash_libraries_all_subtitle">Include every library exposed by this server</string>
+    <string name="dash_libraries_folder_subtitle">Include this library in the next library sync</string>
+    <string name="dash_libraries_sync_needed">Sync library to apply changes</string>
     <string name="dash_status_syncing">Syncing</string>
     <string name="dash_action_sync_library">Sync library</string>
     <string name="dash_action_disconnect">Disconnect</string>

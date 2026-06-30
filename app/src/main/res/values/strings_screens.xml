@@ -181,14 +181,14 @@
 
     <!-- About -->
     <string name="about_app_name">PixelPlayerOSS</string>
-    <string name="about_tagline">Free and open-source edition of the PixelPlayer music player.</string>
+    <string name="about_tagline">Local-first music, self-hosted streaming, and Material 3 craft in one FOSS player.</string>
     <string name="about_version_format">Version v%1$s</string>
     <string name="about_contributions_format">%1$d contrib.</string>
     <string name="screen_about">About</string>
     <string name="about_maintainer_title">Maintainers</string>
     <string name="about_maintainer_subtitle">FOSS and original/non-FOSS maintainership.</string>
     <string name="about_project_title">Project</string>
-    <string name="about_project_subtitle">Source code and download listing.</string>
+    <string name="about_project_subtitle">Source, releases, and community entry points.</string>
     <string name="about_link_source_title">Source code</string>
     <string name="about_link_source_subtitle">github.com/lostf1sh/PixelPlayerOSS</string>
     <string name="about_link_fdroid_title">F-Droid</string>
@@ -197,6 +197,13 @@
     <string name="about_signal_open_source">Open source</string>
     <string name="about_signal_community_first">Community-first</string>
     <string name="about_signal_material3">Material 3 expressive</string>
+    <string name="about_support_eyebrow">GitHub Sponsors</string>
+    <string name="about_support_title">Support PixelPlayerOSS</string>
+    <string name="about_support_body">Help keep the FOSS edition maintained, reviewed, and tested for real Android devices.</string>
+    <string name="about_support_chip_foss">FOSS maintenance</string>
+    <string name="about_support_chip_ci">CI and releases</string>
+    <string name="about_support_chip_streaming">Self-hosted music</string>
+    <string name="about_support_cta">Sponsor on GitHub</string>
     <string name="cd_open_github_profile">Open GitHub profile</string>
     <string name="cd_open_telegram_profile">Open Telegram profile</string>
     <string name="cd_contributor_avatar">Avatar of %1$s</string>
@@ -217,6 +224,16 @@
     <string name="dash_quick_actions">Quick actions</string>
     <string name="dash_quick_actions_subsonic_subtitle">Manage Navidrome, Airsonic and other Subsonic-compatible servers.</string>
     <string name="dash_quick_actions_jellyfin_subtitle">Manage your Jellyfin server connection.</string>
+    <string name="dash_libraries_title">Libraries</string>
+    <string name="dash_libraries_all">All libraries</string>
+    <string name="dash_libraries_selected_count">%1$d of %2$d selected</string>
+    <string name="dash_libraries_more_count">+%1$d more</string>
+    <string name="dash_libraries_change">Change</string>
+    <string name="dash_libraries_load_failed">Could not load libraries; sync uses all</string>
+    <string name="dash_libraries_sheet_subtitle">Choose which server libraries are included when syncing the main library.</string>
+    <string name="dash_libraries_all_subtitle">Include every library exposed by this server</string>
+    <string name="dash_libraries_folder_subtitle">Include this library in the next library sync</string>
+    <string name="dash_libraries_sync_needed">Sync library to apply changes</string>
     <string name="dash_status_syncing">Syncing</string>
     <string name="dash_action_sync_library">Sync library</string>
     <string name="dash_action_disconnect">Disconnect</string>

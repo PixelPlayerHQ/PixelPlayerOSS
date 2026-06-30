@@ -15,6 +15,8 @@ jobs:
   build-phone:
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx6g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8"
 
     steps:
       - name: Checkout repository

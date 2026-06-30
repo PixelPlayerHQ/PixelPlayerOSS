@@ -19,6 +19,7 @@ import com.lostf1sh.pixelplayeross.data.database.SourceType
 import com.lostf1sh.pixelplayeross.data.database.toSong
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeCredentials
+import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeMusicFolder
 import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeSong
 import com.lostf1sh.pixelplayeross.data.network.navidrome.NavidromeApiService
 import com.lostf1sh.pixelplayeross.data.network.navidrome.NavidromeResponseParser
@@ -165,6 +166,9 @@ class NavidromeRepository @Inject constructor(
     val username: String?
         get() = prefs.getString(KEY_USERNAME, null)
 
+    val selectedMusicFolderIdsFlow: Flow<Set<String>> =
+        userPreferencesRepository.navidromeSelectedMusicFolderIdsFlow
+
     var lastFullSyncTime: Long
         get() = prefs.getLong(KEY_LAST_FULL_SYNC, 0L)
         set(value) = prefs.edit { putLong(KEY_LAST_FULL_SYNC, value) }
@@ -235,7 +239,25 @@ class NavidromeRepository @Inject constructor(
 
         musicDao.clearAllNavidromeSongs()
         dao.clearAllPlaylists()
+        userPreferencesRepository.clearNavidromeSelectedMusicFolderIds()
         _isLoggedInFlow.value = false
+    }
+
+    suspend fun getMusicFolders(): Result<List<NavidromeMusicFolder>> {
+        if (!isLoggedIn) {
+            return Result.failure(Exception("Not logged in"))
+        }
+
+        return withContext(Dispatchers.IO) {
+            api.getMusicFolders().map { folders ->
+                NavidromeResponseParser.parseMusicFolders(folders)
+                    .filter { it.id.isNotBlank() }
+            }
+        }
+    }
+
+    suspend fun setSelectedMusicFolderIds(folderIds: Set<String>) {
+        userPreferencesRepository.setNavidromeSelectedMusicFolderIds(folderIds.filter { it.isNotBlank() }.toSet())
     }
 
     // ─── Playlists ────────────────────────────────────────────────────────
@@ -415,7 +437,31 @@ class NavidromeRepository @Inject constructor(
                 val pageSize = 500
                 
                 onProgress?.invoke(0.1f, context.getString(R.string.dash_status_fetching_albums))
-                val fetchedAlbums = fetchAllAlbums(pageSize)
+                val musicFolders = getMusicFolders().getOrElse { error ->
+                    Timber.w(error, "$TAG: Failed to load music folders; falling back to all-library sync")
+                    emptyList()
+                }
+                val selectedFolderIds = selectedNavidromeMusicFolderIds(
+                    availableFolders = musicFolders,
+                    savedFolderIds = userPreferencesRepository.navidromeSelectedMusicFolderIdsFlow.first()
+                )
+                val folderFilterIds = if (
+                    musicFolders.isNotEmpty() &&
+                    selectedFolderIds.isNotEmpty() &&
+                    selectedFolderIds.size < musicFolders.size
+                ) {
+                    selectedFolderIds
+                } else {
+                    emptySet()
+                }
+
+                val fetchedAlbums = if (folderFilterIds.isEmpty()) {
+                    fetchAllAlbums(pageSize)
+                } else {
+                    folderFilterIds.flatMap { folderId ->
+                        fetchAllAlbums(pageSize, musicFolderId = folderId)
+                    }
+                }
 
                 // Fetch songs for each album in parallel
                 val totalAlbums = fetchedAlbums.size
@@ -489,7 +535,7 @@ class NavidromeRepository @Inject constructor(
     /**
      * Fetch all albums from server with pagination.
      */
-    private suspend fun fetchAllAlbums(pageSize: Int): List<JSONObject> {
+    private suspend fun fetchAllAlbums(pageSize: Int, musicFolderId: String? = null): List<JSONObject> {
         val allAlbums = mutableListOf<JSONObject>()
         var offset = 0
 
@@ -497,7 +543,8 @@ class NavidromeRepository @Inject constructor(
             val albumsResult = api.getAlbumList(
                 type = "alphabeticalByName",
                 size = pageSize,
-                offset = offset
+                offset = offset,
+                musicFolderId = musicFolderId
             )
 
             val albumJsons = albumsResult.getOrNull()
@@ -1004,6 +1051,17 @@ internal fun navidromePlaylistsWithLibraryFallback(
             lastSyncTime = nowMs
         )
     )
+}
+
+internal fun selectedNavidromeMusicFolderIds(
+    availableFolders: List<NavidromeMusicFolder>,
+    savedFolderIds: Set<String>
+): Set<String> {
+    val availableIds = availableFolders.map { it.id }.filter { it.isNotBlank() }.toSet()
+    if (availableIds.isEmpty()) return emptySet()
+
+    val validSavedIds = savedFolderIds.intersect(availableIds)
+    return validSavedIds.ifEmpty { availableIds }
 }
 
 // ─── Extension Functions ────────────────────────────────────────────────────

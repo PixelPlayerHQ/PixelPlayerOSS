@@ -128,6 +128,8 @@ constructor(
         val IS_FOLDERS_PLAYLIST_VIEW = booleanPreferencesKey("is_folders_playlist_view")
         val HIDE_LOCAL_MEDIA = booleanPreferencesKey("hide_local_media")
         val FOLDERS_SOURCE = stringPreferencesKey("folders_source")
+        val NAVIDROME_SELECTED_MUSIC_FOLDER_IDS =
+                stringSetPreferencesKey("navidrome_selected_music_folder_ids")
         val FOLDER_BACK_GESTURE_NAVIGATION = booleanPreferencesKey("folder_back_gesture_navigation")
         val USE_SMOOTH_CORNERS = booleanPreferencesKey("use_smooth_corners")
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
@@ -1501,6 +1503,12 @@ constructor(
             FolderSource.fromStorageKey(preferences[PreferencesKeys.FOLDERS_SOURCE])
         }
 
+    val navidromeSelectedMusicFolderIdsFlow: Flow<Set<String>> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.NAVIDROME_SELECTED_MUSIC_FOLDER_IDS].orEmpty()
+        }
+        .distinctUntilChanged()
+
     val folderBackGestureNavigationFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.FOLDER_BACK_GESTURE_NAVIGATION] ?: true
@@ -1532,6 +1540,22 @@ constructor(
     suspend fun setFoldersSource(source: FolderSource) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.FOLDERS_SOURCE] = source.storageKey
+        }
+    }
+
+    suspend fun setNavidromeSelectedMusicFolderIds(folderIds: Set<String>) {
+        dataStore.edit { preferences ->
+            if (folderIds.isEmpty()) {
+                preferences.remove(PreferencesKeys.NAVIDROME_SELECTED_MUSIC_FOLDER_IDS)
+            } else {
+                preferences[PreferencesKeys.NAVIDROME_SELECTED_MUSIC_FOLDER_IDS] = folderIds
+            }
+        }
+    }
+
+    suspend fun clearNavidromeSelectedMusicFolderIds() {
+        dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.NAVIDROME_SELECTED_MUSIC_FOLDER_IDS)
         }
     }
 

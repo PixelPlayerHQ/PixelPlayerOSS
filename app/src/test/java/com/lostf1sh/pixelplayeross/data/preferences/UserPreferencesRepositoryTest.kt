@@ -101,4 +101,31 @@ class UserPreferencesRepositoryTest {
             tempDir.toFile().deleteRecursively()
         }
     }
+
+    @Test
+    fun `navidrome selected music folders persist and clear`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            assertTrue(repository.navidromeSelectedMusicFolderIdsFlow.first().isEmpty())
+
+            repository.setNavidromeSelectedMusicFolderIds(setOf("flac", "mp3"))
+            assertEquals(
+                setOf("flac", "mp3"),
+                repository.navidromeSelectedMusicFolderIdsFlow.first()
+            )
+
+            repository.clearNavidromeSelectedMusicFolderIds()
+            assertTrue(repository.navidromeSelectedMusicFolderIdsFlow.first().isEmpty())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
 }

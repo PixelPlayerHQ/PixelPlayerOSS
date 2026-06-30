@@ -19,12 +19,12 @@
     <string name="auth_navidrome_title">Subsonic / Navidrome</string>
     <string name="auth_navidrome_subtitle">Connect to your self-hosted music server</string>
     <string name="auth_navidrome_info_card">Supports Navidrome, Airsonic, Gonic, Ampache and other servers compatible with the Subsonic API.</string>
-    <string name="auth_server_url_placeholder_https">https://music.example.com</string>
-    <string name="auth_navidrome_server_url_hint">Use the full https:// base address of your server.</string>
+    <string name="auth_navidrome_server_placeholder">http://192.168.1.100:4533</string>
+    <string name="auth_navidrome_server_url_hint">Use the full server URL, including http:// for local servers or https:// for remote servers.</string>
     <string name="auth_navidrome_username_hint">This is your Subsonic or Navidrome account name.</string>
     <string name="auth_navidrome_password_hint">App password also works if your server supports it.</string>
     <string name="auth_navidrome_пароль_hint">App password also works if your server supports it.</string>
-    <string name="auth_prefill_https">Prefill https://</string>
+    <string name="auth_prefill_http">Prefill http://</string>
     <string name="auth_navidrome_footer">Compatible with Navidrome, Gonic, Airsonic, and other Subsonic-compatible servers</string>
     <string name="cd_navidrome_logo">Navidrome</string>
     <string name="cd_subsonic_logo">Subsonic</string>
@@ -38,7 +38,6 @@
     <string name="auth_jellyfin_server_url_hint">Full URL of your Jellyfin server, including port.</string>
     <string name="auth_jellyfin_username_hint">Your Jellyfin account username.</string>
     <string name="auth_jellyfin_password_hint">Your Jellyfin account password.</string>
-    <string name="auth_prefill_http">Prefill http://</string>
     <string name="auth_jellyfin_footer">Connects to Jellyfin servers for streaming your music library</string>
     <string name="cd_jellyfin_logo">Jellyfin</string>
 

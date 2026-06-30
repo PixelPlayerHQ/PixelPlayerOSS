@@ -287,7 +287,7 @@ fun NavidromeLoginScreen(
                         value = serverUrl,
                         onValueChange = { serverUrl = it },
                         label = stringResource(R.string.auth_server_url),
-                        placeholder = stringResource(R.string.auth_server_url_placeholder_https),
+                        placeholder = stringResource(R.string.auth_navidrome_server_placeholder),
                         supportingText = stringResource(R.string.auth_navidrome_server_url_hint),
                         leadingIcon = Icons.Rounded.CloudQueue,
                         enabled = !isLoading,
@@ -369,7 +369,7 @@ fun NavidromeLoginScreen(
                     FilledTonalButton(
                         onClick = {
                             if (serverUrl.isBlank()) {
-                                serverUrl = "https://"
+                                serverUrl = "http://"
                             }
                         },
                         enabled = !isLoading && serverUrl.isBlank(),
@@ -377,7 +377,7 @@ fun NavidromeLoginScreen(
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.auth_prefill_https),
+                            text = stringResource(R.string.auth_prefill_http),
                             fontFamily = RoundedSans,
                             fontWeight = FontWeight.Medium
                         )

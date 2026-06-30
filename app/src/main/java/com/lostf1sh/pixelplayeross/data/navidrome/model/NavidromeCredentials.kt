@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.navidrome.model
 
+import com.lostf1sh.pixelplayeross.data.stream.CloudStreamSecurity
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
@@ -59,7 +60,7 @@ data class NavidromeCredentials(
     /**
      * Returns a validation error for connection setup, or null when the URL is acceptable.
      */
-    fun connectionValidationError(requireHttps: Boolean = true): String? {
+    fun connectionValidationError(requireHttps: Boolean = false): String? {
         val httpUrl = normalizedHttpUrlOrNull ?: return "Enter a valid server URL."
         if (httpUrl.username.isNotEmpty() || httpUrl.password.isNotEmpty()) {
             return "Server URL must not include embedded credentials."
@@ -67,6 +68,18 @@ data class NavidromeCredentials(
         if (requireHttps && !httpUrl.isHttps) {
             return "Use an https:// server URL for Navidrome/Subsonic."
         }
+        if (!httpUrl.isHttps && !isHttpAllowedHost(httpUrl.host.lowercase())) {
+            return "Use https:// for remote Navidrome/Subsonic servers. HTTP is only allowed for local network addresses."
+        }
         return null
+    }
+
+    private fun isHttpAllowedHost(host: String): Boolean {
+        return host == "localhost" ||
+            host == "127.0.0.1" ||
+            host.endsWith(".local") ||
+            host.endsWith(".ts.net") ||
+            !host.contains('.') ||
+            CloudStreamSecurity.isPrivateIpv4Literal(host)
     }
 }

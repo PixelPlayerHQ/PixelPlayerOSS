@@ -148,6 +148,7 @@ class SongMetadataEditor(
         title: String,
         artist: String,
         album: String,
+        albumArtist: String?,
         genre: String?,
         trackNumber: Int,
         discNumber: Int?
@@ -218,6 +219,7 @@ class SongMetadataEditor(
             artistId = primaryArtistId,
             artistsJson = artistsJson,
             album = album,
+            albumArtist = albumArtist,
             genre = genre,
             trackNumber = trackNumber,
             discNumber = discNumber,
@@ -444,6 +446,7 @@ class SongMetadataEditor(
                 title = newTitle,
                 artist = newArtist,
                 album = newAlbum,
+                albumArtist = newAlbumArtist,
                 genre = normalizedGenre,
                 trackNumber = newTrackNumber,
                 discNumber = newDiscNumber

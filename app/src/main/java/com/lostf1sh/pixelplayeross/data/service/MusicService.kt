@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.database.ContentObserver
 import android.graphics.Bitmap
 import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
@@ -15,7 +16,10 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.os.SystemClock
+import android.provider.Settings
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.core.graphics.drawable.toBitmap
@@ -209,7 +213,16 @@ class MusicService : MediaLibraryService() {
     private var shouldResumeAfterHeadsetReconnect = false
     private var lastNoisyPauseRealtimeMs = 0L
     private var resumeOnHeadsetReconnectEnabled = false
+    private var pauseOnVolumeZeroEnabled = false
     private var temporaryForegroundStartedInOnCreate = false
+
+    private val systemVolumeObserver by lazy {
+        object : ContentObserver(Handler(Looper.getMainLooper())) {
+            override fun onChange(selfChange: Boolean) {
+                maybePauseForZeroSystemVolume()
+            }
+        }
+    }
 
     companion object {
         private const val TAG = "MusicService_PixelPlayer"
@@ -397,6 +410,7 @@ class MusicService : MediaLibraryService() {
 
         controller.initialize()
         registerHeadsetReconnectMonitor()
+        registerSystemVolumeObserver()
 
         // Restore equalizer state from preferences and only attach audio effects when
         // the user actually has at least one effect enabled for the current session.
@@ -449,6 +463,12 @@ class MusicService : MediaLibraryService() {
                 if (!enabled) {
                     clearHeadsetReconnectResume()
                 }
+            }
+        }
+
+        serviceScope.launch {
+            userPreferencesRepository.pauseOnVolumeZeroFlow.collect { enabled ->
+                pauseOnVolumeZeroEnabled = enabled
             }
         }
 
@@ -1036,6 +1056,7 @@ class MusicService : MediaLibraryService() {
         followUpWidgetUpdateJob?.cancel()
         debouncedWidgetUpdateJob?.cancel()
         unregisterHeadsetReconnectMonitor()
+        unregisterSystemVolumeObserver()
         replayGainJob?.cancel()
 
         engine.removePlayerSwapListener(playerSwapListener)
@@ -1130,6 +1151,7 @@ class MusicService : MediaLibraryService() {
                 return
             }
             expectedReplayGainVolume = null
+            if (volume == 0f && maybePauseForZeroSystemVolume()) return
             userSelectedVolume = volume.coerceIn(0f, 1f)
         }
 
@@ -1526,6 +1548,30 @@ class MusicService : MediaLibraryService() {
         }
         headsetReconnectCallback = null
         clearHeadsetReconnectResume()
+    }
+
+    private fun registerSystemVolumeObserver() {
+        contentResolver.registerContentObserver(
+            Settings.System.CONTENT_URI,
+            true,
+            systemVolumeObserver
+        )
+    }
+
+    private fun unregisterSystemVolumeObserver() {
+        runCatching { contentResolver.unregisterContentObserver(systemVolumeObserver) }
+    }
+
+    private fun maybePauseForZeroSystemVolume(): Boolean {
+        if (!pauseOnVolumeZeroEnabled) return false
+        if (audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) != 0) return false
+
+        val player = mediaSession?.player ?: engine.masterPlayer
+        if (!player.isPlaying) return false
+
+        player.pause()
+        Timber.tag(TAG).d("pauseOnVolumeZero: paused because system media volume reached 0")
+        return true
     }
 
     private fun maybeResumeAfterHeadsetReconnect() {

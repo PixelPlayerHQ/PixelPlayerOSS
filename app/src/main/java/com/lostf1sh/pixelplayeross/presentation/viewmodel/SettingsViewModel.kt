@@ -58,6 +58,7 @@ data class SettingsUiState(
     val libraryNavigationMode: String = LibraryNavigationMode.TAB_ROW,
     val launchTab: String = LaunchTab.HOME,
     val keepPlayingInBackground: Boolean = true,
+    val pauseOnVolumeZero: Boolean = false,
     val resumeOnHeadsetReconnect: Boolean = false,
     val showQueueHistory: Boolean = true,
     val isCrossfadeEnabled: Boolean = false,
@@ -138,6 +139,7 @@ private sealed interface SettingsUiUpdate {
     
     data class Group2(
         val keepPlayingInBackground: Boolean,
+        val pauseOnVolumeZero: Boolean,
         val resumeOnHeadsetReconnect: Boolean,
         val showQueueHistory: Boolean,
         val isCrossfadeEnabled: Boolean,
@@ -294,6 +296,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             combine<Any?, SettingsUiUpdate.Group2>(
                 userPreferencesRepository.keepPlayingInBackgroundFlow,
+                userPreferencesRepository.pauseOnVolumeZeroFlow,
                 userPreferencesRepository.resumeOnHeadsetReconnectFlow,
                 userPreferencesRepository.showQueueHistoryFlow,
                 userPreferencesRepository.isCrossfadeEnabledFlow,
@@ -312,26 +315,28 @@ class SettingsViewModel @Inject constructor(
             ) { values ->
                 SettingsUiUpdate.Group2(
                     keepPlayingInBackground = values[0] as Boolean,
-                    resumeOnHeadsetReconnect = values[1] as Boolean,
-                    showQueueHistory = values[2] as Boolean,
-                    isCrossfadeEnabled = values[3] as Boolean,
-                    hiFiModeEnabled = values[4] as Boolean,
-                    crossfadeDuration = values[5] as Int,
-                    persistentShuffleEnabled = values[6] as Boolean,
-                    folderBackGestureNavigation = values[7] as Boolean,
-                    lyricsSourcePreference = values[8] as LyricsSourcePreference,
-                    autoScanLrcFiles = values[9] as Boolean,
-                    blockedDirectories = @Suppress("UNCHECKED_CAST") (values[10] as Set<String>),
-                    hapticsEnabled = values[11] as Boolean,
-                    immersiveLyricsEnabled = values[12] as Boolean,
-                    immersiveLyricsTimeout = values[13] as Long,
-                    animatedLyricsBlurEnabled = values[14] as Boolean,
-                    animatedLyricsBlurStrength = values[15] as Float
+                    pauseOnVolumeZero = values[1] as Boolean,
+                    resumeOnHeadsetReconnect = values[2] as Boolean,
+                    showQueueHistory = values[3] as Boolean,
+                    isCrossfadeEnabled = values[4] as Boolean,
+                    hiFiModeEnabled = values[5] as Boolean,
+                    crossfadeDuration = values[6] as Int,
+                    persistentShuffleEnabled = values[7] as Boolean,
+                    folderBackGestureNavigation = values[8] as Boolean,
+                    lyricsSourcePreference = values[9] as LyricsSourcePreference,
+                    autoScanLrcFiles = values[10] as Boolean,
+                    blockedDirectories = @Suppress("UNCHECKED_CAST") (values[11] as Set<String>),
+                    hapticsEnabled = values[12] as Boolean,
+                    immersiveLyricsEnabled = values[13] as Boolean,
+                    immersiveLyricsTimeout = values[14] as Long,
+                    animatedLyricsBlurEnabled = values[15] as Boolean,
+                    animatedLyricsBlurStrength = values[16] as Float
                 )
             }.collect { update ->
                 _uiState.update { state ->
                     state.copy(
                         keepPlayingInBackground = update.keepPlayingInBackground,
+                        pauseOnVolumeZero = update.pauseOnVolumeZero,
                         resumeOnHeadsetReconnect = update.resumeOnHeadsetReconnect,
                         showQueueHistory = update.showQueueHistory,
                         isCrossfadeEnabled = update.isCrossfadeEnabled,
@@ -578,6 +583,12 @@ class SettingsViewModel @Inject constructor(
     fun setKeepPlayingInBackground(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setKeepPlayingInBackground(enabled)
+        }
+    }
+
+    fun setPauseOnVolumeZero(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPauseOnVolumeZero(enabled)
         }
     }
 

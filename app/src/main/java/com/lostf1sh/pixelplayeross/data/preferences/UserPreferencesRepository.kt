@@ -240,6 +240,7 @@ constructor(
         // ReplayGain
         val REPLAYGAIN_ENABLED = booleanPreferencesKey("replaygain_enabled")
         val REPLAYGAIN_USE_ALBUM_GAIN = booleanPreferencesKey("replaygain_use_album_gain")
+        val PAUSE_ON_VOLUME_ZERO = booleanPreferencesKey("pause_on_volume_zero")
     }
 
     val appRebrandDialogShownFlow: Flow<Boolean> =
@@ -406,7 +407,7 @@ constructor(
     val artistDelimitersFlow: Flow<List<String>> =
             dataStore.data.map { preferences ->
                 val stored = preferences[PreferencesKeys.ARTIST_DELIMITERS]
-                if (stored != null) {
+                val delimiters = if (stored != null) {
                     try {
                         json.decodeFromString<List<String>>(stored)
                     } catch (e: Exception) {
@@ -415,6 +416,7 @@ constructor(
                 } else {
                     DEFAULT_ARTIST_DELIMITERS
                 }
+                normalizeLegacyDefaultArtistDelimiters(delimiters)
             }
 
     suspend fun setArtistDelimiters(delimiters: List<String>) {
@@ -805,6 +807,11 @@ constructor(
             preferences[PreferencesKeys.REPLAYGAIN_USE_ALBUM_GAIN] ?: false
         }
 
+    val pauseOnVolumeZeroFlow: Flow<Boolean> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.PAUSE_ON_VOLUME_ZERO] ?: false
+        }
+
     suspend fun setReplayGainEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.REPLAYGAIN_ENABLED] = enabled
@@ -814,6 +821,12 @@ constructor(
     suspend fun setReplayGainUseAlbumGain(useAlbumGain: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.REPLAYGAIN_USE_ALBUM_GAIN] = useAlbumGain
+        }
+    }
+
+    suspend fun setPauseOnVolumeZero(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PAUSE_ON_VOLUME_ZERO] = enabled
         }
     }
 
@@ -1242,11 +1255,15 @@ constructor(
 
     companion object {
         /** Default character delimiters for splitting multi-artist tags */
-        val DEFAULT_ARTIST_DELIMITERS = listOf("/", ";", ",", "+", "&")
+        val DEFAULT_ARTIST_DELIMITERS = listOf(";")
+        private val LEGACY_DEFAULT_ARTIST_DELIMITERS = listOf("/", ";", ",", "+", "&")
         /** Default word-based delimiters (matched case-insensitively with whitespace boundaries) */
         val DEFAULT_ARTIST_WORD_DELIMITERS = listOf("featuring", "feat.", "feat", "ft.", "ft", "vs.", "vs", "versus", "with", "prod.", "prod")
         const val DEFAULT_ALBUM_ART_CACHE_LIMIT_MB = 200
     }
+
+    private fun normalizeLegacyDefaultArtistDelimiters(delimiters: List<String>): List<String> =
+        if (delimiters == LEGACY_DEFAULT_ARTIST_DELIMITERS) DEFAULT_ARTIST_DELIMITERS else delimiters
 
     val navBarCornerRadiusFlow: Flow<Int> =
             dataStore.data.map { preferences ->

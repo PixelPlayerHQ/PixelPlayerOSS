@@ -114,6 +114,24 @@ class AlbumGroupingUtilsTest {
     }
 
     @Test
+    fun `chooseAlbumDisplayArtist uses parsed primary artist for feature-heavy album`() {
+        val songs = listOf(
+            testSong(artistName = "Calvin Harris, Pharrell Williams, Katy Perry, Big Sean", albumArtist = null),
+            testSong(artistName = "Calvin Harris, Dua Lipa", albumArtist = null),
+            testSong(artistName = "Calvin Harris, Frank Ocean, Migos", albumArtist = null)
+        )
+
+        val displayArtist = chooseAlbumDisplayArtist(
+            songs = songs,
+            preferAlbumArtist = false,
+            artistDelimiters = listOf(","),
+            wordDelimiters = emptyList()
+        )
+
+        assertThat(displayArtist).isEqualTo("Calvin Harris")
+    }
+
+    @Test
     fun `chooseAlbumDisplayArtist prefers album artist when grouping is on`() {
         val songs = listOf(
             testSong(artistName = "The Weeknd", albumArtist = "The Weeknd & Justice"),

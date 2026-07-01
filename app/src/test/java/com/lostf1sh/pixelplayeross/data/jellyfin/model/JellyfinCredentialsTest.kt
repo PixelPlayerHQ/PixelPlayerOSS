@@ -66,10 +66,23 @@ class JellyfinCredentialsTest {
     }
 
     @Test
-    fun `normalization prepends https and trims trailing slash`() {
+    fun `normalization prepends https for public hosts and trims trailing slash`() {
         assertEquals(
             "https://jellyfin.example.com",
             JellyfinCredentials(serverUrl = "jellyfin.example.com/", username = "u", password = "p").normalizedServerUrl
         )
+    }
+
+    @Test
+    fun `normalization prepends http for local and vpn hosts`() {
+        mapOf(
+            "192.168.1.50:8096/" to "http://192.168.1.50:8096",
+            "100.64.12.34:8096/" to "http://100.64.12.34:8096",
+            "jellyfin.tailnet.ts.net:8096/" to "http://jellyfin.tailnet.ts.net:8096",
+            "musicbox:8096/" to "http://musicbox:8096"
+        ).forEach { (input, expected) ->
+            assertEquals(expected, creds(input).normalizedServerUrl)
+            assertNull(creds(input).connectionValidationError())
+        }
     }
 }

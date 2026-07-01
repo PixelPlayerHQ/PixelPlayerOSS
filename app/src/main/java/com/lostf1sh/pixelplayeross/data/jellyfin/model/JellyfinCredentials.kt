@@ -31,11 +31,13 @@ data class JellyfinCredentials(
     val normalizedHttpUrlOrNull: HttpUrl?
         get() {
             val trimmed = serverUrl.trim().trimEnd('/')
-            // Auto-prepend https:// if no scheme is provided
-            val withScheme = if (!trimmed.startsWith("http://", ignoreCase = true) &&
-                !trimmed.startsWith("https://", ignoreCase = true)
-            ) {
-                "https://$trimmed"
+            val hasScheme = trimmed.startsWith("http://", ignoreCase = true) ||
+                trimmed.startsWith("https://", ignoreCase = true)
+
+            val withScheme = if (!hasScheme) {
+                val host = "http://$trimmed".toHttpUrlOrNull()?.host?.lowercase()
+                val scheme = if (host != null && isHttpAllowedHost(host)) "http" else "https"
+                "$scheme://$trimmed"
             } else {
                 trimmed
             }

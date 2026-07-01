@@ -347,16 +347,20 @@ fun JellyfinLoginScreen(
 
                     FilledTonalButton(
                         onClick = {
-                            if (serverUrl.isBlank()) {
-                                serverUrl = "http://"
+                            serverUrl = when {
+                                serverUrl.isBlank() -> "http://"
+                                serverUrl.startsWith("https://", ignoreCase = true) ->
+                                    "http://" + serverUrl.drop("https://".length)
+                                serverUrl.startsWith("http://", ignoreCase = true) -> serverUrl
+                                else -> "http://$serverUrl"
                             }
                         },
-                        enabled = !isLoading && serverUrl.isBlank(),
+                        enabled = !isLoading && !serverUrl.startsWith("http://", ignoreCase = true),
                         shape = inputShape,
                         contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.auth_prefill_http),
+                            text = stringResource(R.string.auth_use_http),
                             fontFamily = RoundedSans,
                             fontWeight = FontWeight.Medium
                         )

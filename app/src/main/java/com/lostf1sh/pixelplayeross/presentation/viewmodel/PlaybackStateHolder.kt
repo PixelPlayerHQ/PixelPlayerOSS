@@ -709,6 +709,31 @@ class PlaybackStateHolder @Inject constructor(
         return masterPlayer.currentMediaItemIndex == currentIndex
     }
 
+    /**
+     * Moves the currently playing item to index 0 and replaces everything after it with the
+     * tail of [newQueue], without interrupting playback. Requires newQueue.first() to be the
+     * item that is currently playing. O(1) IPC calls regardless of queue size.
+     */
+    private suspend fun replacePlayerQueueWithCurrentFirst(newQueue: List<Song>): Boolean {
+        if (newQueue.isEmpty()) return false
+
+        val newTail = withContext(Dispatchers.Default) {
+            List(newQueue.size - 1) { index -> MediaItemBuilder.build(newQueue[index + 1]) }
+        }
+
+        val masterPlayer = dualPlayerEngine.masterPlayer
+        if (masterPlayer.mediaItemCount != newQueue.size) return false
+        val playerIndex = masterPlayer.currentMediaItemIndex
+        if (playerIndex !in 0 until masterPlayer.mediaItemCount) return false
+        if (masterPlayer.getMediaItemAt(playerIndex).mediaId != newQueue.first().id) return false
+
+        if (playerIndex > 0) {
+            masterPlayer.removeMediaItems(0, playerIndex)
+        }
+        masterPlayer.replaceMediaItems(1, masterPlayer.mediaItemCount, newTail)
+        return masterPlayer.currentMediaItemIndex == 0
+    }
+
     private fun replacePlayerQueue(
         player: Player,
         preparedQueue: PreparedQueueReplacement,
@@ -773,51 +798,25 @@ class PlaybackStateHolder @Inject constructor(
                         val currentMediaItem = player.currentMediaItem
 
                         // Run heavy shuffle work off main to keep UI and playback responsive.
+                        // The current song moves to the front of the shuffled queue: anchoring
+                        // it at its old index would strand the songs shuffled into the slots
+                        // before it, which forward playback never reaches (issue #32).
                         val shuffledQueue = withContext(Dispatchers.Default) {
-                            QueueUtils.buildAnchoredShuffleQueueSuspending(currentSongs, currentIndex)
+                            QueueUtils.buildAnchoredShuffleQueueSuspending(
+                                currentSongs,
+                                currentIndex,
+                                startAtZero = true
+                            )
                         }
 
-                        // For large queues, use bulk replace (1 IPC call) instead of
-                        // per-item moveMediaItem (n IPC calls) which freezes the UI.
-                        if (currentSongs.size > BULK_REPLACE_THRESHOLD) {
-                            val preservedReplacement = buildQueueSegments(
+                        val movedToFront = replacePlayerQueueWithCurrentFirst(shuffledQueue)
+                        if (!movedToFront) {
+                            val preparedQueue = buildQueueReplacement(
                                 newQueue = shuffledQueue,
-                                currentIndex = currentIndex,
+                                targetIndex = 0,
                                 currentMediaItem = currentMediaItem
                             )
-                            val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                replacePlayerQueuePreservingCurrent(currentIndex, preparedSegments)
-                            } == true
-
-                            if (!replacedInPlace) {
-                                val preparedQueue = buildQueueReplacement(
-                                    newQueue = shuffledQueue,
-                                    targetIndex = currentIndex,
-                                    currentMediaItem = currentMediaItem
-                                )
-                                replacePlayerQueue(player, preparedQueue, currentPosition)
-                            }
-                        } else {
-                            val reordered = reorderQueueInPlace(player, shuffledQueue)
-                            if (!reordered) {
-                                val preservedReplacement = buildQueueSegments(
-                                    newQueue = shuffledQueue,
-                                    currentIndex = currentIndex,
-                                    currentMediaItem = currentMediaItem
-                                )
-                                val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                    replacePlayerQueuePreservingCurrent(currentIndex, preparedSegments)
-                                } == true
-
-                                if (!replacedInPlace) {
-                                    val preparedQueue = buildQueueReplacement(
-                                        newQueue = shuffledQueue,
-                                        targetIndex = currentIndex,
-                                        currentMediaItem = currentMediaItem
-                                    )
-                                    replacePlayerQueue(player, preparedQueue, currentPosition)
-                                }
-                            }
+                            replacePlayerQueue(player, preparedQueue, currentPosition)
                         }
 
                         updateQueueCallback(shuffledQueue)

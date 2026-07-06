@@ -16,6 +16,7 @@ import com.lostf1sh.pixelplayeross.data.database.toEntity
 import com.lostf1sh.pixelplayeross.data.database.SongArtistCrossRef
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SourceType
+import com.lostf1sh.pixelplayeross.data.network.ConnectionErrors
 import com.lostf1sh.pixelplayeross.data.database.toSong
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeCredentials
@@ -199,7 +200,9 @@ class NavidromeRepository @Inject constructor(
                 if (pingResult.isFailure) {
                     api.clearCredentials()
                     return@withContext Result.failure(
-                        pingResult.exceptionOrNull() ?: Exception("Connection failed")
+                        ConnectionErrors.humanize(
+                            pingResult.exceptionOrNull() ?: Exception("Connection failed")
+                        )
                     )
                 }
 
@@ -217,7 +220,7 @@ class NavidromeRepository @Inject constructor(
                 Timber.e(e, "$TAG: Login failed")
                 api.clearCredentials()
                 _isLoggedInFlow.value = false
-                Result.failure(e)
+                Result.failure(ConnectionErrors.humanize(e))
             }
         }
     }

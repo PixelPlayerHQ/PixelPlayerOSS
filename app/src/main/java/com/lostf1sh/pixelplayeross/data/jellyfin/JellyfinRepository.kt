@@ -16,6 +16,7 @@ import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SourceType
 import com.lostf1sh.pixelplayeross.data.database.toEntity
 import com.lostf1sh.pixelplayeross.data.database.toSong
+import com.lostf1sh.pixelplayeross.data.network.ConnectionErrors
 import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinCredentials
 import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinSong
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -159,7 +160,9 @@ class JellyfinRepository @Inject constructor(
                 if (authResult.isFailure) {
                     api.clearCredentials()
                     return@withContext Result.failure(
-                        authResult.exceptionOrNull() ?: Exception("Authentication failed")
+                        ConnectionErrors.humanize(
+                            authResult.exceptionOrNull() ?: Exception("Authentication failed")
+                        )
                     )
                 }
 
@@ -182,7 +185,7 @@ class JellyfinRepository @Inject constructor(
                 Timber.e(e, "$TAG: Login failed")
                 api.clearCredentials()
                 _isLoggedInFlow.value = false
-                Result.failure(e)
+                Result.failure(ConnectionErrors.humanize(e))
             }
         }
     }

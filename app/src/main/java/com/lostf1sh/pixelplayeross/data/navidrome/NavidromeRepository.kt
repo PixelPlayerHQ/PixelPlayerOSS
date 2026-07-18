@@ -935,6 +935,12 @@ class NavidromeRepository @Inject constructor(
      */
     suspend fun syncStarredSongs() {
         if (!api.hasCredentials()) return
+
+        // Snapshot pending ops BEFORE the network round-trip so ops present at snapshot
+        // time always win, even if the push worker drains and deletes them while
+        // getStarred2() is in flight (worst case: a harmless re-favorite).
+        var pendingOps = dao.getPendingFavoritesOnce()
+
         val serverStarredIds = api.getStarred2()
             .getOrElse { error ->
                 Timber.w("$TAG: getStarred2 failed, skipping favorites sync: ${error.message}")
@@ -943,9 +949,11 @@ class NavidromeRepository @Inject constructor(
             .mapNotNull { song -> song.optString("id").takeIf { it.isNotBlank() } }
             .toSet()
 
-        importLocalFavoritesAsPendingOnFirstRun(serverStarredIds)
+        val imported = importLocalFavoritesAsPendingOnFirstRun(serverStarredIds)
+        if (imported) {
+            pendingOps = dao.getPendingFavoritesOnce()
+        }
 
-        val pendingOps = dao.getPendingFavoritesOnce()
         val localFavoriteIds = favoritesDao
             .getFavoriteSongIdsBySourceOnce(SourceType.NAVIDROME)
             .toSet()
@@ -978,8 +986,12 @@ class NavidromeRepository @Inject constructor(
      * feature are converted into pending star ops so they are pushed to the
      * server instead of being deleted by reconciliation.
      */
-    private suspend fun importLocalFavoritesAsPendingOnFirstRun(serverStarredIds: Set<String>) {
-        if (prefs.getBoolean(KEY_FAVORITES_IMPORTED, false)) return
+    /**
+     * @return true if this run performed the import (i.e. it was the first run),
+     * false if it was a no-op because the import already happened previously.
+     */
+    private suspend fun importLocalFavoritesAsPendingOnFirstRun(serverStarredIds: Set<String>): Boolean {
+        if (prefs.getBoolean(KEY_FAVORITES_IMPORTED, false)) return false
         musicDao.getFavoriteContentUrisBySource(SourceType.NAVIDROME)
             .map { it.removePrefix("navidrome://") }
             .filter { it !in serverStarredIds }
@@ -988,7 +1000,8 @@ class NavidromeRepository @Inject constructor(
                     NavidromePendingFavoriteEntity(navidromeSongId = navidromeId, isStar = true)
                 )
             }
-        prefs.edit().putBoolean(KEY_FAVORITES_IMPORTED, true).apply()
+        prefs.edit { putBoolean(KEY_FAVORITES_IMPORTED, true) }
+        return true
     }
 
     // ─── Utility Methods ───────────────────────────────────────────────────

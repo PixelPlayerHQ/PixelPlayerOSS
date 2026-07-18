@@ -307,6 +307,30 @@ class MusicRepositoryImplTest {
     }
 
     @Nested
+    @DisplayName("setFavoriteStatus Navidrome push wiring")
+    inner class SetFavoriteStatusNavidromePush {
+        @Test
+        fun `setFavoriteStatus on a Navidrome song enqueues a push`() = runTest(testDispatcher) {
+            coEvery { mockFavoritesDao.setFavorite(any()) } just runs
+            coEvery { mockMusicDao.getContentUriStringOnce(99L) } returns "navidrome://abc123"
+
+            musicRepository.setFavoriteStatus("99", true)
+
+            coVerify { mockNavidromeFavoritesSyncManager.onFavoriteToggled("abc123", true) }
+        }
+
+        @Test
+        fun `setFavoriteStatus on a local MediaStore song does not enqueue a push`() = runTest(testDispatcher) {
+            coEvery { mockFavoritesDao.setFavorite(any()) } just runs
+            coEvery { mockMusicDao.getContentUriStringOnce(42L) } returns "content://media/external/audio/media/42"
+
+            musicRepository.setFavoriteStatus("42", true)
+
+            coVerify(exactly = 0) { mockNavidromeFavoritesSyncManager.onFavoriteToggled(any(), any()) }
+        }
+    }
+
+    @Nested
     @DisplayName("Search History Functions")
     inner class SearchHistoryFunctions {
         @Test

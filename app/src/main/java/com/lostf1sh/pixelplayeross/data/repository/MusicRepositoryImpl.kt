@@ -21,7 +21,6 @@ import androidx.core.net.toUri
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
-import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeFavoritesSyncManager
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryEntity
 import com.lostf1sh.pixelplayeross.data.database.toAlbum
 import com.lostf1sh.pixelplayeross.data.database.toArtist
@@ -40,6 +39,7 @@ import com.lostf1sh.pixelplayeross.data.model.SearchResultItem
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeFavoritesSyncManager
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.ui.theme.GenreThemeUtils

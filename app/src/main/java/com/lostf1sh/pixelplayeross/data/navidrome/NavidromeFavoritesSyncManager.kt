@@ -13,6 +13,7 @@ import com.lostf1sh.pixelplayeross.data.worker.NavidromeFavoritesPushWorker
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import timber.log.Timber
 
 /**
@@ -32,7 +33,11 @@ class NavidromeFavoritesSyncManager @Inject constructor(
     }
 
     suspend fun onFavoriteToggled(navidromeSongId: String, favorite: Boolean) {
-        if (!api.hasCredentials()) return
+        // Toggles only happen on Navidrome songs while their rows exist in the unified
+        // library, which requires being logged in, so we enqueue unconditionally here.
+        // (Gating on api.hasCredentials() previously silently dropped ops on a cold
+        // start where credentials had not yet been restored into the in-memory API
+        // client. Logout already clears the outbox via dao.clearPendingFavorites().)
         navidromeDao.upsertPendingFavorite(
             NavidromePendingFavoriteEntity(
                 navidromeSongId = navidromeSongId,
@@ -61,25 +66,32 @@ class NavidromeFavoritesSyncManager @Inject constructor(
      */
     suspend fun drainPendingFavorites(): Boolean {
         if (!api.hasCredentials()) {
-            navidromeDao.clearPendingFavorites()
+            // Do NOT clear the outbox here: on a WorkManager cold start this worker's
+            // Hilt graph never constructs NavidromeRepository, so credentials may simply
+            // not have been restored into the shared NavidromeApiService yet even though
+            // the user is logged in. Clearing would silently drop pending ops and report
+            // success. Stale-op cleanup after an actual logout is already handled by
+            // NavidromeRepository.logout() calling dao.clearPendingFavorites().
             return true
         }
-        var allSucceeded = true
+        var queueDrained = true
         navidromeDao.getPendingFavoritesOnce().forEach { op ->
             val result = if (op.isStar) api.star(id = op.navidromeSongId) else api.unstar(id = op.navidromeSongId)
             result.fold(
                 onSuccess = { navidromeDao.deletePendingFavorite(op.navidromeSongId) },
                 onFailure = { error ->
+                    // A REPLACE-cancelled in-flight run must not consume this op's retry budget.
+                    if (error is CancellationException) throw error
                     Timber.w("$TAG: push failed for ${op.navidromeSongId} (attempt ${op.attempts + 1}): ${error.message}")
                     if (op.attempts + 1 >= MAX_ATTEMPTS) {
                         navidromeDao.deletePendingFavorite(op.navidromeSongId)
                     } else {
                         navidromeDao.incrementPendingFavoriteAttempts(op.navidromeSongId)
-                        allSucceeded = false
+                        queueDrained = false
                     }
                 }
             )
         }
-        return allSucceeded
+        return queueDrained
     }
 }

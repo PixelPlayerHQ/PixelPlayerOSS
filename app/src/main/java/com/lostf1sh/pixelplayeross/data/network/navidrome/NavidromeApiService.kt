@@ -565,4 +565,16 @@ class NavidromeApiService @Inject constructor(
 
         return requestAndParse("unstar", params).map { true }
     }
+
+    /**
+     * Get starred (favorited) songs from the server.
+     * Uses getStarred2 (ID3 tags) to match the rest of the client.
+     */
+    suspend fun getStarred2(): Result<List<JSONObject>> {
+        return requestAndParse("getStarred2").map { response ->
+            val starred = response.optJSONObject("starred2")
+            val songs = starred?.optJSONArray("song")
+            (0 until (songs?.length() ?: 0)).mapNotNull { songs?.optJSONObject(it) }
+        }
+    }
 }

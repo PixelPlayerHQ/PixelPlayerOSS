@@ -52,3 +52,24 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_songs_album_artist_id` ON `songs` (`album_artist_id`)")
     }
 }
+
+/**
+ * v2 -> v3: outbox table for two-way Navidrome favorites sync.
+ * The DDL must match the Room-generated schema exactly (no SQL DEFAULTs:
+ * Kotlin default values do not produce SQL defaults).
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `navidrome_pending_favorites` (
+                    `navidromeSongId` TEXT NOT NULL,
+                    `isStar` INTEGER NOT NULL,
+                    `createdAt` INTEGER NOT NULL,
+                    `attempts` INTEGER NOT NULL,
+                    PRIMARY KEY(`navidromeSongId`)
+                )
+            """.trimIndent()
+        )
+    }
+}

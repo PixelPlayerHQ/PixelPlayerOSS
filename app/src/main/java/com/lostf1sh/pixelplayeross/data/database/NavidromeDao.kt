@@ -94,4 +94,21 @@ interface NavidromeDao {
 
     @Query("DELETE FROM navidrome_playlists")
     suspend fun clearAllPlaylists()
+
+    // ─── Pending favorite ops (outbox) ───────────────────────────────────
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertPendingFavorite(op: NavidromePendingFavoriteEntity)
+
+    @Query("SELECT * FROM navidrome_pending_favorites ORDER BY createdAt")
+    suspend fun getPendingFavoritesOnce(): List<NavidromePendingFavoriteEntity>
+
+    @Query("DELETE FROM navidrome_pending_favorites WHERE navidromeSongId = :id")
+    suspend fun deletePendingFavorite(id: String)
+
+    @Query("UPDATE navidrome_pending_favorites SET attempts = attempts + 1 WHERE navidromeSongId = :id")
+    suspend fun incrementPendingFavoriteAttempts(id: String)
+
+    @Query("DELETE FROM navidrome_pending_favorites")
+    suspend fun clearPendingFavorites()
 }

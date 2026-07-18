@@ -32,6 +32,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.dataStore
 import com.lostf1sh.pixelplayeross.data.media.SongMetadataEditor
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeFavoritesSyncManager
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibApiService
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
@@ -288,6 +289,7 @@ object AppModule {
         lyricsRepository: LyricsRepository,
         songRepository: SongRepository,
         favoritesDao: FavoritesDao,
+        navidromeFavoritesSyncManager: NavidromeFavoritesSyncManager,
         artistImageRepository: ArtistImageRepository,
         folderTreeBuilder: FolderTreeBuilder
     ): MusicRepository {
@@ -300,6 +302,7 @@ object AppModule {
             lyricsRepository = lyricsRepository,
             songRepository = songRepository,
             favoritesDao = favoritesDao,
+            navidromeFavoritesSyncManager = navidromeFavoritesSyncManager,
             artistImageRepository = artistImageRepository,
             folderTreeBuilder = folderTreeBuilder
         )

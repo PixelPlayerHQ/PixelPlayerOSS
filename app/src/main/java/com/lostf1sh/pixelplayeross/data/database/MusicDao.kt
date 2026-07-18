@@ -1880,6 +1880,9 @@ interface MusicDao {
     )
     suspend fun getFavoriteContentUrisBySource(sourceType: Int): List<String>
 
+    @Query("SELECT content_uri_string FROM songs WHERE id = :id")
+    suspend fun getContentUriStringOnce(id: Long): String?
+
     companion object {
         /**
          * SQLite has a limit on the number of variables per statement (default 999, higher in newer versions).

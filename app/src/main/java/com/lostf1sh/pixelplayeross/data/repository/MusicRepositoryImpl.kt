@@ -21,6 +21,7 @@ import androidx.core.net.toUri
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeFavoritesSyncManager
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryEntity
 import com.lostf1sh.pixelplayeross.data.database.toAlbum
 import com.lostf1sh.pixelplayeross.data.database.toArtist
@@ -87,6 +88,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val lyricsRepository: LyricsRepository,
     private val songRepository: SongRepository,
     private val favoritesDao: FavoritesDao,
+    private val navidromeFavoritesSyncManager: NavidromeFavoritesSyncManager,
     private val artistImageRepository: ArtistImageRepository,
     private val folderTreeBuilder: FolderTreeBuilder
 ) : MusicRepository {
@@ -759,6 +761,13 @@ class MusicRepositoryImpl @Inject constructor(
             )
         } else {
             favoritesDao.removeFavorite(id)
+        }
+        val contentUri = musicDao.getContentUriStringOnce(id)
+        if (contentUri?.startsWith("navidrome://") == true) {
+            navidromeFavoritesSyncManager.onFavoriteToggled(
+                navidromeSongId = contentUri.removePrefix("navidrome://"),
+                favorite = isFavorite
+            )
         }
     }
 

@@ -33,6 +33,12 @@ interface FavoritesDao {
     @Query("SELECT * FROM favorites")
     suspend fun getAllFavoritesOnce(): List<FavoritesEntity>
 
+    @Query(
+        "SELECT f.songId FROM favorites f INNER JOIN songs s ON f.songId = s.id " +
+            "WHERE s.source_type = :sourceType AND f.isFavorite = 1"
+    )
+    suspend fun getFavoriteSongIdsBySourceOnce(sourceType: Int): List<Long>
+
     @Query("DELETE FROM favorites")
     suspend fun clearAll()
 

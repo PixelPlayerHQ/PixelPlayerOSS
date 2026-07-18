@@ -1871,6 +1871,15 @@ interface MusicDao {
         refreshArtistTrackCounts()
     }
 
+    @Query("SELECT id FROM songs WHERE id IN (:ids)")
+    suspend fun getExistingSongIds(ids: List<Long>): List<Long>
+
+    @Query(
+        "SELECT s.content_uri_string FROM songs s INNER JOIN favorites f ON s.id = f.songId " +
+            "WHERE s.source_type = :sourceType AND f.isFavorite = 1"
+    )
+    suspend fun getFavoriteContentUrisBySource(sourceType: Int): List<String>
+
     companion object {
         /**
          * SQLite has a limit on the number of variables per statement (default 999, higher in newer versions).

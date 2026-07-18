@@ -8,8 +8,11 @@ import androidx.security.crypto.MasterKey
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
 import com.lostf1sh.pixelplayeross.data.database.ArtistEntity
+import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
+import com.lostf1sh.pixelplayeross.data.database.FavoritesEntity
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.NavidromeDao
+import com.lostf1sh.pixelplayeross.data.database.NavidromePendingFavoriteEntity
 import com.lostf1sh.pixelplayeross.data.database.NavidromePlaylistEntity
 import com.lostf1sh.pixelplayeross.data.database.NavidromeSongEntity
 import com.lostf1sh.pixelplayeross.data.database.toEntity
@@ -62,6 +65,8 @@ class NavidromeRepository @Inject constructor(
     private val api: NavidromeApiService,
     private val dao: NavidromeDao,
     private val musicDao: MusicDao,
+    private val favoritesDao: FavoritesDao,
+    private val favoritesSyncManager: NavidromeFavoritesSyncManager,
     private val playlistPreferencesRepository: PlaylistPreferencesRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     @ApplicationContext private val context: Context
@@ -74,6 +79,7 @@ class NavidromeRepository @Inject constructor(
         private const val KEY_USERNAME = "username"
         private const val KEY_PASSWORD = "password"
         private const val KEY_LAST_FULL_SYNC = "last_full_sync"
+        private const val KEY_FAVORITES_IMPORTED = "favorites_imported"
 
         // Negative offsets prevent collisions with MediaStore IDs.
         private const val NAVIDROME_SONG_ID_OFFSET = 9_000_000_000_000L
@@ -241,6 +247,7 @@ class NavidromeRepository @Inject constructor(
 
         musicDao.clearAllNavidromeSongs()
         dao.clearAllPlaylists()
+        dao.clearPendingFavorites()
         userPreferencesRepository.clearNavidromeSelectedMusicFolderIds()
         _isLoggedInFlow.value = false
     }
@@ -633,6 +640,14 @@ class NavidromeRepository @Inject constructor(
                 Timber.e(e, "$TAG: Failed to sync unified library")
             }
 
+            try {
+                syncStarredSongs()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "$TAG: favorites sync failed, continuing")
+            }
+
             onProgress?.invoke(1f, context.getString(R.string.dash_status_sync_complete))
 
             if (failedPlaylistCount == 0) {
@@ -796,6 +811,7 @@ class NavidromeRepository @Inject constructor(
         // When on, "Group by Album Artist" makes the album's display artist the album artist;
         // either way the effective album artist is captured on the song for the Artists tab.
         val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
+        val favoriteUnifiedIds = favoritesDao.getFavoriteSongIdsOnce().toSet()
 
         val songs = ArrayList<SongEntity>(navidromeSongs.size)
         val artists = LinkedHashMap<Long, ArtistEntity>()
@@ -882,7 +898,7 @@ class NavidromeRepository @Inject constructor(
                     genre = navidromeSong.genre ?: NAVIDROME_GENRE,
                     filePath = navidromeSong.path,
                     parentDirectoryPath = NAVIDROME_PARENT_DIRECTORY,
-                    isFavorite = false,
+                    isFavorite = songId in favoriteUnifiedIds,
                     lyrics = null,
                     trackNumber = navidromeSong.trackNumber,
                     year = navidromeSong.year,
@@ -911,6 +927,68 @@ class NavidromeRepository @Inject constructor(
             crossRefs = crossRefs,
             deletedSongIds = deletedUnifiedIds
         )
+    }
+
+    /**
+     * Pulls server starred songs and reconciles them with local favorites for
+     * Navidrome-sourced songs. Pending un-pushed local ops win over server state.
+     */
+    suspend fun syncStarredSongs() {
+        if (!api.hasCredentials()) return
+        val serverStarredIds = api.getStarred2()
+            .getOrElse { error ->
+                Timber.w("$TAG: getStarred2 failed, skipping favorites sync: ${error.message}")
+                return
+            }
+            .mapNotNull { song -> song.optString("id").takeIf { it.isNotBlank() } }
+            .toSet()
+
+        importLocalFavoritesAsPendingOnFirstRun(serverStarredIds)
+
+        val pendingOps = dao.getPendingFavoritesOnce()
+        val localFavoriteIds = favoritesDao
+            .getFavoriteSongIdsBySourceOnce(SourceType.NAVIDROME)
+            .toSet()
+
+        val reconciliation = reconcileNavidromeFavorites(
+            serverStarredIds = serverStarredIds,
+            pendingOps = pendingOps,
+            localFavoriteIds = localFavoriteIds,
+            toUnifiedSongId = ::toUnifiedSongId
+        )
+
+        // Only favorite songs that exist in the unified library (starred songs
+        // outside the selected music folders would otherwise create orphan rows).
+        val existingIds = reconciliation.toFavorite
+            .chunked(900)
+            .flatMap { musicDao.getExistingSongIds(it) }
+        if (existingIds.isNotEmpty()) {
+            favoritesDao.insertAll(existingIds.map { FavoritesEntity(songId = it, isFavorite = true) })
+        }
+        reconciliation.toUnfavorite.forEach { favoritesDao.removeFavorite(it) }
+
+        if (pendingOps.isNotEmpty()) {
+            favoritesSyncManager.schedulePush()
+        }
+        Timber.d("$TAG: favorites sync done (server=${serverStarredIds.size}, added=${existingIds.size}, removed=${reconciliation.toUnfavorite.size})")
+    }
+
+    /**
+     * One-time per login: local favorites on Navidrome songs that predate this
+     * feature are converted into pending star ops so they are pushed to the
+     * server instead of being deleted by reconciliation.
+     */
+    private suspend fun importLocalFavoritesAsPendingOnFirstRun(serverStarredIds: Set<String>) {
+        if (prefs.getBoolean(KEY_FAVORITES_IMPORTED, false)) return
+        musicDao.getFavoriteContentUrisBySource(SourceType.NAVIDROME)
+            .map { it.removePrefix("navidrome://") }
+            .filter { it !in serverStarredIds }
+            .forEach { navidromeId ->
+                dao.upsertPendingFavorite(
+                    NavidromePendingFavoriteEntity(navidromeSongId = navidromeId, isStar = true)
+                )
+            }
+        prefs.edit().putBoolean(KEY_FAVORITES_IMPORTED, true).apply()
     }
 
     // ─── Utility Methods ───────────────────────────────────────────────────

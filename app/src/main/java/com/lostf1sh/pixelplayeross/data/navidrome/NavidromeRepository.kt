@@ -80,6 +80,7 @@ class NavidromeRepository @Inject constructor(
         private const val KEY_PASSWORD = "password"
         private const val KEY_LAST_FULL_SYNC = "last_full_sync"
         private const val KEY_FAVORITES_IMPORTED = "favorites_imported"
+        private const val STARRED_REFRESH_MIN_INTERVAL_MS = 30_000L
 
         // Negative offsets prevent collisions with MediaStore IDs.
         private const val NAVIDROME_SONG_ID_OFFSET = 9_000_000_000_000L
@@ -981,6 +982,28 @@ class NavidromeRepository @Inject constructor(
         Timber.d("$TAG: favorites sync done (server=${serverStarredIds.size}, added=${existingIds.size}, removed=${reconciliation.toUnfavorite.size})")
     }
 
+    @Volatile
+    private var lastStarredRefreshMs = 0L
+
+    /**
+     * Lightweight favorites-only refresh for UI triggers (Liked tab shown or
+     * pull-to-refresh). Skips when logged out; non-forced calls are rate
+     * limited so tab switching does not spam the server.
+     */
+    suspend fun refreshStarredSongs(force: Boolean = false) {
+        if (!isLoggedIn) return
+        val now = System.currentTimeMillis()
+        if (!shouldRefreshCloudFavorites(force, now, lastStarredRefreshMs, STARRED_REFRESH_MIN_INTERVAL_MS)) return
+        lastStarredRefreshMs = now
+        try {
+            syncStarredSongs()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "$TAG: favorites refresh failed")
+        }
+    }
+
     /**
      * One-time per login: local favorites on Navidrome songs that predate this
      * feature are converted into pending star ops so they are pushed to the
@@ -1131,6 +1154,13 @@ class NavidromeRepository @Inject constructor(
         syncUnifiedLibrarySongsFromNavidrome()
     }
 }
+
+internal fun shouldRefreshCloudFavorites(
+    force: Boolean,
+    nowMs: Long,
+    lastRefreshMs: Long,
+    minIntervalMs: Long
+): Boolean = force || nowMs - lastRefreshMs >= minIntervalMs
 
 internal fun navidromePlaylistsWithLibraryFallback(
     playlists: List<NavidromePlaylistEntity>,

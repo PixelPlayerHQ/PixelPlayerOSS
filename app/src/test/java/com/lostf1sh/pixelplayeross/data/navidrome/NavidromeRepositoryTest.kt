@@ -101,4 +101,24 @@ class NavidromeRepositoryTest {
 
         assertThat(selectedIds).isEmpty()
     }
+
+    @Test
+    fun `forced favorites refresh always allowed`() {
+        assertThat(shouldRefreshCloudFavorites(force = true, nowMs = 1_000L, lastRefreshMs = 999L, minIntervalMs = 30_000L)).isTrue()
+    }
+
+    @Test
+    fun `favorites refresh blocked when interval has not elapsed since epoch zero`() {
+        assertThat(shouldRefreshCloudFavorites(force = false, nowMs = 5L, lastRefreshMs = 0L, minIntervalMs = 30_000L)).isFalse()
+    }
+
+    @Test
+    fun `favorites refresh blocked within cooldown`() {
+        assertThat(shouldRefreshCloudFavorites(force = false, nowMs = 40_000L, lastRefreshMs = 20_000L, minIntervalMs = 30_000L)).isFalse()
+    }
+
+    @Test
+    fun `favorites refresh allowed after cooldown`() {
+        assertThat(shouldRefreshCloudFavorites(force = false, nowMs = 60_000L, lastRefreshMs = 20_000L, minIntervalMs = 30_000L)).isTrue()
+    }
 }

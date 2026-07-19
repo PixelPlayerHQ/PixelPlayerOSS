@@ -39,6 +39,7 @@ import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.EotStateHolder
 import com.lostf1sh.pixelplayeross.data.database.AlbumArtThemeDao
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.data.model.Album
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
@@ -247,6 +248,7 @@ private data class ResolvedAlbumSelection(
 class PlayerViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val musicRepository: MusicRepository,
+    private val navidromeRepository: NavidromeRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val themePreferencesRepository: ThemePreferencesRepository,
     private val albumArtThemeDao: AlbumArtThemeDao,
@@ -4180,6 +4182,15 @@ class PlayerViewModel @Inject constructor(
             loadArtists = { loadArtistsIfNeeded() },
             loadFolders = { loadFoldersFromRepository() }
         )
+        if (_currentLibraryTabId.value == LibraryTabId.LIKED) {
+            refreshCloudFavorites(force = false)
+        }
+    }
+
+    fun refreshCloudFavorites(force: Boolean = false) {
+        viewModelScope.launch {
+            navidromeRepository.refreshStarredSongs(force)
+        }
     }
 
     fun saveLibraryTabsOrder(tabs: List<String>) {

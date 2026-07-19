@@ -12,6 +12,7 @@ import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
@@ -60,6 +61,7 @@ class PlayerViewModelTest {
 
     private lateinit var playerViewModel: PlayerViewModel
     private val mockMusicRepository: MusicRepository = mockk()
+    private val mockNavidromeRepository: NavidromeRepository = mockk(relaxed = true)
     private val mockUserPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val mockThemePreferencesRepository: ThemePreferencesRepository = mockk(relaxed = true)
     private val mockAlbumArtThemeDao: AlbumArtThemeDao = mockk(relaxed = true)
@@ -215,6 +217,7 @@ class PlayerViewModelTest {
         playerViewModel = PlayerViewModel(
             mockContext,
             mockMusicRepository,
+            mockNavidromeRepository,
             mockUserPreferencesRepository,
             mockThemePreferencesRepository,
             mockAlbumArtThemeDao,

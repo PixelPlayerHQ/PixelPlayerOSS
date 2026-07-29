@@ -346,8 +346,9 @@ class MusicService : MediaLibraryService() {
             }
         }
 
-        temporaryForegroundStartedInOnCreate =
-            consumePendingMediaButtonForegroundStart() || Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+        temporaryForegroundStartedInOnCreate = shouldStartTemporaryForegroundOnCreate(
+            hasPendingMediaButtonStart = consumePendingMediaButtonForegroundStart()
+        )
         if (temporaryForegroundStartedInOnCreate) {
             startTemporaryForegroundForCommand()
         }
@@ -923,6 +924,31 @@ class MusicService : MediaLibraryService() {
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        val player = mediaSession?.player ?: engine.masterPlayer
+        when (
+            taskRemovalAction(
+                keepPlayingInBackground = keepPlayingInBackground,
+                isPlaybackOngoing = isPlaybackOngoing(),
+                playWhenReady = player.playWhenReady,
+                mediaItemCount = player.mediaItemCount,
+                playbackState = player.playbackState,
+            )
+        ) {
+            TaskRemovalAction.KEEP_RUNNING -> {
+                Timber.tag(TAG).d("Keeping active playback after task removal")
+                schedulePlaybackSnapshotPersist(immediate = true)
+            }
+            TaskRemovalAction.STOP_AND_PRESERVE -> {
+                stopPlaybackAndUnload(
+                    reason = "task_removed_background_playback_disabled",
+                    preservePlaybackSnapshot = true,
+                )
+            }
+            TaskRemovalAction.DEFER_TO_MEDIA3 -> super.onTaskRemoved(rootIntent)
+        }
+    }
 
     override fun onDestroy() {
         PlaybackActivityTracker.setPlaybackActive(false)

@@ -91,7 +91,10 @@ data class SongEntity(
     @ColumnInfo(name = "title_user_edited", defaultValue = "0") val titleUserEdited: Boolean = false,
     @ColumnInfo(name = "artist_user_edited", defaultValue = "0") val artistUserEdited: Boolean = false,
     @ColumnInfo(name = "album_user_edited", defaultValue = "0") val albumUserEdited: Boolean = false,
-    @ColumnInfo(name = "genre_user_edited", defaultValue = "0") val genreUserEdited: Boolean = false
+    @ColumnInfo(name = "genre_user_edited", defaultValue = "0") val genreUserEdited: Boolean = false,
+    @ColumnInfo(name = "mb_recording_id") val mbRecordingId: String? = null,
+    @ColumnInfo(name = "mb_release_id") val mbReleaseId: String? = null,
+    @ColumnInfo(name = "mb_artist_id") val mbArtistId: String? = null
 )
 
 private fun SongEntity.toSongInternal(artists: List<ArtistRef>): Song {

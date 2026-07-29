@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.presentation.viewmodel
 import android.os.SystemClock
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.DailyMixManager
+import com.lostf1sh.pixelplayeross.data.listenbrainz.ScrobbleManager
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.stats.PlaybackStatsRepository
 import io.mockk.coVerify
@@ -19,6 +20,7 @@ class ListeningStatsTrackerTest {
 
     private val dailyMixManager: DailyMixManager = mockk(relaxed = true)
     private val playbackStatsRepository: PlaybackStatsRepository = mockk(relaxed = true)
+    private val scrobbleManager: ScrobbleManager = mockk(relaxed = true)
 
     @BeforeEach
     fun setUp() {
@@ -34,7 +36,8 @@ class ListeningStatsTrackerTest {
     fun `finalizeCurrentSession preserves listening longer than track duration`() {
         val tracker = ListeningStatsTracker(
             dailyMixManager = dailyMixManager,
-            playbackStatsRepository = playbackStatsRepository
+            playbackStatsRepository = playbackStatsRepository,
+            scrobbleManager = scrobbleManager
         )
         val song = song(
             songId = "looped-song",
@@ -67,7 +70,8 @@ class ListeningStatsTrackerTest {
     fun `onProgress accumulates incremental listening time`() {
         val tracker = ListeningStatsTracker(
             dailyMixManager = dailyMixManager,
-            playbackStatsRepository = playbackStatsRepository
+            playbackStatsRepository = playbackStatsRepository,
+            scrobbleManager = scrobbleManager
         )
         val song = song(songId = "song-1")
         val firstChunkMs = 7_000L

@@ -13,7 +13,7 @@ Network features are optional and user-controlled:
 - Navidrome/Subsonic and Jellyfin are used only after the user signs in to a self-hosted server. Those servers may receive the authentication, library, playback state, and play history requests needed for their protocols.
 - LRCLIB lyric lookup is used only when online lyrics are enabled.
 - Deezer artist artwork lookup is used only when online artist images are enabled.
-- PixelPlayerOSS does not submit listening activity to public scrobbling services such as ListenBrainz or Last.fm.
+- ListenBrainz scrobbling is optional and disabled by default. It activates only after the user connects a ListenBrainz account with their own user token. While connected, the app submits listening activity (track title, artist, album, duration, listen timestamps, and MusicBrainz identifiers when available) to ListenBrainz for the playback sources the user has enabled; per-source toggles cover local files, Navidrome/Subsonic, and Jellyfin playback. Disconnecting stops submissions and deletes any queued listens. Last.fm is not supported.
 
 Server credentials and preferences are stored locally. The app does not sell or share user data.
 

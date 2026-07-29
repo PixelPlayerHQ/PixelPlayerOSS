@@ -51,3 +51,39 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_songs_album_artist_id` ON `songs` (`album_artist_id`)")
     }
 }
+
+/**
+ * v2 -> v3: opt-in ListenBrainz scrobbling + MusicBrainz identifier storage.
+ *
+ * - `listenbrainz_pending_listens`: offline scrobble queue. Rows snapshot track metadata at
+ *   enqueue time and are deleted on successful submission or permanent rejection.
+ * - `songs.mb_recording_id` / `mb_release_id` / `mb_artist_id`: MusicBrainz identifiers, read
+ *   from embedded file tags or applied via tag lookup. Scrobbles carry the recording MBID when
+ *   known for better server-side matching.
+ *
+ * Additive and idempotent, per the Auto Backup drift guard above.
+ */
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `listenbrainz_pending_listens` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `listened_at_ms` INTEGER NOT NULL,
+                    `track_name` TEXT NOT NULL,
+                    `artist_name` TEXT NOT NULL,
+                    `release_name` TEXT,
+                    `duration_ms` INTEGER,
+                    `recording_mbid` TEXT,
+                    `source` TEXT NOT NULL,
+                    `attempts` INTEGER NOT NULL DEFAULT 0,
+                    `created_at_ms` INTEGER NOT NULL
+                )
+            """.trimIndent()
+        )
+
+        db.addColumnIfMissing("songs", "mb_recording_id", "`mb_recording_id` TEXT")
+        db.addColumnIfMissing("songs", "mb_release_id", "`mb_release_id` TEXT")
+        db.addColumnIfMissing("songs", "mb_artist_id", "`mb_artist_id` TEXT")
+    }
+}

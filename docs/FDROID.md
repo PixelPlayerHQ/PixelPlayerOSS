@@ -65,7 +65,10 @@ These properties got the app accepted and must be maintained:
 4. Optional network services documented in `PRIVACY.md`.
 5. Release builds left unsigned when local signing keys are absent.
 6. Store metadata in Fastlane format.
-7. No ListenBrainz or Last.fm public scrobbling integration.
+7. ListenBrainz scrobbling is strictly opt-in and disabled by default: nothing is submitted
+   until the user connects their own ListenBrainz token, and disconnecting deletes queued
+   listens. Last.fm remains unsupported. The data sent while opted in is documented in
+   `PRIVACY.md`.
 
 ## Asset Licenses
 

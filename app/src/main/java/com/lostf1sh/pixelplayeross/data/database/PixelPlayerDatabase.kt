@@ -22,9 +22,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         NavidromeSongEntity::class,
         NavidromePlaylistEntity::class,
         JellyfinSongEntity::class,
-        JellyfinPlaylistEntity::class
+        JellyfinPlaylistEntity::class,
+        ListenBrainzPendingListenEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class PixelPlayerDatabase : RoomDatabase() {
@@ -38,6 +39,7 @@ abstract class PixelPlayerDatabase : RoomDatabase() {
     abstract fun localPlaylistDao(): LocalPlaylistDao
     abstract fun navidromeDao(): NavidromeDao
     abstract fun jellyfinDao(): JellyfinDao
+    abstract fun listenBrainzDao(): ListenBrainzDao
 
     companion object {
         fun installFavoriteSyncTriggers(db: SupportSQLiteDatabase) {

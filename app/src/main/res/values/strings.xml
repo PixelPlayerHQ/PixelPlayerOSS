@@ -10,6 +10,20 @@
     <string name="error">Error</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="accounts_listenbrainz_title">ListenBrainz</string>
+    <string name="accounts_listenbrainz_token_dialog_title">Connect ListenBrainz</string>
+    <string name="accounts_listenbrainz_token_dialog_body">Paste your user token to scrobble your listens to ListenBrainz. You can find it in your settings on listenbrainz.org.</string>
+    <string name="accounts_listenbrainz_token_hint">User token</string>
+    <string name="accounts_listenbrainz_connect">Connect</string>
+    <string name="accounts_listenbrainz_connect_failed">Token was rejected. Check it and try again.</string>
+    <string name="accounts_listenbrainz_get_token">Open listenbrainz.org</string>
+    <string name="accounts_listenbrainz_needs_reauth">Your token is no longer valid — reconnect to resume scrobbling. Queued listens are kept.</string>
+    <string name="accounts_listenbrainz_reconnect">Reconnect</string>
+    <string name="accounts_listenbrainz_scrobble_local">Scrobble local files</string>
+    <string name="accounts_listenbrainz_scrobble_navidrome">Scrobble Subsonic streaming</string>
+    <string name="accounts_listenbrainz_scrobble_jellyfin">Scrobble Jellyfin streaming</string>
+    <string name="accounts_listenbrainz_toggle_hint">If your server already scrobbles to ListenBrainz, turn that source off here to avoid duplicate listens.</string>
+    <string name="accounts_available_services">Available services</string>
     <string name="import_file">Import</string>
     <string name="search">Search</string>
 

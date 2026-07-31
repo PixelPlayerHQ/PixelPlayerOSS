@@ -198,10 +198,17 @@ class OfflineMediaRepository @Inject constructor(
     }.stateIn(appScope, SharingStarted.Eagerly, OfflineMediaUiState())
 
     init {
-        // Repository injection happens from an Application/UI/service main thread.
-        downloadManager
-        mainScope.launch {
+        // Repository injection happens from an Application/UI/service main thread. Constructing
+        // Media3's database and caches performs disk I/O, so warm the manager on AppScope's IO
+        // dispatcher before the polling loop needs it.
+        appScope.launch {
+            downloadManager
             refreshDownloads()
+            launch {
+                preferences.offlineCacheLimitBytesFlow.collect {
+                    enforceRuntimeLimits()
+                }
+            }
             while (true) {
                 val active = downloadSnapshot.value.values.any {
                     it.state == Download.STATE_DOWNLOADING || it.state == Download.STATE_QUEUED ||
@@ -209,12 +216,6 @@ class OfflineMediaRepository @Inject constructor(
                 }
                 delay(if (active) 750L else 5_000L)
                 refreshDownloads()
-                enforceRuntimeLimits()
-            }
-        }
-
-        appScope.launch {
-            preferences.offlineCacheLimitBytesFlow.collect {
                 enforceRuntimeLimits()
             }
         }
@@ -437,15 +438,10 @@ private fun CachedCollectionEntity.toModel(
     downloads: Map<String, Download>,
 ): CachedCollection {
     val remoteDownloads = tracks.filter(CachedTrackEntity::isRemote).mapNotNull { downloads[it.trackId] }
-    val status = when {
-        remoteDownloads.any { it.state == Download.STATE_FAILED } -> OfflineItemStatus.FAILED
-        remoteDownloads.any { it.state == Download.STATE_DOWNLOADING } -> OfflineItemStatus.DOWNLOADING
-        remoteDownloads.any { it.state == Download.STATE_STOPPED } -> OfflineItemStatus.PAUSED
-        remoteDownloads.any { it.state == Download.STATE_QUEUED || it.state == Download.STATE_RESTARTING } ->
-            OfflineItemStatus.QUEUED
-        remoteDownloads.size == tracks.count(CachedTrackEntity::isRemote) -> OfflineItemStatus.COMPLETE
-        else -> OfflineItemStatus.QUEUED
-    }
+    val status = offlineItemStatus(
+        downloadStates = remoteDownloads.map(Download::state),
+        remoteTrackCount = tracks.count(CachedTrackEntity::isRemote),
+    )
     val progress = if (remoteDownloads.isEmpty()) {
         1f
     } else {
@@ -470,6 +466,21 @@ private fun CachedCollectionEntity.toModel(
         progress = progress.coerceIn(0f, 1f),
         downloadedBytes = remoteDownloads.sumOf { it.bytesDownloaded },
     )
+}
+
+internal fun offlineItemStatus(
+    downloadStates: List<Int>,
+    remoteTrackCount: Int,
+): OfflineItemStatus = when {
+    downloadStates.any { it == Download.STATE_FAILED } -> OfflineItemStatus.FAILED
+    downloadStates.any { it == Download.STATE_REMOVING } -> OfflineItemStatus.QUEUED
+    downloadStates.any { it == Download.STATE_DOWNLOADING } -> OfflineItemStatus.DOWNLOADING
+    downloadStates.any { it == Download.STATE_STOPPED } -> OfflineItemStatus.PAUSED
+    downloadStates.any { it == Download.STATE_QUEUED || it == Download.STATE_RESTARTING } ->
+        OfflineItemStatus.QUEUED
+    downloadStates.size == remoteTrackCount &&
+        downloadStates.all { it == Download.STATE_COMPLETED } -> OfflineItemStatus.COMPLETE
+    else -> OfflineItemStatus.QUEUED
 }
 
 private fun CachedTrackEntity.toSong(): Song = Song(

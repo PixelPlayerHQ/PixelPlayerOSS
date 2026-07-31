@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.offline
 
+import androidx.media3.exoplayer.offline.Download
 import com.lostf1sh.pixelplayeross.data.model.Song
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -31,6 +32,34 @@ class OfflineMediaQuotaTest {
         val estimate = estimateOfflineBytes(listOf(testSong(durationMs = 0L, bitrate = null)))
 
         assertTrue(estimate >= 2_640_000L)
+    }
+
+    @Test
+    fun `removing download is not reported as complete`() {
+        val status = offlineItemStatus(
+            downloadStates = listOf(Download.STATE_REMOVING),
+            remoteTrackCount = 1,
+        )
+
+        assertEquals(OfflineItemStatus.QUEUED, status)
+    }
+
+    @Test
+    fun `all remote downloads must be completed before collection is complete`() {
+        assertEquals(
+            OfflineItemStatus.COMPLETE,
+            offlineItemStatus(
+                downloadStates = listOf(Download.STATE_COMPLETED, Download.STATE_COMPLETED),
+                remoteTrackCount = 2,
+            ),
+        )
+        assertEquals(
+            OfflineItemStatus.QUEUED,
+            offlineItemStatus(
+                downloadStates = listOf(Download.STATE_COMPLETED, Download.STATE_REMOVING),
+                remoteTrackCount = 2,
+            ),
+        )
     }
 
     private fun testSong(durationMs: Long, bitrate: Int?): Song = Song(

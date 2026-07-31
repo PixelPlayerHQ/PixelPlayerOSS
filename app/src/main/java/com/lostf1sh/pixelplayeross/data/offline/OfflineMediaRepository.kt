@@ -323,15 +323,10 @@ class OfflineMediaRepository @Inject constructor(
     private suspend fun removeCollectionLocked(collectionId: String) {
         metadataReady.await()
         val orphaned = database.withTransaction {
-            val candidates = dao.trackIdsForCollection(collectionId)
+            val tracks = dao.tracksExclusiveToCollection(collectionId)
+            dao.deleteTracksExclusiveToCollection(collectionId)
             dao.deleteCollection(collectionId)
-            if (candidates.isEmpty()) {
-                emptyList()
-            } else {
-                dao.orphanedTracks(candidates).also { tracks ->
-                    dao.deleteTracks(tracks.map(CachedTrackEntity::trackId))
-                }
-            }
+            tracks
         }
         orphaned.filter(CachedTrackEntity::isRemote).forEach { track ->
             DownloadService.sendRemoveDownload(

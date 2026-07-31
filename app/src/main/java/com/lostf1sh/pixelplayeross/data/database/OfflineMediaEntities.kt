@@ -130,17 +130,39 @@ interface OfflineMediaDao {
     @Query("DELETE FROM cached_collections WHERE collection_id = :collectionId")
     suspend fun deleteCollection(collectionId: String)
 
-    @Query("SELECT track_id FROM cached_collection_tracks WHERE collection_id = :collectionId")
-    suspend fun trackIdsForCollection(collectionId: String): List<String>
+    @Query(
+        """
+        SELECT * FROM cached_tracks
+        WHERE EXISTS (
+            SELECT 1 FROM cached_collection_tracks AS target_ref
+            WHERE target_ref.track_id = cached_tracks.track_id
+                AND target_ref.collection_id = :collectionId
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM cached_collection_tracks AS other_ref
+            WHERE other_ref.track_id = cached_tracks.track_id
+                AND other_ref.collection_id != :collectionId
+        )
+        """
+    )
+    suspend fun tracksExclusiveToCollection(collectionId: String): List<CachedTrackEntity>
 
     @Query(
-        "SELECT * FROM cached_tracks WHERE track_id IN (:candidateIds) " +
-            "AND track_id NOT IN (SELECT track_id FROM cached_collection_tracks)"
+        """
+        DELETE FROM cached_tracks
+        WHERE EXISTS (
+            SELECT 1 FROM cached_collection_tracks AS target_ref
+            WHERE target_ref.track_id = cached_tracks.track_id
+                AND target_ref.collection_id = :collectionId
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM cached_collection_tracks AS other_ref
+            WHERE other_ref.track_id = cached_tracks.track_id
+                AND other_ref.collection_id != :collectionId
+        )
+        """
     )
-    suspend fun orphanedTracks(candidateIds: List<String>): List<CachedTrackEntity>
-
-    @Query("DELETE FROM cached_tracks WHERE track_id IN (:trackIds)")
-    suspend fun deleteTracks(trackIds: List<String>)
+    suspend fun deleteTracksExclusiveToCollection(collectionId: String)
 
     @Query("DELETE FROM cached_collections")
     suspend fun clearCollections()

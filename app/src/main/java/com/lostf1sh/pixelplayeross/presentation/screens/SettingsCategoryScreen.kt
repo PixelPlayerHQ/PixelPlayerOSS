@@ -174,6 +174,15 @@ import com.lostf1sh.pixelplayeross.presentation.components.rememberModalSheetSta
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
+private val OFFLINE_CACHE_LIMIT_OPTIONS = longArrayOf(
+    1L * 1024L * 1024L * 1024L,
+    2L * 1024L * 1024L * 1024L,
+    5L * 1024L * 1024L * 1024L,
+    10L * 1024L * 1024L * 1024L,
+    20L * 1024L * 1024L * 1024L,
+    0L,
+)
+
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -225,6 +234,12 @@ fun SettingsCategoryScreen(
     }
     var albumArtCacheLimitDraft by remember(uiState.albumArtCacheLimitMb) {
         mutableStateOf(uiState.albumArtCacheLimitMb.toFloat())
+    }
+    var offlineCacheLimitDraft by remember(uiState.offlineCacheLimitBytes) {
+        mutableStateOf(
+            OFFLINE_CACHE_LIMIT_OPTIONS.indexOf(uiState.offlineCacheLimitBytes)
+                .takeIf { it >= 0 }?.toFloat() ?: 2f
+        )
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -444,6 +459,29 @@ fun SettingsCategoryScreen(
                                         }
                                     },
                                     valueText = { value -> "${value.toInt()} MB" }
+                                )
+                                SliderSettingsItem(
+                                    label = stringResource(R.string.offline_cache_limit_title),
+                                    value = offlineCacheLimitDraft,
+                                    valueRange = 0f..5f,
+                                    steps = 4,
+                                    onValueChange = { offlineCacheLimitDraft = it },
+                                    onValueChangeFinished = {
+                                        val selected = OFFLINE_CACHE_LIMIT_OPTIONS[
+                                            offlineCacheLimitDraft.toInt().coerceIn(0, 5)
+                                        ]
+                                        if (selected != uiState.offlineCacheLimitBytes) {
+                                            settingsViewModel.setOfflineCacheLimitBytes(selected)
+                                        }
+                                    },
+                                    valueText = { value ->
+                                        val selected = OFFLINE_CACHE_LIMIT_OPTIONS[value.toInt().coerceIn(0, 5)]
+                                        if (selected == 0L) {
+                                            context.getString(R.string.offline_cache_unlimited)
+                                        } else {
+                                            "${selected / (1024L * 1024L * 1024L)} GB"
+                                        }
+                                    }
                                 )
                             }
 

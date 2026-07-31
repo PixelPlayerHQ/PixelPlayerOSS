@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="offline_cache_notification_channel">Offline caching</string>
+    <string name="offline_cache_notification_channel_description">Progress for music saved inside PixelPlayer</string>
+    <string name="offline_cache_notification_message">Saving music for offline playback</string>
+    <string name="offline_cache_empty_title">Nothing cached yet</string>
+    <string name="offline_cache_empty_message">Cache a song, album, or playlist to listen when your server is unavailable.</string>
+    <string name="offline_cache_action">Cache offline</string>
+    <string name="offline_cache_remove_action">Remove from cache</string>
+    <string name="offline_cache_already_saved">Already cached</string>
+    <string name="offline_cache_started">Caching started</string>
+    <string name="offline_cache_limit_reached">Not enough space within your cache limit</string>
+    <string name="offline_cache_low_storage">Not enough free device storage</string>
+    <string name="offline_cache_no_remote_media">There’s no media to cache</string>
+    <string name="offline_cache_used">Offline %1$s of %2$s</string>
+    <string name="offline_cache_used_unlimited">Offline %1$s · Unlimited</string>
+    <string name="offline_cache_streaming_used">Streaming cache %1$s of %2$s</string>
+    <string name="offline_cache_status_queued">Queued</string>
+    <string name="offline_cache_status_downloading">Caching %1$d%%</string>
+    <string name="offline_cache_status_complete">Available offline</string>
+    <string name="offline_cache_status_paused">Paused by storage limit</string>
+    <string name="offline_cache_status_failed">Caching failed</string>
+    <string name="offline_cache_remove_title">Remove cached media?</string>
+    <string name="offline_cache_remove_message">This removes the app-private offline copy. It does not delete the original song.</string>
+    <string name="offline_cache_limit_title">Offline cache limit</string>
+    <string name="offline_cache_unlimited">Unlimited</string>
+    <string name="offline_cache_filter_all">All</string>
+    <string name="offline_cache_filter_albums">Albums</string>
+    <string name="offline_cache_filter_playlists">Playlists</string>
+    <string name="offline_cache_filter_songs">Songs</string>
+    <plurals name="offline_cache_song_count">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
+</resources>

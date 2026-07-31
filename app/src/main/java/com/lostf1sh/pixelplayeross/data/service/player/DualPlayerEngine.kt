@@ -167,7 +167,8 @@ internal fun shouldDisableAudioOffloadOnEarlyBuffering(
 class DualPlayerEngine @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val navidromeStreamProxy: NavidromeStreamProxy,
-    private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy
+    private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy,
+    private val playbackAudioCache: PlaybackAudioCache,
 ) {
     private companion object {
         private const val AUDIO_OFFLOAD_STALL_FALLBACK_MS = 4_000L
@@ -865,22 +866,32 @@ class DualPlayerEngine @Inject constructor(
                 val uri = dataSpec.uri
                 val scheme = uri.scheme
                 if (scheme in CLOUD_PROXY_SCHEMES) {
+                    var resolvedDataSpec = dataSpec
+                    if (!shouldUsePlaybackCache(dataSpec.key)) {
+                        playbackAudioCache.cacheKeyFor(uri)?.let { cacheKey ->
+                            resolvedDataSpec = resolvedDataSpec.buildUpon()
+                                .setKey(cacheKey)
+                                .build()
+                        }
+                    }
                     val originalUri = uri.toString()
                     val resolved = resolvedUriCache.get(originalUri)
                         ?: resolveReadyCloudProxyUri(uri)?.also { proxyUri ->
                             resolvedUriCache.put(originalUri, proxyUri)
                         }
                     if (resolved != null) {
-                        return dataSpec.buildUpon().setUri(resolved).build()
+                        return resolvedDataSpec.buildUpon().setUri(resolved).build()
                     }
                     Timber.tag("DualPlayerEngine").d("resolveDataSpec: Cache MISS for %s — using original URI", scheme)
+                    return resolvedDataSpec
                 }
                 return dataSpec
             }
         }
-        
+
         val dataSourceFactory = DefaultDataSource.Factory(context)
-        val resolvingFactory = ResolvingDataSource.Factory(dataSourceFactory, resolver)
+        val cacheFactory = playbackAudioCache.createDataSourceFactory(dataSourceFactory)
+        val resolvingFactory = ResolvingDataSource.Factory(cacheFactory, resolver)
         val extractorsFactory = DefaultExtractorsFactory()
             .setMp3ExtractorFlags(Mp3Extractor.FLAG_ENABLE_CONSTANT_BITRATE_SEEKING)
             .setFlacExtractorFlags(FlacExtractor.FLAG_DISABLE_ID3_METADATA)
@@ -999,11 +1010,24 @@ class DualPlayerEngine @Inject constructor(
     }
 
     suspend fun resolveMediaItem(mediaItem: MediaItem): MediaItem {
-        val uri = mediaItem.localConfiguration?.uri ?: return mediaItem
+        val cacheableMediaItem = playbackAudioCache.withCacheKey(mediaItem)
+        val cacheKey = cacheableMediaItem.localConfiguration?.customCacheKey
+        if (playbackAudioCache.isAvailableOffline(cacheKey)) {
+            val originalUri = cacheableMediaItem.mediaMetadata.extras
+                ?.getString(ORIGINAL_CLOUD_URI_EXTRA)
+                ?.let(Uri::parse)
+            return originalUri?.let { cacheableMediaItem.buildUpon().setUri(it).build() }
+                ?: cacheableMediaItem
+        }
+        val uri = cacheableMediaItem.localConfiguration?.uri ?: return cacheableMediaItem
         val scheme = uri.scheme
-        if (scheme !in CLOUD_PROXY_SCHEMES) return mediaItem
+        if (scheme !in CLOUD_PROXY_SCHEMES) return cacheableMediaItem
         val resolvedUri = resolveCloudUri(uri)
-        return if (resolvedUri == uri) mediaItem else mediaItem.buildUpon().setUri(resolvedUri).build()
+        return if (resolvedUri == uri) {
+            cacheableMediaItem
+        } else {
+            cacheableMediaItem.buildUpon().setUri(resolvedUri).build()
+        }
     }
 
     suspend fun prepareNext(target: TransitionTarget, startPositionMs: Long = 0L) {

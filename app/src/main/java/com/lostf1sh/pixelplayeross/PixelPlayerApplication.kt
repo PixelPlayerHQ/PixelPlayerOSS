@@ -13,6 +13,7 @@ import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.offline.OfflineMediaRepository
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LibraryStateHolder
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ThemeStateHolder
@@ -62,6 +63,9 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     @Inject
     lateinit var syncManager: dagger.Lazy<com.lostf1sh.pixelplayeross.data.worker.SyncManager>
 
+    @Inject
+    lateinit var offlineMediaRepository: dagger.Lazy<OfflineMediaRepository>
+
     private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
@@ -71,6 +75,7 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     private val appLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
             libraryStateHolder.get().restoreAfterTrimIfNeeded()
+            offlineMediaRepository.get().resumePendingDownloads()
         }
     }
 

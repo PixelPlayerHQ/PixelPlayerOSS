@@ -87,3 +87,76 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.addColumnIfMissing("songs", "mb_artist_id", "`mb_artist_id` TEXT")
     }
 }
+
+/** v3 -> v4: metadata and reference counts for user-selected offline collections. */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `cached_collections` (
+                    `collection_id` TEXT NOT NULL,
+                    `collection_type` TEXT NOT NULL,
+                    `source_id` TEXT NOT NULL,
+                    `title` TEXT NOT NULL,
+                    `subtitle` TEXT,
+                    `artwork_uri` TEXT,
+                    `created_at_ms` INTEGER NOT NULL,
+                    PRIMARY KEY(`collection_id`)
+                )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `cached_tracks` (
+                    `track_id` TEXT NOT NULL,
+                    `cache_key` TEXT,
+                    `song_id` TEXT NOT NULL,
+                    `title` TEXT NOT NULL,
+                    `artist` TEXT NOT NULL,
+                    `artist_id` INTEGER NOT NULL,
+                    `album` TEXT NOT NULL,
+                    `album_id` INTEGER NOT NULL,
+                    `album_artist` TEXT,
+                    `path` TEXT NOT NULL,
+                    `content_uri` TEXT NOT NULL,
+                    `artwork_uri` TEXT,
+                    `duration_ms` INTEGER NOT NULL,
+                    `genre` TEXT,
+                    `track_number` INTEGER NOT NULL,
+                    `disc_number` INTEGER,
+                    `year` INTEGER NOT NULL,
+                    `date_added` INTEGER NOT NULL,
+                    `date_modified` INTEGER NOT NULL,
+                    `mime_type` TEXT,
+                    `bitrate` INTEGER,
+                    `sample_rate` INTEGER,
+                    `navidrome_id` TEXT,
+                    `jellyfin_id` TEXT,
+                    `is_remote` INTEGER NOT NULL,
+                    `added_at_ms` INTEGER NOT NULL,
+                    PRIMARY KEY(`track_id`)
+                )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_cached_tracks_cache_key` " +
+                "ON `cached_tracks` (`cache_key`)"
+        )
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `cached_collection_tracks` (
+                    `collection_id` TEXT NOT NULL,
+                    `track_id` TEXT NOT NULL,
+                    `sort_order` INTEGER NOT NULL,
+                    PRIMARY KEY(`collection_id`, `track_id`),
+                    FOREIGN KEY(`collection_id`) REFERENCES `cached_collections`(`collection_id`) ON UPDATE NO ACTION ON DELETE CASCADE,
+                    FOREIGN KEY(`track_id`) REFERENCES `cached_tracks`(`track_id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_cached_collection_tracks_track_id` " +
+                "ON `cached_collection_tracks` (`track_id`)"
+        )
+    }
+}

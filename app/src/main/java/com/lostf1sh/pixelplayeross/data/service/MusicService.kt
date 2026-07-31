@@ -50,6 +50,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
+import com.lostf1sh.pixelplayeross.data.service.player.ORIGINAL_CLOUD_URI_EXTRA
 import com.lostf1sh.pixelplayeross.data.service.player.TransitionController
 import com.lostf1sh.pixelplayeross.ui.glancewidget.ControlWidget4x2
 import com.lostf1sh.pixelplayeross.ui.glancewidget.PixelPlayerGlanceWidget
@@ -1523,7 +1524,8 @@ class MusicService : MediaLibraryService() {
         for (index in 0 until mediaItemCount) {
             val mediaItem = player.getMediaItemAt(index)
             val metadata = mediaItem.mediaMetadata
-            val uri = mediaItem.localConfiguration?.uri?.toString()
+            val uri = metadata.extras?.getString(ORIGINAL_CLOUD_URI_EXTRA)
+                ?: mediaItem.localConfiguration?.uri?.toString()
                 ?: metadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
 
             if (mediaItem.mediaId.isBlank() || uri.isNullOrBlank()) {

@@ -34,6 +34,8 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.AudioFile
 import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MusicNote
@@ -71,6 +73,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.offline.CachedCollectionType
+import com.lostf1sh.pixelplayeross.presentation.utils.messageRes
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.AutoSizingTextToFill
 import com.lostf1sh.pixelplayeross.utils.formatDuration
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
@@ -120,7 +124,8 @@ fun SongInfoBottomSheet(
         coverArtUpdate: CoverArtUpdate?
     ) -> Unit,
     removeFromListTrigger: () -> Unit,
-    songInfoViewModel: SongInfoBottomSheetViewModel = hiltViewModel()
+    songInfoViewModel: SongInfoBottomSheetViewModel = hiltViewModel(),
+    offlineMediaViewModel: com.lostf1sh.pixelplayeross.presentation.viewmodel.OfflineMediaViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     var showEditSheet by remember { mutableStateOf(false) }
@@ -131,6 +136,13 @@ fun SongInfoBottomSheet(
     var pendingTonePermissionTarget by remember { mutableStateOf<ToneTarget?>(null) }
     val audioMeta by songInfoViewModel.audioMeta.collectAsStateWithLifecycle()
     val resolvedArtists by songInfoViewModel.resolvedArtists.collectAsStateWithLifecycle()
+    val offlineState by offlineMediaViewModel.uiState.collectAsStateWithLifecycle()
+    val isCloudMedia = remember(song.contentUriString) {
+        song.contentUriString.startsWith("navidrome:") || song.contentUriString.startsWith("jellyfin:")
+    }
+    val isIndividuallyCached = remember(song, offlineState.collections) {
+        offlineMediaViewModel.isCached(CachedCollectionType.SONG, song.id, listOf(song))
+    }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -541,32 +553,71 @@ fun SongInfoBottomSheet(
                                                     Text(stringResource(R.string.shortcut_playlist_short))
                                                 }
 
-                                                FilledTonalButton(
-                                                    modifier = Modifier
-                                                        .weight(0.5f)
-                                                        .heightIn(min = 66.dp),
-                                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                                    ),
-                                                    shape = CircleShape,
-                                                    onClick = {
-                                                        (context as? Activity)?.let { activity ->
-                                                            onDeleteFromDevice(activity, song) { result ->
-                                                                if (result) {
-                                                                    removeFromListTrigger()
-                                                                    onDismiss()
+                                                if (isCloudMedia) {
+                                                    FilledTonalButton(
+                                                        modifier = Modifier.weight(0.5f).heightIn(min = 66.dp),
+                                                        shape = CircleShape,
+                                                        onClick = {
+                                                            if (isIndividuallyCached) {
+                                                                offlineMediaViewModel.remove(
+                                                                    CachedCollectionType.SONG,
+                                                                    song.id,
+                                                                    listOf(song),
+                                                                )
+                                                            } else {
+                                                                offlineMediaViewModel.cache(
+                                                                    type = CachedCollectionType.SONG,
+                                                                    sourceId = song.id,
+                                                                    title = song.title,
+                                                                    subtitle = song.displayArtist,
+                                                                    artworkUri = song.albumArtUriString,
+                                                                    songs = listOf(song),
+                                                                ) { result ->
+                                                                    Toast.makeText(
+                                                                        context,
+                                                                        result.messageRes(),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    ).show()
+                                                                }
+                                                            }
+                                                        },
+                                                    ) {
+                                                        Icon(
+                                                            if (isIndividuallyCached) Icons.Rounded.DeleteOutline else Icons.Rounded.CloudDownload,
+                                                            contentDescription = null,
+                                                        )
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Text(
+                                                            stringResource(
+                                                                if (isIndividuallyCached) R.string.offline_cache_remove_action
+                                                                else R.string.offline_cache_action
+                                                            ),
+                                                            maxLines = 1,
+                                                        )
+                                                    }
+                                                } else {
+                                                    FilledTonalButton(
+                                                        modifier = Modifier.weight(0.5f).heightIn(min = 66.dp),
+                                                        colors = ButtonDefaults.filledTonalButtonColors(
+                                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                                        ),
+                                                        shape = CircleShape,
+                                                        onClick = {
+                                                            (context as? Activity)?.let { activity ->
+                                                                onDeleteFromDevice(activity, song) { result ->
+                                                                    if (result) {
+                                                                        removeFromListTrigger()
+                                                                        onDismiss()
+                                                                    }
                                                                 }
                                                             }
                                                         }
+                                                    ) {
+                                                        Icon(Icons.Default.DeleteForever, contentDescription = stringResource(R.string.delete_action))
+                                                        Spacer(Modifier.width(8.dp))
+                                                        Text(stringResource(R.string.delete_action))
                                                     }
-                                                ) {
-                                                    Icon(
-                                                        Icons.Default.DeleteForever,
-                                                        contentDescription = stringResource(R.string.delete_action)
-                                                    )
-                                                    Spacer(Modifier.width(8.dp))
-                                                    Text(stringResource(R.string.delete_action))
                                                 }
                                             }
                                         }

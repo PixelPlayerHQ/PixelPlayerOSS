@@ -32,6 +32,24 @@ class LibraryTabIdTest {
     }
 
     @Test
+    fun `cached tab is appended without shifting legacy tab indices`() {
+        val legacyOrder = listOf(
+            LibraryTabId.Songs,
+            LibraryTabId.Albums,
+            LibraryTabId.Artists,
+            LibraryTabId.Playlists,
+            LibraryTabId.Folders,
+            LibraryTabId.Liked,
+        )
+
+        val order = decodeLibraryTabOrder(
+            Json.encodeToString(legacyOrder.map(LibraryTabId::stableKey))
+        )
+
+        assertIterableEquals(legacyOrder + LibraryTabId.Cached, order)
+    }
+
+    @Test
     fun `sort associations remain tied to tab ids after reordering`() {
         val persistedSorts = LibraryTabId.defaultOrder.associateWith { tab ->
             tab.sortOptions.firstOrNull() ?: SortOption.SongTitleAZ

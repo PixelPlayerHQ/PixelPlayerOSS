@@ -196,6 +196,7 @@ constructor(
 
         val ALBUM_ART_QUALITY = stringPreferencesKey("album_art_quality")
         val ALBUM_ART_CACHE_LIMIT_MB = intPreferencesKey("album_art_cache_limit_mb")
+        val OFFLINE_CACHE_LIMIT_BYTES = longPreferencesKey("offline_cache_limit_bytes")
         val TAP_BACKGROUND_CLOSES_PLAYER = booleanPreferencesKey("tap_background_closes_player")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val IMMERSIVE_LYRICS_ENABLED = booleanPreferencesKey("immersive_lyrics_enabled")
@@ -1187,6 +1188,7 @@ constructor(
         /** Default word-based delimiters (matched case-insensitively with whitespace boundaries) */
         val DEFAULT_ARTIST_WORD_DELIMITERS = listOf("featuring", "feat.", "feat", "ft.", "ft", "vs.", "vs", "versus", "with", "prod.", "prod")
         const val DEFAULT_ALBUM_ART_CACHE_LIMIT_MB = 200
+        const val DEFAULT_OFFLINE_CACHE_LIMIT_BYTES = 5L * 1024L * 1024L * 1024L
     }
 
     val navBarCornerRadiusFlow: Flow<Int> =
@@ -1405,6 +1407,10 @@ constructor(
                         }
                         preferences[PreferencesKeys.LIBRARY_TABS_ORDER] = json.encodeToString(order)
                     }
+                    if (!order.contains("CACHED")) {
+                        order.add("CACHED")
+                        preferences[PreferencesKeys.LIBRARY_TABS_ORDER] = json.encodeToString(order)
+                    }
                 } catch (e: Exception) {
                 }
             }
@@ -1550,6 +1556,24 @@ constructor(
     suspend fun setAlbumArtCacheLimitMb(limitMb: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.ALBUM_ART_CACHE_LIMIT_MB] = limitMb.coerceIn(50, 1500)
+        }
+    }
+
+    /** User-selected media limit. Zero means unlimited; existing media is never auto-deleted. */
+    val offlineCacheLimitBytesFlow: Flow<Long> =
+        dataStore.data.map { preferences ->
+            preferences[PreferencesKeys.OFFLINE_CACHE_LIMIT_BYTES]
+                ?: DEFAULT_OFFLINE_CACHE_LIMIT_BYTES
+        }.distinctUntilChanged()
+
+    suspend fun setOfflineCacheLimitBytes(limitBytes: Long) {
+        val sanitized = if (limitBytes == 0L) {
+            0L
+        } else {
+            limitBytes.coerceIn(1L * 1024L * 1024L * 1024L, 100L * 1024L * 1024L * 1024L)
+        }
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.OFFLINE_CACHE_LIMIT_BYTES] = sanitized
         }
     }
 

@@ -2,6 +2,7 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -30,7 +31,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.ContainedLoadingIndicator
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledIconButton
@@ -40,6 +44,7 @@ import androidx.compose.material3.LargeExtendedFloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +70,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextGeometricTransform
@@ -86,6 +92,8 @@ import coil.compose.AsyncImagePainter
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Album
+import com.lostf1sh.pixelplayeross.data.offline.CachedCollectionType
+import com.lostf1sh.pixelplayeross.presentation.utils.messageRes
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
@@ -115,9 +123,12 @@ fun AlbumDetailScreen(
     navController: NavController,
     playerViewModel: PlayerViewModel,
     viewModel: AlbumDetailViewModel = hiltViewModel(),
-    playlistViewModel: PlaylistViewModel = hiltViewModel()
+    playlistViewModel: PlaylistViewModel = hiltViewModel(),
+    offlineMediaViewModel: com.lostf1sh.pixelplayeross.presentation.viewmodel.OfflineMediaViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val offlineState by offlineMediaViewModel.uiState.collectAsStateWithLifecycle()
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
     val isMiniPlayerVisible by remember {
         derivedStateOf { stablePlayerState.currentSong != null }
@@ -130,6 +141,7 @@ fun AlbumDetailScreen(
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
+    var showRemoveOfflineDialog by remember { mutableStateOf(false) }
     val isDarkTheme = LocalPixelPlayerDarkTheme.current
     val baseColorScheme = MaterialTheme.colorScheme
     val albumArtUri = uiState.album?.albumArtUriString?.takeIf { it.isNotBlank() }
@@ -197,6 +209,34 @@ fun AlbumDetailScreen(
             uiState.album != null -> {
                 val album = uiState.album!!
                 val songs = uiState.songs
+                val isCached = remember(album.id, songs, offlineState.collections) {
+                    offlineMediaViewModel.isCached(CachedCollectionType.ALBUM, album.id.toString(), songs)
+                }
+                val hasCloudSongs = remember(songs) {
+                    songs.any { it.contentUriString.startsWith("navidrome:") || it.contentUriString.startsWith("jellyfin:") }
+                }
+                if (showRemoveOfflineDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showRemoveOfflineDialog = false },
+                        title = { Text(stringResource(R.string.offline_cache_remove_title)) },
+                        text = { Text(stringResource(R.string.offline_cache_remove_message)) },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                offlineMediaViewModel.remove(
+                                    CachedCollectionType.ALBUM,
+                                    album.id.toString(),
+                                    songs,
+                                )
+                                showRemoveOfflineDialog = false
+                            }) { Text(stringResource(R.string.offline_cache_remove_action)) }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showRemoveOfflineDialog = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        },
+                    )
+                }
                 val songsByDisc = remember(songs) {
                     songs.groupBy { it.discNumber ?: 1 }
                 }
@@ -404,6 +444,45 @@ fun AlbumDetailScreen(
                                 }
                             }
                         )
+                    }
+
+                    if (hasCloudSongs) {
+                        FilledIconButton(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .statusBarsPadding()
+                                .padding(top = 8.dp, end = 12.dp),
+                            onClick = {
+                                if (isCached) {
+                                    showRemoveOfflineDialog = true
+                                } else {
+                                    offlineMediaViewModel.cache(
+                                        type = CachedCollectionType.ALBUM,
+                                        sourceId = album.id.toString(),
+                                        title = album.title,
+                                        subtitle = album.albumArtist ?: album.artist,
+                                        artworkUri = album.albumArtUriString,
+                                        songs = songs,
+                                    ) { result ->
+                                        Toast.makeText(
+                                            context,
+                                            result.messageRes(),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                }
+                            },
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                            ),
+                        ) {
+                            Icon(
+                                if (isCached) Icons.Rounded.DeleteOutline else Icons.Rounded.CloudDownload,
+                                contentDescription = stringResource(
+                                    if (isCached) R.string.offline_cache_remove_action else R.string.offline_cache_action
+                                ),
+                            )
+                        }
                     }
                 }
             }

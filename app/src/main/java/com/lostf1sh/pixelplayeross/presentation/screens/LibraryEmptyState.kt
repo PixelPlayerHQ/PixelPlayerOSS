@@ -122,6 +122,12 @@ private fun libraryEmptySpec(
             titleRes = R.string.lib_empty_playlists_title,
             subtitleRes = R.string.lib_empty_playlists_subtitle
         )
+
+        LibraryTabId.CACHED -> LibraryEmptySpec(
+            iconRes = R.drawable.rounded_cloud_download_24,
+            titleRes = R.string.offline_cache_empty_title,
+            subtitleRes = R.string.offline_cache_empty_message
+        )
     }
 }
 

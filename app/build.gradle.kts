@@ -228,6 +228,8 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     implementation(libs.androidx.paging.common)
 
+    implementation(libs.androidx.media3.database)
+    implementation(libs.androidx.media3.datasource)
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.session)

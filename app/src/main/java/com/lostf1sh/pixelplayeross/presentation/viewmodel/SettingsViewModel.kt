@@ -80,6 +80,7 @@ data class SettingsUiState(
     val showPlayerFileInfo: Boolean = true,
     val albumArtQuality: AlbumArtQuality = AlbumArtQuality.MEDIUM,
     val albumArtCacheLimitMb: Int = 200,
+    val offlineCacheLimitBytes: Long = UserPreferencesRepository.DEFAULT_OFFLINE_CACHE_LIMIT_BYTES,
     val tapBackgroundClosesPlayer: Boolean = false,
     val hapticsEnabled: Boolean = true,
     val immersiveLyricsEnabled: Boolean = false,
@@ -393,6 +394,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.albumArtCacheLimitMbFlow.collect { limitMb ->
                 _uiState.update { it.copy(albumArtCacheLimitMb = limitMb) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.offlineCacheLimitBytesFlow.collect { limitBytes ->
+                _uiState.update { it.copy(offlineCacheLimitBytes = limitBytes) }
             }
         }
 
@@ -843,6 +850,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setAlbumArtCacheLimitMb(limitMb)
             com.lostf1sh.pixelplayeross.utils.AlbumArtCacheManager.configuredCacheLimitMb = limitMb.toLong()
+        }
+    }
+
+    fun setOfflineCacheLimitBytes(limitBytes: Long) {
+        viewModelScope.launch {
+            userPreferencesRepository.setOfflineCacheLimitBytes(limitBytes)
         }
     }
 

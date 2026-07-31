@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -104,6 +106,8 @@ import androidx.navigation.NavController
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.offline.CachedCollectionType
+import com.lostf1sh.pixelplayeross.presentation.utils.messageRes
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.QueuePlaylistSongItem
@@ -147,9 +151,11 @@ fun PlaylistDetailScreen(
     onDeletePlayListClick: () -> Unit,
     playerViewModel: PlayerViewModel,
     playlistViewModel: PlaylistViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
+    offlineMediaViewModel: com.lostf1sh.pixelplayeross.presentation.viewmodel.OfflineMediaViewModel = hiltViewModel(),
 ) {
     val uiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
+    val offlineState by offlineMediaViewModel.uiState.collectAsStateWithLifecycle()
     val playerStableState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
     val hasCurrentSong by remember {
         derivedStateOf { playerStableState.currentSong != null }
@@ -185,6 +191,16 @@ fun PlaylistDetailScreen(
     val isSmartPlaylist = currentPlaylist?.isSmartPlaylist == true
     val isEditablePlaylist = !isFolderPlaylist && !isSmartPlaylist
     val songsInPlaylist = uiState.currentPlaylistSongs
+    val hasCloudSongs = remember(songsInPlaylist) {
+        songsInPlaylist.any {
+            it.contentUriString.startsWith("navidrome:") || it.contentUriString.startsWith("jellyfin:")
+        }
+    }
+    val isCached = remember(currentPlaylist?.id, songsInPlaylist, offlineState.collections) {
+        currentPlaylist?.let {
+            offlineMediaViewModel.isCached(CachedCollectionType.PLAYLIST, it.id, songsInPlaylist)
+        } ?: false
+    }
 
     LaunchedEffect(playlistId) {
         playlistViewModel.loadPlaylistDetails(playlistId)
@@ -198,6 +214,7 @@ fun PlaylistDetailScreen(
     var showPlaylistOptionsSheet by remember { mutableStateOf(false) }
     var showEditPlaylistDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showRemoveOfflineDialog by remember { mutableStateOf(false) }
 
     val m3uExportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("audio/x-mpegurl")
@@ -301,6 +318,38 @@ fun PlaylistDetailScreen(
                     }
                 },
                 actions = {
+                    if (hasCloudSongs && currentPlaylist != null) {
+                        IconButton(
+                            onClick = {
+                                val playlist = currentPlaylist
+                                if (isCached) {
+                                    showRemoveOfflineDialog = true
+                                } else {
+                                    offlineMediaViewModel.cache(
+                                        type = CachedCollectionType.PLAYLIST,
+                                        sourceId = playlist.id,
+                                        title = playlist.name,
+                                        subtitle = formatSongCount(songsInPlaylist.size),
+                                        artworkUri = playlist.coverImageUri ?: songsInPlaylist.firstOrNull()?.albumArtUriString,
+                                        songs = songsInPlaylist,
+                                    ) { result ->
+                                        Toast.makeText(
+                                            context,
+                                            result.messageRes(),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                if (isCached) Icons.Filled.DeleteOutline else Icons.Rounded.CloudDownload,
+                                contentDescription = stringResource(
+                                    if (isCached) R.string.offline_cache_remove_action else R.string.offline_cache_action
+                                ),
+                            )
+                        }
+                    }
                     IconButton(
                         onClick = {
                             playerViewModel.showSortingSheet() 
@@ -712,6 +761,28 @@ fun PlaylistDetailScreen(
                 playlistViewModel.addSongsToPlaylist(currentPlaylist.id, selectedIds.toList())
                 showAddSongsSheet = false
             }
+        )
+    }
+    if (showRemoveOfflineDialog && currentPlaylist != null) {
+        AlertDialog(
+            onDismissRequest = { showRemoveOfflineDialog = false },
+            title = { Text(stringResource(R.string.offline_cache_remove_title)) },
+            text = { Text(stringResource(R.string.offline_cache_remove_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    offlineMediaViewModel.remove(
+                        CachedCollectionType.PLAYLIST,
+                        currentPlaylist.id,
+                        songsInPlaylist,
+                    )
+                    showRemoveOfflineDialog = false
+                }) { Text(stringResource(R.string.offline_cache_remove_action)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRemoveOfflineDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
         )
     }
     if (showPlaylistOptionsSheet && !isFolderPlaylist) {

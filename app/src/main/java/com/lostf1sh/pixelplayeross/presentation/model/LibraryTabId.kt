@@ -87,6 +87,11 @@ enum class LibraryTabId(
             SortOption.LikedSongDateLiked,
             SortOption.LikedSongDateLikedAsc
         )
+    ),
+    Cached(
+        stableKey = "CACHED",
+        label = "CACHED",
+        sortOptions = emptyList()
     );
 
     companion object {

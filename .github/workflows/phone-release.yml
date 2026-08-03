@@ -27,7 +27,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
+        uses: gradle/actions/setup-gradle@v6.2.0
 
       # The keystore password must never be hardcoded here: this file is public and the
       # cached .jks is restorable by fork-PR workflow runs, so a literal password hands

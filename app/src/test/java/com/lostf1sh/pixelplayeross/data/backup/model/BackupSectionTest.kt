@@ -47,8 +47,8 @@ class BackupSectionTest {
     }
 
     @Test
-    fun `there are exactly 11 backup sections`() {
-        assertEquals(11, BackupSection.entries.size)
+    fun `there are exactly 12 backup sections`() {
+        assertEquals(12, BackupSection.entries.size)
     }
 
     @Test
@@ -56,6 +56,12 @@ class BackupSectionTest {
         assertEquals(3, BackupSection.QUICK_FILL.sinceVersion)
         assertEquals(3, BackupSection.ARTIST_IMAGES.sinceVersion)
         assertEquals(3, BackupSection.EQUALIZER.sinceVersion)
+    }
+
+    @Test
+    fun `audio bookmarks section is schema v4`() {
+        assertEquals(4, BackupSection.AUDIO_BOOKMARKS.sinceVersion)
+        assertEquals("audio_bookmarks", BackupSection.AUDIO_BOOKMARKS.key)
     }
 
     @Test

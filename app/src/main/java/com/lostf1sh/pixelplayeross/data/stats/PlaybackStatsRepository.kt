@@ -192,6 +192,64 @@ class PlaybackStatsRepository @Inject constructor(
         }
     }
 
+    suspend fun getDailyPlaybackDurationMap(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): Map<LocalDate, Long> = withContext(Dispatchers.IO) {
+        val zoneId = ZoneId.systemDefault()
+        val durationMap = mutableMapOf<LocalDate, Long>()
+        for (event in readEvents()) {
+            val eventDate = Instant.ofEpochMilli(event.timestamp).atZone(zoneId).toLocalDate()
+            if (!eventDate.isBefore(startDate) && !eventDate.isAfter(endDate)) {
+                durationMap[eventDate] = (durationMap[eventDate] ?: 0L) + event.durationMs
+            }
+        }
+        durationMap
+    }
+
+    /**
+     * Consecutive days (ending today or yesterday) whose total listening duration met [targetMs].
+     *
+     * Today does not break the streak while it is still in progress — it is simply excluded from
+     * the count until the goal is actually met, so the number never drops overnight.
+     */
+    suspend fun getGoalStreak(
+        targetMs: Long,
+        nowMillis: Long = System.currentTimeMillis(),
+        maxLookbackDays: Int = 400
+    ): Int = withContext(Dispatchers.IO) {
+        if (targetMs <= 0L) return@withContext 0
+        val zoneId = ZoneId.systemDefault()
+        val today = Instant.ofEpochMilli(nowMillis).atZone(zoneId).toLocalDate()
+        val durations = getDailyPlaybackDurationMap(today.minusDays(maxLookbackDays.toLong()), today)
+
+        var cursor = today
+        if ((durations[cursor] ?: 0L) < targetMs) {
+            cursor = cursor.minusDays(1)
+        }
+        var streak = 0
+        while ((durations[cursor] ?: 0L) >= targetMs) {
+            streak += 1
+            cursor = cursor.minusDays(1)
+        }
+        streak
+    }
+
+    suspend fun loadDaySummary(
+        date: LocalDate,
+        songs: List<Song>
+    ): PlaybackStatsSummary = withContext(Dispatchers.IO) {
+        val zoneId = ZoneId.systemDefault()
+        buildSummaryFromEventsWithBounds(
+            range = StatsTimeRange.DAY,
+            songs = songs,
+            startBound = date.atStartOfDay(zoneId).toInstant().toEpochMilli(),
+            endBound = date.plusDays(1).atStartOfDay(zoneId).toInstant().toEpochMilli() - 1,
+            allEvents = readEvents(),
+            zoneId = zoneId
+        )
+    }
+
     suspend fun loadSummary(
         range: StatsTimeRange,
         songs: List<Song>,
@@ -216,6 +274,30 @@ class PlaybackStatsRepository @Inject constructor(
         zoneId: ZoneId = ZoneId.systemDefault()
     ): PlaybackStatsSummary {
         val (startBound, endBound) = range.resolveBounds(allEvents, nowMillis, zoneId)
+        return buildSummaryFromEventsWithBounds(
+            range = range,
+            songs = songs,
+            startBound = startBound,
+            endBound = endBound,
+            allEvents = allEvents,
+            zoneId = zoneId
+        )
+    }
+
+    /**
+     * Builds a summary over an explicit window instead of one derived from [range].
+     *
+     * A specific calendar day is not expressible through [StatsTimeRange.resolveBounds] — its DAY
+     * bound is always "today" — so the day-by-day views pass their own bounds here.
+     */
+    internal fun buildSummaryFromEventsWithBounds(
+        range: StatsTimeRange,
+        songs: List<Song>,
+        startBound: Long?,
+        endBound: Long,
+        allEvents: List<PlaybackEvent>,
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): PlaybackStatsSummary {
         val filteredEvents = allEvents.mapNotNull { event ->
             val start = event.startMillis()
             val end = event.endMillis()

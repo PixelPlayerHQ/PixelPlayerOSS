@@ -77,6 +77,13 @@ enum class BackupSection(
         description = "Your custom equalizer presets and audio profiles.",
         iconRes = R.drawable.rounded_surround_sound_24,
         sinceVersion = 3
+    ),
+    AUDIO_BOOKMARKS(
+        key = "audio_bookmarks",
+        label = "Bookmarks",
+        description = "Saved moments inside your tracks.",
+        iconRes = R.drawable.round_bookmark_24,
+        sinceVersion = 4
     );
 
     companion object {

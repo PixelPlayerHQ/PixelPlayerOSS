@@ -14,6 +14,7 @@ import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import io.mockk.*
 import androidx.media3.session.MediaController
@@ -63,6 +64,10 @@ class PlayerViewModelTest {
     private val mockUserPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val mockThemePreferencesRepository: ThemePreferencesRepository = mockk(relaxed = true)
     private val mockAlbumArtThemeDao: AlbumArtThemeDao = mockk(relaxed = true)
+    private val mockBookmarkRepository: AudioBookmarkRepository = mockk(relaxed = true)
+
+    /** Mirrors PlayerViewModel.SHUFFLE_ALL_SONG_LIMIT, which is private to the ViewModel. */
+    private val EXPECTED_SHUFFLE_ALL_LIMIT = 10_000
     private val mockContext: Context = mockk(relaxed = true)
 
     private val mockSyncManager: SyncManager = mockk(relaxed = true)
@@ -229,7 +234,8 @@ class PlayerViewModelTest {
             mockMultiSelectionStateHolder,
             mockPlaylistSelectionStateHolder,
             sessionToken,
-            mockMediaControllerFactory
+            mockMediaControllerFactory,
+            mockBookmarkRepository
         )
     }
 
@@ -466,13 +472,13 @@ class PlayerViewModelTest {
         @Test
         fun `shuffleAllSongs calls prepareShuffledQueue with random songs at index zero`() = runTest {
             val randomSongs = listOf(song2, song3, song1)
-            coEvery { mockMusicRepository.getRandomSongs(500) } returns randomSongs
+            coEvery { mockMusicRepository.getRandomSongs(EXPECTED_SHUFFLE_ALL_LIMIT) } returns randomSongs
             stubShuffledPlayback(randomSongs, startSong = song2)
 
             playerViewModel.shuffleAllSongs()
             advanceUntilIdle()
 
-            coVerify { mockMusicRepository.getRandomSongs(500) }
+            coVerify { mockMusicRepository.getRandomSongs(EXPECTED_SHUFFLE_ALL_LIMIT) }
             coVerify {
                 mockQueueStateHolder.prepareShuffledQueueSuspending(
                     randomSongs,
@@ -484,7 +490,7 @@ class PlayerViewModelTest {
         @Test
         fun `playRandomSong calls prepareShuffledQueue with startAtZero`() = runTest {
             val randomSongs = listOf(song3, song1, song2)
-            coEvery { mockMusicRepository.getRandomSongs(500) } returns randomSongs
+            coEvery { mockMusicRepository.getRandomSongs(EXPECTED_SHUFFLE_ALL_LIMIT) } returns randomSongs
             stubShuffledPlayback(randomSongs, startSong = song3)
 
             playerViewModel.playRandomSong()
@@ -563,13 +569,13 @@ class PlayerViewModelTest {
         @Test
         fun `triggerShuffleAllFromTile uses repository sample and startAtZero`() = runTest {
             val songs = listOf(song1, song2, song3)
-            coEvery { mockMusicRepository.getRandomSongs(500) } returns songs
+            coEvery { mockMusicRepository.getRandomSongs(EXPECTED_SHUFFLE_ALL_LIMIT) } returns songs
             stubShuffledPlayback(songs, startSong = song1)
 
             playerViewModel.triggerShuffleAllFromTile()
             advanceUntilIdle()
 
-            coVerify { mockMusicRepository.getRandomSongs(500) }
+            coVerify { mockMusicRepository.getRandomSongs(EXPECTED_SHUFFLE_ALL_LIMIT) }
             coVerify {
                 mockQueueStateHolder.prepareShuffledQueueSuspending(
                     songs,

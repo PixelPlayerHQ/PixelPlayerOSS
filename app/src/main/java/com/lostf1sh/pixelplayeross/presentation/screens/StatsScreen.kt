@@ -43,6 +43,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AutoGraph
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CalendarMonth
+import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
+import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import androidx.compose.material.icons.outlined.Hearing
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.rounded.Refresh
@@ -357,6 +359,20 @@ fun StatsScreen(
                         onBackClick = { navController.popBackStack() },
                         containerColor = Color.Transparent,
                         actions = {
+                            FilledIconButton(
+                                modifier = Modifier
+                                    .padding(end = 8.dp),
+                                onClick = { navController.navigateSafely(Screen.AdvancedStats.route) },
+                                colors = IconButtonDefaults.filledIconButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.CalendarMonth,
+                                    contentDescription = stringResource(R.string.advanced_stats_title)
+                                )
+                            }
                             FilledIconButton(
                                 modifier = Modifier
                                     .padding(end = 12.dp),

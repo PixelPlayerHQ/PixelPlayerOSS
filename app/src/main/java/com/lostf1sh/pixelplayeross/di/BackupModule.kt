@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupFormatDetector
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupSection
 import com.lostf1sh.pixelplayeross.data.backup.module.ArtistImagesModuleHandler
+import com.lostf1sh.pixelplayeross.data.backup.module.AudioBookmarksModuleHandler
 import com.lostf1sh.pixelplayeross.data.backup.module.BackupModuleHandler
 import com.lostf1sh.pixelplayeross.data.backup.module.EngagementStatsModuleHandler
 import com.lostf1sh.pixelplayeross.data.backup.module.EqualizerModuleHandler
@@ -55,7 +56,8 @@ object BackupModule {
         playbackHistoryHandler: PlaybackHistoryModuleHandler,
         quickFillHandler: QuickFillModuleHandler,
         artistImagesHandler: ArtistImagesModuleHandler,
-        equalizerHandler: EqualizerModuleHandler
+        equalizerHandler: EqualizerModuleHandler,
+        audioBookmarksHandler: AudioBookmarksModuleHandler
     ): Map<BackupSection, BackupModuleHandler> {
         return mapOf(
             BackupSection.PLAYLISTS to playlistsHandler,
@@ -68,7 +70,8 @@ object BackupModule {
             BackupSection.PLAYBACK_HISTORY to playbackHistoryHandler,
             BackupSection.QUICK_FILL to quickFillHandler,
             BackupSection.ARTIST_IMAGES to artistImagesHandler,
-            BackupSection.EQUALIZER to equalizerHandler
+            BackupSection.EQUALIZER to equalizerHandler,
+            BackupSection.AUDIO_BOOKMARKS to audioBookmarksHandler
         )
     }
 }

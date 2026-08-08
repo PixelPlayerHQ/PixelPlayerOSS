@@ -230,6 +230,7 @@ fun FullPlayerContent(
 
     val song = currentSong ?: retainedSong ?: return
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
+    var showSaveBookmarkDialog by remember { mutableStateOf(false) }
     var showLyricsSheet by remember { mutableStateOf(false) }
     var showArtistPicker by rememberSaveable { mutableStateOf(false) }
     
@@ -730,6 +731,20 @@ fun FullPlayerContent(
                                     .size(42.dp)
                                     .clip(CircleShape)
                                     .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .clickable { showSaveBookmarkDialog = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.round_bookmark_24),
+                                    contentDescription = stringResource(R.string.bookmark_save_action),
+                                    tint = playerAccentColor
+                                )
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
                                     .clickable {
                                         showSongInfoBottomSheet = true
                                         onShowQueueClicked()
@@ -839,6 +854,20 @@ fun FullPlayerContent(
                 playerViewModel.triggerArtistNavigationFromPlayer(artist.id)
                 showArtistPicker = false
             }
+        )
+    }
+
+    if (showSaveBookmarkDialog) {
+        // Snapshot the position once when the dialog opens so the saved timestamp is the moment
+        // the user tapped, not wherever playback has drifted to by the time they hit save.
+        val bookmarkProgressMs = remember(showSaveBookmarkDialog) { currentPositionProvider() }
+        AddBookmarkDialog(
+            currentProgressMs = bookmarkProgressMs,
+            onSave = { title ->
+                playerViewModel.addBookmark(title, bookmarkProgressMs)
+                showSaveBookmarkDialog = false
+            },
+            onDismiss = { showSaveBookmarkDialog = false }
         )
     }
 }

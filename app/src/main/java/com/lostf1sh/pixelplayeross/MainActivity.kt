@@ -574,7 +574,11 @@ class MainActivity : ComponentActivity() {
                 Screen.RecentlyPlayed.route,
                 Screen.DeviceCapabilities.route,
                 Screen.EasterEgg.route,
-                Screen.WordDelimiterConfig.route
+                Screen.WordDelimiterConfig.route,
+                Screen.AdvancedStats.route,
+                Screen.MostListened.route,
+                Screen.AudioBookmarks.route,
+                Screen.AudioBookmarkFolder.route
             )
         }
         val shouldHideNavigationBar by remember(currentRoute, isSearchBarActive) {
@@ -694,6 +698,8 @@ class MainActivity : ComponentActivity() {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                         DrawerDestination.Equalizer -> navController.navigateSafely(Screen.Equalizer.route)
+                        DrawerDestination.AudioBookmarks -> navController.navigateSafely(Screen.AudioBookmarks.route)
+                        DrawerDestination.MostListened -> navController.navigateSafely(Screen.MostListened.route)
                         DrawerDestination.Settings -> navController.navigateSafely(Screen.Settings.route)
                     }
                 }

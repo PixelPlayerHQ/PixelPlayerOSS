@@ -244,4 +244,13 @@
     <string name="cd_toggle_grid_list">Toggle grid/list view</string>
     <string name="cd_genre_illustration">Genre illustration</string>
     <string name="dash_last_synced_format">Last synced: %1$s</string>
+    <string name="bookmarks_title">Bookmarks</string>
+    <string name="bookmark_save_action">Save bookmark</string>
+    <string name="advanced_stats_title">Advanced stats</string>
+    <string name="most_listened_title">Most listened</string>
+    <string name="most_listened_songs">Songs</string>
+    <string name="most_listened_albums">Albums</string>
+    <string name="most_listened_artists">Artists</string>
+    <string name="most_listened_empty">Nothing here yet. Play some music and your most listened tracks will show up.</string>
+    <string name="most_listened_cd_more_options">More options for %1$s</string>
 </resources>

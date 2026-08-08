@@ -46,6 +46,8 @@ import com.lostf1sh.pixelplayeross.data.model.Genre
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
 import com.lostf1sh.pixelplayeross.data.model.SearchFilterType
+import com.lostf1sh.pixelplayeross.data.database.AudioBookmarkEntity
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepository
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.toLibraryTabIdOrNull
@@ -274,8 +276,23 @@ class PlayerViewModel @Inject constructor(
     val multiSelectionStateHolder: MultiSelectionStateHolder,
     val playlistSelectionStateHolder: PlaylistSelectionStateHolder,
     private val sessionToken: SessionToken,
-    private val mediaControllerFactory: com.lostf1sh.pixelplayeross.data.media.MediaControllerFactory
+    private val mediaControllerFactory: com.lostf1sh.pixelplayeross.data.media.MediaControllerFactory,
+    private val bookmarkRepository: AudioBookmarkRepository
 ) : ViewModel() {
+
+    private companion object {
+        /**
+         * Upper bound on how many songs the "shuffle all" entry points pull from the repository.
+         * Libraries at or below this size get their entire catalogue in the queue.
+         *
+         * The bound only exists as a safety valve for extreme libraries: every queue item is
+         * serialized into the playback snapshot on each persist and shipped to session
+         * controllers, so an unbounded queue would make those proportional costs pathological.
+         * Queue construction itself already scales — shuffling yields cooperatively and media
+         * items attach in batches.
+         */
+        const val SHUFFLE_ALL_SONG_LIMIT = 10_000
+    }
 
     private val _playerUiState = MutableStateFlow(PlayerUiState())
     val playerUiState: StateFlow<PlayerUiState> = _playerUiState.asStateFlow()
@@ -373,6 +390,13 @@ class PlayerViewModel @Inject constructor(
             else musicRepository.getArtistsForSong(idLong).map { it.toImmutableList() }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf())
+
+    val allBookmarks: StateFlow<List<AudioBookmarkEntity>> = bookmarkRepository.getAllBookmarksFlow()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     private val _sheetState = MutableStateFlow(PlayerSheetState.COLLAPSED)
     val sheetState: StateFlow<PlayerSheetState> = _sheetState.asStateFlow()
@@ -1254,7 +1278,7 @@ class PlayerViewModel @Inject constructor(
         Timber.tag("ShuffleDebug").d("shuffleAllSongs called.")
         
         viewModelScope.launch {
-            val randomSongs = musicRepository.getRandomSongs(limit = 500)
+            val randomSongs = musicRepository.getRandomSongs(limit = SHUFFLE_ALL_SONG_LIMIT)
             if (randomSongs.isNotEmpty()) {
                 playSongsShuffled(randomSongs, queueName, startAtZero = true)
             }
@@ -1274,7 +1298,7 @@ class PlayerViewModel @Inject constructor(
         val action: () -> Unit = {
             Timber.d("[TileDebug] action() invoked")
             viewModelScope.launch {
-                var songs = musicRepository.getRandomSongs(limit = 500)
+                var songs = musicRepository.getRandomSongs(limit = SHUFFLE_ALL_SONG_LIMIT)
                 Timber.d("[TileDebug] Repository returned ${songs.size} random songs immediately")
 
                 if (songs.isEmpty()) {
@@ -1283,7 +1307,7 @@ class PlayerViewModel @Inject constructor(
                     songs = withTimeoutOrNull(30_000L) {
                         var refreshedSongs = emptyList<Song>()
                         while (refreshedSongs.isEmpty()) {
-                            refreshedSongs = musicRepository.getRandomSongs(limit = 500)
+                            refreshedSongs = musicRepository.getRandomSongs(limit = SHUFFLE_ALL_SONG_LIMIT)
                             if (refreshedSongs.isEmpty()) {
                                 delay(500L)
                             }
@@ -1315,7 +1339,7 @@ class PlayerViewModel @Inject constructor(
 
     fun playRandomSong() {
         viewModelScope.launch {
-            val randomSongs = musicRepository.getRandomSongs(limit = 500)
+            val randomSongs = musicRepository.getRandomSongs(limit = SHUFFLE_ALL_SONG_LIMIT)
             if (randomSongs.isNotEmpty()) {
                 playSongsShuffled(randomSongs, "All Songs (Shuffled)", startAtZero = true)
             }
@@ -3004,6 +3028,63 @@ class PlayerViewModel @Inject constructor(
             playSongsAction()
         }
     }
+
+    fun addBookmark(title: String, timestampMs: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentSong = stablePlayerState.value.currentSong ?: return@launch
+            bookmarkRepository.insertBookmark(
+                AudioBookmarkEntity(
+                    songId = currentSong.id,
+                    songTitle = currentSong.title,
+                    artistName = currentSong.displayArtist,
+                    albumArtUri = currentSong.albumArtUriString,
+                    title = title,
+                    timestampMs = timestampMs
+                )
+            )
+        }
+    }
+
+    fun deleteBookmark(id: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            bookmarkRepository.deleteBookmark(id)
+        }
+    }
+
+    fun renameBookmark(id: Long, title: String) {
+        val trimmedTitle = title.trim()
+        if (trimmedTitle.isEmpty()) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            val bookmark = bookmarkRepository.getBookmarkById(id) ?: return@launch
+            bookmarkRepository.insertBookmark(bookmark.copy(title = trimmedTitle))
+        }
+    }
+
+    /**
+     * Starts [song] at [startPositionMs], reusing the current media item when it is already the
+     * one playing so jumping between bookmarks inside a track does not restart it.
+     */
+    fun playSongAtPosition(song: Song, startPositionMs: Long) {
+        viewModelScope.launch {
+            val controller = mediaController ?: return@launch
+            val bookmarkStartPositionMs = startPositionMs.coerceAtLeast(0L)
+            if (controller.currentMediaItem?.mediaId == song.id) {
+                controller.seekTo(bookmarkStartPositionMs)
+                controller.play()
+            } else {
+                val mediaItem = buildResolvedPlaybackMediaItem(song)
+                controller.setMediaItem(mediaItem, bookmarkStartPositionMs)
+                controller.prepare()
+                controller.play()
+            }
+            _isSheetVisible.value = true
+            _sheetState.value = PlayerSheetState.EXPANDED
+        }
+    }
+
+    fun getSongsByIds(songIds: List<String>): Flow<List<Song>> =
+        musicRepository.getSongsByIds(songIds)
 
     private suspend fun buildResolvedPlaybackMediaItem(song: Song): MediaItem {
         val mediaItem = MediaItemBuilder.build(song)

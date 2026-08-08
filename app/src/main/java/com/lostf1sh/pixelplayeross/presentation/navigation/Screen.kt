@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Immutable
 
 
@@ -10,7 +11,7 @@ sealed class Screen(val route: String) {
     object Library : Screen("library")
     object Settings : Screen("settings")
     object Accounts : Screen("settings_accounts")
-    object SettingsCategory : Screen("settings_category/{categoryId}") {
+    object SettingsCategory : Screen("settings_category/{categoryId}?highlightKey={highlightKey}") {
         fun createRoute(categoryId: String) = "settings_category/$categoryId"
     }
     object PaletteStyle : Screen("palette_style_settings")
@@ -49,6 +50,13 @@ sealed class Screen(val route: String) {
     object WordDelimiterConfig : Screen("word_delimiter_config")
     object Equalizer : Screen("equalizer")
     object DeviceCapabilities : Screen("device_capabilities")
+    object AdvancedStats : Screen("advanced_stats")
+    object MostListened : Screen("most_listened")
+    object AudioBookmarks : Screen("audio_bookmarks")
+    object AudioBookmarkFolder : Screen("audio_bookmarks/{songId}") {
+        fun createRoute(songId: String) = "audio_bookmarks/${Uri.encode(songId)}"
+    }
+
     object NavidromeDashboard : Screen("navidrome_dashboard")
     object JellyfinDashboard : Screen("jellyfin_dashboard")
 

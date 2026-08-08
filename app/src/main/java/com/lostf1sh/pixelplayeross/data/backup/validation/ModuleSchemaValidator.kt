@@ -66,6 +66,7 @@ class ModuleSchemaValidator @Inject constructor(
             BackupSection.PLAYBACK_HISTORY -> validatePlaybackHistory(jsonElement.asJsonArray, errors)
             BackupSection.ARTIST_IMAGES -> validateArtistImages(jsonElement.asJsonArray, errors)
             BackupSection.TRANSITIONS -> validateTransitions(jsonElement.asJsonArray, errors)
+            BackupSection.AUDIO_BOOKMARKS -> validateAudioBookmarks(jsonElement.asJsonArray, errors)
             BackupSection.GLOBAL_SETTINGS,
             BackupSection.QUICK_FILL,
             BackupSection.EQUALIZER -> {
@@ -342,6 +343,20 @@ class ModuleSchemaValidator @Inject constructor(
             }
             if (imageUrl.length > 2000) {
                 errors.add(ValidationError("URL_TOO_LONG", "ArtistImages[$i]: URL exceeds 2000 chars", module = "artist_images", severity = Severity.WARNING))
+            }
+        }
+    }
+
+    private fun validateAudioBookmarks(array: com.google.gson.JsonArray, errors: MutableList<ValidationError>) {
+        array.forEachIndexed { i, element ->
+            if (!element.isJsonObject) return@forEachIndexed
+            val obj = element.asJsonObject
+            if (readStringField(obj, "songId", "song_id").isNullOrBlank()) {
+                errors.add(ValidationError("MISSING_SONG_ID", "AudioBookmarks[$i]: missing songId", module = "audio_bookmarks", severity = Severity.ERROR))
+            }
+            val timestampMs = readNumericField(obj, "timestampMs", "timestamp_ms").value ?: 0L
+            if (timestampMs < 0L) {
+                errors.add(ValidationError("NEGATIVE_TIMESTAMP", "AudioBookmarks[$i]: timestampMs is negative", module = "audio_bookmarks", severity = Severity.ERROR))
             }
         }
     }

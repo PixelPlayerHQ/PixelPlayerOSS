@@ -2,6 +2,24 @@ package com.lostf1sh.pixelplayeross.presentation.screens
 
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsFuzzySearchEngine
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsRegistry
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsSearchResultsContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
@@ -188,6 +206,28 @@ fun SettingsScreen(
         }
     }
 
+    val context = LocalContext.current
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
+    val searchFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            // The overlay animates in before the field is laid out; focusing immediately drops
+            // the request and leaves the keyboard closed.
+            kotlinx.coroutines.delay(150)
+            searchFocusRequester.requestFocus()
+        }
+    }
+
+    val searchResults = remember(searchQuery) {
+        if (searchQuery.isNotBlank()) {
+            SettingsFuzzySearchEngine.search(context, searchQuery, SettingsRegistry.allSettings)
+        } else {
+            emptyList()
+        }
+    }
+
     Box(
             modifier =
                     Modifier.nestedScroll(nestedScrollConnection).fillMaxSize().graphicsLayer {
@@ -207,6 +247,37 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize()
         ) {
+            item {
+                Surface(
+                    onClick = { isSearchActive = true },
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = stringResource(R.string.search),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.settings_search_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             item {
                 val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
                 ExpressiveSettingsGroup {
@@ -288,6 +359,95 @@ fun SettingsScreen(
                 headerHeight = currentTopBarHeightDp,
                 onBackClick = onNavigationIconClick
         )
+
+        AnimatedVisibility(
+            visible = isSearchActive,
+            enter = fadeIn(tween(250)) + slideInVertically(initialOffsetY = { -it / 4 }),
+            exit = fadeOut(tween(200)) + slideOutVertically(targetOffsetY = { -it / 4 }),
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(100f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .statusBarsPadding()
+                                .fillMaxWidth()
+                                .height(64.dp)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            IconButton(onClick = {
+                                isSearchActive = false
+                                searchQuery = ""
+                            }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = stringResource(R.string.auth_cd_back),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(R.string.settings_search_hint),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                    )
+                                },
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(searchFocusRequester)
+                            )
+
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = stringResource(R.string.cd_clear_search),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    SettingsSearchResultsContent(
+                        query = searchQuery,
+                        results = searchResults,
+                        uiState = uiState,
+                        settingsViewModel = settingsViewModel,
+                        navController = navController,
+                        contentPadding = PaddingValues(
+                            top = 16.dp,
+                            bottom = 16.dp + MiniPlayerHeight,
+                            start = 16.dp,
+                            end = 16.dp
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
 
         var isTransitioning by remember { mutableStateOf(true) }
         LaunchedEffect(Unit) {
@@ -454,7 +614,7 @@ fun ExpressiveSettingsGroup(content: @Composable () -> Unit) {
     }
 }
 
-private fun getCategoryColors(category: SettingsCategory, isDark: Boolean): Pair<Color, Color> {
+internal fun getCategoryColors(category: SettingsCategory, isDark: Boolean): Pair<Color, Color> {
     return if (isDark) {
         when (category) {
             SettingsCategory.LIBRARY -> Color(0xFF004A77) to Color(0xFFC2E7FF) 

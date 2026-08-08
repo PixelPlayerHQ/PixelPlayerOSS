@@ -25,7 +25,9 @@ import com.lostf1sh.pixelplayeross.data.database.LocalPlaylistDao
 import com.lostf1sh.pixelplayeross.data.database.ListenBrainzDao
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_1_2
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_2_3
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_3_4
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.AudioBookmarkDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.TransitionDao
@@ -40,6 +42,8 @@ import com.lostf1sh.pixelplayeross.data.repository.LyricsRepository
 import com.lostf1sh.pixelplayeross.data.repository.LyricsRepositoryImpl
 import com.lostf1sh.pixelplayeross.data.repository.MediaStoreSongRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepository
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepositoryImpl
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepositoryImpl
 import com.lostf1sh.pixelplayeross.data.repository.SongRepository
 import com.lostf1sh.pixelplayeross.data.repository.TransitionRepository
@@ -126,7 +130,7 @@ object AppModule {
             "pixelplayer_database"
         )
             .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
 
         if (BuildConfig.DEBUG) {
@@ -140,6 +144,20 @@ object AppModule {
     @Provides
     fun provideAlbumArtThemeDao(database: PixelPlayerDatabase): AlbumArtThemeDao {
         return database.albumArtThemeDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAudioBookmarkDao(database: PixelPlayerDatabase): AudioBookmarkDao {
+        return database.audioBookmarkDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAudioBookmarkRepository(
+        audioBookmarkDao: AudioBookmarkDao
+    ): AudioBookmarkRepository {
+        return AudioBookmarkRepositoryImpl(audioBookmarkDao)
     }
 
     @Singleton

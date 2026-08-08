@@ -55,6 +55,10 @@ import com.lostf1sh.pixelplayeross.presentation.screens.SearchScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.StatsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.DuplicateSongsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.SettingsScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.AdvancedStatsScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.MostListenedScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarkFolderScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarksScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.SettingsCategoryScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.EqualizerScreen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
@@ -239,7 +243,14 @@ fun AppNavigation(
             }
             composable(
                 route = Screen.SettingsCategory.route,
-                arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("categoryId") { type = NavType.StringType },
+                    navArgument("highlightKey") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                ),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -252,6 +263,7 @@ fun AppNavigation(
                             categoryId = categoryId,
                             navController = navController,
                             playerViewModel = playerViewModel,
+                            highlightKey = backStackEntry.arguments?.getString("highlightKey"),
                             onBackClick = { navController.popBackStack() }
                         )
                     }
@@ -576,6 +588,58 @@ fun AppNavigation(
                         onBack = { navController.popBackStack() }
                     )
                 }
+            }
+            composable(
+                Screen.MostListened.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    MostListenedScreen(
+                        navController = navController,
+                        playerViewModel = playerViewModel
+                    )
+                }
+            }
+            composable(
+                Screen.AdvancedStats.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    AdvancedStatsScreen(navController = navController)
+                }
+            }
+            composable(
+                Screen.AudioBookmarks.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                AudioBookmarksScreen(
+                    navController = navController,
+                    playerViewModel = playerViewModel,
+                    onOpenSidebar = onOpenSidebar
+                )
+            }
+            composable(
+                Screen.AudioBookmarkFolder.route,
+                arguments = listOf(navArgument("songId") { type = NavType.StringType }),
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) { backStackEntry ->
+                AudioBookmarkFolderScreen(
+                    songId = backStackEntry.arguments?.getString("songId").orEmpty(),
+                    navController = navController,
+                    playerViewModel = playerViewModel
+                )
             }
         }
     }

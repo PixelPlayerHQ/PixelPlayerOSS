@@ -50,6 +50,9 @@ object AppThemeMode {
 const val MIN_NAV_BAR_CORNER_RADIUS = 0
 const val MAX_NAV_BAR_CORNER_RADIUS = 60
 
+const val DEFAULT_LISTENING_GOAL_MINUTES = 45
+val LISTENING_GOAL_PRESET_MINUTES = listOf(15, 30, 45, 60, 90)
+
 internal fun sanitizeNavBarCornerRadius(radius: Int): Int =
         radius.coerceIn(MIN_NAV_BAR_CORNER_RADIUS, MAX_NAV_BAR_CORNER_RADIUS)
 
@@ -131,6 +134,8 @@ constructor(
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
         val IS_CROSSFADE_ENABLED = booleanPreferencesKey("is_crossfade_enabled")
         val HI_FI_MODE_ENABLED = booleanPreferencesKey("hi_fi_mode_enabled")
+        val LISTENING_GOAL_MINUTES = intPreferencesKey("listening_goal_minutes")
+        val MOST_LISTENED_TYPE = stringPreferencesKey("most_listened_type")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         val PLAYBACK_SPEED = androidx.datastore.preferences.core.floatPreferencesKey("playback_speed")
         val CUSTOM_GENRES = androidx.datastore.preferences.core.stringSetPreferencesKey("custom_genres")
@@ -241,6 +246,31 @@ constructor(
     suspend fun setCrossfadeEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_CROSSFADE_ENABLED] = enabled
+        }
+    }
+
+    /** What the Most Listened screen groups plays by. */
+    val mostListenedTypeFlow: Flow<MostListenedType> =
+        dataStore.data.map { preferences ->
+            MostListenedType.fromStorageKey(preferences[PreferencesKeys.MOST_LISTENED_TYPE])
+        }
+
+    suspend fun setMostListenedType(type: MostListenedType) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MOST_LISTENED_TYPE] = type.storageKey
+        }
+    }
+
+    /** Daily listening target in minutes, shown as a progress ring and streak in Advanced Stats. */
+    val listeningGoalMinutesFlow: Flow<Int> =
+        dataStore.data.map { preferences ->
+            (preferences[PreferencesKeys.LISTENING_GOAL_MINUTES] ?: DEFAULT_LISTENING_GOAL_MINUTES)
+                .coerceIn(5, 480)
+        }
+
+    suspend fun setListeningGoalMinutes(minutes: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.LISTENING_GOAL_MINUTES] = minutes.coerceIn(5, 480)
         }
     }
 

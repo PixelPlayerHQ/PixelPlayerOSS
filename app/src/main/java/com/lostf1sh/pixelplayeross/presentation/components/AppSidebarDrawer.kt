@@ -32,6 +32,8 @@ import com.lostf1sh.pixelplayeross.R
 sealed class DrawerDestination(val route: String) {
     object Home : DrawerDestination("home")
     object Equalizer : DrawerDestination("equalizer")
+    object AudioBookmarks : DrawerDestination("audio_bookmarks")
+    object MostListened : DrawerDestination("most_listened")
     object Settings : DrawerDestination("settings")
 }
 
@@ -140,6 +142,60 @@ private fun DrawerContent(
             },
             selected = selectedRoute == DrawerDestination.Equalizer.route,
             onClick = { onDestinationSelected(DrawerDestination.Equalizer) },
+            modifier = Modifier.padding(vertical = 4.dp),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                unselectedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0f),
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+
+        NavigationDrawerItem(
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.round_bookmark_24),
+                    contentDescription = stringResource(R.string.bookmarks_title)
+                )
+            },
+            label = {
+                Text(
+                    text = stringResource(R.string.bookmarks_title),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
+            selected = selectedRoute == DrawerDestination.AudioBookmarks.route,
+            onClick = { onDestinationSelected(DrawerDestination.AudioBookmarks) },
+            modifier = Modifier.padding(vertical = 4.dp),
+            colors = NavigationDrawerItemDefaults.colors(
+                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                unselectedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0f),
+                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+
+        NavigationDrawerItem(
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.rounded_monitoring_24),
+                    contentDescription = stringResource(R.string.most_listened_title)
+                )
+            },
+            label = {
+                Text(
+                    text = stringResource(R.string.most_listened_title),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
+            selected = selectedRoute == DrawerDestination.MostListened.route,
+            onClick = { onDestinationSelected(DrawerDestination.MostListened) },
             modifier = Modifier.padding(vertical = 4.dp),
             colors = NavigationDrawerItemDefaults.colors(
                 selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,

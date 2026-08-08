@@ -244,4 +244,8 @@
     <string name="cd_remove_from_history">Remove from history</string>
     <string name="cd_clear_search">Clear search</string>
     <string name="backup_history_modules_line">%1$d modules · v%2$s · schema v%3$d</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_no_results">No settings match “%1$s”</string>
+    <string name="settings_search_section_top_matches">Top matches</string>
+    <string name="settings_search_section_related">Related</string>
 </resources>

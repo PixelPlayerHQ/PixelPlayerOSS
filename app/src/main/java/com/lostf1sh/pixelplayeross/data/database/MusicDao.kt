@@ -328,6 +328,14 @@ interface MusicDao {
     @Query("SELECT DISTINCT parent_directory_path FROM songs")
     suspend fun getDistinctParentDirectories(): List<String>
 
+    /**
+     * Reactive variant of [getDistinctParentDirectories]. Re-emits whenever the songs table
+     * changes, so a cached directory filter stays consistent with the library instead of
+     * freezing at an early snapshot taken before the first sync populated any folders.
+     */
+    @Query("SELECT DISTINCT parent_directory_path FROM songs")
+    fun getDistinctParentDirectoriesFlow(): Flow<List<String>>
+
     @Query("SELECT " + SONG_LIST_PROJECTION + """
         FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))

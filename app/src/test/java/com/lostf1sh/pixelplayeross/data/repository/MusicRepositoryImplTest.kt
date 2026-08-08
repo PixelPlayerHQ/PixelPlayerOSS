@@ -54,6 +54,7 @@ class MusicRepositoryImplTest {
         )
         every { mockMusicDao.getAllArtistsRaw() } returns flowOf(dummyArtists)
         coEvery { mockMusicDao.getDistinctParentDirectories() } returns listOf("/music/folder1", "/music/folder2")
+        every { mockMusicDao.getDistinctParentDirectoriesFlow() } returns flowOf(listOf("/music/folder1", "/music/folder2"))
         every { mockMusicDao.getAllSongArtistCrossRefs() } returns flowOf(emptyList())
         every { mockMusicDao.getAllSongs(any(), any()) } answers {
             println("getAllSongs called with: ${args[0]}, ${args[1]}")
@@ -122,6 +123,7 @@ class MusicRepositoryImplTest {
         every { mockUserPreferencesRepository.initialSetupDoneFlow } returns flowOf(true)
         every { mockUserPreferencesRepository.isFolderFilterActiveFlow } returns flowOf(true)
         coEvery { mockMusicDao.getDistinctParentDirectories() } returns listOf("/allowed/path", "/forbidden/path")
+        every { mockMusicDao.getDistinctParentDirectoriesFlow() } returns flowOf(listOf("/allowed/path", "/forbidden/path"))
 
         val result: List<Song> = musicRepository.getAudioFiles().first()
 

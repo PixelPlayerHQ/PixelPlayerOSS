@@ -112,21 +112,42 @@ class MusicRepositoryImpl @Inject constructor(
     private fun normalizePath(path: String): String =
         runCatching { File(path).canonicalPath }.getOrElse { File(path).absolutePath }
 
-    /** Cached directory filter — recomputed only when allowed/blocked dirs preferences change. */
+    /**
+     * Cached directory filter — recomputed when the allowed/blocked directory preferences change
+     * or when the set of folders holding songs changes.
+     *
+     * Watching the songs table matters: computing this once eagerly at construction runs it
+     * before the first sync, which on some devices leaves `allowedParentDirs` empty while
+     * `applyFilter` stays true. Queue-building queries such as `getSongIdsSorted` then match
+     * nothing and the playback queue collapses to just the tapped song.
+     */
     data class CachedDirFilter(val allowedParentDirs: List<String> = emptyList(), val applyFilter: Boolean = false)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val cachedDirFilter: StateFlow<CachedDirFilter> = combine(
         userPreferencesRepository.allowedDirectoriesFlow,
         userPreferencesRepository.blockedDirectoriesFlow
-    ) { allowed, blocked ->
-        val (dirs, apply) = DirectoryFilterUtils.computeAllowedParentDirs(
-            allowedDirs = allowed,
-            blockedDirs = blocked,
-            getAllParentDirs = { musicDao.getDistinctParentDirectories() },
-            normalizePath = ::normalizePath
-        )
-        CachedDirFilter(dirs, apply)
-    }.stateIn(repositoryScope, SharingStarted.Eagerly, CachedDirFilter())
+    ) { allowed, blocked -> allowed to blocked }
+        .flatMapLatest { (allowed, blocked) ->
+            if (blocked.isEmpty()) {
+                // No blocked dirs means no filter is applied, so there is no reason to observe
+                // the songs table at all in this (common) case.
+                flowOf(CachedDirFilter(emptyList(), false))
+            } else {
+                musicDao.getDistinctParentDirectoriesFlow()
+                    .distinctUntilChanged()
+                    .map { parentDirs ->
+                        val (dirs, apply) = DirectoryFilterUtils.computeAllowedParentDirs(
+                            allowedDirs = allowed,
+                            blockedDirs = blocked,
+                            getAllParentDirs = { parentDirs },
+                            normalizePath = ::normalizePath
+                        )
+                        CachedDirFilter(dirs, apply)
+                    }
+            }
+        }
+        .stateIn(repositoryScope, SharingStarted.Eagerly, CachedDirFilter())
 
     private fun List<Artist>.missingImageCandidates(): List<Pair<Long, String>> =
         asSequence()

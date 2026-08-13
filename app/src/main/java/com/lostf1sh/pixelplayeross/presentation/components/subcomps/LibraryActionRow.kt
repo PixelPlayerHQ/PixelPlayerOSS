@@ -81,6 +81,7 @@ import androidx.compose.ui.res.stringResource
 val defaultShape = RoundedCornerShape(26.dp)
 val genHeight = 42.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryActionRow(
     onMainActionClick: () -> Unit,
@@ -335,7 +336,6 @@ fun LibraryActionRow(
                      }
                      val tooltipState = rememberTooltipState()
 
-                    @OptIn(ExperimentalMaterial3Api::class)
                     TooltipBox(
                         positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
                         tooltip = {

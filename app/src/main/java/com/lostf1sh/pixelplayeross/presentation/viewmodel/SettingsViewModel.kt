@@ -12,6 +12,7 @@ import com.lostf1sh.pixelplayeross.data.backup.model.BackupHistoryEntry
 import com.lostf1sh.pixelplayeross.data.backup.model.RestorePlan
 import com.lostf1sh.pixelplayeross.data.backup.model.RestoreResult
 import com.lostf1sh.pixelplayeross.data.backup.model.ValidationError
+import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
@@ -65,8 +66,8 @@ data class SettingsUiState(
     val resumeOnHeadsetReconnect: Boolean = false,
     val showQueueHistory: Boolean = true,
     val isCrossfadeEnabled: Boolean = false,
-    val hiFiModeEnabled: Boolean = false,
-    val hiFiModeDeviceSupported: Boolean = true,
+    val audioOutputMode: AudioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
+    val pcmFloatOutputSupported: Boolean = true,
     val crossfadeDuration: Int = 2000,
     val persistentShuffleEnabled: Boolean = false,
     val folderBackGestureNavigation: Boolean = true,
@@ -143,7 +144,7 @@ private sealed interface SettingsUiUpdate {
         val resumeOnHeadsetReconnect: Boolean,
         val showQueueHistory: Boolean,
         val isCrossfadeEnabled: Boolean,
-        val hiFiModeEnabled: Boolean,
+        val audioOutputMode: AudioOutputMode,
         val crossfadeDuration: Int,
         val persistentShuffleEnabled: Boolean,
         val folderBackGestureNavigation: Boolean,
@@ -173,6 +174,7 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+    private val pcmFloatOutputSupported = HiFiCapabilityChecker.isSupported()
 
     private val fileExplorerStateHolder = FileExplorerStateHolder(userPreferencesRepository, viewModelScope, context)
 
@@ -231,7 +233,7 @@ class SettingsViewModel @Inject constructor(
     init {
         _uiState.update {
             it.copy(
-                hiFiModeDeviceSupported = HiFiCapabilityChecker.isSupported()
+                pcmFloatOutputSupported = pcmFloatOutputSupported
             )
         }
 
@@ -293,7 +295,7 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.resumeOnHeadsetReconnectFlow,
                 userPreferencesRepository.showQueueHistoryFlow,
                 userPreferencesRepository.isCrossfadeEnabledFlow,
-                userPreferencesRepository.hiFiModeEnabledFlow,
+                userPreferencesRepository.audioOutputModeFlow,
                 userPreferencesRepository.crossfadeDurationFlow,
                 userPreferencesRepository.persistentShuffleEnabledFlow,
                 userPreferencesRepository.folderBackGestureNavigationFlow,
@@ -306,12 +308,20 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.animatedLyricsBlurEnabledFlow,
                 userPreferencesRepository.animatedLyricsBlurStrengthFlow
             ) { values ->
+                val requestedAudioOutputMode = values[4] as AudioOutputMode
                 SettingsUiUpdate.Group2(
                     keepPlayingInBackground = values[0] as Boolean,
                     resumeOnHeadsetReconnect = values[1] as Boolean,
                     showQueueHistory = values[2] as Boolean,
                     isCrossfadeEnabled = values[3] as Boolean,
-                    hiFiModeEnabled = values[4] as Boolean,
+                    audioOutputMode = if (
+                        requestedAudioOutputMode == AudioOutputMode.PCM_FLOAT &&
+                        !pcmFloatOutputSupported
+                    ) {
+                        AudioOutputMode.SYSTEM_DEFAULT
+                    } else {
+                        requestedAudioOutputMode
+                    },
                     crossfadeDuration = values[5] as Int,
                     persistentShuffleEnabled = values[6] as Boolean,
                     folderBackGestureNavigation = values[7] as Boolean,
@@ -331,7 +341,7 @@ class SettingsViewModel @Inject constructor(
                         resumeOnHeadsetReconnect = update.resumeOnHeadsetReconnect,
                         showQueueHistory = update.showQueueHistory,
                         isCrossfadeEnabled = update.isCrossfadeEnabled,
-                        hiFiModeEnabled = update.hiFiModeEnabled,
+                        audioOutputMode = update.audioOutputMode,
                         crossfadeDuration = update.crossfadeDuration,
                         persistentShuffleEnabled = update.persistentShuffleEnabled,
                         folderBackGestureNavigation = update.folderBackGestureNavigation,
@@ -580,9 +590,16 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setHiFiModeEnabled(enabled: Boolean) {
+    fun setAudioOutputMode(mode: AudioOutputMode) {
         viewModelScope.launch {
-            userPreferencesRepository.setHiFiModeEnabled(enabled)
+            val supportedMode = if (
+                mode == AudioOutputMode.PCM_FLOAT && !pcmFloatOutputSupported
+            ) {
+                AudioOutputMode.SYSTEM_DEFAULT
+            } else {
+                mode
+            }
+            userPreferencesRepository.setAudioOutputMode(supportedMode)
         }
     }
 

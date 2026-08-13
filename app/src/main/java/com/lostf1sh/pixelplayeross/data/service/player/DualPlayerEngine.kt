@@ -34,6 +34,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.extractor.flac.FlacExtractor
+import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.utils.envelope
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -185,7 +186,7 @@ class DualPlayerEngine @Inject constructor(
     )
 
     private var scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    var hiFiModeEnabled: Boolean = false
+    var audioOutputMode: AudioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
         private set
     private var audioOffloadEnabled = !shouldDisableAudioOffloadByDefault()
     private var transitionJob: Job? = null
@@ -812,7 +813,7 @@ class DualPlayerEngine @Inject constructor(
                 enableAudioOutputPlaybackParams: Boolean
             ): AudioSink {
                 return DefaultAudioSink.Builder(context)
-                    .setEnableFloatOutput(hiFiModeEnabled)
+                    .setEnableFloatOutput(audioOutputMode.usesFloatOutput)
                     .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
                     .setAudioProcessorChain(
                         DefaultAudioSink.DefaultAudioProcessorChain(
@@ -850,7 +851,7 @@ class DualPlayerEngine @Inject constructor(
                 out: ArrayList<Renderer>
             ) {
             }
-        }.setEnableAudioFloatOutput(hiFiModeEnabled)
+        }.setEnableAudioFloatOutput(audioOutputMode.usesFloatOutput)
          .setMediaCodecSelector(mediaCodecSelector)
          .setEnableDecoderFallback(true)
          .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
@@ -959,14 +960,19 @@ class DualPlayerEngine @Inject constructor(
         )
     }
 
-    fun setHiFiMode(enabled: Boolean) {
-        if (hiFiModeEnabled == enabled) return
-        if (enabled && !HiFiCapabilityChecker.isSupported()) {
-            Timber.tag("DualPlayerEngine").w("Hi-Fi mode requested but device does not support PCM_FLOAT")
-            return
+    fun setAudioOutputMode(mode: AudioOutputMode) {
+        val resolvedMode = if (
+            mode == AudioOutputMode.PCM_FLOAT && !HiFiCapabilityChecker.isSupported()
+        ) {
+            Timber.tag("DualPlayerEngine")
+                .w("PCM float output requested but device does not support PCM_FLOAT; using system default")
+            AudioOutputMode.SYSTEM_DEFAULT
+        } else {
+            mode
         }
-        hiFiModeEnabled = enabled
-        rebuildPlayersPreservingMasterState("Hi-Fi mode set to $enabled")
+        if (audioOutputMode == resolvedMode) return
+        audioOutputMode = resolvedMode
+        rebuildPlayersPreservingMasterState("Audio output mode set to ${resolvedMode.storageKey}")
     }
 
     suspend fun resolveCloudUri(uri: Uri): Uri = withContext(Dispatchers.IO) {

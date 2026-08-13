@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">Geri</string>
+    <string name="auth_connect">Bağlan</string>
+    <string name="auth_connecting">Bağlanıyor…</string>
+    <string name="auth_connection_details">Bağlantı detayları</string>
+    <string name="auth_connection_details_subtitle">Sunucu URL\'nizi ve hesap bilgilerinizi girin.</string>
+    <string name="auth_hide_password">Şifreyi gizle</string>
+    <string name="auth_jellyfin_connection_subtitle">Jellyfin sunucu URL\'nizi ve hesap bilgilerinizi girin.</string>
+    <string name="auth_jellyfin_footer">Müzik kitaplığınızı akışla yürütmek için Jellyfin sunucularına bağlanır</string>
+    <string name="auth_jellyfin_info_card">Jellyfin sunucularına bağlanır. Yerel ağ erişimi için hem HTTP hem de HTTPS desteklenir.</string>
+    <string name="auth_jellyfin_password_hint">Jellyfin hesap şifreniz.</string>
+    <string name="auth_jellyfin_server_url_hint">Bağlantı noktası dahil tam URL. Yerel, Tailscale, .local ve .lan adresleri HTTP kullanabilir.</string>
+    <string name="auth_jellyfin_subtitle">Jellyfin medya sunucunuza bağlanın</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">Jellyfin hesap kullanıcı adınız.</string>
+    <string name="auth_local_network_permission_denied">Yerel ağınızdaki bir sunucuya bağlanmak için yakındaki cihazlara erişim izni verin.</string>
+    <string name="auth_navidrome_footer">Navidrome, Gonic, Airsonic ve diğer Subsonic uyumlu sunucularla çalışır</string>
+    <string name="auth_navidrome_info_card">Navidrome, Airsonic, Gonic, Ampache ve Subsonic API ile uyumlu diğer sunucuları destekler.</string>
+    <string name="auth_navidrome_password_hint">Sunucunuz destekliyorsa uygulama şifresi de geçerlidir.</string>
+    <string name="auth_navidrome_server_url_hint">Tam sunucu URL\'sini kullanın; yerel sunucular için http://, uzak sunucular için https:// ekleyin.</string>
+    <string name="auth_navidrome_subtitle">Kendi barındırdığınız müzik sunucusuna bağlanın</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">Bu, Subsonic veya Navidrome hesap adınızdır.</string>
+    <string name="auth_password">Şifre</string>
+    <string name="auth_password_placeholder">Şifrenizi girin</string>
+    <string name="auth_prefill_http">http:// otomatik doldur</string>
+    <string name="auth_select_libraries_confirm">Kaydet ve senkronize et</string>
+    <string name="auth_select_libraries_subtitle">Bu sunucuda birden fazla müzik kitaplığı var. Hangilerinin senkronize edileceğini seçin; bunu daha sonra sunucu panelinden değiştirebilirsiniz.</string>
+    <string name="auth_select_libraries_title">Senkronize edilecek kitaplıkları seçin</string>
+    <string name="auth_server_url">Sunucu URL\'si</string>
+    <string name="auth_show_password">Şifreyi göster</string>
+    <string name="auth_use_http">HTTP / VPN kullan</string>
+    <string name="auth_username">Kullanıcı adı</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">Yeniden dene</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+    <string name="toast_welcome_user">Hoş geldin, %1$s!</string>
+</resources>

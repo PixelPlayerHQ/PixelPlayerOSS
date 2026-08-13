@@ -49,6 +49,15 @@ android {
     }
 
     androidResources {
+        // Keep only the languages we actually ship. Without this the app picks up
+        // every locale our AndroidX dependencies carry, which bloats the APK and
+        // makes the system language picker offer languages we have no strings for.
+        localeFilters.addAll(
+            listOf(
+                "en", "ar", "de", "es", "fr", "in",
+                "it", "ko", "nb", "ru", "tr", "zh-rCN"
+            )
+        )
     }
 
     packaging {

@@ -17,6 +17,10 @@ import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.toArtist
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzMatch
+import com.lostf1sh.pixelplayeross.data.musicbrainz.MusicBrainzRepository
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
+import com.lostf1sh.pixelplayeross.data.offline.OfflineDownload
 import com.lostf1sh.pixelplayeross.utils.AudioMeta
 import com.lostf1sh.pixelplayeross.utils.AudioMetaUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
@@ -38,6 +43,8 @@ import kotlinx.collections.immutable.toImmutableList
 @HiltViewModel
 class SongInfoBottomSheetViewModel @Inject constructor(
     private val musicDao: MusicDao,
+    private val cloudOfflineRepository: CloudOfflineRepository,
+    private val musicBrainzRepository: MusicBrainzRepository,
     @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
@@ -59,11 +66,89 @@ class SongInfoBottomSheetViewModel @Inject constructor(
         data class Error(val message: String) : ToneActionResult
     }
 
+    sealed interface MusicBrainzUiState {
+        data object Idle : MusicBrainzUiState
+        data object Loading : MusicBrainzUiState
+        data class Results(val matches: List<MusicBrainzMatch>) : MusicBrainzUiState
+        data class Error(val message: String) : MusicBrainzUiState
+        data object Applied : MusicBrainzUiState
+    }
+
     private val _audioMeta = MutableStateFlow<AudioMeta?>(null)
     private val _resolvedArtists = MutableStateFlow<ImmutableList<Artist>>(persistentListOf())
+    private val _offlineDownload = MutableStateFlow<OfflineDownload?>(null)
+    private val _musicBrainzState = MutableStateFlow<MusicBrainzUiState>(MusicBrainzUiState.Idle)
+    private var offlineObservationJob: Job? = null
     val resolvedArtists: StateFlow<ImmutableList<Artist>> = _resolvedArtists.asStateFlow()
 
     val audioMeta: StateFlow<AudioMeta?> = _audioMeta.asStateFlow()
+    val offlineDownload: StateFlow<OfflineDownload?> = _offlineDownload.asStateFlow()
+    val musicBrainzState: StateFlow<MusicBrainzUiState> = _musicBrainzState.asStateFlow()
+
+    fun bindSong(song: Song) {
+        offlineObservationJob?.cancel()
+        _offlineDownload.value = null
+        _musicBrainzState.value = MusicBrainzUiState.Idle
+        if (!CloudOfflineRepository.isCloudSong(song)) return
+        offlineObservationJob = viewModelScope.launch {
+            cloudOfflineRepository.observe(song).collect { download ->
+                _offlineDownload.value = download
+            }
+        }
+    }
+
+    fun toggleOfflineDownload(song: Song) {
+        if (!CloudOfflineRepository.isCloudSong(song)) return
+        viewModelScope.launch {
+            if (_offlineDownload.value != null) {
+                cloudOfflineRepository.remove(song)
+            } else {
+                cloudOfflineRepository.enqueue(song)
+            }
+        }
+    }
+
+    fun retryOfflineDownload(song: Song) {
+        viewModelScope.launch { cloudOfflineRepository.enqueue(song) }
+    }
+
+    fun searchMusicBrainz(song: Song) {
+        if (_musicBrainzState.value is MusicBrainzUiState.Loading) return
+        viewModelScope.launch {
+            _musicBrainzState.value = MusicBrainzUiState.Loading
+            _musicBrainzState.value = runCatching { musicBrainzRepository.search(song) }
+                .fold(
+                    onSuccess = { MusicBrainzUiState.Results(it) },
+                    onFailure = {
+                        MusicBrainzUiState.Error(
+                            it.localizedMessage
+                                ?: appContext.getString(R.string.musicbrainz_search_failed_fallback)
+                        )
+                    }
+                )
+        }
+    }
+
+    fun applyMusicBrainzMatch(song: Song, match: MusicBrainzMatch) {
+        viewModelScope.launch {
+            _musicBrainzState.value = MusicBrainzUiState.Loading
+            _musicBrainzState.value = runCatching {
+                musicBrainzRepository.apply(song, match)
+            }.fold(
+                onSuccess = { MusicBrainzUiState.Applied },
+                onFailure = {
+                    MusicBrainzUiState.Error(
+                        it.localizedMessage
+                            ?: appContext.getString(R.string.musicbrainz_save_failed_fallback)
+                    )
+                }
+            )
+        }
+    }
+
+    fun dismissMusicBrainz() {
+        _musicBrainzState.value = MusicBrainzUiState.Idle
+    }
 
     fun loadArtistsForSong(song: Song) {
         val refs = song.artists
@@ -121,7 +206,7 @@ class SongInfoBottomSheetViewModel @Inject constructor(
 
     fun createSystemWriteSettingsIntent(): Intent {
         return Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS).apply {
-            data = Uri.parse("package:${appContext.packageName}")
+            data = "package:${appContext.packageName}".toUri()
         }
     }
 

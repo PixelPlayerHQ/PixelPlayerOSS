@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_action_clear_queue">Очистить очередь</string>
+    <string name="presentation_batch_e_action_locate_current_song">Найти текущий трек</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Сохранить как плейлист</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Убрать трек</string>
+    <string name="presentation_batch_e_cd_hidden">Скрытый</string>
+    <string name="presentation_batch_e_cd_queue_actions">Действия с очередью</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Удалить из плейлиста</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Сбросить по умолчанию</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Таймер сна</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Переключить повтор</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Переключить перемешивание</string>
+    <string name="presentation_batch_e_cd_visible">Видимый</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Вы уверены, что хотите удалить из очереди все треки, кроме текущего?</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Очистить очередь</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Выберите способ создания.</string>
+    <string name="presentation_batch_e_create_playlist_title">Создать плейлист</string>
+    <string name="presentation_batch_e_creation_mode_describe">Описать</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Напишите, что хотите послушать, и приложение само подберёт треки — полностью офлайн.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Вручную</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Создайте обложку, значок, форму и выберите песни самостоятельно.</string>
+    <string name="presentation_batch_e_describe_generate">Создать</string>
+    <string name="presentation_batch_e_describe_no_matches">В вашей медиатеке нет треков, подходящих под это описание.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">например, треки для тренировки с весами</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Подбор идёт по медиатеке на этом устройстве — данные никуда не отправляются.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Опишите свой плейлист</string>
+    <string name="presentation_batch_e_describe_regenerate">Пересоздать</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">Найден %d трек</item>
+        <item quantity="few">Найдено %d трека</item>
+        <item quantity="many">Найдено %d треков</item>
+        <item quantity="other">Найдено %d трека</item>
+    </plurals>
+    <string name="presentation_batch_e_describe_save">Сохранить плейлист</string>
+    <string name="presentation_batch_e_deselect_all">Снять выделение</string>
+    <string name="presentation_batch_e_enter_playlist_name">Введите название плейлиста</string>
+    <string name="presentation_batch_e_manage_presets_title">Управление пресетами</string>
+    <string name="presentation_batch_e_more_options_for_song">Другие действия для %1$s</string>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">Выбран %d трек</item>
+        <item quantity="other">Выбрано %d треков</item>
+    </plurals>
+    <string name="presentation_batch_e_new_playlist_hint">Нажмите кнопку «Новый плейлист», чтобы начать.</string>
+    <string name="presentation_batch_e_next_up">Далее</string>
+    <string name="presentation_batch_e_no_playlist_created">Плейлисты не созданы.</string>
+    <string name="presentation_batch_e_no_songs_match_query">Нет совпадений для «%1$s»</string>
+    <string name="presentation_batch_e_playlist_name_label">Название плейлиста</string>
+    <string name="presentation_batch_e_presets_drag_hint">Перетащите для изменения порядка • Нажмите на глаз, чтобы показать или скрыть</string>
+    <string name="presentation_batch_e_queue_current">Текущая очередь</string>
+    <string name="presentation_batch_e_queue_empty">Очередь пуста.</string>
+    <string name="presentation_batch_e_queue_named_suffix">Очередь %1$s</string>
+    <string name="presentation_batch_e_queue_source_fallback">Очередь</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Очередь пока пуста.</string>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">Добавлен 1 трек.</item>
+        <item quantity="other">Добавлено %d треков.</item>
+    </plurals>
+    <string name="presentation_batch_e_removed">удалён</string>
+    <string name="presentation_batch_e_reset_presets_message">Это восстановит порядок и видимость пресетов по умолчанию. Продолжить?</string>
+    <string name="presentation_batch_e_reset_presets_title">Сбросить пресеты</string>
+    <string name="presentation_batch_e_save_as_format">Сохранить как: %1$s</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Сохранить как плейлист</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Поиск треков для добавления…</string>
+</resources>

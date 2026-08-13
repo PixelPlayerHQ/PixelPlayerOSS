@@ -55,7 +55,28 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
+private val EMBEDDED_LYRICS_KEYS = listOf("LYRICS", "SYNCEDLYRICS", "TTML", "UNSYNCEDLYRICS")
+
 private fun Lyrics.isValid(): Boolean = !synced.isNullOrEmpty() || !plain.isNullOrEmpty()
+
+internal fun parseBestEmbeddedLyricsField(propertyMap: Map<String, Array<String>>?): Lyrics? {
+    var firstPlainLyrics: Lyrics? = null
+
+    EMBEDDED_LYRICS_KEYS.forEach { key ->
+        propertyMap?.get(key).orEmpty().forEach { field ->
+            if (field.isBlank()) return@forEach
+
+            val parsedLyrics = LyricsUtils.parseLyrics(field)
+            if (!parsedLyrics.isValid()) return@forEach
+
+            val localLyrics = parsedLyrics.copy(areFromRemote = false)
+            if (!localLyrics.synced.isNullOrEmpty()) return localLyrics
+            if (firstPlainLyrics == null) firstPlainLyrics = localLyrics
+        }
+    }
+
+    return firstPlainLyrics
+}
 
 /**
  * LyricsData for JSON disk cache (matches Rhythm's format)
@@ -173,7 +194,7 @@ class LyricsRepositoryImpl @Inject constructor(
     private val lyricsCache = LruCache<String, Lyrics>(MAX_LYRICS_CACHE_SIZE)
 
     private val lastApiCalls = ConcurrentHashMap<String, Long>()
-    private val apiCallCounts = ConcurrentHashMap<String, Int>()
+    private val apiCallCounts = ConcurrentHashMap<String, RateLimitWindow>()
 
     private val gson = Gson()
 
@@ -255,6 +276,11 @@ class LyricsRepositoryImpl @Inject constructor(
     /**
      * Calculate delay needed before next API call (matching Rhythm)
      */
+    private data class RateLimitWindow(
+        val windowStartMillis: Long,
+        val count: Int
+    )
+
     private fun calculateApiDelay(apiName: String, currentTime: Long): Long {
         val lastCall = lastApiCalls[apiName] ?: 0L
         val minDelay = when (apiName.lowercase()) {
@@ -267,8 +293,15 @@ class LyricsRepositoryImpl @Inject constructor(
             return minDelay - timeSinceLastCall
         }
 
-        val callsInLastMinute = apiCallCounts[apiName] ?: 0
+        // Check if we're making too many calls in the current fixed 60s window
+        val window = apiCallCounts[apiName]
+        val callsInLastMinute = if (window != null && (currentTime - window.windowStartMillis) < 60000L) {
+            window.count
+        } else {
+            0
+        }
         if (callsInLastMinute >= MAX_CALLS_PER_MINUTE) {
+            // Exponential backoff
             return minDelay * 2
         }
 
@@ -281,15 +314,16 @@ class LyricsRepositoryImpl @Inject constructor(
     private fun updateLastApiCall(apiName: String, timestamp: Long) {
         lastApiCalls[apiName] = timestamp
 
-        val currentCount = apiCallCounts[apiName] ?: 0
-        apiCallCounts[apiName] = currentCount + 1
-
-        if (currentCount == 0) {
-            repositoryScope.launch {
-                delay(60000)
-                apiCallCounts[apiName] = 0
-            }
+        val currentWindow = apiCallCounts[apiName]
+        val updatedWindow = if (currentWindow == null || (timestamp - currentWindow.windowStartMillis) >= 60000L) {
+            RateLimitWindow(
+                windowStartMillis = timestamp,
+                count = 1
+            )
+        } else {
+            currentWindow.copy(count = currentWindow.count + 1)
         }
+        apiCallCounts[apiName] = updatedWindow
     }
 
     /**
@@ -940,20 +974,11 @@ class LyricsRepositoryImpl @Inject constructor(
                 ParcelFileDescriptor.open(tempFile, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
                     val metadata = TagLib.getMetadata(fd.detachFd())
                     val propertyMap = metadata?.propertyMap
-                    val lyricsField = propertyMap?.get("LYRICS")?.firstOrNull()
-                        ?: propertyMap?.get("UNSYNCEDLYRICS")?.firstOrNull()
-
-                    if (!lyricsField.isNullOrBlank()) {
-                        val parsedLyrics = LyricsUtils.parseLyrics(lyricsField)
-                        if (parsedLyrics.isValid()) {
-                            Timber.tag(TAG).d("===== FOUND EMBEDDED LYRICS =====")
-                            parsedLyrics.copy(areFromRemote = false)
-                        } else {
-                            null
-                        }
-                    } else {
-                        null
+                    val parsedLyrics = parseBestEmbeddedLyricsField(propertyMap)
+                    if (parsedLyrics != null) {
+                        Timber.tag(TAG).d("===== FOUND EMBEDDED LYRICS =====")
                     }
+                    parsedLyrics
                 }
             } finally {
                 tempFile.delete()

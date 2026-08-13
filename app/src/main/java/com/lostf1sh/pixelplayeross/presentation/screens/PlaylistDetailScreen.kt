@@ -12,8 +12,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -84,9 +87,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -96,7 +103,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.HapticFeedbackConstantsCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
@@ -111,6 +120,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.SongPickerBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.subcomps.TightWrapText
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
@@ -384,7 +394,8 @@ fun PlaylistDetailScreen(
                             smoothnessAsPercentBR = 60,
                             cornerRadiusBR = 14.dp,
                             smoothnessAsPercentBL = 60
-                        )
+                        ),
+                        contentPadding = PaddingValues(horizontal = 10.dp)
                     ) {
                         Icon(
                             Icons.Rounded.PlayArrow,
@@ -392,7 +403,13 @@ fun PlaylistDetailScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(playItLabel)
+                        TightWrapText(
+                            text = playItLabel,
+                            modifier = Modifier.padding(end = 4.dp),
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 2,
+                            lineHeight = 20.sp
+                        )
                     }
                     FilledTonalButton(
                         onClick = {
@@ -418,7 +435,8 @@ fun PlaylistDetailScreen(
                             smoothnessAsPercentBR = 60,
                             cornerRadiusBR = 60.dp,
                             smoothnessAsPercentBL = 60
-                        )
+                        ),
+                        contentPadding = PaddingValues(horizontal = 10.dp)
                     ) {
                         Icon(
                             Icons.Rounded.Shuffle,
@@ -426,7 +444,13 @@ fun PlaylistDetailScreen(
                             modifier = Modifier.size(ButtonDefaults.IconSize)
                         )
                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                        Text(shuffleLabel)
+                        TightWrapText(
+                            text = shuffleLabel,
+                            modifier = Modifier.padding(end = 4.dp),
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 2,
+                            lineHeight = 20.sp
+                        )
                     }
                 }
 
@@ -473,7 +497,6 @@ fun PlaylistDetailScreen(
                                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                             ),
                             modifier = Modifier
-                                .weight(0.75f)
                                 .height(actionButtonsHeight)
                                 .animateContentSize()
                         ) {
@@ -482,69 +505,163 @@ fun PlaylistDetailScreen(
                                 contentDescription = addSongsCd,
                                 modifier = Modifier.size(20.dp)
                             )
-                            Spacer(Modifier.width(4.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text(
+                                modifier = Modifier.padding(end = 4.dp),
                                 text = addLabel,
-                                style = MaterialTheme.typography.labelLarge
+                                style = MaterialTheme.typography.labelLarge,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
 
-                        Button(
-                            onClick = { isRemoveModeEnabled = !isRemoveModeEnabled },
-                            shape = RoundedCornerShape(removeCornerRadius),
-                            contentPadding = PaddingValues(horizontal = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = removeButtonColor,
-                                contentColor = removeIconColor
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(actionButtonsHeight)
-                                .animateContentSize()
-                                .clip(RoundedCornerShape(removeCornerRadius))
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = Icons.Default.RemoveCircleOutline,
-                                contentDescription = removeSongsCd,
-                                tint = removeIconColor
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                modifier = Modifier.padding(end = 4.dp),
-                                text = removeLabel,
-                                color = removeIconColor,
-                                style = MaterialTheme.typography.labelMedium
-                            )
+                        val chipScrollState = rememberScrollState()
+                        val showStartFade by remember {
+                            derivedStateOf { chipScrollState.value > 0 }
+                        }
+                        val showEndFade by remember {
+                            derivedStateOf { chipScrollState.value < chipScrollState.maxValue }
                         }
 
-                        Button(
-                            onClick = { isReorderModeEnabled = !isReorderModeEnabled },
-                            shape = RoundedCornerShape(reorderCornerRadius),
-                            contentPadding = PaddingValues(horizontal = 8.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = reorderButtonColor,
-                                contentColor = reorderIconColor
-                            ),
+                        BoxWithConstraints(
                             modifier = Modifier
                                 .weight(1f)
-                                .height(actionButtonsHeight)
-                                .animateContentSize()
-                                .clip(RoundedCornerShape(reorderCornerRadius))
+                                .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                                .drawWithContent {
+                                    drawContent()
+                                    val gradientWidth = 8.dp.toPx()
+
+                                    if (showStartFade) {
+                                        drawRect(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(Color.Transparent, Color.Black),
+                                                endX = gradientWidth
+                                            ),
+                                            blendMode = BlendMode.DstIn
+                                        )
+                                    }
+
+                                    if (showEndFade) {
+                                        drawRect(
+                                            brush = Brush.horizontalGradient(
+                                                colors = listOf(Color.Black, Color.Transparent),
+                                                startX = this.size.width - gradientWidth
+                                            ),
+                                            blendMode = BlendMode.DstIn
+                                        )
+                                    }
+                                }
                         ) {
-                            Icon(
-                                modifier = Modifier.size(22.dp),
-                                painter = painterResource(R.drawable.drag_order_icon),
-                                contentDescription = reorderSongsCd,
-                                tint = reorderIconColor
-                            )
-                            Spacer(Modifier.width(6.dp))
-                            Text(
-                                modifier = Modifier.padding(end = 4.dp),
-                                text = reorderLabel,
-                                color = reorderIconColor,
-                                style = MaterialTheme.typography.labelMedium
-                            )
+                            val containerWidthPx = constraints.maxWidth
+
+                            Layout(
+                                modifier = Modifier.horizontalScroll(chipScrollState),
+                                content = {
+                                    Button(
+                                        onClick = { isRemoveModeEnabled = !isRemoveModeEnabled },
+                                        shape = RoundedCornerShape(removeCornerRadius),
+                                        contentPadding = PaddingValues(horizontal = 8.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = removeButtonColor,
+                                            contentColor = removeIconColor
+                                        ),
+                                        modifier = Modifier
+                                            .height(actionButtonsHeight)
+                                            .animateContentSize()
+                                            .clip(RoundedCornerShape(removeCornerRadius))
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(18.dp),
+                                            imageVector = Icons.Default.RemoveCircleOutline,
+                                            contentDescription = removeSongsCd,
+                                            tint = removeIconColor
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            modifier = Modifier.padding(end = 4.dp),
+                                            text = removeLabel,
+                                            color = removeIconColor,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+
+                                    Button(
+                                        onClick = { isReorderModeEnabled = !isReorderModeEnabled },
+                                        shape = RoundedCornerShape(reorderCornerRadius),
+                                        contentPadding = PaddingValues(horizontal = 8.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = reorderButtonColor,
+                                            contentColor = reorderIconColor
+                                        ),
+                                        modifier = Modifier
+                                            .height(actionButtonsHeight)
+                                            .animateContentSize()
+                                            .clip(RoundedCornerShape(reorderCornerRadius))
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.size(22.dp),
+                                            painter = painterResource(R.drawable.drag_order_icon),
+                                            contentDescription = reorderSongsCd,
+                                            tint = reorderIconColor
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            modifier = Modifier.padding(end = 4.dp),
+                                            text = reorderLabel,
+                                            color = reorderIconColor,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
+                                    }
+                                }
+                            ) { measurables, childConstraints ->
+                                val spacingPx = 8.dp.roundToPx()
+                                val totalSpacing = spacingPx * (measurables.size - 1)
+
+                                // Ask for the natural width without measuring, so we can tell
+                                // whether the translated labels still fit side by side.
+                                val totalNaturalWidth = measurables.sumOf { measurable ->
+                                    measurable.maxIntrinsicWidth(Constraints.Infinity)
+                                } + totalSpacing
+
+                                val fits = totalNaturalWidth <= containerWidthPx && containerWidthPx > 0
+
+                                val placeables = if (fits) {
+                                    val availableSpace = containerWidthPx - totalSpacing
+                                    val equalWidth = (availableSpace / measurables.size).coerceAtLeast(0)
+                                    measurables.map { measurable ->
+                                        measurable.measure(
+                                            childConstraints.copy(
+                                                minWidth = equalWidth,
+                                                maxWidth = equalWidth
+                                            )
+                                        )
+                                    }
+                                } else {
+                                    measurables.map { measurable ->
+                                        measurable.measure(
+                                            childConstraints.copy(
+                                                minWidth = 0,
+                                                maxWidth = Constraints.Infinity
+                                            )
+                                        )
+                                    }
+                                }
+
+                                val layoutWidth = if (fits) containerWidthPx else totalNaturalWidth
+                                val height = placeables.maxOfOrNull { it.height } ?: 0
+
+                                layout(layoutWidth, height) {
+                                    var xPosition = 0
+                                    placeables.forEach { placeable ->
+                                        placeable.placeRelative(x = xPosition, y = 0)
+                                        xPosition += placeable.width + spacingPx
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_g_stats_range_today">今日</string>
+    <string name="presentation_batch_g_stats_range_week_to_date">本周至今</string>
+    <string name="presentation_batch_g_stats_range_month_to_date">本月至今</string>
+    <string name="presentation_batch_g_stats_range_year_to_date">本年至今</string>
+    <string name="presentation_batch_g_stats_range_all_time">全部时间</string>
+    <string name="presentation_batch_g_stats_title">收听统计</string>
+    <string name="presentation_batch_g_stats_cd_refresh">刷新收听统计</string>
+    <string name="presentation_batch_g_stats_hero_listening">收听时长</string>
+    <string name="presentation_batch_g_stats_hero_plays">播放次数</string>
+    <string name="presentation_batch_g_stats_em_dash">—</string>
+    <string name="presentation_batch_g_stats_section_listening_habits">收听习惯</string>
+    <string name="presentation_batch_g_stats_empty_no_habits_title">暂无习惯数据</string>
+    <string name="presentation_batch_g_stats_empty_no_habits_subtitle">收集到足够收听记录后，将展示你的收听习惯。</string>
+    <string name="presentation_batch_g_stats_habit_total_sessions">总播放会话</string>
+    <string name="presentation_batch_g_stats_habit_avg_session">平均会话时长</string>
+    <string name="presentation_batch_g_stats_habit_longest_session">最长会话时长</string>
+    <string name="presentation_batch_g_stats_habit_sessions_per_day">每日会话数</string>
+    <string name="presentation_batch_g_stats_habit_most_active_day">活跃度最高日期</string>
+    <string name="presentation_batch_g_stats_habit_no_playback_yet">暂无播放记录</string>
+    <string name="presentation_batch_g_stats_habit_peak_timeline_slot">收听高峰时段</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time">收听时长</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time_desc">所选时间范围内的总收听时长。</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count">播放次数</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count_desc">各时间段内完成的播放会话数量。</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session">平均会话</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session_desc">各时间段的平均收听时长。</string>
+    <string name="presentation_batch_g_stats_n_plays">%1$d 次播放</string>
+    <string name="presentation_batch_g_stats_section_listening_timeline">收听时间线</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_title">暂无收听数据</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_subtitle">开始播放音乐，生成你的收听时间线</string>
+    <string name="presentation_batch_g_stats_rhythm_daily">每日节律</string>
+    <string name="presentation_batch_g_stats_rhythm_weekly">每周节律</string>
+    <string name="presentation_batch_g_stats_rhythm_monthly">每月节律</string>
+    <string name="presentation_batch_g_stats_rhythm_year">年度概览</string>
+    <string name="presentation_batch_g_stats_rhythm_all_time">全时段变化趋势</string>
+    <string name="presentation_batch_g_stats_grouped_4h">按4小时时段分组</string>
+    <string name="presentation_batch_g_stats_grouped_dow">按星期分组</string>
+    <string name="presentation_batch_g_stats_grouped_week_of_month">按每月周次分组</string>
+    <string name="presentation_batch_g_stats_grouped_by_month">按月份分组</string>
+    <string name="presentation_batch_g_stats_grouped_by_year">按年份分组</string>
+    <string name="presentation_batch_g_stats_peak_segment">高峰时段</string>
+    <string name="presentation_batch_g_stats_timeline_support_day">划分为4小时区间，展现你的每日收听节律。</string>
+    <string name="presentation_batch_g_stats_timeline_support_week">按日柱状图，方便对比每周收听习惯。</string>
+    <string name="presentation_batch_g_stats_timeline_support_month">按周柱状图，查看本月收听变化趋势。</string>
+    <string name="presentation_batch_g_stats_timeline_support_year">按月柱状图，展现全年收听季节性变化。</string>
+    <string name="presentation_batch_g_stats_timeline_support_all">按年柱状图，汇总全部收听历史。</string>
+    <string name="presentation_batch_g_stats_section_top_categories">热门分类</string>
+    <string name="presentation_batch_g_stats_top_categories_subtitle">对比你在曲风、艺术家、专辑与歌曲维度的收听情况。</string>
+    <string name="presentation_batch_g_stats_plays_artists">%1$d 次播放 · %2$d 位艺术家</string>
+    <string name="presentation_batch_g_stats_plays_tracks">%1$d 次播放 · %2$d 首曲目</string>
+    <string name="presentation_batch_g_stats_dim_genre">曲风</string>
+    <string name="presentation_batch_g_stats_dim_artist">艺术家</string>
+    <string name="presentation_batch_g_stats_dim_album">专辑</string>
+    <string name="presentation_batch_g_stats_dim_song">歌曲</string>
+    <string name="presentation_batch_g_stats_card_listening_by_genre">曲风收听统计</string>
+    <string name="presentation_batch_g_stats_card_listening_by_artist">艺术家收听统计</string>
+    <string name="presentation_batch_g_stats_card_listening_by_album">专辑收听统计</string>
+    <string name="presentation_batch_g_stats_card_listening_by_song">歌曲收听统计</string>
+    <string name="presentation_batch_g_stats_empty_no_category_title">暂无分类数据</string>
+    <string name="presentation_batch_g_stats_empty_no_category_subtitle">播放音乐，即可展示你的收听亮点</string>
+    <string name="presentation_batch_g_stats_section_top_artists">热门艺术家</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_title">暂无热门艺术家</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_subtitle">多听音乐，你喜爱的艺术家就会展示在这里。</string>
+    <string name="presentation_batch_g_stats_ranked_artist">%1$d. %2$s</string>
+    <string name="presentation_batch_g_stats_section_top_albums">热门专辑</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_title">暂无热门专辑</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_subtitle">你经常回放的专辑会出现在此处。</string>
+    <string name="presentation_batch_g_stats_ranked_album">%1$d. %2$s</string>
+    <string name="presentation_batch_g_stats_tracks_in_range_title">该时段曲目</string>
+    <string name="presentation_batch_g_stats_tracks_in_range_subtitle">所选时间范围内播放最多的曲目。</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_title">暂无热门曲目</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_subtitle">多播放喜爱歌曲，它们将会展示在此。</string>
+    <string name="presentation_batch_g_stats_collapse_tracks">折叠曲目列表</string>
+    <string name="presentation_batch_g_stats_show_all_tracks">显示全部曲目</string>
+    <string name="presentation_batch_g_stats_track_concentration_title">曲目收听集中度</string>
+    <string name="presentation_batch_g_stats_track_concentration_subtitle">你的收听时长在热门曲目之间的分布情况。</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_title">暂无集中度数据</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_subtitle">播放更多曲目，查看你的收听集中程度。</string>
+    <string name="presentation_batch_g_stats_slice_top_1">Top 1</string>
+    <string name="presentation_batch_g_stats_slice_top_2_3">Top 2‑3</string>
+    <string name="presentation_batch_g_stats_slice_others">其他</string>
+    <string name="presentation_batch_g_stats_percent">%1$d%%</string>
+    <string name="presentation_batch_g_stats_listening_concentration_title">收听集中度</string>
+    <string name="presentation_batch_g_stats_top_three_share_line">播放量前三的曲目占据了你 %1$d%% 的收听时长。</string>
+    <string name="presentation_batch_g_stats_avg_plays_per_track">单曲平均播放次数</string>
+    <string name="presentation_batch_g_stats_unique_tracks">不重复曲目数</string>
+    <string name="presentation_batch_g_stats_top_three_share_label">前三曲目占比</string>
+    <string name="presentation_batch_g_stats_avatar_placeholder">？</string>
+    <string name="presentation_batch_g_device_info_title">设备信息</string>
+    <string name="presentation_batch_g_device_section_exoplayer">ExoPlayer 音频引擎</string>
+    <string name="presentation_batch_g_device_label_sample_rate">采样率</string>
+    <string name="presentation_batch_g_device_label_low_latency">低延迟支持</string>
+    <string name="presentation_batch_g_device_label_pro_audio">专业音频支持</string>
+    <string name="presentation_batch_g_device_value_hz">%1$d 赫兹</string>
+    <string name="presentation_batch_g_yes">是</string>
+    <string name="presentation_batch_g_no">否</string>
+    <string name="presentation_batch_g_device_key_manufacturer">制造商</string>
+    <string name="presentation_batch_g_device_key_model">型号</string>
+    <string name="presentation_batch_g_device_key_brand">品牌</string>
+    <string name="presentation_batch_g_device_key_device">设备</string>
+    <string name="presentation_batch_g_device_key_android_version">Android版本</string>
+    <string name="presentation_batch_g_device_key_sdk_version">SDK版本</string>
+    <string name="presentation_batch_g_device_key_hardware">硬件</string>
+    <string name="device_capabilities_unknown_short">--</string>
+    <string name="device_capabilities_ready_title">播放状态正常</string>
+    <string name="device_capabilities_review_title">播放能力需要检查</string>
+    <string name="device_capabilities_metric_formats">格式</string>
+    <string name="device_capabilities_metric_hw_decoders">硬件解码器</string>
+    <string name="device_capabilities_metric_local_music">本地歌曲</string>
+    <string name="device_capabilities_storage_title">本地音乐存储</string>
+    <string name="device_capabilities_storage_music_size">音乐占用大小</string>
+    <string name="device_capabilities_storage_music_count">%1$d 首本地歌曲</string>
+    <string name="device_capabilities_storage_available">可用空间</string>
+    <string name="device_capabilities_storage_total">总容量：%1$s</string>
+    <string name="device_capabilities_storage_music_footprint">音乐所占空间</string>
+    <string name="device_capabilities_storage_device_used">设备已用空间</string>
+    <string name="device_capabilities_storage_percent">%1$d%%</string>
+    <string name="device_capabilities_storage_less_than_one_percent">&lt;1%</string>
+    <string name="device_capabilities_storage_cloud_count">%1$d 首云端歌曲</string>
+    <string name="device_capabilities_storage_unavailable_count">%1$d 个文件无法读取</string>
+    <string name="device_capabilities_playback_path_title">播放链路</string>
+    <string name="device_capabilities_buffer_frames">每个缓冲区 %1$d 帧</string>
+    <string name="device_capabilities_hifi_pcm_float">高保真浮点PCM</string>
+    <string name="device_capabilities_hifi_pcm_float_supporting">32位浮点输出链路</string>
+    <string name="device_capabilities_memory_title">内存</string>
+    <string name="device_capabilities_memory_available_of">可用 / %1$s</string>
+    <string name="device_capabilities_offload_title">支持硬件卸载的格式</string>
+    <string name="device_capabilities_offload_empty">没有报告支持硬件卸载的压缩音频格式。</string>
+    <string name="device_capabilities_outputs_title">检测到音频输出</string>
+    <string name="device_capabilities_outputs_empty">Android未上报任何音频输出设备。</string>
+    <string name="device_capabilities_renderers_count">%1$s 个渲染器</string>
+    <string name="device_capabilities_formats_title">格式兼容性</string>
+    <string name="device_capabilities_formats_supported_count">%1$d 个支持的音轨</string>
+    <string name="device_capabilities_formats_unknown_count">%1$d 个未知格式</string>
+    <string name="device_capabilities_format_unsupported">无可用解码器</string>
+    <string name="device_capabilities_format_hardware">硬件解码器</string>
+    <string name="device_capabilities_format_software">软件解码器</string>
+    <string name="device_capabilities_format_offload">硬件卸载</string>
+    <string name="device_capabilities_format_library_count">曲库内 %1$d 首</string>
+    <string name="device_capabilities_findings_title">兼容性检测结果</string>
+    <string name="device_capabilities_finding_clear_title">无重大兼容问题</string>
+    <string name="device_capabilities_finding_clear_body">索引的曲目均可匹配本设备Android提供的解码器。</string>
+    <string name="device_capabilities_finding_unsupported_title">%1$d 首曲目可能无法原生解码</string>
+    <string name="device_capabilities_finding_unsupported_body">需要检查格式：%1$s。</string>
+    <string name="device_capabilities_finding_resample_title">%1$d 首本地曲目可能会被重采样</string>
+    <string name="device_capabilities_finding_resample_body">曲库最高采样率达到 %1$d 赫兹，高于当前输出采样率。</string>
+    <string name="device_capabilities_finding_unknown_title">%1$d 首曲目元数据未知</string>
+    <string name="device_capabilities_finding_unknown_body">完整重新扫描曲库，可以补全缺失的MIME类型、码率与采样率信息。</string>
+    <string name="device_capabilities_more_count">另外 %1$d 项</string>
+    <string name="device_capabilities_output_builtin">设备内置输出</string>
+    <string name="device_capabilities_output_bluetooth">蓝牙音频</string>
+    <string name="device_capabilities_output_usb">USB音频</string>
+    <string name="device_capabilities_output_wired">有线音频</string>
+    <string name="device_capabilities_output_digital">数字输出</string>
+    <string name="device_capabilities_output_other">其他输出设备</string>
+    <string name="device_capabilities_report_title">性能报告</string>
+    <string name="device_capabilities_report_description">生成可分享的诊断报告，帮助我们分析播放或扫描卡顿问题。报告仅包含设备、曲库和计时数据，不包含文件路径、歌曲名称或艺术家。</string>
+    <string name="device_capabilities_report_generate">生成报告</string>
+    <string name="device_capabilities_report_regenerate">重新生成</string>
+    <string name="device_capabilities_report_copy">复制</string>
+    <string name="device_capabilities_report_share">分享</string>
+    <string name="device_capabilities_report_copied">报告已复制到剪贴板</string>
+    <string name="device_capabilities_report_share_title">PixelPlayer 性能报告</string>
+    <string name="device_capabilities_advanced_diagnostics_title">高级性能诊断</string>
+    <string name="device_capabilities_advanced_diagnostics_description">默认关闭。记录简短的卡顿时间线，用于测试版故障排查。</string>
+    <string name="device_capabilities_advanced_diagnostics_expires">有效期至 %1$s</string>
+    <string name="device_capabilities_advanced_diagnostics_mark_lag">标记当前卡顿</string>
+    <string name="device_capabilities_advanced_diagnostics_marked">已标记卡顿时刻</string>
+    <string name="presentation_batch_g_artist_section_multi_parsing">多艺术家解析</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters">字符分隔符</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters_current">当前：%1$s</string>
+    <string name="presentation_batch_g_artist_item_word_delimiters">关键词分隔符</string>
+    <string name="presentation_batch_g_artist_word_none">无</string>
+    <string name="presentation_batch_g_artist_word_current_prefix">当前：%1$s</string>
+    <string name="presentation_batch_g_artist_cd_configure">配置</string>
+    <string name="presentation_batch_g_artist_extract_from_title">从歌曲标题提取艺术家</string>
+    <string name="presentation_batch_g_artist_extract_from_title_sub">识别标题内 feat.、ft.、with 等合作标识</string>
+    <string name="presentation_batch_g_artist_section_library_org">曲库整理</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist">按专辑艺术家分组</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist_sub">艺术家列表与专辑将按照专辑艺术家分组，避免合作、合辑艺术家扰乱列表。</string>
+    <string name="presentation_batch_g_artist_info_title">关于多艺术家解析</string>
+    <string name="presentation_batch_g_artist_info_body">PixelPlayerOSS 使用字符分隔符（/、;、&amp;）以及关键词分隔符（feat.、ft.、vs.、x）拆分艺术家标签，关键词分隔符匹配不区分大小写。
+
+“从歌曲标题提取艺术家”可以识别歌名内类似 (feat. 艺人) 的格式。
+
+反斜杠(\)可用来转义字符分隔符。</string>
+    <string name="presentation_batch_g_artist_example_arrow"> → </string>
+    <string name="presentation_batch_g_artist_examples_title">示例</string>
+    <string name="presentation_batch_g_artist_ex_1_in">"Artist1/Artist2"</string>
+    <string name="presentation_batch_g_artist_ex_1_out">Artist1，Artist2</string>
+    <string name="presentation_batch_g_artist_ex_2_in">"Drake feat. Rihanna"</string>
+    <string name="presentation_batch_g_artist_ex_2_out">Drake，Rihanna</string>
+    <string name="presentation_batch_g_artist_ex_3_in">"Marshmello x Bastille"</string>
+    <string name="presentation_batch_g_artist_ex_3_out">Marshmello，Bastille</string>
+    <string name="presentation_batch_g_artist_ex_4_in">"Song (ft. B)" by A</string>
+    <string name="presentation_batch_g_artist_ex_4_out">A，B</string>
+    <string name="presentation_batch_g_artist_ex_5_in">"AC\\DC"</string>
+    <string name="presentation_batch_g_artist_ex_5_out">AC/DC（已转义）</string>
+    <string name="presentation_batch_g_artist_rescan_banner_title">需要重新扫描</string>
+    <string name="presentation_batch_g_artist_rescan_banner_body">艺术家解析设置已变更，请重新扫描曲库以生效。</string>
+    <string name="presentation_batch_g_artist_rescan_scanning">扫描中…</string>
+    <string name="presentation_batch_g_artist_rescan">重新扫描</string>
+    <string name="presentation_batch_g_topbar_build_stable">正式版</string>
+    <string name="presentation_batch_g_topbar_build_debug">调试版</string>
+    <string name="presentation_batch_g_topbar_cd_changelog">更新日志</string>
+    <string name="presentation_batch_g_lyrics_mode_synced">同步歌词</string>
+    <string name="presentation_batch_g_lyrics_mode_static">静态歌词</string>
+    <string name="presentation_batch_g_lyrics_cd_options">歌词选项</string>
+    <string name="presentation_batch_g_streaming_title">云端串流</string>
+    <string name="presentation_batch_g_streaming_subtitle">从你的云端账号播放音乐</string>
+    <string name="presentation_batch_g_sort_source">来源</string>
+    <string name="presentation_batch_g_sort_order">排序</string>
+    <string name="presentation_batch_g_sort_descending">降序</string>
+    <string name="presentation_batch_g_sort_ascending">升序</string>
+    <string name="presentation_batch_g_sort_original_order">原始顺序</string>
+    <string name="presentation_batch_g_cd_switch_on">开关已开启</string>
+    <string name="presentation_batch_g_file_explorer_cd_close">关闭</string>
+    <string name="presentation_batch_g_file_explorer_cd_refresh">刷新</string>
+    <string name="presentation_batch_g_file_explorer_cd_done">完成</string>
+    <string name="presentation_batch_g_file_explorer_done">完成</string>
+    <string name="presentation_batch_g_file_explorer_hint">默认全部文件夹纳入扫描。排除文件夹即可跳过该目录；也可打开已排除目录，将内部子文件夹重新加入扫描。</string>
+    <string name="presentation_batch_g_file_explorer_empty_folders">此处没有子文件夹</string>
+    <string name="presentation_batch_g_file_explorer_cd_navigate_up">返回上一级</string>
+    <string name="presentation_batch_g_file_explorer_cd_go_root">回到根目录</string>
+    <string name="presentation_batch_g_daily_mix_queue_name">每日精选</string>
+    <string name="presentation_batch_g_daily_mix_heading">每日精选</string>
+    <string name="presentation_batch_g_daily_mix_based_on_history">基于收听历史</string>
+    <string name="presentation_batch_g_daily_mix_see_all">查看全部每日精选</string>
+    <string name="presentation_batch_g_selection_one_song">已选择 1 首歌曲</string>
+    <string name="presentation_batch_g_selection_n_songs">已选择多首歌曲</string>
+    <string name="presentation_batch_g_selection_cd_share">分享选中项</string>
+    <string name="presentation_batch_g_selection_cd_like">收藏选中项</string>
+    <string name="presentation_batch_g_selection_play">播放</string>
+    <string name="presentation_batch_g_selection_all">全选</string>
+    <string name="presentation_batch_g_selection_deselect">取消选择</string>
+    <string name="presentation_batch_g_selection_cd_more">更多选项</string>
+    <string name="presentation_batch_g_selection_overflow_count">+%1$d</string>
+    <string name="presentation_batch_g_list_song_artist_album">%1$s · %2$s</string>
+    <string name="presentation_batch_g_list_cd_selected">已选择</string>
+    <string name="presentation_batch_g_list_cd_more_for_title">%1$s 的更多选项</string>
+    <string name="presentation_batch_g_list_cd_album_art_for">%1$s 的专辑封面</string>
+    <string name="presentation_batch_g_list_cd_playing">正在播放</string>
+    <string name="presentation_batch_g_sync_percent">%1$d%%</string>
+    <string name="presentation_batch_g_stats_overview_title">收听统计</string>
+    <string name="presentation_batch_g_stats_overview_total_plays">总播放次数</string>
+    <string name="presentation_batch_g_stats_overview_avg_per_day">日均播放</string>
+    <string name="presentation_batch_g_stats_overview_top_track">最热曲目</string>
+    <string name="presentation_batch_g_stats_overview_top_track_line">%1$s · %2$d 次播放</string>
+    <string name="presentation_batch_g_recently_played_title">最近播放</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_half">−0.5</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_point_one">−0.1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_point_one">+0.1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_half">+0.5</string>
+    <string name="presentation_batch_g_lyrics_offset_zero">0秒</string>
+    <string name="presentation_batch_g_lyrics_offset_seconds_fmt">%1$+.1f 秒</string>
+    <string name="presentation_batch_g_genre_sort_title">排序并播放</string>
+    <string name="presentation_batch_g_genre_sort_shuffle">随机播放</string>
+    <string name="presentation_batch_g_genre_sort_by">排序依据</string>
+    <string name="presentation_batch_g_genre_sort_artist">艺术家</string>
+    <string name="presentation_batch_g_genre_sort_album">专辑</string>
+    <string name="presentation_batch_g_genre_sort_title_opt">标题</string>
+    <string name="presentation_batch_g_cd_selected">已选择</string>
+    <string name="presentation_batch_g_changelog_title">更新日志</string>
+    <string name="presentation_batch_g_changelog_view_github">前往 GitHub 查看</string>
+    <string name="presentation_batch_g_presets_saved_title">已保存预设</string>
+    <string name="presentation_batch_g_presets_empty">暂无保存的自定义预设。</string>
+    <string name="presentation_batch_g_presets_cd_unpin">取消置顶</string>
+    <string name="presentation_batch_g_presets_cd_pin">置顶</string>
+    <string name="presentation_batch_g_presets_cd_rename">重命名</string>
+    <string name="presentation_batch_g_presets_cd_delete">删除</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_title">欢迎使用 PixelPlayerOSS %1$s</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_body">你正在使用测试版本，可能存在漏洞、崩溃或者实验性功能。遇到问题欢迎反馈，帮助项目改进。</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_body_stable">你正在使用正式发布版本。查看更新日志了解新功能，遇到异常可以提交反馈。</string>
+    <string name="presentation_batch_g_beta_sheet_expect_title">版本说明</string>
+    <string name="presentation_batch_g_beta_sheet_expect_1">可能会意外出现漏洞、闪退或未完成功能。</string>
+    <string name="presentation_batch_g_beta_sheet_expect_2">部分功能可能未经通知就被修改或移除。</string>
+    <string name="presentation_batch_g_beta_sheet_expect_3">测试版稳定性会低于正式发布版本。</string>
+    <string name="presentation_batch_g_beta_sheet_expect_4">提交问题前，请确认已经更新到最新版本。</string>
+    <string name="presentation_batch_g_beta_sheet_expect_summary">测试版在测试期间功能可能发生变动、故障或优化。</string>
+    <string name="presentation_batch_g_beta_sheet_github_title">GitHub 快速反馈入口</string>
+    <string name="presentation_batch_g_beta_sheet_github_body">先搜索已有问题，再提交清晰的故障、崩溃、功能需求或疑问报告。</string>
+    <string name="presentation_batch_g_beta_sheet_open_issues">查看已有问题</string>
+    <string name="presentation_batch_g_beta_sheet_report_bug">提交问题或崩溃报告</string>
+    <string name="presentation_batch_g_beta_sheet_report_title">如何提交反馈</string>
+    <string name="presentation_batch_g_beta_sheet_report_summary">新建反馈前的简易检查清单。</string>
+    <string name="presentation_batch_g_beta_sheet_before_title">提交反馈前</string>
+    <string name="presentation_batch_g_beta_sheet_before_1">检索已存在的开放/已关闭问题，避免重复提交。</string>
+    <string name="presentation_batch_g_beta_sheet_before_2">更新到最新 PixelPlayerOSS，确认问题依旧存在。</string>
+    <string name="presentation_batch_g_beta_sheet_before_3">重启应用，确认故障可以复现。</string>
+    <string name="presentation_batch_g_beta_sheet_before_4">尽量复现问题，记录完整操作步骤。</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_title">反馈类型</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_bug">漏洞报告：功能行为不符合预期。</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_feature">功能请求：希望新增或优化功能。</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_question">疑问：优先使用讨论区，或带上question标签新建问题。</string>
+    <string name="presentation_batch_g_beta_sheet_bug_title">漏洞报告</string>
+    <string name="presentation_batch_g_beta_sheet_bug_summary_text">出现异常、闪退时复制下面模板填写。</string>
+    <string name="presentation_batch_g_beta_sheet_bug_template_title">漏洞报告</string>
+    <string name="presentation_batch_g_beta_sheet_bug_summary">简短描述：</string>
+    <string name="presentation_batch_g_beta_sheet_bug_expected">预期行为：</string>
+    <string name="presentation_batch_g_beta_sheet_bug_actual">实际现象：</string>
+    <string name="presentation_batch_g_beta_sheet_bug_steps">复现步骤：1. 2. 3.</string>
+    <string name="presentation_batch_g_beta_sheet_bug_frequency">复现概率：总是 / 偶尔 / 极少。</string>
+    <string name="presentation_batch_g_beta_sheet_bug_screenshot">截图/录屏（如有）。</string>
+    <string name="presentation_batch_g_beta_sheet_bug_logs">日志/堆栈信息（如有）。</string>
+    <string name="presentation_batch_g_beta_sheet_env_title">运行环境</string>
+    <string name="presentation_batch_g_beta_sheet_env_version">PixelPlayerOSS版本：</string>
+    <string name="presentation_batch_g_beta_sheet_env_source">安装来源：GitHub发布包、调试构建、每日构建等</string>
+    <string name="presentation_batch_g_beta_sheet_env_android">Android版本：</string>
+    <string name="presentation_batch_g_beta_sheet_env_device">设备型号：</string>
+    <string name="presentation_batch_g_beta_sheet_env_extra">补充信息：SD卡、特殊设置、权限状态等。</string>
+    <string name="presentation_batch_g_beta_sheet_feature_title">功能请求</string>
+    <string name="presentation_batch_g_beta_sheet_feature_summary">希望新增或改进功能时复制模板填写。</string>
+    <string name="presentation_batch_g_beta_sheet_feature_problem">现状问题：你想要解决什么问题？</string>
+    <string name="presentation_batch_g_beta_sheet_feature_solution">设想方案：希望功能如何实现？</string>
+    <string name="presentation_batch_g_beta_sheet_feature_alternatives">其他备选方案：有无别的实现思路？</string>
+    <string name="presentation_batch_g_beta_sheet_feature_scope">影响范围：哪些页面、流程会被改动？</string>
+    <string name="presentation_batch_g_beta_sheet_feature_mockup">参考截图或示意图（如有）。</string>
+    <string name="presentation_batch_g_beta_sheet_quality_title">标题、隐私与范围</string>
+    <string name="presentation_batch_g_beta_sheet_quality_summary">让反馈便于处理，同时保护个人隐私。</string>
+    <string name="presentation_batch_g_beta_sheet_title_examples_title">优秀反馈标题示例</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_1">均衡器：切换预设标签时指示器偏移</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_2">搜索：无输入时不显示历史列表</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_3">功能：新增“最近添加”歌单排序选项</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_title">请避免</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_1">“软件不好用”这类笼统描述。</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_2">一份反馈内提交多个互不相关问题。</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_3">日志、截图中保留未打码的个人隐私信息。</string>
+    <string name="presentation_batch_g_beta_sheet_privacy_title">隐私提醒</string>
+    <string name="presentation_batch_g_beta_sheet_privacy_body">上传日志、截图、视频前，请抹除个人隐私信息。</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_title">每日构建版本</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_summary">每日构建与正式版区别，以及故障反馈注意事项。</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_body">每日构建来自最新提交，包含尚未完工的改动，会引入临时漏洞或者功能回退，实验性高于正式发布包。</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_access">如可用，可以在仓库GitHub Actions产物中获取。</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_report_title">反馈每日构建版本的问题</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_report_body">反馈每日构建的故障时，务必注明是每日构建而非正式版本；尽可能附带构建日期、工作流编号或者提交哈希，同时确认该问题在正式版是否同样存在。</string>
+    <string name="presentation_batch_g_album_sel_count">%1$d 张专辑</string>
+    <string name="presentation_batch_g_album_sel_selected">已选择</string>
+    <string name="presentation_batch_g_album_sel_queue_hint">加入队列并播放将严格遵循你的选中顺序。</string>
+    <string name="presentation_batch_g_album_sel_limit">上限：单次最多选择 %1$d 张专辑。</string>
+    <string name="presentation_batch_g_app_name">PixelPlayerOSS</string>
+    <string name="presentation_batch_g_app_tagline">音乐播放器</string>
+    <string name="presentation_batch_g_brick_high">最高分 %1$d</string>
+    <string name="presentation_batch_g_brick_cd_close">关闭</string>
+    <string name="presentation_batch_g_brick_stat_score">分数</string>
+    <string name="presentation_batch_g_brick_stat_lvl">等级 %1$d</string>
+    <string name="presentation_batch_g_brick_stat_lives">生命</string>
+    <string name="presentation_batch_g_brick_level_complete">关卡通关！</string>
+    <string name="presentation_batch_g_brick_game_over">游戏结束</string>
+    <string name="presentation_batch_g_brick_score_line">得分：%1$d</string>
+    <string name="presentation_batch_g_brick_try_again">再来一局？</string>
+    <string name="presentation_batch_g_brick_next_level">下一关</string>
+    <string name="presentation_batch_g_brick_restart">重新开始游戏</string>
+    <string name="presentation_batch_g_brick_tap_relaunch">点击重新启动</string>
+    <string name="presentation_batch_g_brick_play_random">随机播放音乐</string>
+    <string name="presentation_batch_g_brick_title">打砖块</string>
+    <string name="presentation_batch_g_brick_high_score">最高分 %1$d</string>
+    <string name="presentation_batch_g_brick_play">开始游戏</string>
+    <string name="presentation_batch_g_brick_drag_paddle">拖动控制挡板</string>
+    <string name="presentation_batch_g_backup_restore_modules">恢复模块</string>
+    <string name="presentation_batch_g_backup_restoring">正在恢复</string>
+    <string name="presentation_batch_g_backup_restore_selected">恢复选中项</string>
+    <string name="presentation_batch_g_backup_details">备份详情</string>
+    <string name="presentation_batch_g_backup_created">创建时间</string>
+    <string name="presentation_batch_g_backup_app_version">应用版本</string>
+    <string name="presentation_batch_g_backup_schema">数据架构版本</string>
+    <string name="presentation_batch_g_backup_device">设备</string>
+    <string name="presentation_batch_g_backup_unknown">未知</string>
+    <string name="presentation_batch_g_backup_modules_selected">已选择 %1$d / %2$d 个模块</string>
+    <string name="presentation_batch_g_backup_transfer_progress">正在传输数据…</string>
+    <string name="presentation_batch_g_backup_cd_select_all">全选</string>
+    <string name="presentation_batch_g_backup_cd_clear_selection">清空选择</string>
+    <string name="presentation_batch_g_backup_entries_will_replace">%1$d 条数据 · 将会覆盖当前数据</string>
+    <string name="presentation_batch_g_player_cd_cloud_stream">云端播放</string>
+    <string name="presentation_batch_g_player_cd_collapse">收起播放器</string>
+    <string name="presentation_batch_g_player_cd_queue">播放队列</string>
+    <string name="presentation_batch_g_player_cd_lyrics">歌词</string>
+
+    <string name="presentation_batch_g_changelog_sec_initial_release">首次发布</string>
+    <string name="presentation_batch_g_changelog_sec_removed_for_foss">开源版移除内容</string>
+    <string name="presentation_batch_g_changelog_sec_release_readiness">发布准备工作</string>
+    <string name="presentation_batch_g_changelog_sec_security_privacy">安全与隐私</string>
+    <string-array name="presentation_batch_g_changelog_060_whats_new">
+        <item>最近播放记录与持久化队列恢复，保留你的播放会话。</item>
+        <item>内置备份恢复v3与账号管理工具。</item>
+        <item>歌词系统增强，支持手动搜索兜底方案，优化存储逻辑。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_improvements">
+        <item>大幅度优化启动、曲库、队列与播放器交互性能。</item>
+        <item>导航与搜索逻辑更稳定，路由处理更安全。</item>
+        <item>音频播放兼容性提升，适配更多设备与格式。</item>
+        <item>歌曲、专辑、歌单页面多选操作得到扩展。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_fixes">
+        <item>队列与随机播放行为更加稳定可控。</item>
+        <item>修复睡眠定时、文件页导航、专辑艺术家相关崩溃问题。</item>
+        <item>优化小组件加载与服务稳定性，缓解过热、内存异常问题。</item>
+        <item>全应用多处漏洞修复与界面细节打磨。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_highlights">
+        <item>Material3 表现力界面大更新</item>
+        <item>10段均衡器与音效模块</item>
+        <item>全新曲库同步流程</item>
+        <item>M3U歌单导入导出</item>
+        <item>接入Deezer艺术家封面</item>
+        <item>自定义歌单封面</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_improvements">
+        <item>设置模块架构重构</item>
+        <item>队列与播放器动画优化</item>
+        <item>基线配置文件，整体性能提升</item>
+        <item>增强歌词系统，支持歌词时间偏移调节</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_fixes">
+        <item>播放面板稳定性修复</item>
+        <item>通用漏洞修复与界面整理</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_040_highlights">
+        <item>导航界面大规模重新设计</item>
+        <item>全新文件浏览器，自定义扫描目录</item>
+        <item>跨设备无缝接续播放</item>
+        <item>歌曲间无缝衔接播放</item>
+        <item>交叉淡入淡出控制</item>
+        <item>新增自定义转场效果（仅歌单可用）</item>
+        <item>关闭应用后继续后台播放</item>
+        <item>界面性能优化</item>
+        <item>统计模块功能增强</item>
+        <item>重新设计队列控制面板，新增多项功能</item>
+        <item>增强音频格式支持与元数据编辑能力</item>
+        <item>权限控制器优化</item>
+        <item>若干小漏洞修复</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_whats_new">
+        <item>收听统计中心功能扩充，提供更详尽的会话分析。</item>
+        <item>悬浮快速播放器，可直接打开预览本地音频文件。</item>
+        <item>新增文件夹页面，树形目录导航，适配歌单视图。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_improvements">
+        <item>整体Material3界面打磨，布局更整洁统一。</item>
+        <item>元数据编辑支持更换专辑封面。</item>
+        <item>全局动画转场更加顺滑流畅。</item>
+        <item>艺术家页面布局优化，细节更加丰富。</item>
+        <item>每日精选与个性推荐算法升级，曲目选择更加多元。</item>
+        <item>搜索相关性与展示效果优化，查找内容更快。</item>
+        <item>支持更多音频文件格式。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_fixes">
+        <item>修复元数据异常，保证歌曲信息在各处保持准确。</item>
+        <item>修复通知快捷操作，可靠跳转回播放界面。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_added">
+        <item>内置更新日志，随时查看版本新特性。</item>
+        <item>支持内嵌与外部 .LRC 歌词文件。</item>
+        <item>离线歌词支持。</item>
+        <item>时间轴同步歌词。</item>
+        <item>全新完整队列页面。</item>
+        <item>队列歌曲重排序、删除。</item>
+        <item>迷你播放器手势（向下滑动关闭）。</item>
+        <item>更多Material风格动画。</item>
+        <item>新增界面外观自定义设置项。</item>
+        <item>新增清理缓存设置。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_changed">
+        <item>用户界面完整重制。</item>
+        <item>播放器页面完整重制。</item>
+        <item>曲库性能优化。</item>
+        <item>应用启动速度提升。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_fixed">
+        <item>修复标签编辑器各类漏洞。</item>
+        <item>修复播放通知无法清除的问题。</item>
+        <item>修复多项会造成闪退的程序缺陷。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_whats_new">
+        <item>PixelPlayerOSS首个公开开源版本。</item>
+        <item>包含本地播放、歌单、收藏、歌词、收听统计、动态Material3主题、小组件、备份恢复。</item>
+        <item>保留自建Navidrome/Subsonic、Jellyfin服务支持，可选接入LRCLIB歌词与Deezer艺术家封面查询。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_improvements">
+        <item>移除Telegram、网易云、QQ音乐、Google云端、Gemini、投屏、Wear OS、应用商店付费、Firebase、崩溃收集、Google服务框架依赖。</item>
+        <item>移除公共Last.fm、ListenBrainz歌曲打卡；自建Navidrome/Subsonic上报仅限于用户私有服务器。</item>
+        <item>首个开源版本移除内置多语言包与应用内语言切换，优先提供英文资源。</item>
+        <item>去除依赖本地私有签名、虚拟签名值、商店专属条件的发布流程。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_fixes">
+        <item>补充F‑Droid元数据、Fastlane商店信息、隐私说明、安全提示、依赖许可文档、贡献者指引。</item>
+        <item>本地不存在签名密钥时，发布构建保持未签名状态。</item>
+        <item>新增pixelplayer.disableReleaseSigning=true参数，用于可复现的无签名校验构建。</item>
+        <item>整理资源与依赖许可溯源，包含Maven原生二进制包、JitPack依赖。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_added">
+        <item>回环云端播放现在需要会话令牌。</item>
+        <item>备份恢复会跳过由专属模块处理器管理的配置项。</item>
+        <item>正式版日志收紧，避免HTTP请求头与原始Android日志绕过Timber发布过滤。</item>
+        <item>同时新增智能歌单持久化、重复曲目扫描、播放倍速控制、更清晰的播放/同步失败提示，以及无障碍能力改进。</item>
+    </string-array>
+
+    <string name="presentation_batch_g_changelog_sec_whats_new">新增功能</string>
+    <string name="presentation_batch_g_changelog_sec_improvements">优化改进</string>
+    <string name="presentation_batch_g_changelog_sec_under_the_hood">底层改动</string>
+    <string-array name="presentation_batch_g_changelog_v020_whats_new">
+        <item>Material3表现力设计升级：全新动效体系、波浪进度条，全局形状形变动画。</item>
+        <item>允许VPN、局域网环境下使用HTTP协议连接Jellyfin服务器。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_v020_improvements">
+        <item>安装包体积缩小：代码压缩规则优化，安装包减少约1.5MB。</item>
+        <item>启动更快更顺滑：基线配置文件完全重生成，适配新版UI与代码路径。</item>
+        <item>Compose大规模性能优化，列表、弹窗、均衡器响应更加灵敏。</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_v020_under_the_hood">
+        <item>云端播放可靠性提升：快速切歌时，被取消的Navidrome/Jellyfin请求不再误报网络错误。</item>
+        <item>屏幕旋转不会丢失备份、恢复、初始化流程事件。</item>
+        <item>代码清理：删除废弃代码，迁移废弃API，升级第三方依赖。</item>
+    </string-array>
+</resources>

@@ -16,7 +16,6 @@
     <string name="presentation_batch_d_cloud_only">Cloud Only</string>
     <string name="presentation_batch_d_max_albums_selection">You can select up to %1$d albums</string>
     <string name="presentation_batch_d_folder_name_fallback">Folder</string>
-    <string name="presentation_batch_d_expand_tab_menu_cd">Expand menu</string>
     <string name="presentation_batch_d_library_tabs_sheet_title">Library tabs</string>
     <string name="presentation_batch_d_library_tabs_sheet_subtitle">Jump directly to any tab or reorder them.</string>
     <string name="presentation_batch_d_reorder_tabs_label">Reorder tabs</string>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">Назад</string>
+    <string name="auth_connect">Подключить</string>
+    <string name="auth_connecting">Подключение…</string>
+    <string name="auth_connection_details">Данные подключения</string>
+    <string name="auth_connection_details_subtitle">Введите URL сервера и данные учётной записи.</string>
+    <string name="auth_hide_password">Скрыть пароль</string>
+    <string name="auth_jellyfin_connection_subtitle">Введите URL сервера Jellyfin и данные учётной записи.</string>
+    <string name="auth_jellyfin_footer">Подключение к серверам Jellyfin для потокового воспроизведения вашей музыкальной медиатеки</string>
+    <string name="auth_jellyfin_info_card">Подключается к серверам Jellyfin. Для доступа в локальной сети поддерживаются как HTTP, так и HTTPS.</string>
+    <string name="auth_jellyfin_password_hint">Пароль вашей учётной записи Jellyfin.</string>
+    <string name="auth_jellyfin_server_url_hint">Полный URL, включая порт. Локальные адреса, Tailscale, .local и .lan могут использовать HTTP.</string>
+    <string name="auth_jellyfin_subtitle">Подключитесь к своему медиасерверу Jellyfin</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">Имя пользователя вашей учётной записи Jellyfin.</string>
+    <string name="auth_local_network_permission_denied">Разрешите доступ к устройствам поблизости, чтобы подключиться к серверу в локальной сети.</string>
+    <string name="auth_navidrome_footer">Совместимо с Navidrome, Gonic, Airsonic и другими серверами, поддерживающими Subsonic</string>
+    <string name="auth_navidrome_info_card">Поддерживает Navidrome, Airsonic, Gonic, Ampache и другие серверы, совместимые с API Subsonic.</string>
+    <string name="auth_navidrome_password_hint">Пароль приложения также подойдёт, если ваш сервер его поддерживает.</string>
+    <string name="auth_navidrome_server_url_hint">Указывайте полный URL сервера, включая http:// для локальных серверов или https:// для удалённых.</string>
+    <string name="auth_navidrome_subtitle">Подключитесь к своему музыкальному серверу с самостоятельным хостингом</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">Это имя вашей учётной записи Subsonic или Navidrome.</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_password_placeholder">Введите пароль</string>
+    <string name="auth_prefill_http">Вставить http://</string>
+    <string name="auth_select_libraries_confirm">Сохранить и синхронизировать</string>
+    <string name="auth_select_libraries_subtitle">На этом сервере несколько музыкальных библиотек. Выберите, какие синхронизировать — позже это можно изменить на панели управления сервером.</string>
+    <string name="auth_select_libraries_title">Выберите библиотеки для синхронизации</string>
+    <string name="auth_server_url">URL сервера</string>
+    <string name="auth_show_password">Показать пароль</string>
+    <string name="auth_use_http">Использовать HTTP / VPN</string>
+    <string name="auth_username">Имя пользователя</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">Повторить</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+    <string name="toast_welcome_user">Добро пожаловать, %1$s!</string>
+</resources>

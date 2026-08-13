@@ -34,6 +34,9 @@ import androidx.navigation.navArgument
 import com.lostf1sh.pixelplayeross.data.preferences.LaunchTab
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.presentation.screens.AlbumDetailScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarkFolderScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarksScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.CloudDownloadsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.AccountsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ArtistDetailScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ArtistSettingsScreen
@@ -219,7 +222,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.Accounts.route,
+                route = Screen.Accounts.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -239,7 +243,10 @@ fun AppNavigation(
             }
             composable(
                 route = Screen.SettingsCategory.route,
-                arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+                arguments = listOf(
+                    navArgument("categoryId") { type = NavType.StringType },
+                    navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }
+                ),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -247,9 +254,11 @@ fun AppNavigation(
             ) { backStackEntry ->
                 ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
                     val categoryId = backStackEntry.arguments?.getString("categoryId")
+                    val highlightKey = backStackEntry.arguments?.getString("highlightKey")
                     if (categoryId != null) {
                         SettingsCategoryScreen(
                             categoryId = categoryId,
+                            highlightKey = highlightKey,
                             navController = navController,
                             playerViewModel = playerViewModel,
                             onBackClick = { navController.popBackStack() }
@@ -258,7 +267,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.PaletteStyle.route,
+                route = Screen.PaletteStyle.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -272,7 +282,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.Experimental.route,
+                route = Screen.Experimental.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -328,7 +339,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.Duplicates.route,
+                route = Screen.Duplicates.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -436,7 +448,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                "nav_bar_corner_radius",
+                route = Screen.NavBarCrRad.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -491,7 +504,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.ArtistSettings.route,
+                route = Screen.ArtistSettings.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -524,7 +538,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.Equalizer.route,
+                route = Screen.Equalizer.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -538,7 +553,8 @@ fun AppNavigation(
                 }
             }
             composable(
-                Screen.DeviceCapabilities.route,
+                route = Screen.DeviceCapabilities.route,
+                arguments = listOf(navArgument("highlightKey") { type = NavType.StringType; nullable = true; defaultValue = null }),
                 enterTransition = { enterTransition() },
                 exitTransition = { exitTransition() },
                 popEnterTransition = { popEnterTransition() },
@@ -576,6 +592,44 @@ fun AppNavigation(
                         onBack = { navController.popBackStack() }
                     )
                 }
+            }
+            composable(
+                Screen.CloudDownloads.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    CloudDownloadsScreen(onBack = { navController.popBackStack() })
+                }
+            }
+            composable(
+                Screen.AudioBookmarks.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                AudioBookmarksScreen(
+                    navController = navController,
+                    playerViewModel = playerViewModel,
+                    onOpenSidebar = onOpenSidebar
+                )
+            }
+            composable(
+                Screen.AudioBookmarkFolder.route,
+                arguments = listOf(navArgument("songId") { type = NavType.StringType }),
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) { backStackEntry ->
+                AudioBookmarkFolderScreen(
+                    songId = backStackEntry.arguments?.getString("songId").orEmpty(),
+                    navController = navController,
+                    playerViewModel = playerViewModel
+                )
             }
         }
     }

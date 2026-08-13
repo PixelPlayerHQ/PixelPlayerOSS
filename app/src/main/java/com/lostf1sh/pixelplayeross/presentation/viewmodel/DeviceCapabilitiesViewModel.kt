@@ -18,6 +18,9 @@ import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.database.DeviceCapabilitySongRow
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SourceType
+import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
+import com.lostf1sh.pixelplayeross.data.diagnostics.DebugPerformanceReportCollector
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.service.player.ActiveDecoderInfo
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.data.service.player.HiFiCapabilityChecker
@@ -34,6 +37,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import timber.log.Timber
 
 data class CodecInfo(
     val name: String,
@@ -137,7 +141,11 @@ data class DeviceCapabilitiesState(
     val formatSupport: ImmutableList<FormatSupportInfo> = persistentListOf(),
     val memorySummary: MemorySummary? = null,
     val decoderInfo: ActiveDecoderInfo? = null,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val isGeneratingReport: Boolean = false,
+    val advancedDiagnosticsEnabled: Boolean = false,
+    val advancedDiagnosticsExpiresAtEpochMs: Long? = null,
+    val performanceReport: String? = null
 )
 
 private data class AudioFormatCandidate(
@@ -150,14 +158,70 @@ private data class AudioFormatCandidate(
 class DeviceCapabilitiesViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val engine: DualPlayerEngine,
-    private val musicDao: MusicDao
+    private val musicDao: MusicDao,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val reportCollector: DebugPerformanceReportCollector
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DeviceCapabilitiesState())
     val state = _state.asStateFlow()
 
     init {
+        observeAdvancedDiagnostics()
         loadCapabilities()
+    }
+
+    /**
+     * Builds the shareable diagnostic performance report on a background dispatcher
+     * and publishes it to [DeviceCapabilitiesState.performanceReport]. The payload
+     * combines the human-readable text with a machine-readable JSON appendix.
+     */
+    fun generatePerformanceReport() {
+        if (_state.value.isGeneratingReport) return
+        _state.value = _state.value.copy(isGeneratingReport = true)
+        viewModelScope.launch {
+            val text = try {
+                val report = reportCollector.generate()
+                buildString {
+                    append(report.toPlainText())
+                    append("\n\n--- JSON ---\n")
+                    append(report.toJson())
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to generate performance report")
+                "Failed to generate performance report: ${e.message}"
+            }
+            _state.value = _state.value.copy(
+                isGeneratingReport = false,
+                performanceReport = text
+            )
+        }
+    }
+
+    fun setAdvancedPerformanceDiagnosticsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setAdvancedPerformanceDiagnosticsEnabled(enabled)
+        }
+    }
+
+    fun markLagNow() {
+        AdvancedPerformanceDiagnostics.markLagNow(note = "Marked from Device capabilities screen")
+    }
+
+    private fun observeAdvancedDiagnostics() {
+        viewModelScope.launch {
+            userPreferencesRepository.disableExpiredAdvancedPerformanceDiagnostics()
+            userPreferencesRepository.advancedPerformanceDiagnosticsSettingsFlow.collect { settings ->
+                val active = settings.isActive()
+                if (!active && settings.enabled) {
+                    userPreferencesRepository.disableExpiredAdvancedPerformanceDiagnostics()
+                }
+                _state.value = _state.value.copy(
+                    advancedDiagnosticsEnabled = active,
+                    advancedDiagnosticsExpiresAtEpochMs = settings.expiresAtEpochMs.takeIf { active }
+                )
+            }
+        }
     }
 
     private fun loadCapabilities() {
@@ -173,6 +237,7 @@ class DeviceCapabilitiesViewModel @Inject constructor(
                 val memorySummary = getMemorySummary()
                 val decoderInfo = engine.activeDecoderInfo.value
 
+                val current = _state.value
                 DeviceCapabilitiesState(
                     deviceInfo = deviceInfo,
                     audioCapabilities = audioCaps,
@@ -182,6 +247,9 @@ class DeviceCapabilitiesViewModel @Inject constructor(
                     formatSupport = formatSupport.toImmutableList(),
                     memorySummary = memorySummary,
                     decoderInfo = decoderInfo,
+                    advancedDiagnosticsEnabled = current.advancedDiagnosticsEnabled,
+                    advancedDiagnosticsExpiresAtEpochMs = current.advancedDiagnosticsExpiresAtEpochMs,
+                    performanceReport = current.performanceReport,
                     isLoading = false
                 )
             }

@@ -238,4 +238,38 @@
     <string name="setcat_find_duplicates_title">Find duplicate tracks</string>
     <string name="setcat_find_duplicates_subtitle">Scan your library for tracks that appear more than once.</string>
 
+    <string name="cloud_download_action">Download</string>
+    <string name="cloud_download_queued">Queued</string>
+    <string name="cloud_downloading">Downloading…</string>
+    <string name="cloud_download_progress">%1$d%%</string>
+    <string name="cloud_remove_download">Remove download</string>
+    <string name="cloud_download_retry">Retry</string>
+    <string name="cloud_album_download">Download album</string>
+    <string name="cloud_album_remove_downloads">Remove downloads</string>
+    <string name="cloud_downloads_title">Downloads</string>
+    <string name="cloud_downloads_settings_subtitle">Manage offline cloud tracks and storage</string>
+    <string name="cloud_downloads_storage_used">Offline storage used</string>
+    <string name="cloud_downloads_storage_summary">%1$d completed · %2$d total</string>
+    <string name="cloud_downloads_active_section">Queued and downloading</string>
+    <string name="cloud_downloads_failed_section">Failed</string>
+    <string name="cloud_downloads_completed_section">Completed</string>
+    <string name="cloud_downloads_section_count">%1$s · %2$d</string>
+    <string name="cloud_downloads_unknown_track">Unknown track</string>
+    <string name="cloud_downloads_downloaded_size">Downloaded · %1$s</string>
+    <string name="cloud_downloads_failed_fallback">Download failed</string>
+    <string name="cloud_downloads_empty_title">No offline downloads</string>
+    <string name="cloud_downloads_empty_subtitle">Cloud tracks you download will appear here.</string>
+    <string name="cloud_download_selected">Download selected cloud tracks</string>
+    <string name="cloud_download_selected_count">Download %1$d cloud tracks</string>
+    <string name="cloud_download_selected_started">Preparing %1$d cloud tracks for offline playback</string>
+    <string name="musicbrainz_lookup">Find on MusicBrainz</string>
+    <string name="musicbrainz_searching">Searching for recording matches…</string>
+    <string name="musicbrainz_lookup_failed">MusicBrainz lookup failed</string>
+    <string name="musicbrainz_search_failed_fallback">MusicBrainz search failed</string>
+    <string name="musicbrainz_save_failed_fallback">MusicBrainz metadata could not be saved</string>
+    <string name="musicbrainz_choose_match">Choose a MusicBrainz match</string>
+    <string name="musicbrainz_no_results">No suitable recordings were found.</string>
+    <string name="musicbrainz_match_score">Match confidence: %1$d%%</string>
+    <string name="musicbrainz_applied">MusicBrainz identifiers saved. Missing year and placeholder names were enriched.</string>
+
 </resources>

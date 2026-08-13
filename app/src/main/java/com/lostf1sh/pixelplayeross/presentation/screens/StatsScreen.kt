@@ -116,7 +116,9 @@ import com.lostf1sh.pixelplayeross.presentation.screens.TabAnimation
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel
 import com.lostf1sh.pixelplayeross.utils.formatListeningDurationCompact
 import com.lostf1sh.pixelplayeross.utils.formatListeningDurationLong
+import androidx.compose.ui.platform.LocalContext
 import java.util.Locale
+import android.text.format.DateFormat as AndroidDateFormat
 import kotlin.math.roundToInt
 import kotlin.math.PI
 import kotlinx.coroutines.delay
@@ -753,9 +755,10 @@ private fun ListeningHabitsCard(
                     icon = Icons.Outlined.CalendarMonth
                 )
                 summary.peakTimeline?.let { peak ->
+                    val use24Hour = AndroidDateFormat.is24HourFormat(LocalContext.current)
                     HighlightRow(
                         title = stringResource(R.string.presentation_batch_g_stats_habit_peak_timeline_slot),
-                        value = peak.label,
+                        value = formatTimelineLabelForRange(peak.label, summary.range, emDash, use24Hour),
                         supporting = formatListeningDurationCompact(peak.totalDurationMs),
                         icon = Icons.Outlined.AutoGraph
                     )
@@ -1032,6 +1035,7 @@ private fun ListeningTimelineSection(
     val hasTimeline = timeline.isNotEmpty() && timeline.any { it.totalDurationMs > 0L || it.playCount > 0 }
     val sectionTitleStyle = rememberStatsSectionTitleStyle()
     val emDash = stringResource(R.string.presentation_batch_g_stats_em_dash)
+    val use24Hour = AndroidDateFormat.is24HourFormat(LocalContext.current)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -1141,7 +1145,8 @@ private fun ListeningTimelineSection(
                         entries = timeline,
                         metric = selectedMetric,
                         range = range,
-                        blankLabel = emDash
+                        blankLabel = emDash,
+                        use24Hour = use24Hour
                     )
                 }
             }
@@ -1149,7 +1154,7 @@ private fun ListeningTimelineSection(
             summary?.peakTimeline?.let { peak ->
                 HighlightRow(
                     title = stringResource(R.string.presentation_batch_g_stats_peak_segment),
-                    value = formatTimelineLabelForRange(peak.label, range, emDash),
+                    value = formatTimelineLabelForRange(peak.label, range, emDash, use24Hour),
                     supporting = when (selectedMetric) {
                         TimelineMetric.ListeningTime -> formatListeningDurationCompact(peak.totalDurationMs)
                         TimelineMetric.PlayCount -> stringResource(R.string.presentation_batch_g_stats_n_plays, peak.playCount)
@@ -1454,6 +1459,7 @@ private fun TimelineBarChart(
     metric: TimelineMetric,
     range: StatsTimeRange,
     blankLabel: String,
+    use24Hour: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     if (entries.isEmpty()) return
@@ -1466,6 +1472,7 @@ private fun TimelineBarChart(
             range = range,
             spec = spec,
             blankLabel = blankLabel,
+            use24Hour = use24Hour,
             modifier = modifier
         )
 
@@ -1475,6 +1482,7 @@ private fun TimelineBarChart(
             range = range,
             spec = spec,
             blankLabel = blankLabel,
+            use24Hour = use24Hour,
             modifier = modifier
         )
     }
@@ -1487,6 +1495,7 @@ private fun VerticalTimelineBarChart(
     range: StatsTimeRange,
     spec: TimelineChartSpec,
     blankLabel: String,
+    use24Hour: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val maxMetricValue = entries.maxOfOrNull { metric.extractValue(it) }?.coerceAtLeast(0.0) ?: 0.0
@@ -1533,7 +1542,7 @@ private fun VerticalTimelineBarChart(
                         val value = metric.extractValue(entry).coerceAtLeast(0.0)
                         val progress = if (maxMetricValue > 0.0) (value / maxMetricValue).toFloat().coerceIn(0f, 1f) else 0f
                         val isPeak = hasNonZeroValues && (maxMetricValue - value) <= maxMetricValue * 0.01
-                        val label = formatTimelineLabelForRange(entry.label, range, blankLabel)
+                        val label = formatTimelineLabelForRange(entry.label, range, blankLabel, use24Hour)
 
                         Column(
                             modifier = Modifier.width(itemWidth),
@@ -1586,6 +1595,7 @@ private fun HorizontalTimelineBarChart(
     range: StatsTimeRange,
     spec: TimelineChartSpec,
     blankLabel: String,
+    use24Hour: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val maxMetricValue = entries.maxOfOrNull { metric.extractValue(it) }?.coerceAtLeast(0.0) ?: 0.0
@@ -1609,7 +1619,7 @@ private fun HorizontalTimelineBarChart(
             val value = metric.extractValue(entry).coerceAtLeast(0.0)
             val progress = if (maxMetricValue > 0.0) (value / maxMetricValue).toFloat().coerceIn(0f, 1f) else 0f
             val isPeak = hasNonZeroValues && (maxMetricValue - value) <= maxMetricValue * 0.01
-            val label = formatTimelineLabelForRange(entry.label, range, blankLabel)
+            val label = formatTimelineLabelForRange(entry.label, range, blankLabel, use24Hour)
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1680,23 +1690,76 @@ private fun timelineSupportingCopy(
 private fun formatTimelineLabelForRange(
     rawLabel: String,
     range: StatsTimeRange,
-    blankLabel: String
+    blankLabel: String,
+    use24Hour: Boolean = false
 ): String {
     val label = rawLabel.trim()
     if (label.isBlank()) return blankLabel
     return when (range) {
-        StatsTimeRange.DAY -> {
-            val match = Regex("(?i)^(\\d{1,2})(am|pm)$").matchEntire(label)
-            if (match != null) {
-                "${match.groupValues[1]} ${match.groupValues[2].uppercase(Locale.US)}"
-            } else {
-                label
-            }
-        }
-
+        StatsTimeRange.DAY -> convertHourLabel(label, use24Hour)
         StatsTimeRange.YEAR -> monthThreeLetters(label, blankLabel)
         else -> label
     }
+}
+
+/**
+ * Converts any recognisable hour label to the correct display format.
+ *
+ * Handles:
+ *   "7 AM", "7AM", "7 am", "7am"
+ *   "7 PM", "7PM", "7 pm", "7pm"
+ *   "7:00 AM", "7:00AM", "7:00 am", "7:00am"  (and PM variants)
+ *   "07:00", "19:00"  (already 24h — returned as-is when use24Hour=true,
+ *                      converted to 12h when use24Hour=false)
+ *
+ * If nothing matches the original trimmed label is returned unchanged.
+ */
+private fun convertHourLabel(label: String, use24Hour: Boolean): String {
+    // --- attempt 1: "H am/pm" or "H:MM am/pm" ---
+    val amPmMatch = Regex("(?i)^(\\d{1,2})(?::(\\d{2}))?\\s*(am|pm)$").matchEntire(label)
+    if (amPmMatch != null) {
+        val hour12 = amPmMatch.groupValues[1].toIntOrNull() ?: return label
+        val isPm = amPmMatch.groupValues[3].equals("pm", ignoreCase = true)
+        val hour24 = when {
+            isPm && hour12 != 12 -> hour12 + 12
+            !isPm && hour12 == 12 -> 0
+            else -> hour12
+        }
+        return if (use24Hour) {
+            String.format(Locale.getDefault(), "%02d:00", hour24)
+        } else {
+            val time = java.time.LocalTime.of(hour24, 0)
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("h a", Locale.getDefault())
+            time.format(formatter)
+        }
+    }
+
+    // --- attempt 2: already "HH:MM" 24h format ---
+    val h24Match = Regex("^(\\d{1,2}):(\\d{2})$").matchEntire(label)
+    if (h24Match != null) {
+        val hour24 = h24Match.groupValues[1].toIntOrNull() ?: return label
+        return if (use24Hour) {
+            String.format(Locale.getDefault(), "%02d:00", hour24)
+        } else {
+            val time = java.time.LocalTime.of(hour24, 0)
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("h a", Locale.getDefault())
+            time.format(formatter)
+        }
+    }
+
+    // --- attempt 3: bare integer hour, e.g. "7" or "19" ---
+    val bareHour = label.toIntOrNull()
+    if (bareHour != null && bareHour in 0..23) {
+        return if (use24Hour) {
+            String.format(Locale.getDefault(), "%02d:00", bareHour)
+        } else {
+            val time = java.time.LocalTime.of(bareHour, 0)
+            val formatter = java.time.format.DateTimeFormatter.ofPattern("h a", Locale.getDefault())
+            time.format(formatter)
+        }
+    }
+
+    return label
 }
 
 private fun monthThreeLetters(label: String, blankLabel: String): String {

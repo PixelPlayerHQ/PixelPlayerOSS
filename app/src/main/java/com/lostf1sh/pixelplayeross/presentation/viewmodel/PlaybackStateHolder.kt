@@ -633,12 +633,15 @@ class PlaybackStateHolder @Inject constructor(
         )
     }
 
+    // Operates on the passed player (the MediaController), never on the engine's master
+    // player directly: mutating the master player behind the session's back desyncs the
+    // MediaController's timeline snapshot, the notification and the widget queue preview.
     private fun replacePlayerQueuePreservingCurrent(
+        player: Player,
         currentIndex: Int,
         preparedSegments: PreparedQueueSegments
     ): Boolean {
-        val masterPlayer = dualPlayerEngine.masterPlayer
-        val mediaItemCount = masterPlayer.mediaItemCount
+        val mediaItemCount = player.mediaItemCount
         if (currentIndex !in 0 until mediaItemCount) {
             return false
         }
@@ -652,10 +655,10 @@ class PlaybackStateHolder @Inject constructor(
         }
 
         if (currentIndex > 0) {
-            masterPlayer.replaceMediaItems(0, currentIndex, preparedSegments.beforeCurrent)
+            player.replaceMediaItems(0, currentIndex, preparedSegments.beforeCurrent)
         }
-        masterPlayer.replaceMediaItems(afterStartIndex, mediaItemCount, preparedSegments.afterCurrent)
-        return masterPlayer.currentMediaItemIndex == currentIndex
+        player.replaceMediaItems(afterStartIndex, mediaItemCount, preparedSegments.afterCurrent)
+        return player.currentMediaItemIndex == currentIndex
     }
 
     private fun replacePlayerQueue(
@@ -664,18 +667,17 @@ class PlaybackStateHolder @Inject constructor(
         currentPosition: Long
     ) {
         val shouldResumePlayback = player.playWhenReady || player.isPlaying
-        val masterPlayer = dualPlayerEngine.masterPlayer
 
-        masterPlayer.setMediaItems(
+        player.setMediaItems(
             preparedQueue.mediaItems,
             preparedQueue.targetIndex,
             currentPosition
         )
 
         if (shouldResumePlayback) {
-            masterPlayer.playWhenReady = true
-            if (!masterPlayer.isPlaying) {
-                masterPlayer.play()
+            player.playWhenReady = true
+            if (!player.isPlaying) {
+                player.play()
             }
         }
     }
@@ -729,7 +731,7 @@ class PlaybackStateHolder @Inject constructor(
                                 currentMediaItem = currentMediaItem
                             )
                             val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                replacePlayerQueuePreservingCurrent(currentIndex, preparedSegments)
+                                replacePlayerQueuePreservingCurrent(player, currentIndex, preparedSegments)
                             } == true
 
                             if (!replacedInPlace) {
@@ -749,7 +751,7 @@ class PlaybackStateHolder @Inject constructor(
                                     currentMediaItem = currentMediaItem
                                 )
                                 val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                    replacePlayerQueuePreservingCurrent(currentIndex, preparedSegments)
+                                    replacePlayerQueuePreservingCurrent(player, currentIndex, preparedSegments)
                                 } == true
 
                                 if (!replacedInPlace) {
@@ -805,7 +807,7 @@ class PlaybackStateHolder @Inject constructor(
                                 currentMediaItem = currentMediaItem
                             )
                             val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                replacePlayerQueuePreservingCurrent(originalIndex, preparedSegments)
+                                replacePlayerQueuePreservingCurrent(player, originalIndex, preparedSegments)
                             } == true
 
                             if (!replacedInPlace) {
@@ -825,7 +827,7 @@ class PlaybackStateHolder @Inject constructor(
                                     currentMediaItem = currentMediaItem
                                 )
                                 val replacedInPlace = preservedReplacement?.let { preparedSegments ->
-                                    replacePlayerQueuePreservingCurrent(originalIndex, preparedSegments)
+                                    replacePlayerQueuePreservingCurrent(player, originalIndex, preparedSegments)
                                 } == true
 
                                 if (!replacedInPlace) {

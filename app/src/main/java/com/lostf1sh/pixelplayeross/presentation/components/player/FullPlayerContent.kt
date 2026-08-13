@@ -100,7 +100,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.Cloud
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.AudioBookmarksViewModel
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.runtime.derivedStateOf
@@ -232,6 +236,8 @@ fun FullPlayerContent(
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     var showLyricsSheet by remember { mutableStateOf(false) }
     var showArtistPicker by rememberSaveable { mutableStateOf(false) }
+    var showSaveBookmarkDialog by rememberSaveable { mutableStateOf(false) }
+    val bookmarksViewModel: AudioBookmarksViewModel = hiltViewModel()
     
     val lyricsSearchUiState by playerViewModel.lyricsSearchUiState.collectAsStateWithLifecycle()
 
@@ -347,6 +353,30 @@ fun FullPlayerContent(
                 onImport = {
                     filePickerLauncher.launch(com.lostf1sh.pixelplayeross.utils.LyricsImportSecurity.pickerMimeTypes())
                 }
+            )
+        }
+    }
+
+    if (showSaveBookmarkDialog) {
+        val bookmarkProgressMs = remember(showSaveBookmarkDialog) { currentPositionProvider() }
+        val lyricBookmarkTitle = resolveLyricBookmarkTitle(
+            lyrics = lyricsProvider(),
+            timestampMs = bookmarkProgressMs,
+            lyricsSyncOffsetMs = lyricsSyncOffset
+        )
+        MaterialTheme(
+            colorScheme = LocalMaterialTheme.current,
+            typography = MaterialTheme.typography,
+            shapes = MaterialTheme.shapes
+        ) {
+            AddBookmarkDialog(
+                currentProgressMs = bookmarkProgressMs,
+                lyricTitle = lyricBookmarkTitle,
+                onSave = { title ->
+                    bookmarksViewModel.addBookmark(song, title, bookmarkProgressMs)
+                    showSaveBookmarkDialog = false
+                },
+                onDismiss = { showSaveBookmarkDialog = false }
             )
         }
     }
@@ -725,6 +755,20 @@ fun FullPlayerContent(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .clip(CircleShape)
+                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .clickable { showSaveBookmarkDialog = true },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Bookmark,
+                                    contentDescription = stringResource(R.string.audio_bookmarks_cd_add),
+                                    tint = playerAccentColor
+                                )
+                            }
                             Box(
                                 modifier = Modifier
                                     .size(42.dp)

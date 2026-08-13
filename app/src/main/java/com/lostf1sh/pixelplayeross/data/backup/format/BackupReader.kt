@@ -36,6 +36,7 @@ class BackupReader @Inject constructor(
             val format = detectFormatInternal(uri)
 
             when (format) {
+                BackupFormatDetector.Format.PXPL_V4_ENCRYPTED -> throw BackupEncryptedException()
                 BackupFormatDetector.Format.PXPL_V3_ZIP -> {
                     readManifestFromZip(uri)
                 }
@@ -61,6 +62,7 @@ class BackupReader @Inject constructor(
             val format = detectFormatInternal(uri)
 
             when (format) {
+                BackupFormatDetector.Format.PXPL_V4_ENCRYPTED -> throw BackupEncryptedException()
                 BackupFormatDetector.Format.PXPL_V3_ZIP -> {
                     readEntryFromZip(uri, "$moduleKey.json", MAX_MODULE_PAYLOAD_BYTES)
                         ?: throw IllegalArgumentException("Module '$moduleKey' not found in backup")
@@ -88,6 +90,7 @@ class BackupReader @Inject constructor(
             val format = detectFormatInternal(uri)
 
             when (format) {
+                BackupFormatDetector.Format.PXPL_V4_ENCRYPTED -> throw BackupEncryptedException()
                 BackupFormatDetector.Format.PXPL_V3_ZIP -> {
                     readAllEntriesFromZip(uri, MAX_MODULE_PAYLOAD_BYTES)
                 }

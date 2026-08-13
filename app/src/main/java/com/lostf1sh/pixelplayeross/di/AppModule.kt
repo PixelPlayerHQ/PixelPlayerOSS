@@ -23,9 +23,13 @@ import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.LyricsDao
 import com.lostf1sh.pixelplayeross.data.database.LocalPlaylistDao
 import com.lostf1sh.pixelplayeross.data.database.ListenBrainzDao
+import com.lostf1sh.pixelplayeross.data.database.AudioBookmarkDao
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_1_2
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_2_3
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_3_4
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_4_5
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.TransitionDao
@@ -36,6 +40,8 @@ import com.lostf1sh.pixelplayeross.data.media.SongMetadataEditor
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibApiService
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepository
+import com.lostf1sh.pixelplayeross.data.repository.AudioBookmarkRepositoryImpl
 import com.lostf1sh.pixelplayeross.data.repository.LyricsRepository
 import com.lostf1sh.pixelplayeross.data.repository.LyricsRepositoryImpl
 import com.lostf1sh.pixelplayeross.data.repository.MediaStoreSongRepository
@@ -126,7 +132,7 @@ object AppModule {
             "pixelplayer_database"
         )
             .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
 
         if (BuildConfig.DEBUG) {
@@ -200,6 +206,18 @@ object AppModule {
     @Provides
     fun provideListenBrainzDao(database: PixelPlayerDatabase): ListenBrainzDao {
         return database.listenBrainzDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideAudioBookmarkDao(database: PixelPlayerDatabase): AudioBookmarkDao {
+        return database.audioBookmarkDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideOfflineTrackDao(database: PixelPlayerDatabase): OfflineTrackDao {
+        return database.offlineTrackDao()
     }
 
     @Provides
@@ -306,6 +324,14 @@ object AppModule {
         return transitionRepositoryImpl
     }
 
+    @Provides
+    @Singleton
+    fun provideAudioBookmarkRepository(
+        audioBookmarkRepositoryImpl: AudioBookmarkRepositoryImpl
+    ): AudioBookmarkRepository {
+        return audioBookmarkRepositoryImpl
+    }
+
     @Singleton
     @Provides
     fun provideSongMetadataEditor(
@@ -375,6 +401,13 @@ object AppModule {
             } else {
                 HttpLoggingInterceptor.Level.NONE
             }
+            redactHeader("Authorization")
+            redactHeader("Proxy-Authorization")
+            redactHeader("Cookie")
+            redactHeader("Set-Cookie")
+            redactHeader("X-Emby-Token")
+            redactHeader("X-Emby-Authorization")
+            redactHeader("X-MediaBrowser-Token")
         }
         
         val connectionPool = okhttp3.ConnectionPool(

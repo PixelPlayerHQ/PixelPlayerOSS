@@ -12,6 +12,7 @@ import android.util.LruCache
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes as Media3AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.Format
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
@@ -36,6 +37,7 @@ import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.extractor.flac.FlacExtractor
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.utils.envelope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -47,8 +49,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -168,7 +172,8 @@ internal fun shouldDisableAudioOffloadOnEarlyBuffering(
 class DualPlayerEngine @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val navidromeStreamProxy: NavidromeStreamProxy,
-    private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy
+    private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy,
+    private val cloudOfflineRepository: CloudOfflineRepository
 ) {
     private companion object {
         private const val AUDIO_OFFLOAD_STALL_FALLBACK_MS = 4_000L
@@ -217,6 +222,41 @@ class DualPlayerEngine @Inject constructor(
 
     private val _activeDecoderInfo = MutableStateFlow<ActiveDecoderInfo?>(null)
     val activeDecoderInfo: StateFlow<ActiveDecoderInfo?> = _activeDecoderInfo.asStateFlow()
+
+    /**
+     * Whether ExoPlayer audio offload is currently enabled for this session. Exposed
+     * read-only for the diagnostic performance report.
+     */
+    val isAudioOffloadEnabled: Boolean
+        get() = audioOffloadEnabled
+
+    /** Lightweight, allocation-cheap snapshot of the live audio format, for diagnostics. */
+    data class AudioFormatSnapshot(
+        val sampleMimeType: String?,
+        val sampleRate: Int,
+        val channelCount: Int,
+        val pcmEncoding: Int,
+        val bitrate: Int
+    )
+
+    /** Returns the current master-player audio format, or null when nothing is decoding. */
+    fun currentAudioFormatSnapshot(): AudioFormatSnapshot? {
+        if (!::playerA.isInitialized) return null
+        val format = playerA.audioFormat ?: return null
+        fun Int.orZero() = if (this == Format.NO_VALUE) 0 else this
+        val bitrate = when {
+            format.averageBitrate != Format.NO_VALUE -> format.averageBitrate
+            format.peakBitrate != Format.NO_VALUE -> format.peakBitrate
+            else -> 0
+        }
+        return AudioFormatSnapshot(
+            sampleMimeType = format.sampleMimeType,
+            sampleRate = format.sampleRate.orZero(),
+            channelCount = format.channelCount.orZero(),
+            pcmEncoding = format.pcmEncoding.orZero(),
+            bitrate = bitrate
+        )
+    }
 
     private var sharedAudioSessionId: Int = C.AUDIO_SESSION_ID_UNSET
 
@@ -867,6 +907,15 @@ class DualPlayerEngine @Inject constructor(
                 val scheme = uri.scheme
                 if (scheme in CLOUD_PROXY_SCHEMES) {
                     val originalUri = uri.toString()
+                    val offlineUri = try {
+                        runBlocking { cloudOfflineRepository.resolveLocalUri(originalUri) }
+                    } catch (e: Exception) {
+                        Timber.tag("DualPlayerEngine").w(e, "Offline copy lookup failed")
+                        null
+                    }
+                    if (offlineUri != null) {
+                        return dataSpec.buildUpon().setUri(offlineUri).build()
+                    }
                     val resolved = resolvedUriCache.get(originalUri)
                         ?: resolveReadyCloudProxyUri(uri)?.also { proxyUri ->
                             resolvedUriCache.put(originalUri, proxyUri)
@@ -874,7 +923,27 @@ class DualPlayerEngine @Inject constructor(
                     if (resolved != null) {
                         return dataSpec.buildUpon().setUri(resolved).build()
                     }
-                    Timber.tag("DualPlayerEngine").d("resolveDataSpec: Cache MISS for %s — using original URI", scheme)
+                    // Cache miss: resolve inline. resolveDataSpec runs on ExoPlayer's
+                    // loading thread, where blocking I/O is allowed. This makes cloud
+                    // playback independent of whether the dispatch path pre-resolved
+                    // the URI — seeks into unresolved queue items, add-to-queue,
+                    // controller-driven playback and restored queues would otherwise
+                    // hand a raw cloud scheme to DefaultDataSource and surface a
+                    // "Source error" toast.
+                    Timber.tag("DualPlayerEngine").d("resolveDataSpec: cache miss for %s — resolving inline", scheme)
+                    val inlineResolved = try {
+                        runBlocking { resolveCloudUri(uri) }
+                    } catch (e: Exception) {
+                        // Keep loader failures on the IOException path: ExoPlayer treats
+                        // unexpected RuntimeExceptions from a DataSource as fatal.
+                        throw IOException("Failed to resolve $scheme stream", e)
+                    }
+                    if (inlineResolved != uri) {
+                        return dataSpec.buildUpon().setUri(inlineResolved).build()
+                    }
+                    // No proxy can serve a raw cloud scheme; fail with a clear cause
+                    // instead of letting DefaultDataSource report an opaque scheme error.
+                    throw IOException("Could not resolve $scheme stream (offline or provider unavailable)")
                 }
                 return dataSpec
             }
@@ -894,6 +963,10 @@ class DualPlayerEngine @Inject constructor(
             .build().apply {
             sharedAudioSessionIdOrNull()?.let { setAudioSessionId(it) }
             setAudioAttributes(audioAttributes, false)
+            // Gapless support is required, not optional: on a HAL that only advertises plain
+            // offload, the data written ahead for the next item is dropped at the automatic
+            // transition and the track starts seconds in. Devices without gapless offload fall
+            // back to the regular PCM path instead.
             val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
                 .setAudioOffloadMode(
                     if (audioOffloadEnabled) {
@@ -902,6 +975,7 @@ class DualPlayerEngine @Inject constructor(
                         TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
                     }
                 )
+                .setIsGaplessSupportRequired(true)
                 .build()
             trackSelectionParameters = trackSelectionParameters.buildUpon()
                 .setAudioOffloadPreferences(offloadPreferences)

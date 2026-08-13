@@ -21,6 +21,7 @@ import com.lostf1sh.pixelplayeross.data.database.SongArtistCrossRef
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SourceType
 import com.lostf1sh.pixelplayeross.data.database.serializeArtistRefs
+import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
 import com.lostf1sh.pixelplayeross.data.media.AudioMetadataReader
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -117,6 +118,16 @@ constructor(
                     Timber.tag(TAG)
                         .i("Starting MediaStore synchronization (Mode: $syncMode, ForceMetadata: $requestedForceMetadata)...")
                     val startTime = System.currentTimeMillis()
+                    AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                        type = AdvancedPerformanceDiagnostics.EventTypes.WORKER,
+                        name = "sync_worker_start"
+                    ) {
+                        mapOf(
+                            "mode" to syncMode.name,
+                            "forceMetadata" to requestedForceMetadata.toString(),
+                            "attempt" to runAttemptCount.toString()
+                        )
+                    }
 
                     val artistDelimiters = userPreferencesRepository.artistDelimitersFlow.first()
                     val artistWordDelimiters = userPreferencesRepository.artistWordDelimitersFlow.first()
@@ -314,6 +325,16 @@ constructor(
                     val totalSongs = musicDao.getSongCount().first()
                     if (!syncPlan.runMaintenance) {
                         Timber.tag(TAG).d("Skipping library maintenance phases for local-only sync.")
+                        AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                            type = AdvancedPerformanceDiagnostics.EventTypes.WORKER,
+                            name = "sync_worker_success"
+                        ) {
+                            mapOf(
+                                "mode" to syncMode.name,
+                                "durationMs" to (System.currentTimeMillis() - startTime).toString(),
+                                "totalSongs" to totalSongs.toString()
+                            )
+                        }
                         return@withContext Result.success(
                             workDataOf(OUTPUT_TOTAL_SONGS to totalSongs)
                         )
@@ -397,9 +418,25 @@ constructor(
 
                     val finalTotalSongs = musicDao.getSongCount().first()
 
+                    AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                        type = AdvancedPerformanceDiagnostics.EventTypes.WORKER,
+                        name = "sync_worker_success"
+                    ) {
+                        mapOf(
+                            "mode" to syncMode.name,
+                            "durationMs" to (System.currentTimeMillis() - startTime).toString(),
+                            "totalSongs" to finalTotalSongs.toString()
+                        )
+                    }
                     Result.success(workDataOf(OUTPUT_TOTAL_SONGS to finalTotalSongs))
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error during MediaStore synchronization")
+                    AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                        type = AdvancedPerformanceDiagnostics.EventTypes.WORKER,
+                        name = "sync_worker_failure"
+                    ) {
+                        mapOf("error" to (e.message ?: e.javaClass.simpleName))
+                    }
                     Result.failure()
                 }
             }
@@ -981,10 +1018,12 @@ constructor(
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, raw.id)
                         .toString()
 
+        // Scan-time artwork resolution is intentionally lightweight: it never extracts
+        // embedded art (that can allocate a multi-MB ByteArray per song). The stable lazy
+        // URI is stored and the image-loading path extracts/caches artwork on demand.
         var albumArtUriString =
-                AlbumArtUtils.getAlbumArtUri(
+                AlbumArtUtils.getAlbumArtUriForLibraryScan(
                         applicationContext,
-                        raw.filePath,
                         raw.id,
                         forceAlbumArtRefresh
                 )
@@ -1017,7 +1056,7 @@ constructor(
             val file = java.io.File(raw.filePath)
             if (file.exists()) {
                 try {
-                    AudioMetadataReader.read(file)?.let { meta ->
+                    AudioMetadataReader.read(file, readArtwork = false)?.let { meta ->
                         if (!meta.title.isNullOrBlank()) title = meta.title
                         if (!meta.artist.isNullOrBlank()) artist = meta.artist
                         if (!meta.album.isNullOrBlank()) album = meta.album
@@ -1029,10 +1068,6 @@ constructor(
                         if (meta.trackNumber != null) trackNumber = meta.trackNumber
                         if (meta.discNumber != null) discNumber = meta.discNumber
                         if (meta.year != null) year = meta.year
-
-                        meta.artwork?.let { art ->
-                            albumArtUriString = LocalArtworkUri.buildSongUri(raw.id)
-                        }
                     }
                 } catch (e: Exception) {
                     Timber.tag(TAG).w(e, "Failed to read metadata via TagLib for ${raw.filePath}")

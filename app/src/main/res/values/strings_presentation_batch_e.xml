@@ -43,6 +43,19 @@
     <string name="presentation_batch_e_create_playlist_subtitle">Choose the creation flow.</string>
     <string name="presentation_batch_e_creation_mode_manual">Manual</string>
     <string name="presentation_batch_e_creation_mode_manual_subtitle">Design artwork, icon, shape and pick songs yourself.</string>
+    <string name="presentation_batch_e_creation_mode_describe">Describe it</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Type what you want to hear and let the app pick the songs, fully offline.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Describe your playlist</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Matched against your library on this device — nothing leaves it.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">e.g. songs to lift weights to</string>
+    <string name="presentation_batch_e_describe_generate">Generate</string>
+    <string name="presentation_batch_e_describe_regenerate">Regenerate</string>
+    <string name="presentation_batch_e_describe_no_matches">No songs in your library match that description.</string>
+    <string name="presentation_batch_e_describe_save">Save playlist</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">%d song matched</item>
+        <item quantity="other">%d songs matched</item>
+    </plurals>
 
     <string name="presentation_batch_e_reset_presets_title">Reset presets</string>
     <string name="presentation_batch_e_reset_presets_message">This will restore the default preset order and visibility. Continue?</string>

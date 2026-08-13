@@ -26,6 +26,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ExternalPlayerActivity : ComponentActivity() {
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.lostf1sh.pixelplayeross.utils.AppLocaleManager.wrapContext(newBase))
+    }
+
     private val playerViewModel: PlayerViewModel by viewModels()
     @Inject
     lateinit var themePreferencesRepository: ThemePreferencesRepository

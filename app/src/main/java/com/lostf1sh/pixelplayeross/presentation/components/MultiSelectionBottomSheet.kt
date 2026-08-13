@@ -29,6 +29,7 @@ import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
@@ -82,6 +84,7 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
  * @param onAddToPlaylist Open playlist picker for batch add
  * @param onToggleLikeAll Toggle like status - if all are liked, unlike all; otherwise like all
  * @param onShareAll Share all as ZIP file
+ * @param onDownloadAll Download selected cloud songs for offline playback
  * @param onDeleteAll Delete all from device (with confirmation)
  */
 import androidx.compose.ui.platform.LocalContext
@@ -103,11 +106,15 @@ fun MultiSelectionBottomSheet(
     onAddToPlaylist: () -> Unit,
     onToggleLikeAll: (shouldLike: Boolean) -> Unit,
     onShareAll: () -> Unit,
+    onDownloadAll: () -> Unit,
     onDeleteAll: (activity: Activity, onResult: (Boolean) -> Unit) -> Unit,
     onBatchEdit: () -> Unit
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalSheetState(skipPartiallyExpanded = true)
+    val cloudSongCount = remember(selectedSongs) {
+        selectedSongs.count(CloudOfflineRepository::isCloudSong)
+    }
     
     val allAreLiked by remember(selectedSongs, favoriteSongIds) {
         derivedStateOf {
@@ -307,6 +314,37 @@ fun MultiSelectionBottomSheet(
                                     modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize),
                                     imageVector = Icons.Rounded.Share,
                                     contentDescription = stringResource(R.string.cd_share_all_as_zip)
+                                )
+                            }
+                        }
+                    }
+
+                    if (cloudSongCount > 0) {
+                        item {
+                            FilledTonalButton(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = 66.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                ),
+                                shape = CircleShape,
+                                onClick = {
+                                    onDownloadAll()
+                                    onDismiss()
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Rounded.CloudDownload,
+                                    contentDescription = stringResource(R.string.cloud_download_selected)
+                                )
+                                Spacer(Modifier.width(10.dp))
+                                Text(
+                                    stringResource(
+                                        R.string.cloud_download_selected_count,
+                                        cloudSongCount
+                                    )
                                 )
                             }
                         }

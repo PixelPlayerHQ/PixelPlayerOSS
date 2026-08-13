@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">Tilbake</string>
+    <string name="auth_connect">Koble til</string>
+    <string name="auth_connecting">Kobler til…</string>
+    <string name="auth_connection_details">Tilkoblingsdetaljer</string>
+    <string name="auth_connection_details_subtitle">Skriv inn server-URL og kontoinformasjon.</string>
+    <string name="auth_hide_password">Skjul passord</string>
+    <string name="auth_jellyfin_connection_subtitle">Skriv inn Jellyfin-server-URL og kontoinformasjon.</string>
+    <string name="auth_jellyfin_footer">Kobler til Jellyfin-servere for strømming av musikkbiblioteket ditt</string>
+    <string name="auth_jellyfin_info_card">Kobler til Jellyfin-servere. Både HTTP og HTTPS støttes for tilgang i lokalt nettverk.</string>
+    <string name="auth_jellyfin_password_hint">Passordet til Jellyfin-kontoen din.</string>
+    <string name="auth_jellyfin_server_url_hint">Full URL inkludert port. Lokale adresser, Tailscale, .local og .lan kan bruke HTTP.</string>
+    <string name="auth_jellyfin_subtitle">Koble til Jellyfin-medieserveren din</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">Brukernavnet til Jellyfin-kontoen din.</string>
+    <string name="auth_local_network_permission_denied">Gi tilgang til enheter i nærheten for å koble til en server i det lokale nettverket ditt.</string>
+    <string name="auth_navidrome_footer">Kompatibel med Navidrome, Gonic, Airsonic og andre Subsonic-kompatible servere</string>
+    <string name="auth_navidrome_info_card">Støtter Navidrome, Airsonic, Gonic, Ampache og andre servere kompatible med Subsonic API.</string>
+    <string name="auth_navidrome_password_hint">App-passord fungerer også hvis serveren din støtter det.</string>
+    <string name="auth_navidrome_server_url_hint">Bruk hele server-URL-en, med http:// for lokale servere eller https:// for eksterne servere.</string>
+    <string name="auth_navidrome_subtitle">Koble til din selvhostede musikkserver</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">Dette er ditt Subsonic- eller Navidrome-kontonavn.</string>
+    <string name="auth_password">Passord</string>
+    <string name="auth_password_placeholder">Skriv inn passord</string>
+    <string name="auth_prefill_http">Forhåndsutfyll http://</string>
+    <string name="auth_select_libraries_confirm">Lagre og synkroniser</string>
+    <string name="auth_select_libraries_subtitle">Denne serveren har mer enn ett musikkbibliotek. Velg hvilke som skal synkroniseres – du kan endre dette senere fra serveroversikten.</string>
+    <string name="auth_select_libraries_title">Velg bibliotek som skal synkroniseres</string>
+    <string name="auth_server_url">Server-URL</string>
+    <string name="auth_show_password">Vis passord</string>
+    <string name="auth_use_http">Bruk HTTP / VPN</string>
+    <string name="auth_username">Brukernavn</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">Prøv igjen</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+    <string name="toast_welcome_user">Velkommen, %1$s!</string>
+</resources>

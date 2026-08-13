@@ -24,7 +24,8 @@ class BackupWriter @Inject constructor(
         uri: Uri,
         manifest: BackupManifest,
         modulePayloads: Map<String, String>,
-        onProgress: (current: Int, total: Int) -> Unit = { _, _ -> }
+        onProgress: (current: Int, total: Int) -> Unit = { _, _ -> },
+        passphrase: String? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val totalSteps = modulePayloads.size + 1
@@ -49,7 +50,15 @@ class BackupWriter @Inject constructor(
             context.contentResolver.openOutputStream(uri)?.use { rawOutput ->
                 rawOutput.write(BackupFormatDetector.PXPL_MAGIC)
 
-                ZipOutputStream(rawOutput).use { zip ->
+                // With a passphrase, everything after the magic is the
+                // encrypted container (header + AES-GCM ciphertext of the ZIP).
+                val archiveOutput = if (passphrase != null) {
+                    BackupCrypto.encryptingStream(rawOutput, passphrase)
+                } else {
+                    rawOutput
+                }
+
+                ZipOutputStream(archiveOutput).use { zip ->
                     zip.putNextEntry(ZipEntry(BackupManifest.MANIFEST_FILENAME))
                     zip.write(manifestJson.toByteArray(Charsets.UTF_8))
                     zip.closeEntry()

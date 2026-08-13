@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_action_clear_queue">Tøm kø</string>
+    <string name="presentation_batch_e_action_locate_current_song">Finn gjeldende sang</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Lagre som spilleliste</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Fjern sang</string>
+    <string name="presentation_batch_e_cd_hidden">Skjult</string>
+    <string name="presentation_batch_e_cd_queue_actions">Kø-handlinger</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Fjern fra spilleliste</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Nullstill til standard</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Sleep timer</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Gjenta sanger</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Bland sanger</string>
+    <string name="presentation_batch_e_cd_visible">Synlig</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Er du sikker på at du vil tømme alle sanger fra køen, bortsett fra den gjeldende?</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Tøm kø</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Velg opprettelsesmetode.</string>
+    <string name="presentation_batch_e_create_playlist_title">Opprett spilleliste</string>
+    <string name="presentation_batch_e_creation_mode_describe">Beskriv den</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Skriv hva du vil høre, så velger appen sangene – helt offline.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manuelt</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Design grafikk, ikon og form, og velg sanger selv.</string>
+    <string name="presentation_batch_e_describe_generate">Generer</string>
+    <string name="presentation_batch_e_describe_no_matches">Ingen sanger i biblioteket ditt samsvarer med den beskrivelsen.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">f.eks. sanger å trene styrke til</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Matches mot biblioteket på denne enheten – ingenting forlater den.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Beskriv spillelisten din</string>
+    <string name="presentation_batch_e_describe_regenerate">Regenerer</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">%d sang samsvarer</item>
+        <item quantity="other">%d sanger samsvarer</item>
+    </plurals>
+    <string name="presentation_batch_e_describe_save">Lagre spilleliste</string>
+    <string name="presentation_batch_e_deselect_all">Velg bort alle</string>
+    <string name="presentation_batch_e_enter_playlist_name">Skriv inn et navn</string>
+    <string name="presentation_batch_e_manage_presets_title">Administrer forhåndsinnstillinger</string>
+    <string name="presentation_batch_e_more_options_for_song">Flere alternativer for %1$s</string>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d sang valgt</item>
+        <item quantity="other">%d sanger valgt</item>
+    </plurals>
+    <string name="presentation_batch_e_new_playlist_hint">Trykk på «Ny spilleliste»-knappen for å starte.</string>
+    <string name="presentation_batch_e_next_up">Neste</string>
+    <string name="presentation_batch_e_no_playlist_created">Ingen spillelister er opprettet ennå.</string>
+    <string name="presentation_batch_e_no_songs_match_query">Ingen sanger samsvarer med \"%1$s\"</string>
+    <string name="presentation_batch_e_playlist_name_label">Navn på spilleliste</string>
+    <string name="presentation_batch_e_presets_drag_hint">Dra for å endre rekkefølge • Trykk på øyet for å vise/skjule</string>
+    <string name="presentation_batch_e_queue_current">Gjeldende kø</string>
+    <string name="presentation_batch_e_queue_empty">Køen er tom.</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s-kø</string>
+    <string name="presentation_batch_e_queue_source_fallback">Kø</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Køen er tom for øyeblikket.</string>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 spor i kø.</item>
+        <item quantity="other">%d spor i kø.</item>
+    </plurals>
+    <string name="presentation_batch_e_removed">fjernet</string>
+    <string name="presentation_batch_e_reset_presets_message">Dette vil gjenopprette standard rekkefølge og synlighet. Fortsette?</string>
+    <string name="presentation_batch_e_reset_presets_title">Nullstill forhåndsinnstillinger</string>
+    <string name="presentation_batch_e_save_as_format">Lagre som: %1$s</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Lagre som spilleliste</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Søk etter sanger…</string>
+</resources>

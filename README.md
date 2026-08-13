@@ -49,9 +49,10 @@ Cloud playback is limited to self-hosted sources: Navidrome/Subsonic and Jellyfi
 | --- | --- |
 | Playback | Media3 playback engine, FFmpeg support, gapless playback, crossfade, custom transitions, queue controls, shuffle, repeat, sleep timer, external file playback |
 | Library | Local scanning for MP3, FLAC, AAC, OGG, WAV, M4A, albums, artists, genres, folders, favorites, playlists, stats, metadata editing |
-| Self-hosted | Navidrome/Subsonic login, sync, streaming, artwork, Jellyfin login, sync, streaming, artwork |
+| Self-hosted | Navidrome/Subsonic and Jellyfin login, sync, streaming, artwork, and app-private offline downloads |
 | Lyrics | Embedded lyrics, local `.lrc` files, lyrics import/editing, optional LRCLIB lookup |
 | Artwork | Local artwork, album-art palette extraction, optional Deezer artist image lookup |
+| Metadata | On-demand MusicBrainz matching for recording, release, and artist identifiers |
 | UI | Jetpack Compose, Material 3, dynamic color, light/dark themes, Glance widgets, animated player surfaces |
 | Backup | Preferences, playlists, favorites, lyrics, stats, and app state backup/restore |
 
@@ -61,12 +62,13 @@ PixelPlayerOSS separates offline playback from network lookups.
 
 | Service | Purpose | Default |
 | --- | --- | --- |
-| Navidrome/Subsonic | Self-hosted library sync and streaming | User login required |
-| Jellyfin | Self-hosted library sync and streaming | User login required |
+| Navidrome/Subsonic | Self-hosted library sync, streaming, and offline downloads | User login required |
+| Jellyfin | Self-hosted library sync, streaming, and offline downloads | User login required |
+| MusicBrainz | On-demand metadata matching and identifier enrichment | Only when requested |
 | LRCLIB | Search online lyrics when local or embedded lyrics are missing | Off |
 | Deezer | Fetch missing artist artwork and cache it locally | Off |
 
-LRCLIB and Deezer can be enabled during first-run setup or later from `Settings > Music Management > Optional online services`.
+LRCLIB and Deezer can be enabled during first-run setup or later from `Settings > Music Management > Optional online services`. MusicBrainz searches run only when you choose the lookup action for a track.
 
 ## Requirements
 
@@ -140,6 +142,14 @@ Public releases are planned on a regular weekly cadence when `main` passes the r
 F-Droid listing metadata lives in `fastlane/metadata/android/en-US`; build/release notes for F-Droid are in [docs/FDROID.md](docs/FDROID.md).
 
 > Note: F-Droid builds and signs its own APKs from source, so they may lag behind GitHub releases while the new version works through the F-Droid build cycle. F-Droid and GitHub APK signatures differ — switching between the two requires an uninstall/reinstall.
+
+### Alpha builds
+
+Every merge into `main` automatically publishes a pre-release tagged like `v0.2.0-alpha.N` on the [releases page](https://github.com/lostf1sh/PixelPlayerOSS/releases). These are cutting-edge builds for testing new changes before they reach a stable release — expect rough edges.
+
+To install one, download the APK for your device from the release assets and sideload it: `arm64-v8a` fits most modern devices, `armeabi-v7a` is for older 32-bit ones.
+
+Alpha builds are signed with a dedicated CI key, so they update over each other, but switching between alpha and a stable or F-Droid install requires an uninstall/reinstall. In Obtainium, enable "Include prereleases" to get alphas automatically.
 
 ## Support
 

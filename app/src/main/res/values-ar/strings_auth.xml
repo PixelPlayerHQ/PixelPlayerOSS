@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">رجوع</string>
+    <string name="auth_connect">اتصال</string>
+    <string name="auth_connecting">جاري الاتصال…</string>
+    <string name="auth_connection_details">تفاصيل الاتصال</string>
+    <string name="auth_connection_details_subtitle">أدخل رابط الخادم (URL) وبيانات اعتماد الحساب.</string>
+    <string name="auth_hide_password">إخفاء كلمة المرور</string>
+    <string name="auth_jellyfin_connection_subtitle">أدخل رابط خادم Jellyfin وبيانات اعتماد الحساب.</string>
+    <string name="auth_jellyfin_footer">يتصل بخوادم Jellyfin لبث مكتبتك الموسيقية</string>
+    <string name="auth_jellyfin_info_card">يتصل بخوادم Jellyfin. يتم دعم كل من HTTP وHTTPS للوصول عبر الشبكة المحلية.</string>
+    <string name="auth_jellyfin_password_hint">كلمة المرور لحساب Jellyfin الخاص بك.</string>
+    <string name="auth_jellyfin_server_url_hint">الرابط الكامل لخادم Jellyfin الخاص بك، شاملاً منفذ الاتصال (Port).</string>
+    <string name="auth_jellyfin_subtitle">اتصل بخادم وسائط Jellyfin الخاص بك</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">اسم المستخدم لحساب Jellyfin الخاص بك.</string>
+    <string name="auth_local_network_permission_denied">اسمح بالوصول إلى الأجهزة القريبة للاتصال بخادم على شبكتك المحلية.</string>
+    <string name="auth_navidrome_footer">متوافق مع Navidrome وGonic وAirsonic والخوادم الأخرى المتوافقة مع Subsonic</string>
+    <string name="auth_navidrome_info_card">يدعم خوادم Navidrome وAirsonic وGonic وAmpache والخوادم الأخرى المتوافقة مع واجهة برمجة تطبيقات Subsonic.</string>
+    <string name="auth_navidrome_password_hint">كلمة مرور التطبيق (App password) تعمل أيضاً إذا كان خادمك يدعمها.</string>
+    <string name="auth_navidrome_server_url_hint">استخدم عنوان الخادم الكامل الذي يبدأ بـ //:https.</string>
+    <string name="auth_navidrome_subtitle">اتصل بخادم الموسيقى المستضاف ذاتياً</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">هذا هو اسم حسابك على Subsonic أو Navidrome.</string>
+    <string name="auth_password">كلمة المرور</string>
+    <string name="auth_password_placeholder">أدخل كلمة المرور</string>
+    <string name="auth_prefill_http">ملء تلقائي لـ //:http</string>
+    <string name="auth_select_libraries_confirm">حفظ ومزامنة</string>
+    <string name="auth_select_libraries_subtitle">يحتوي هذا الخادم على أكثر من مكتبة موسيقية. اختر المكتبات التي تريد مزامنتها — يمكنك تغيير ذلك لاحقاً من لوحة تحكم الخادم.</string>
+    <string name="auth_select_libraries_title">اختر المكتبات المراد مزامنتها</string>
+    <string name="auth_server_url">رابط الخادم (URL)</string>
+    <string name="auth_show_password">إظهار كلمة المرور</string>
+    <string name="auth_use_http">استخدام HTTP / VPN</string>
+    <string name="auth_username">اسم المستخدم</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">إعادة المحاولة</string>
+    <string name="cd_jellyfin_logo">شعار Jellyfin</string>
+    <string name="cd_navidrome_logo">Subsonic / Navidrome</string>
+    <string name="cd_subsonic_logo">شعار Subsonic</string>
+    <string name="toast_welcome_user">مرحباً، %1$s!</string>
+</resources>

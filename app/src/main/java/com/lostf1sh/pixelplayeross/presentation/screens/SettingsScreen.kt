@@ -31,20 +31,32 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,7 +64,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -78,6 +94,9 @@ import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveTopBarConte
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.model.SettingsCategory
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsFuzzySearchEngine
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsRegistry
+import com.lostf1sh.pixelplayeross.presentation.settings.search.SettingsSearchResultsContent
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
 import kotlin.math.roundToInt
@@ -188,6 +207,26 @@ fun SettingsScreen(
         }
     }
 
+    val context = LocalContext.current
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var isSearchActive by rememberSaveable { mutableStateOf(false) }
+
+    val searchFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            kotlinx.coroutines.delay(150)
+            searchFocusRequester.requestFocus()
+        }
+    }
+
+    val searchResults = remember(searchQuery) {
+        if (searchQuery.isNotBlank()) {
+            SettingsFuzzySearchEngine.search(context, searchQuery, SettingsRegistry.allSettings)
+        } else {
+            emptyList()
+        }
+    }
+
     Box(
             modifier =
                     Modifier.nestedScroll(nestedScrollConnection).fillMaxSize().graphicsLayer {
@@ -207,6 +246,39 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize()
         ) {
+            // Persistent docked search bar
+            item {
+                Surface(
+                    onClick = { isSearchActive = true },
+                    shape = RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 20.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Search,
+                            contentDescription = stringResource(R.string.search),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(
+                            text = stringResource(R.string.settings_search_hint),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
             item {
                 val isDark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
                 ExpressiveSettingsGroup {
@@ -215,7 +287,7 @@ fun SettingsScreen(
                         it != SettingsCategory.DEVICE_CAPABILITIES
                     }
 
-                    val totalItems = mainCategories.size + 3
+                    val totalItems = mainCategories.size + 4
                     fun shapeFor(index: Int) =
                         when {
                             totalItems == 1 -> RoundedCornerShape(24.dp)
@@ -234,7 +306,7 @@ fun SettingsScreen(
                             customColors = colors,
                             onClick = {
                                 if (category == SettingsCategory.EQUALIZER) {
-                                    navController.navigateSafely(Screen.Equalizer.route)
+                                    navController.navigateSafely(Screen.Equalizer.createRoute())
                                 } else {
                                     navController.navigateSafely(Screen.SettingsCategory.createRoute(category.id))
                                 }
@@ -247,10 +319,23 @@ fun SettingsScreen(
                         itemIndex++
                     }
 
+                    ExpressiveNavigationItem(
+                        title = stringResource(R.string.cloud_downloads_title),
+                        subtitle = stringResource(R.string.cloud_downloads_settings_subtitle),
+                        icon = Icons.Rounded.CloudDownload,
+                        colors = getDownloadsColors(isDark),
+                        onClick = { navController.navigateSafely(Screen.CloudDownloads.route) },
+                        shape = shapeFor(itemIndex)
+                    )
+                    if (itemIndex < totalItems - 1) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                    itemIndex++
+
                     ExpressiveCategoryItem(
                         category = SettingsCategory.DEVICE_CAPABILITIES,
                         customColors = getCategoryColors(SettingsCategory.DEVICE_CAPABILITIES, isDark),
-                        onClick = { navController.navigateSafely(Screen.DeviceCapabilities.route) },
+                        onClick = { navController.navigateSafely(Screen.DeviceCapabilities.createRoute()) },
                         shape = shapeFor(itemIndex)
                     )
                     if (itemIndex < totalItems - 1) {
@@ -263,7 +348,7 @@ fun SettingsScreen(
                         subtitle = stringResource(R.string.settings_accounts_row_subtitle),
                         icon = Icons.Rounded.AccountCircle,
                         colors = getAccountsColors(isDark),
-                        onClick = { navController.navigateSafely(Screen.Accounts.route) },
+                        onClick = { navController.navigateSafely(Screen.Accounts.createRoute()) },
                         shape = shapeFor(itemIndex)
                     )
                     if (itemIndex < totalItems - 1) {
@@ -288,6 +373,96 @@ fun SettingsScreen(
                 headerHeight = currentTopBarHeightDp,
                 onBackClick = onNavigationIconClick
         )
+
+        // Fullscreen expanded search overlay with auto-focus
+        AnimatedVisibility(
+            visible = isSearchActive,
+            enter = fadeIn(tween(250)) + slideInVertically(initialOffsetY = { -it / 4 }),
+            exit = fadeOut(tween(200)) + slideOutVertically(targetOffsetY = { -it / 4 }),
+            modifier = Modifier
+                .fillMaxSize()
+                .zIndex(100f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .statusBarsPadding()
+                                .fillMaxWidth()
+                                .height(64.dp)
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            IconButton(onClick = {
+                                isSearchActive = false
+                                searchQuery = ""
+                            }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                    contentDescription = stringResource(R.string.auth_cd_back),
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(R.string.settings_search_hint),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
+                                    )
+                                },
+                                singleLine = true,
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .focusRequester(searchFocusRequester)
+                            )
+
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = stringResource(R.string.cd_clear_search_query),
+                                        tint = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    SettingsSearchResultsContent(
+                        query = searchQuery,
+                        results = searchResults,
+                        uiState = uiState,
+                        settingsViewModel = settingsViewModel,
+                        navController = navController,
+                        contentPadding = PaddingValues(
+                            top = 16.dp,
+                            bottom = 16.dp + MiniPlayerHeight,
+                            start = 16.dp,
+                            end = 16.dp
+                        ),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
 
         var isTransitioning by remember { mutableStateOf(true) }
         LaunchedEffect(Unit) {
@@ -442,6 +617,12 @@ private fun getAccountsColors(isDark: Boolean): Pair<Color, Color> {
     }
 }
 
+private fun getDownloadsColors(isDark: Boolean): Pair<Color, Color> = if (isDark) {
+    Color(0xFF174A5A) to Color(0xFFB6EAFB)
+} else {
+    Color(0xFFC2E7FF) to Color(0xFF004A77)
+}
+
 @Composable
 fun ExpressiveSettingsGroup(content: @Composable () -> Unit) {
     Column(
@@ -454,7 +635,7 @@ fun ExpressiveSettingsGroup(content: @Composable () -> Unit) {
     }
 }
 
-private fun getCategoryColors(category: SettingsCategory, isDark: Boolean): Pair<Color, Color> {
+fun getCategoryColors(category: SettingsCategory, isDark: Boolean): Pair<Color, Color> {
     return if (isDark) {
         when (category) {
             SettingsCategory.LIBRARY -> Color(0xFF004A77) to Color(0xFFC2E7FF) 

@@ -1,9 +1,19 @@
 package com.lostf1sh.pixelplayeross.utils
 
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class MediaItemBuilderTest {
+
+    @Test
+    fun artworkScheme_supportsNavidromeArtworkForInternalPlayback() {
+        assertThat(MediaItemBuilder.isSupportedInternalArtworkScheme("navidrome_cover")).isTrue()
+    }
+
+    @Test
+    fun artworkScheme_supportsJellyfinArtworkForInternalPlayback() {
+        assertThat(MediaItemBuilder.isSupportedInternalArtworkScheme("jellyfin_cover")).isTrue()
+    }
 
     @Test
     fun shouldPreferDirectLocalFileUri_prefersDirectFileUriForLocalM4aMediaStoreItems() {

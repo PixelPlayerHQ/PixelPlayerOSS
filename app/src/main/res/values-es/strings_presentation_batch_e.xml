@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_action_clear_queue">Limpiar cola</string>
+    <string name="presentation_batch_e_action_locate_current_song">Localizar canción actual</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Guardar como lista de reproducción</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Descartar canción</string>
+    <string name="presentation_batch_e_cd_hidden">Oculto</string>
+    <string name="presentation_batch_e_cd_queue_actions">Acciones de la cola</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Eliminar de la lista de reproducción</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Restablecer valores por defecto</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Temporizador de apagado</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Alternar repetición</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Alternar modo aleatorio</string>
+    <string name="presentation_batch_e_cd_visible">Visible</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">¿Estás seguro de que quieres eliminar todas las canciones de la cola excepto la actual?</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Limpiar cola</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Elige el flujo de creación.</string>
+    <string name="presentation_batch_e_create_playlist_title">Crear lista de reproducción</string>
+    <string name="presentation_batch_e_creation_mode_describe">Descríbela</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Escribe lo que quieres escuchar y deja que la app elija las canciones, todo sin conexión.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manual</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Diseña la portada, el icono, la forma y selecciona las canciones tú mismo.</string>
+    <string name="presentation_batch_e_describe_generate">Generar</string>
+    <string name="presentation_batch_e_describe_no_matches">Ninguna canción de tu biblioteca coincide con esa descripción.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">p. ej. canciones para levantar pesas</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Se compara con tu biblioteca en este dispositivo; nada sale de él.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Describe tu lista de reproducción</string>
+    <string name="presentation_batch_e_describe_regenerate">Regenerar</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">%d canción coincide</item>
+        <item quantity="other">%d canciones coinciden</item>
+    </plurals>
+    <string name="presentation_batch_e_describe_save">Guardar lista</string>
+    <string name="presentation_batch_e_deselect_all">Deseleccionar todo</string>
+    <string name="presentation_batch_e_enter_playlist_name">Introduce un nombre para la lista</string>
+    <string name="presentation_batch_e_manage_presets_title">Gestionar preajustes</string>
+    <string name="presentation_batch_e_more_options_for_song">Más opciones para %1$s</string>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d canción seleccionada</item>
+        <item quantity="other">%d canciones seleccionadas</item>
+    </plurals>
+    <string name="presentation_batch_e_new_playlist_hint">Toca el botón \'Nueva lista\' para comenzar.</string>
+    <string name="presentation_batch_e_next_up">A continuación</string>
+    <string name="presentation_batch_e_no_playlist_created">No se ha creado ninguna lista de reproducción.</string>
+    <string name="presentation_batch_e_no_songs_match_query">Ninguna canción coincide con \"%1$s\"</string>
+    <string name="presentation_batch_e_playlist_name_label">Nombre de la lista</string>
+    <string name="presentation_batch_e_presets_drag_hint">Arrastra para reordenar • Toca el ojo para mostrar u ocultar</string>
+    <string name="presentation_batch_e_queue_current">Cola actual</string>
+    <string name="presentation_batch_e_queue_empty">La cola está vacía.</string>
+    <string name="presentation_batch_e_queue_named_suffix">Cola de %1$s</string>
+    <string name="presentation_batch_e_queue_source_fallback">Cola</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">La cola está vacía por ahora.</string>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 pista en cola.</item>
+        <item quantity="other">%d pistas en cola.</item>
+    </plurals>
+    <string name="presentation_batch_e_removed">eliminada</string>
+    <string name="presentation_batch_e_reset_presets_message">Se restaurará el orden y la visibilidad predeterminados de los preajustes. ¿Continuar?</string>
+    <string name="presentation_batch_e_reset_presets_title">Restablecer preajustes</string>
+    <string name="presentation_batch_e_save_as_format">Guardar como: %1$s</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Guardar como lista de reproducción</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Buscar canciones para incluir…</string>
+</resources>

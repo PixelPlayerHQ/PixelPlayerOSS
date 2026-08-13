@@ -91,6 +91,10 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 @AndroidEntryPoint
 class JellyfinLoginActivity : ComponentActivity() {
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(com.lostf1sh.pixelplayeross.utils.AppLocaleManager.wrapContext(newBase))
+    }
+
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

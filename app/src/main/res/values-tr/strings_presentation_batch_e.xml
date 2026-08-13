@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_action_clear_queue">Kuyruğu temizle</string>
+    <string name="presentation_batch_e_action_locate_current_song">Mevcut şarkıyı bul</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Çalma listesi olarak kaydet</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Şarkıyı kaldır</string>
+    <string name="presentation_batch_e_cd_hidden">Gizli</string>
+    <string name="presentation_batch_e_cd_queue_actions">Kuyruk eylemleri</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Çalma listesinden kaldır</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Varsayılana sıfırla</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Uyku zamanlayıcısı</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Tekrarlamayı aç/kapat</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Karıştırmayı aç/kapat</string>
+    <string name="presentation_batch_e_cd_visible">Görünür</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Mevcut şarkı hariç kuyruktaki tüm şarkıları temizlemek istediğinizden emin misiniz?</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Kuyruğu temizle</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Oluşturma yöntemini seçin.</string>
+    <string name="presentation_batch_e_create_playlist_title">Çalma listesi oluştur</string>
+    <string name="presentation_batch_e_creation_mode_describe">Tarif edin</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Ne dinlemek istediğinizi yazın, şarkıları uygulama seçsin; tamamen çevrimdışı.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manuel</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Kapak görselini, simgeyi, şekli tasarlayın ve şarkıları kendiniz seçin.</string>
+    <string name="presentation_batch_e_describe_generate">Oluştur</string>
+    <string name="presentation_batch_e_describe_no_matches">Kitaplığınızda bu tarife uyan şarkı yok.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">örn. ağırlık çalışırken dinlenecek şarkılar</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Bu cihazdaki kitaplığınızla eşleştirilir; hiçbir veri cihazdan çıkmaz.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Çalma listenizi tarif edin</string>
+    <string name="presentation_batch_e_describe_regenerate">Yeniden Oluştur</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">%d şarkı eşleşti</item>
+        <item quantity="other">%d şarkı eşleşti</item>
+    </plurals>
+    <string name="presentation_batch_e_describe_save">Çalma listesini kaydet</string>
+    <string name="presentation_batch_e_deselect_all">Tüm seçimi kaldır</string>
+    <string name="presentation_batch_e_enter_playlist_name">Bir çalma listesi adı girin</string>
+    <string name="presentation_batch_e_manage_presets_title">Ön ayarları yönet</string>
+    <string name="presentation_batch_e_more_options_for_song">%1$s için daha fazla seçenek</string>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d şarkı seçildi</item>
+        <item quantity="other">%d şarkı seçildi</item>
+    </plurals>
+    <string name="presentation_batch_e_new_playlist_hint">Başlamak için \'Yeni Çalma Listesi\' düğmesine dokunun.</string>
+    <string name="presentation_batch_e_next_up">Sıradaki</string>
+    <string name="presentation_batch_e_no_playlist_created">Henüz çalma listesi oluşturulmadı.</string>
+    <string name="presentation_batch_e_no_songs_match_query">\"%1$s\" ile eşleşen şarkı yok</string>
+    <string name="presentation_batch_e_playlist_name_label">Çalma listesi adı</string>
+    <string name="presentation_batch_e_presets_drag_hint">Yeniden sıralamak için sürükleyin • Göstermek veya gizlemek için göze dokunun</string>
+    <string name="presentation_batch_e_queue_current">Mevcut kuyruk</string>
+    <string name="presentation_batch_e_queue_empty">Kuyruk boş.</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s kuyruğu</string>
+    <string name="presentation_batch_e_queue_source_fallback">Kuyruk</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Kuyruk şu an boş.</string>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 parça sırada.</item>
+        <item quantity="other">%d parça sırada.</item>
+    </plurals>
+    <string name="presentation_batch_e_removed">kaldırıldı</string>
+    <string name="presentation_batch_e_reset_presets_message">Bu işlem, varsayılan ön ayar sırasını ve görünürlüğünü geri yükleyecektir. Devam edilsin mi?</string>
+    <string name="presentation_batch_e_reset_presets_title">Ön ayarları sıfırla</string>
+    <string name="presentation_batch_e_save_as_format">Farklı kaydet: %1$s</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Çalma listesi olarak kaydet</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Dahil edilecek şarkıları ara…</string>
+</resources>

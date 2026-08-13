@@ -5,6 +5,7 @@ import java.io.InputStream
 class BackupFormatDetector {
 
     enum class Format {
+        PXPL_V4_ENCRYPTED,
         PXPL_V3_ZIP,
         PXPL_V2_GZIP,
         LEGACY_GZIP,
@@ -26,6 +27,10 @@ class BackupFormatDetector {
             val afterMagic1 = header[5]
             if (afterMagic0 == 'P'.code.toByte() && afterMagic1 == 'K'.code.toByte()) {
                 return Format.PXPL_V3_ZIP
+            }
+            // Encrypted container marker: EC01 (see BackupCrypto)
+            if (afterMagic0 == 'E'.code.toByte() && afterMagic1 == 'C'.code.toByte()) {
+                return Format.PXPL_V4_ENCRYPTED
             }
             if (afterMagic0 == 0x1f.toByte() && afterMagic1 == 0x8b.toByte()) {
                 return Format.PXPL_V2_GZIP

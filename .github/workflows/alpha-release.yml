@@ -1,0 +1,108 @@
+name: Alpha Release
+
+on:
+  push:
+    branches:
+      - main
+    # Docs-only and CI-only merges shouldn't ship a new alpha. Use the manual
+    # trigger below to build one from a workflow change when needed.
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'assets/**'
+      - 'fastlane/**'
+      - 'metadata/**'
+      - 'LICENSE'
+      - '.github/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: alpha-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-release:
+    if: github.actor != 'dependabot[bot]'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Compute alpha version
+        id: version
+        run: |
+          BASE_VERSION="$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d= -f2)"
+          BASE_CODE="$(grep '^APP_VERSION_CODE=' gradle.properties | cut -d= -f2)"
+          ALPHA_VERSION="${BASE_VERSION}-alpha.${{ github.run_number }}"
+          # Keeps version codes ordered across stable bumps: 0.2.0 alphas sit in the
+          # 2xxxxx range, 0.3.0 alphas in 3xxxxx, so alpha updates always install.
+          ALPHA_CODE="$(( BASE_CODE * 100000 + ${{ github.run_number }} ))"
+          echo "name=$ALPHA_VERSION" >> "$GITHUB_OUTPUT"
+          echo "code=$ALPHA_CODE" >> "$GITHUB_OUTPUT"
+          echo "tag=v$ALPHA_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.2.0
+
+      # The shared CI keystore lives in the CI_KEYSTORE_B64 + CI_KEYSTORE_PASSWORD
+      # repo secrets so every workflow signs with the same stable key and builds
+      # install over each other. Without the secrets we fall back to a throwaway
+      # keystore with a random one-off password (signature varies per run).
+      - name: Set up CI keystore
+        env:
+          CI_KEYSTORE_B64: ${{ secrets.CI_KEYSTORE_B64 }}
+          CI_KEYSTORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$CI_KEYSTORE_B64" ] && [ -n "$CI_KEYSTORE_PASSWORD" ]; then
+            KEYSTORE_PASSWORD="$CI_KEYSTORE_PASSWORD"
+            printf '%s' "$CI_KEYSTORE_B64" | base64 -d > pixelplayeross-ci.jks
+          else
+            KEYSTORE_PASSWORD="$(openssl rand -hex 24)"
+            keytool -genkey -v -keystore pixelplayeross-ci.jks -alias pixelplayeross-ci-key -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
+              -dname "CN=PixelPlayerOSS CI Throwaway, OU=Dev, O=PixelPlayerOSS, L=World, S=World, C=US"
+          fi
+          {
+            echo "storeFile=pixelplayeross-ci.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=pixelplayeross-ci-key"
+            echo "keyPassword=$KEYSTORE_PASSWORD"
+          } > keystore.properties
+
+      - name: Build alpha release APKs
+        run: >
+          ./gradlew :app:assembleRelease
+          -Ppixelplayer.enableAbiSplits=true
+          -PAPP_VERSION_NAME=${{ steps.version.outputs.name }}
+          -PAPP_VERSION_CODE=${{ steps.version.outputs.code }}
+
+      - name: Verify and rename split APKs
+        run: |
+          BUILD_TOOLS_VERSION="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+          mkdir -p release-apks
+          for abi in arm64-v8a armeabi-v7a; do
+            apk="app/build/outputs/apk/release/app-$abi-release.apk"
+            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt2" dump badging "$apk" >/dev/null
+            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner" verify --verbose "$apk"
+            cp "$apk" "release-apks/PixelPlayerOSS-${{ steps.version.outputs.name }}-$abi.apk"
+          done
+
+      - name: Create GitHub prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "${{ steps.version.outputs.tag }}"
+          --prerelease
+          --generate-notes
+          --title "PixelPlayerOSS ${{ steps.version.outputs.name }}"
+          release-apks/*.apk

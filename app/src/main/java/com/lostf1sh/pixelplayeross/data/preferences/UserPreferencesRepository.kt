@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.Player
+import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Playlist
 import com.lostf1sh.pixelplayeross.data.model.SortOption
@@ -67,6 +68,15 @@ enum class AlbumArtQuality(val maxSize: Int, val label: String) {
     MEDIUM(512, "Medium (512px) - Balanced"),
     HIGH(800, "High (800px) - Best quality"),
     ORIGINAL(0, "Original - Maximum quality")
+}
+
+data class AdvancedPerformanceDiagnosticsSettings(
+    val enabled: Boolean,
+    val sessionStartedEpochMs: Long?,
+    val expiresAtEpochMs: Long?
+) {
+    fun isActive(nowEpochMs: Long = System.currentTimeMillis()): Boolean =
+        enabled && expiresAtEpochMs?.let { nowEpochMs < it } == true
 }
 
 @Singleton
@@ -132,6 +142,7 @@ constructor(
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
         val IS_CROSSFADE_ENABLED = booleanPreferencesKey("is_crossfade_enabled")
         val AUDIO_OUTPUT_MODE = stringPreferencesKey("audio_output_mode_v1")
+        val SMART_CROSSFADE_ENABLED = booleanPreferencesKey("smart_crossfade_enabled")
         val HI_FI_MODE_ENABLED = booleanPreferencesKey("hi_fi_mode_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         val PLAYBACK_SPEED = androidx.datastore.preferences.core.floatPreferencesKey("playback_speed")
@@ -200,6 +211,12 @@ constructor(
         val ALBUM_ART_CACHE_LIMIT_MB = intPreferencesKey("album_art_cache_limit_mb")
         val TAP_BACKGROUND_CLOSES_PLAYER = booleanPreferencesKey("tap_background_closes_player")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
+        val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
+            booleanPreferencesKey("advanced_performance_diagnostics_enabled")
+        val ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT =
+            longPreferencesKey("advanced_performance_diagnostics_started_at_epoch_ms")
+        val ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT =
+            longPreferencesKey("advanced_performance_diagnostics_expires_at_epoch_ms")
         val IMMERSIVE_LYRICS_ENABLED = booleanPreferencesKey("immersive_lyrics_enabled")
         val IMMERSIVE_LYRICS_TIMEOUT = longPreferencesKey("immersive_lyrics_timeout")
         val USE_ANIMATED_LYRICS = booleanPreferencesKey("use_animated_lyrics")
@@ -243,6 +260,17 @@ constructor(
     suspend fun setCrossfadeEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IS_CROSSFADE_ENABLED] = enabled
+        }
+    }
+
+    val smartCrossfadeEnabledFlow: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.SMART_CROSSFADE_ENABLED] ?: false
+            }
+
+    suspend fun setSmartCrossfadeEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SMART_CROSSFADE_ENABLED] = enabled
         }
     }
 
@@ -1582,6 +1610,45 @@ constructor(
     suspend fun setHapticsEnabled(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.HAPTICS_ENABLED] = enabled
+        }
+    }
+
+    val advancedPerformanceDiagnosticsSettingsFlow: Flow<AdvancedPerformanceDiagnosticsSettings> =
+        dataStore.data.map { preferences ->
+            AdvancedPerformanceDiagnosticsSettings(
+                enabled = preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED] ?: false,
+                sessionStartedEpochMs =
+                    preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT],
+                expiresAtEpochMs =
+                    preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT]
+            )
+        }.distinctUntilChanged()
+
+    suspend fun setAdvancedPerformanceDiagnosticsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            if (enabled) {
+                val now = System.currentTimeMillis()
+                preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED] = true
+                preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT] = now
+                preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT] =
+                    now + AdvancedPerformanceDiagnostics.DEFAULT_SESSION_DURATION_MS
+            } else {
+                preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED] = false
+                preferences.remove(PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT)
+                preferences.remove(PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT)
+            }
+        }
+    }
+
+    suspend fun disableExpiredAdvancedPerformanceDiagnostics(nowEpochMs: Long = System.currentTimeMillis()) {
+        dataStore.edit { preferences ->
+            val enabled = preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED] ?: false
+            val expiresAt = preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT]
+            if (enabled && (expiresAt == null || nowEpochMs >= expiresAt)) {
+                preferences[PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED] = false
+                preferences.remove(PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_STARTED_AT)
+                preferences.remove(PreferencesKeys.ADVANCED_PERFORMANCE_DIAGNOSTICS_EXPIRES_AT)
+            }
         }
     }
 

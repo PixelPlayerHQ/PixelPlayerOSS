@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_queue_empty">播放队列为空。</string>
+    <string name="presentation_batch_e_cd_queue_actions">队列操作</string>
+    <string name="presentation_batch_e_action_clear_queue">清空队列</string>
+    <string name="presentation_batch_e_action_save_as_playlist">保存为歌单</string>
+    <string name="presentation_batch_e_action_locate_current_song">定位当前歌曲</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s 队列</string>
+    <string name="presentation_batch_e_queue_current">当前队列</string>
+    <string name="presentation_batch_e_removed">已移除</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">清空队列</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">确定要清空队列内除正在播放以外的全部歌曲吗？</string>
+    <string name="presentation_batch_e_next_up">即将播放</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">播放队列目前为空。</string>
+    <string name="presentation_batch_e_queue_source_fallback">队列</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">切换随机播放</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">切换循环模式</string>
+    <string name="presentation_batch_e_cd_sleep_timer">睡眠定时</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">保存为歌单</string>
+    <string name="presentation_batch_e_deselect_all">取消全选</string>
+    <string name="presentation_batch_e_playlist_name_label">歌单名称</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">搜索要加入的歌曲…</string>
+    <string name="presentation_batch_e_save_as_format">保存为：%1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">输入歌单名称</string>
+    <string name="presentation_batch_e_no_songs_match_query">没有匹配“%1$s”的歌曲</string>
+    <string name="presentation_batch_e_cd_dismiss_song">跳过此歌曲</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">从歌单移除</string>
+    <string name="presentation_batch_e_more_options_for_song">%1$s 的更多选项</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="other">已排好 %d 首曲目。</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="other">已选中 %d 首歌曲</item>
+    </plurals>
+
+    <string name="presentation_batch_e_no_playlist_created">尚未创建任何歌单。</string>
+    <string name="presentation_batch_e_new_playlist_hint">点击“新建歌单”按钮开始创建。</string>
+
+    <string name="presentation_batch_e_create_playlist_title">新建歌单</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">选择创建方式。</string>
+    <string name="presentation_batch_e_creation_mode_manual">手动创建</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">自定义封面、图标、样式，并手动挑选歌曲。</string>
+    <string name="presentation_batch_e_creation_mode_describe">描述一下</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">输入你想听的内容，应用会完全离线地为你挑选歌曲。</string>
+    <string name="presentation_batch_e_describe_playlist_title">描述你的歌单</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">仅与本设备上的曲库进行匹配，任何内容都不会离开设备。</string>
+    <string name="presentation_batch_e_describe_playlist_hint">例如：适合力量训练时听的歌曲</string>
+    <string name="presentation_batch_e_describe_generate">生成</string>
+    <string name="presentation_batch_e_describe_regenerate">重新生成</string>
+    <string name="presentation_batch_e_describe_no_matches">曲库中没有符合该描述的歌曲。</string>
+    <string name="presentation_batch_e_describe_save">保存歌单</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="other">%d 首歌曲符合条件</item>
+    </plurals>
+
+    <string name="presentation_batch_e_reset_presets_title">重置预设</string>
+    <string name="presentation_batch_e_reset_presets_message">将会恢复预设的原始顺序与显示状态，是否继续？</string>
+    <string name="presentation_batch_e_manage_presets_title">管理预设</string>
+    <string name="presentation_batch_e_presets_drag_hint">拖拽调整顺序 • 点击眼睛图标显示或隐藏</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">恢复默认</string>
+    <string name="presentation_batch_e_cd_visible">显示</string>
+    <string name="presentation_batch_e_cd_hidden">隐藏</string>
+
+</resources>

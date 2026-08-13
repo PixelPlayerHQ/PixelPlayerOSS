@@ -3,7 +3,11 @@ package com.lostf1sh.pixelplayeross.data.backup
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupCrypto
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupEncryptedException
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupFormatDetector
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupReader
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupWrongPassphraseException
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupWriter
 import com.lostf1sh.pixelplayeross.data.backup.history.BackupHistoryRepository
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupHistoryEntry
@@ -18,11 +22,17 @@ import com.lostf1sh.pixelplayeross.data.backup.model.RestoreResult
 import com.lostf1sh.pixelplayeross.data.backup.module.BackupModuleHandler
 import com.lostf1sh.pixelplayeross.data.backup.restore.RestoreExecutor
 import com.lostf1sh.pixelplayeross.data.backup.restore.RestorePlanner
+import com.lostf1sh.pixelplayeross.data.backup.validation.BackupFileValidator
 import com.lostf1sh.pixelplayeross.data.backup.validation.ValidationPipeline
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import javax.crypto.AEADBadTagException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,11 +48,23 @@ class BackupManager @Inject constructor(
     private val handlers: Map<BackupSection, @JvmSuppressWildcards BackupModuleHandler>
 ) {
     /**
-     * Exports selected modules to a .pxpl file at the given URI.
+     * Decrypted copies of encrypted backups, keyed by the original URI string.
+     * Populated by [inspectBackup]; consumed and cleaned up by [restore] or
+     * [discardDecryptedBackup]. App-private cache only.
+     */
+    private val decryptedBackups = mutableMapOf<String, File>()
+
+    private val decryptedDir: File
+        get() = File(context.cacheDir, "backup_dec").apply { mkdirs() }
+
+    /**
+     * Exports selected modules to a .pxpl file at the given URI. With a
+     * [passphrase], the archive body is AES-256-GCM encrypted (see BackupCrypto).
      */
     suspend fun export(
         uri: Uri,
         sections: Set<BackupSection>,
+        passphrase: String? = null,
         onProgress: (BackupTransferProgressUpdate) -> Unit
     ): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
@@ -86,18 +108,31 @@ class BackupManager @Inject constructor(
             reportProgress(onProgress, BackupOperationType.EXPORT, ++step, totalSteps,
                 "Packaging backup", "Creating .pxpl archive.")
 
-            backupWriter.write(uri, manifest, modulePayloads).getOrThrow()
+            backupWriter.write(uri, manifest, modulePayloads, passphrase = passphrase).getOrThrow()
 
             reportProgress(onProgress, BackupOperationType.EXPORT, ++step, totalSteps,
                 "Backup complete", "Your PixelPlayerOSS backup was created successfully.")
         }
     }
 
+    /** True when the file at [uri] is an encrypted .pxpl archive. */
+    suspend fun isBackupEncrypted(uri: Uri): Boolean =
+        backupReader.detectFormat(uri).getOrNull() == BackupFormatDetector.Format.PXPL_V4_ENCRYPTED
+
     /**
      * Inspects a backup file and returns a RestorePlan (without actually restoring).
+     *
+     * Encrypted backups need a [passphrase]; without one this fails with
+     * [BackupEncryptedException], and with a wrong one with
+     * [BackupWrongPassphraseException]. The decrypted copy is kept in app
+     * cache so the follow-up [restore] can run without re-entering the
+     * passphrase; call [discardDecryptedBackup] if the user cancels instead.
      */
-    suspend fun inspectBackup(uri: Uri): Result<RestorePlan> = withContext(Dispatchers.IO) {
+    suspend fun inspectBackup(uri: Uri, passphrase: String? = null): Result<RestorePlan> = withContext(Dispatchers.IO) {
         runCatching {
+            val originalUri = uri
+            @Suppress("NAME_SHADOWING")
+            val uri = resolveReadableUri(uri, passphrase)
             val fileValidation = validationPipeline.validateFile(uri)
             val warnings = mutableListOf<String>()
             if (fileValidation is BackupValidationResult.Invalid && fileValidation.fatalErrors.isNotEmpty()) {
@@ -149,26 +184,42 @@ class BackupManager @Inject constructor(
                 }
             }
 
-            plan.copy(warnings = warnings)
+            // Report the user's original URI, not the decrypted temp copy.
+            plan.copy(backupUri = originalUri.toString(), warnings = warnings)
         }
     }
 
     /**
-     * Executes a restore according to the given plan.
+     * Executes a restore according to the given plan. For encrypted backups
+     * the decrypted copy produced by [inspectBackup] is used and cleaned up
+     * afterwards regardless of outcome.
      */
     suspend fun restore(
         uri: Uri,
         plan: RestorePlan,
         onProgress: (BackupTransferProgressUpdate) -> Unit
     ): RestoreResult = withContext(Dispatchers.IO) {
-        val fileValidation = validationPipeline.validateFile(uri)
+        val readableUri = try {
+            resolveReadableUri(uri, passphrase = null)
+        } catch (e: BackupEncryptedException) {
+            return@withContext RestoreResult.TotalFailure(
+                "This backup is encrypted. Inspect it with its password before restoring."
+            )
+        }
+
+        val fileValidation = validationPipeline.validateFile(readableUri)
         if (fileValidation is BackupValidationResult.Invalid && fileValidation.fatalErrors.isNotEmpty()) {
+            discardDecryptedBackup(uri)
             return@withContext RestoreResult.TotalFailure(
                 "Backup file failed validation: ${fileValidation.fatalErrors.first().message}"
             )
         }
 
-        val result = restoreExecutor.execute(uri, plan, onProgress)
+        val result = try {
+            restoreExecutor.execute(readableUri, plan, onProgress)
+        } finally {
+            discardDecryptedBackup(uri)
+        }
 
         if (result is RestoreResult.Success) {
             try {
@@ -197,6 +248,89 @@ class BackupManager @Inject constructor(
 
     suspend fun removeBackupHistoryEntry(uri: String) {
         backupHistoryRepository.removeEntry(uri)
+    }
+
+    /**
+     * Drops (and deletes) the cached decrypted copy for [uri], e.g. when the
+     * user dismisses the restore plan of an encrypted backup.
+     */
+    fun discardDecryptedBackup(uri: Uri) {
+        val temp = synchronized(decryptedBackups) { decryptedBackups.remove(uri.toString()) }
+        temp?.let { runCatching { it.delete() } }
+    }
+
+    /**
+     * Returns a URI the read pipeline can parse directly: the input itself for
+     * plain archives, or a decrypted temp copy for encrypted ones. The full
+     * ciphertext is copied (and thus GCM-authenticated) before anything parses
+     * it, so a wrong passphrase always fails here and never mid-restore.
+     */
+    private suspend fun resolveReadableUri(uri: Uri, passphrase: String?): Uri {
+        if (!isBackupEncrypted(uri)) return uri
+
+        val key = uri.toString()
+        synchronized(decryptedBackups) { decryptedBackups[key] }
+            ?.takeIf { it.exists() }
+            ?.let { return Uri.fromFile(it) }
+        if (passphrase == null) throw BackupEncryptedException()
+
+        val temp = File(decryptedDir, "decrypted_${System.currentTimeMillis()}.pxpl")
+        try {
+            context.contentResolver.openInputStream(uri)?.use { raw ->
+                skipFully(raw, BackupFormatDetector.PXPL_MAGIC_SIZE)
+                BackupCrypto.decryptingStream(raw, passphrase).use { decrypted ->
+                    temp.outputStream().buffered().use { out ->
+                        out.write(BackupFormatDetector.PXPL_MAGIC)
+                        copyLimited(decrypted, out, BackupFileValidator.MAX_BACKUP_SIZE_BYTES)
+                    }
+                }
+            } ?: throw IllegalStateException("Unable to open backup file")
+        } catch (e: Exception) {
+            runCatching { temp.delete() }
+            if (e is AEADBadTagException || (e is IOException && e.cause is AEADBadTagException)) {
+                throw BackupWrongPassphraseException()
+            }
+            throw e
+        }
+
+        synchronized(decryptedBackups) {
+            // Keep at most one decrypted backup around at a time.
+            decryptedBackups.values.forEach { stale -> runCatching { stale.delete() } }
+            decryptedBackups.clear()
+            decryptedBackups[key] = temp
+        }
+        return Uri.fromFile(temp)
+    }
+
+    private fun copyLimited(input: InputStream, output: OutputStream, maxBytes: Long) {
+        val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+        var total = 0L
+        while (true) {
+            val read = input.read(buffer)
+            if (read == -1) break
+            total += read
+            if (total > maxBytes) {
+                throw IllegalArgumentException(
+                    "Decrypted backup exceeds the ${maxBytes / (1024 * 1024)}MB safety limit."
+                )
+            }
+            output.write(buffer, 0, read)
+        }
+    }
+
+    private fun skipFully(input: InputStream, byteCount: Int) {
+        var remaining = byteCount
+        while (remaining > 0) {
+            val skipped = input.skip(remaining.toLong())
+            if (skipped > 0) {
+                remaining -= skipped.toInt()
+                continue
+            }
+            if (input.read() == -1) {
+                throw IllegalArgumentException("Backup file is truncated.")
+            }
+            remaining--
+        }
     }
 
     private fun reportProgress(

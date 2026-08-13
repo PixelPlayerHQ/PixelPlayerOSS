@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="nav_error_genre_id_missing">Error: Genre ID missing</string>
+
+    <string name="audio_bookmarks_back_to_top">Back to top</string>
+    <string name="audio_bookmarks_clear_filter">Clear filter</string>
+    <string name="audio_bookmarks_name_label">Bookmark name</string>
+    <string name="audio_bookmarks_title">Bookmarks</string>
+    <string name="audio_bookmarks_cd_open">Audio bookmarks</string>
+    <string name="audio_bookmarks_cd_add">Save bookmark</string>
     <string name="easter_egg_thank_you">Thank you for using PixelPlayerOSS!</string>
 
     <string name="word_delimiter_section_title">Current Word Delimiters</string>

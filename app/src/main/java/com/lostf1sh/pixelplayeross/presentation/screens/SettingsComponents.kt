@@ -102,12 +102,13 @@ fun SettingsItem(
         subtitle: String,
         leadingIcon: @Composable () -> Unit,
         trailingIcon: @Composable () -> Unit = {},
+        modifier: Modifier = Modifier,
         onClick: () -> Unit
 ) {
     Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
             modifier =
-                    Modifier.fillMaxWidth()
+                    modifier.fillMaxWidth()
                             .clip(RoundedCornerShape(10.dp))
                             .clickable(onClick = onClick)
     ) {
@@ -150,14 +151,15 @@ fun SwitchSettingItem(
         checked: Boolean,
         onCheckedChange: (Boolean) -> Unit,
         leadingIcon: @Composable (() -> Unit)? = null,
-        enabled: Boolean = true
+        enabled: Boolean = true,
+        modifier: Modifier = Modifier
 ) {
     val view = LocalView.current
     val appHapticsConfig = LocalAppHapticsConfig.current
 
     Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+            modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
     ) {
         Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -240,7 +242,8 @@ fun ThemeSelectorItem(
         disabledOptionKeys: Set<String> = emptySet(),
         selectedKey: String,
         onSelectionChanged: (String) -> Unit,
-        leadingIcon: @Composable () -> Unit
+        leadingIcon: @Composable () -> Unit,
+        modifier: Modifier = Modifier
 ) {
     var showSheet by remember { mutableStateOf(false) }
     val selectedOption = options[selectedKey] ?: selectedKey
@@ -248,7 +251,7 @@ fun ThemeSelectorItem(
     Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
             modifier =
-                    Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable {
+                    modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).clickable {
                         showSheet = true
                     }
     ) {
@@ -409,11 +412,12 @@ fun SliderSettingsItem(
         steps: Int,
         onValueChange: (Float) -> Unit,
         onValueChangeFinished: (() -> Unit)? = null,
-        valueText: (Float) -> String
+        valueText: (Float) -> String,
+        modifier: Modifier = Modifier
 ) {
     Surface(
             color = MaterialTheme.colorScheme.surfaceContainer,
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+            modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -687,11 +691,12 @@ fun ActionSettingsItem(
     onPrimaryAction: () -> Unit,
     secondaryActionLabel: String? = null,
     onSecondaryAction: (() -> Unit)? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
+        modifier = modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(

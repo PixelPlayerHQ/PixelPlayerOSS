@@ -30,6 +30,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.rounded.Shuffle
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -86,6 +88,7 @@ import coil.compose.AsyncImagePainter
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Album
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
@@ -124,6 +127,7 @@ fun AlbumDetailScreen(
     }
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val completedOfflineUris by viewModel.completedOfflineUris.collectAsStateWithLifecycle()
 
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
@@ -197,6 +201,10 @@ fun AlbumDetailScreen(
             uiState.album != null -> {
                 val album = uiState.album!!
                 val songs = uiState.songs
+                val cloudSongs = remember(songs) { songs.filter(CloudOfflineRepository::isCloudSong) }
+                val allCloudSongsDownloaded = remember(cloudSongs, completedOfflineUris) {
+                    cloudSongs.isNotEmpty() && cloudSongs.all { it.contentUriString in completedOfflineUris }
+                }
                 val songsByDisc = remember(songs) {
                     songs.groupBy { it.discNumber ?: 1 }
                 }
@@ -377,6 +385,12 @@ fun AlbumDetailScreen(
                                 }
                             },
                             onBackPressed = { navController.popBackStack() },
+                            showDownloadAction = cloudSongs.isNotEmpty(),
+                            allDownloaded = allCloudSongsDownloaded,
+                            onDownloadClick = {
+                                if (allCloudSongsDownloaded) viewModel.removeAlbumDownloads(cloudSongs)
+                                else viewModel.downloadAlbum(cloudSongs)
+                            },
                             onPlayClick = {
                                 if (songs.isNotEmpty()) {
                                     val randomSong = songs.random()
@@ -397,6 +411,12 @@ fun AlbumDetailScreen(
                                 }
                             },
                             onBackPressed = { navController.popBackStack() },
+                            showDownloadAction = cloudSongs.isNotEmpty(),
+                            allDownloaded = allCloudSongsDownloaded,
+                            onDownloadClick = {
+                                if (allCloudSongsDownloaded) viewModel.removeAlbumDownloads(cloudSongs)
+                                else viewModel.downloadAlbum(cloudSongs)
+                            },
                             onPlayClick = {
                                 if (songs.isNotEmpty()) {
                                     val randomSong = songs.random()
@@ -517,6 +537,9 @@ private fun SharedAlbumTopBarProbe(
     headerImageRequestSize: Size,
     onHeaderArtworkState: ((AsyncImagePainter.State) -> Unit)? = null,
     onBackPressed: () -> Unit,
+    showDownloadAction: Boolean,
+    allDownloaded: Boolean,
+    onDownloadClick: () -> Unit,
     onPlayClick: () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -625,6 +648,26 @@ private fun SharedAlbumTopBarProbe(
         ) {
             Icon(Icons.Rounded.Shuffle, contentDescription = stringResource(R.string.cd_shuffle_play_album))
         }
+
+        if (showDownloadAction) {
+            FilledIconButton(
+                onClick = onDownloadClick,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .statusBarsPadding()
+                    .padding(end = 12.dp, top = 4.dp),
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                )
+            ) {
+                Icon(
+                    imageVector = if (allDownloaded) Icons.Rounded.CloudDone else Icons.Rounded.CloudDownload,
+                    contentDescription = stringResource(
+                        if (allDownloaded) R.string.cloud_album_remove_downloads else R.string.cloud_album_download
+                    )
+                )
+            }
+        }
     }
 }
 
@@ -638,6 +681,9 @@ private fun CollapsingAlbumTopBar(
     headerImageRequestSize: Size,
     onHeaderArtworkState: ((AsyncImagePainter.State) -> Unit)? = null,
     onBackPressed: () -> Unit,
+    showDownloadAction: Boolean,
+    allDownloaded: Boolean,
+    onDownloadClick: () -> Unit,
     onPlayClick: () -> Unit
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -738,6 +784,25 @@ private fun CollapsingAlbumTopBar(
                     colors = IconButtonDefaults.filledIconButtonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
                 ) {
                     Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.auth_cd_back))
+                }
+
+                if (showDownloadAction) {
+                    FilledIconButton(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(end = 12.dp, top = 4.dp),
+                        onClick = onDownloadClick,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (allDownloaded) Icons.Rounded.CloudDone else Icons.Rounded.CloudDownload,
+                            contentDescription = stringResource(
+                                if (allDownloaded) R.string.cloud_album_remove_downloads else R.string.cloud_album_download
+                            )
+                        )
+                    }
                 }
 
                 Box(

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">뒤로</string>
+    <string name="auth_connect">연결</string>
+    <string name="auth_connecting">연결 중…</string>
+    <string name="auth_connection_details">연결 세부 정보</string>
+    <string name="auth_connection_details_subtitle">서버 URL 및 계정 인증 정보를 입력하세요.</string>
+    <string name="auth_hide_password">비밀번호 숨기기</string>
+    <string name="auth_jellyfin_connection_subtitle">Jellyfin 서버 URL 및 계정 인증 정보를 입력하세요.</string>
+    <string name="auth_jellyfin_footer">음악 스트리밍을 위해 Jellyfin 서버에 연결합니다.</string>
+    <string name="auth_jellyfin_info_card">Jellyfin 서버에 연결합니다. 로컬 네트워크 액세스를 위해 HTTP와 HTTPS를 모두 지원합니다.</string>
+    <string name="auth_jellyfin_password_hint">Jellyfin 계정 비밀번호입니다.</string>
+    <string name="auth_jellyfin_server_url_hint">포트를 포함한 전체 URL입니다. 로컬, Tailscale, .local, .lan 주소는 HTTP를 사용할 수 있습니다.</string>
+    <string name="auth_jellyfin_subtitle">Jellyfin 미디어 서버에 연결</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">Jellyfin 계정 사용자 이름입니다.</string>
+    <string name="auth_local_network_permission_denied">로컬 네트워크의 서버에 연결하려면 근처 기기 접근 권한을 허용하세요.</string>
+    <string name="auth_navidrome_footer">Navidrome, Gonic, Airsonic 및 기타 Subsonic 호환 서버와 호환됩니다.</string>
+    <string name="auth_navidrome_info_card">Navidrome, Airsonic, Gonic, Ampache 및 Subsonic API와 호환되는 기타 서버를 지원합니다.</string>
+    <string name="auth_navidrome_password_hint">서버가 지원하는 경우 앱 비밀번호도 사용할 수 있습니다.</string>
+    <string name="auth_navidrome_server_url_hint">전체 서버 URL을 입력하세요. 로컬 서버는 http://, 원격 서버는 https://를 포함합니다.</string>
+    <string name="auth_navidrome_subtitle">자체 호스팅 음악 서버에 연결</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">Subsonic 또는 Navidrome 계정 이름입니다.</string>
+    <string name="auth_password">비밀번호</string>
+    <string name="auth_password_placeholder">비밀번호 입력</string>
+    <string name="auth_prefill_http">http:// 자동 입력</string>
+    <string name="auth_select_libraries_confirm">저장 후 동기화</string>
+    <string name="auth_select_libraries_subtitle">이 서버에는 음악 라이브러리가 여러 개 있습니다. 동기화할 라이브러리를 선택하세요. 나중에 서버 대시보드에서 변경할 수 있습니다.</string>
+    <string name="auth_select_libraries_title">동기화할 라이브러리 선택</string>
+    <string name="auth_server_url">서버 URL</string>
+    <string name="auth_show_password">비밀번호 표시</string>
+    <string name="auth_use_http">HTTP / VPN 사용</string>
+    <string name="auth_username">사용자 이름</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">재시도</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+    <string name="toast_welcome_user">%1$s님, 환영합니다!</string>
+</resources>

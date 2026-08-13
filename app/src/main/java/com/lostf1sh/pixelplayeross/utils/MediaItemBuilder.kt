@@ -67,8 +67,13 @@ object MediaItemBuilder {
         "audio/x-alac",
         "audio/x-aiff",
     )
+    private val CLOUD_ARTWORK_SCHEMES = setOf(
+        "navidrome_cover",
+        "jellyfin_cover",
+    )
     private val SUPPORTED_INTERNAL_ARTWORK_SCHEMES = setOf(
         LocalArtworkUri.SCHEME,
+        *CLOUD_ARTWORK_SCHEMES.toTypedArray(),
         "content",
         "file",
         "android.resource",
@@ -229,6 +234,10 @@ object MediaItemBuilder {
         return normalizeArtworkUri(rawArtworkUri, SUPPORTED_INTERNAL_ARTWORK_SCHEMES)
     }
 
+    internal fun isSupportedInternalArtworkScheme(scheme: String): Boolean {
+        return scheme.lowercase() in SUPPORTED_INTERNAL_ARTWORK_SCHEMES
+    }
+
     fun externalControllerArtworkUri(context: Context, rawArtworkUri: String?): Uri? {
         if (LocalArtworkUri.isLocalArtworkUri(rawArtworkUri)) {
             val songId = rawArtworkUri?.let(LocalArtworkUri::parseSongId) ?: return null
@@ -244,6 +253,17 @@ object MediaItemBuilder {
                 context = context.applicationContext,
                 songId = songId,
                 cacheBustToken = LocalArtworkUri.extractCacheBustToken(rawArtworkUri)
+            )
+        }
+
+        val internalArtworkUri = normalizeArtworkUri(
+            rawArtworkUri,
+            CLOUD_ARTWORK_SCHEMES
+        )
+        if (internalArtworkUri != null) {
+            return SharedArtworkContentProvider.buildCloudUri(
+                context = context.applicationContext,
+                rawArtworkUri = internalArtworkUri.toString()
             )
         }
 

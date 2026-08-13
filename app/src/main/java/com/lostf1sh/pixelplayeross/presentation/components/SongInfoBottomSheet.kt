@@ -34,6 +34,8 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.AudioFile
 import androidx.compose.material.icons.rounded.Cloud
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MusicNote
@@ -44,6 +46,7 @@ import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Menu
+import androidx.compose.material.icons.rounded.TravelExplore
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -71,6 +74,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
+import com.lostf1sh.pixelplayeross.data.offline.OfflineDownloadStatus
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.AutoSizingTextToFill
 import com.lostf1sh.pixelplayeross.utils.formatDuration
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
@@ -131,6 +136,9 @@ fun SongInfoBottomSheet(
     var pendingTonePermissionTarget by remember { mutableStateOf<ToneTarget?>(null) }
     val audioMeta by songInfoViewModel.audioMeta.collectAsStateWithLifecycle()
     val resolvedArtists by songInfoViewModel.resolvedArtists.collectAsStateWithLifecycle()
+    val offlineDownload by songInfoViewModel.offlineDownload.collectAsStateWithLifecycle()
+    val musicBrainzState by songInfoViewModel.musicBrainzState.collectAsStateWithLifecycle()
+    val isCloudSong = remember(song.contentUriString) { CloudOfflineRepository.isCloudSong(song) }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -281,12 +289,44 @@ fun SongInfoBottomSheet(
     }
 
     LaunchedEffect(song.id) {
+        songInfoViewModel.bindSong(song)
         songInfoViewModel.loadAudioMeta(song)
         songInfoViewModel.loadArtistsForSong(song)
     }
 
+    LaunchedEffect(musicBrainzState) {
+        if (musicBrainzState is SongInfoBottomSheetViewModel.MusicBrainzUiState.Applied) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.musicbrainz_applied),
+                Toast.LENGTH_LONG
+            ).show()
+            songInfoViewModel.dismissMusicBrainz()
+        }
+    }
+
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { 2 })
     val scope = androidx.compose.runtime.rememberCoroutineScope()
+
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    // Keep the pager from growing past the screen on small devices: the sheet header and
+    // grab handle take ~180dp; never shrink below 280dp so content stays usable.
+    val maxPagerHeight = (
+        configuration.screenHeightDp.dp -
+            safeInsets.calculateTopPadding() -
+            safeInsets.calculateBottomPadding() -
+            180.dp
+        ).coerceAtLeast(280.dp)
+
+    // Defer the height animation past the first two frames so the sheet doesn't visibly
+    // animate its content height while it is still opening.
+    var heightAnimationEnabled by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        androidx.compose.runtime.withFrameNanos { }
+        androidx.compose.runtime.withFrameNanos { }
+        heightAnimationEnabled = true
+    }
 
     ModalBottomSheet(
         onDismissRequest = {
@@ -361,11 +401,17 @@ fun SongInfoBottomSheet(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
+                    val sizeAnimationSpec = if (heightAnimationEnabled) {
+                        tween<androidx.compose.ui.unit.IntSize>(durationMillis = 280)
+                    } else {
+                        androidx.compose.animation.core.snap()
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .heightIn(max = maxPagerHeight)
                             .animateContentSize(
-                                animationSpec = tween(durationMillis = 280),
+                                animationSpec = sizeAnimationSpec,
                                 alignment = Alignment.TopCenter
                             )
                     ) {
@@ -545,40 +591,95 @@ fun SongInfoBottomSheet(
                                                     modifier = Modifier
                                                         .weight(0.5f)
                                                         .heightIn(min = 66.dp),
-                                                    colors = ButtonDefaults.filledTonalButtonColors(
-                                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                                                    ),
+                                                    colors = if (isCloudSong) {
+                                                        ButtonDefaults.filledTonalButtonColors(
+                                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    } else {
+                                                        ButtonDefaults.filledTonalButtonColors(
+                                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                                        )
+                                                    },
                                                     shape = CircleShape,
                                                     onClick = {
-                                                        (context as? Activity)?.let { activity ->
-                                                            onDeleteFromDevice(activity, song) { result ->
-                                                                if (result) {
-                                                                    removeFromListTrigger()
-                                                                    onDismiss()
+                                                        if (isCloudSong) {
+                                                            when (offlineDownload?.status) {
+                                                                OfflineDownloadStatus.FAILED ->
+                                                                    songInfoViewModel.retryOfflineDownload(song)
+                                                                else -> songInfoViewModel.toggleOfflineDownload(song)
+                                                            }
+                                                        } else {
+                                                            (context as? Activity)?.let { activity ->
+                                                                onDeleteFromDevice(activity, song) { result ->
+                                                                    if (result) {
+                                                                        removeFromListTrigger()
+                                                                        onDismiss()
+                                                                    }
                                                                 }
                                                             }
                                                         }
                                                     }
                                                 ) {
                                                     Icon(
-                                                        Icons.Default.DeleteForever,
-                                                        contentDescription = stringResource(R.string.delete_action)
+                                                        when (offlineDownload?.status) {
+                                                            OfflineDownloadStatus.COMPLETE -> Icons.Rounded.CloudDone
+                                                            else -> if (isCloudSong) Icons.Rounded.CloudDownload else Icons.Default.DeleteForever
+                                                        },
+                                                        contentDescription = stringResource(
+                                                            if (isCloudSong) R.string.cloud_download_action else R.string.delete_action
+                                                        )
                                                     )
                                                     Spacer(Modifier.width(8.dp))
-                                                    Text(stringResource(R.string.delete_action))
+                                                    Text(
+                                                        when (offlineDownload?.status) {
+                                                            OfflineDownloadStatus.QUEUED -> stringResource(R.string.cloud_download_queued)
+                                                            OfflineDownloadStatus.DOWNLOADING -> offlineDownload?.progress
+                                                                ?.let { stringResource(R.string.cloud_download_progress, (it * 100).toInt()) }
+                                                                ?: stringResource(R.string.cloud_downloading)
+                                                            OfflineDownloadStatus.COMPLETE -> stringResource(R.string.cloud_remove_download)
+                                                            OfflineDownloadStatus.FAILED -> stringResource(R.string.cloud_download_retry)
+                                                            null -> if (isCloudSong) {
+                                                                stringResource(R.string.cloud_download_action)
+                                                            } else {
+                                                                stringResource(R.string.delete_action)
+                                                            }
+                                                        },
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis
+                                                    )
                                                 }
                                             }
                                         }
 
+                                        if (!isCloudSong) {
+                                            item {
+                                                RingtoneActionButton(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .heightIn(min = 66.dp),
+                                                    showText = true,
+                                                    onClick = { showTonePickerDialog = true },
+                                                )
+                                            }
+                                        }
+
                                         item {
-                                            RingtoneActionButton(
+                                            FilledTonalButton(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .heightIn(min = 66.dp),
-                                                showText = true,
-                                                onClick = { showTonePickerDialog = true },
-                                            )
+                                                shape = CircleShape,
+                                                onClick = { songInfoViewModel.searchMusicBrainz(song) }
+                                            ) {
+                                                Icon(
+                                                    Icons.Rounded.TravelExplore,
+                                                    contentDescription = stringResource(R.string.musicbrainz_lookup)
+                                                )
+                                                Spacer(Modifier.width(10.dp))
+                                                Text(stringResource(R.string.musicbrainz_lookup))
+                                            }
                                         }
 
                                         item {
@@ -770,6 +871,97 @@ fun SongInfoBottomSheet(
             showEditSheet = false
         },
     )
+
+    when (val state = musicBrainzState) {
+        SongInfoBottomSheetViewModel.MusicBrainzUiState.Idle,
+        SongInfoBottomSheetViewModel.MusicBrainzUiState.Applied -> Unit
+
+        SongInfoBottomSheetViewModel.MusicBrainzUiState.Loading -> {
+            AlertDialog(
+                onDismissRequest = {},
+                confirmButton = {},
+                title = { Text(stringResource(R.string.musicbrainz_lookup)) },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp))
+                        Text(stringResource(R.string.musicbrainz_searching))
+                    }
+                }
+            )
+        }
+
+        is SongInfoBottomSheetViewModel.MusicBrainzUiState.Error -> {
+            AlertDialog(
+                onDismissRequest = songInfoViewModel::dismissMusicBrainz,
+                confirmButton = {
+                    TextButton(onClick = { songInfoViewModel.searchMusicBrainz(song) }) {
+                        Text(stringResource(R.string.cloud_download_retry))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = songInfoViewModel::dismissMusicBrainz) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+                title = { Text(stringResource(R.string.musicbrainz_lookup_failed)) },
+                text = { Text(state.message) }
+            )
+        }
+
+        is SongInfoBottomSheetViewModel.MusicBrainzUiState.Results -> {
+            AlertDialog(
+                onDismissRequest = songInfoViewModel::dismissMusicBrainz,
+                confirmButton = {
+                    TextButton(onClick = songInfoViewModel::dismissMusicBrainz) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+                title = { Text(stringResource(R.string.musicbrainz_choose_match)) },
+                text = {
+                    if (state.matches.isEmpty()) {
+                        Text(stringResource(R.string.musicbrainz_no_results))
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 420.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.matches, key = { it.recordingId + (it.releaseId ?: "") }) { match ->
+                                Surface(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            songInfoViewModel.applyMusicBrainzMatch(song, match)
+                                        },
+                                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    Column(Modifier.padding(14.dp)) {
+                                        Text(match.title, fontWeight = FontWeight.Bold)
+                                        Text(
+                                            listOfNotNull(
+                                                match.artist.takeIf { it.isNotBlank() },
+                                                match.album.takeIf { it.isNotBlank() },
+                                                match.year.takeIf { it > 0 }?.toString()
+                                            ).joinToString(" · "),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        Text(
+                                            stringResource(R.string.musicbrainz_match_score, match.score),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    }
 
     val artistPickerSheetState = rememberModalSheetState(skipPartiallyExpanded = true)
     if (showArtistPicker && resolvedArtists.isNotEmpty()) {

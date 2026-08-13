@@ -1,6 +1,8 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import android.content.Intent
 import android.text.format.Formatter
+import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,24 +31,34 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Assessment
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Speaker
 import androidx.compose.material.icons.rounded.Storage
 import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,11 +77,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -91,6 +107,9 @@ import com.lostf1sh.pixelplayeross.presentation.viewmodel.LocalMusicStorageSumma
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.MemorySummary
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaybackCompatibilitySummary
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.launch
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import kotlin.math.roundToInt
@@ -181,6 +200,9 @@ fun DeviceCapabilitiesScreen(
                 state = state,
                 lazyListState = lazyListState,
                 topPadding = currentTopBarHeightDp,
+                onGenerateReport = viewModel::generatePerformanceReport,
+                onAdvancedDiagnosticsChange = viewModel::setAdvancedPerformanceDiagnosticsEnabled,
+                onMarkLagNow = viewModel::markLagNow,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -202,6 +224,9 @@ private fun DeviceCapabilitiesContent(
     state: DeviceCapabilitiesState,
     lazyListState: LazyListState,
     topPadding: Dp,
+    onGenerateReport: () -> Unit,
+    onAdvancedDiagnosticsChange: (Boolean) -> Unit,
+    onMarkLagNow: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -258,8 +283,205 @@ private fun DeviceCapabilitiesContent(
         item {
             DeviceInfoPanel(deviceInfo = state.deviceInfo)
         }
+
+        item {
+            PerformanceReportCard(
+                report = state.performanceReport,
+                isGenerating = state.isGeneratingReport,
+                advancedDiagnosticsEnabled = state.advancedDiagnosticsEnabled,
+                advancedDiagnosticsExpiresAtEpochMs = state.advancedDiagnosticsExpiresAtEpochMs,
+                onGenerate = onGenerateReport,
+                onAdvancedDiagnosticsChange = onAdvancedDiagnosticsChange,
+                onMarkLagNow = onMarkLagNow
+            )
+        }
     }
 }
+
+@Composable
+private fun PerformanceReportCard(
+    report: String?,
+    isGenerating: Boolean,
+    advancedDiagnosticsEnabled: Boolean,
+    advancedDiagnosticsExpiresAtEpochMs: Long?,
+    onGenerate: () -> Unit,
+    onAdvancedDiagnosticsChange: (Boolean) -> Unit,
+    onMarkLagNow: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val copiedMessage = stringResource(R.string.device_capabilities_report_copied)
+    val shareTitle = stringResource(R.string.device_capabilities_report_share_title)
+    val lagMarkedMessage = stringResource(R.string.device_capabilities_advanced_diagnostics_marked)
+
+    CapabilityCard(
+        title = stringResource(R.string.device_capabilities_report_title),
+        icon = Icons.Rounded.Assessment,
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(R.string.device_capabilities_report_description),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        AdvancedDiagnosticsToggleRow(
+            enabled = advancedDiagnosticsEnabled,
+            expiresAtEpochMs = advancedDiagnosticsExpiresAtEpochMs,
+            onEnabledChange = onAdvancedDiagnosticsChange
+        )
+
+        if (advancedDiagnosticsEnabled) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {
+                    onMarkLagNow()
+                    Toast.makeText(context, lagMarkedMessage, Toast.LENGTH_SHORT).show()
+                }
+            ) {
+                Text(stringResource(R.string.device_capabilities_advanced_diagnostics_mark_lag))
+            }
+        }
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onGenerate,
+            enabled = !isGenerating
+        ) {
+            if (isGenerating) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Text(
+                    text = stringResource(
+                        if (report == null) R.string.device_capabilities_report_generate
+                        else R.string.device_capabilities_report_regenerate
+                    )
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (report != null) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        clipboardManager.setText(AnnotatedString(report))
+                        Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.device_capabilities_report_copy))
+                }
+
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_SUBJECT, shareTitle)
+                            putExtra(Intent.EXTRA_TEXT, report)
+                        }
+                        context.startActivity(Intent.createChooser(sendIntent, shareTitle))
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(stringResource(R.string.device_capabilities_report_share))
+                }
+            }
+        }
+
+        if (report != null) {
+            Surface(
+                shape = AbsoluteSmoothCornerShape(18.dp, 60),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SelectionContainer {
+                    Text(
+                        text = report,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .heightIn(max = 260.dp)
+                            .verticalScroll(rememberScrollState())
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AdvancedDiagnosticsToggleRow(
+    enabled: Boolean,
+    expiresAtEpochMs: Long?,
+    onEnabledChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = AbsoluteSmoothCornerShape(18.dp, 60),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.device_capabilities_advanced_diagnostics_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = if (enabled && expiresAtEpochMs != null) {
+                        stringResource(
+                            R.string.device_capabilities_advanced_diagnostics_expires,
+                            formatDiagnosticsExpiry(expiresAtEpochMs)
+                        )
+                    } else {
+                        stringResource(R.string.device_capabilities_advanced_diagnostics_description)
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onEnabledChange
+            )
+        }
+    }
+}
+
+private fun formatDiagnosticsExpiry(epochMs: Long): String =
+    SimpleDateFormat("MMM d, HH:mm", Locale.getDefault()).format(Date(epochMs))
 
 @Composable
 private fun PlaybackReadinessCard(

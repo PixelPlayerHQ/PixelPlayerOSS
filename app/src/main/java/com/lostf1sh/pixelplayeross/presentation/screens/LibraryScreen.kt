@@ -17,7 +17,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.expandHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +28,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -54,11 +55,11 @@ import androidx.compose.material.icons.automirrored.rounded.ViewList
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.rounded.Bookmark
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SelectAll
 import androidx.compose.material.icons.rounded.Deselect
-import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -91,6 +92,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -104,6 +106,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -114,11 +118,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -141,6 +147,7 @@ import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.MusicFolder
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
@@ -160,12 +167,14 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.components.MultiSelectionBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.AlbumMultiSelectionOptionSheet
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistMultiSelectionBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.DescribePlaylistDialog
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCreationTypeDialog
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionActionRow
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionCountPill
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerUiState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StablePlayerState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistUiState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
@@ -191,13 +200,12 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -223,8 +231,6 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.ripple
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -314,7 +320,8 @@ fun LibraryScreen(
     playerViewModel: PlayerViewModel = hiltViewModel(),
     playlistViewModel: PlaylistViewModel = hiltViewModel(),
     libraryViewModel: LibraryViewModel = hiltViewModel(),
-    songInfoBottomSheetViewModel: SongInfoBottomSheetViewModel = hiltViewModel()
+    songInfoBottomSheetViewModel: SongInfoBottomSheetViewModel = hiltViewModel(),
+    cloudDownloadsViewModel: CloudDownloadsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -363,6 +370,7 @@ fun LibraryScreen(
     }.collectAsStateWithLifecycle(initialValue = false)
     var showCreatePlaylistDialog by remember { mutableStateOf(false) }
     var showPlaylistCreationTypeDialog by remember { mutableStateOf(false) }
+    var showDescribePlaylistDialog by remember { mutableStateOf(false) }
 
     val m3uImportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -663,16 +671,25 @@ fun LibraryScreen(
                 TopAppBar(
                     title = {
                         if (isCompactNavigation) {
-                            LibraryNavigationPill(
-                                modifier = Modifier,
+                            LibraryNavigationCompactTitle(
+                                modifier = Modifier.padding(start = 2.dp),
                                 title = currentTabTitle,
-                                isExpanded = showTabSwitcherSheet,
-                                iconRes = currentTab.iconRes(),
                                 pageIndex = pagerState.currentPage,
                                 onClick = {
                                     showTabSwitcherSheet = true
                                 },
-                                onArrowClick = { showTabSwitcherSheet = true }
+                                onSwipeLeft = {
+                                    scope.launch {
+                                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                                    }
+                                },
+                                onSwipeRight = {
+                                    scope.launch {
+                                        if (pagerState.currentPage > 0) {
+                                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                                        }
+                                    }
+                                }
                             )
                         } else {
                             Text(
@@ -687,6 +704,20 @@ fun LibraryScreen(
                         }
                     },
                     actions = {
+                        FilledIconButton(
+                            colors = IconButtonDefaults.filledIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            ),
+                            onClick = {
+                                navController.navigateSafely(Screen.AudioBookmarks.route)
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Bookmark,
+                                contentDescription = stringResource(R.string.audio_bookmarks_cd_open)
+                            )
+                        }
                         FilledIconButton(
                             modifier = Modifier.padding(end = 14.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
@@ -745,7 +776,7 @@ fun LibraryScreen(
                                 }
                             ) {
                                 Text(
-                                    text = tabId.title,
+                                    text = stringResource(tabId.titleRes).uppercase(Locale.getDefault()),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = if (currentTabIndex == index) FontWeight.Bold else FontWeight.Medium
                                 )
@@ -1396,6 +1427,26 @@ fun LibraryScreen(
         onManualSelected = {
             showPlaylistCreationTypeDialog = false
             showCreatePlaylistDialog = true
+        },
+        onDescribeSelected = {
+            showPlaylistCreationTypeDialog = false
+            showDescribePlaylistDialog = true
+        }
+    )
+
+    val nlpPlaylistPreviewState by playlistViewModel.nlpPlaylistPreviewState.collectAsStateWithLifecycle()
+    DescribePlaylistDialog(
+        visible = showDescribePlaylistDialog,
+        state = nlpPlaylistPreviewState,
+        onGenerate = playlistViewModel::generateNlpPlaylistPreview,
+        onSave = { name, songIds ->
+            playlistViewModel.createPlaylist(name = name, songIds = songIds)
+            playlistViewModel.resetNlpPlaylistPreview()
+            showDescribePlaylistDialog = false
+        },
+        onDismiss = {
+            playlistViewModel.resetNlpPlaylistPreview()
+            showDescribePlaylistDialog = false
         }
     )
 
@@ -1557,6 +1608,15 @@ fun LibraryScreen(
             },
             onShareAll = {
                 playerViewModel.shareSelectedAsZip(selectedSongs)
+                showMultiSelectionSheet = false
+            },
+            onDownloadAll = {
+                val cloudSongCount = selectedSongs.count(CloudOfflineRepository::isCloudSong)
+                cloudDownloadsViewModel.downloadSelected(selectedSongs)
+                multiSelectionState.clearSelection()
+                playerViewModel.sendToast(
+                    context.getString(R.string.cloud_download_selected_started, cloudSongCount)
+                )
                 showMultiSelectionSheet = false
             },
             onDeleteAll = { _, onComplete ->
@@ -1903,238 +1963,255 @@ private fun LibrarySyncOverlay(syncManager: com.lostf1sh.pixelplayeross.data.wor
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class)
+/**
+ * Compact library header title. Measures the localized tab name and compresses it into the space
+ * left by the header actions by animating the variable font width axis, weight, horizontal scale
+ * and letter spacing, so long translations still fit on one line. Tapping opens the tab switcher,
+ * swiping horizontally moves between tabs.
+ */
+@OptIn(ExperimentalTextApi::class)
 @Composable
-fun LibraryNavigationPill(
+private fun LibraryNavigationCompactTitle(
     modifier: Modifier = Modifier,
     title: String,
-    isExpanded: Boolean,
-    iconRes: Int,
-    showIcon: Boolean = true,
     pageIndex: Int,
     onClick: () -> Unit,
-    onArrowClick: () -> Unit
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit
 ) {
-    data class PillState(val pageIndex: Int, val iconRes: Int, val title: String)
+    // Nudges the baseline so the title lines up with the header action buttons.
+    val verticalOffset = 2.dp
 
-    val pillRadius = 50.dp
-    val innerRadius = 4.dp
-    val titleHorizontalPadding = 14.dp
-    val titleVerticalPadding = 10.dp
-    val titleIconSize = 22.dp
-    val titleIconSpacing = 10.dp
-    val pillHeight = 52.dp
-    val arrowContentWidth = 36.dp
-    val pillGap = 4.dp
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
-    var availableWidthPx by remember { mutableStateOf(0) }
+    var availableWidthPx by remember { mutableIntStateOf(0) }
 
-    val animatedArrowCorner by animateDpAsState(
-        targetValue = if (isExpanded) pillRadius else innerRadius,
-        label = "ArrowCornerAnimation"
-    )
-    val arrowRotation by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        label = "ArrowRotation"
-    )
-    val targetArrowHorizontalPadding = LibraryNavigationPillArrowPaddingExpanded
-    val animatedArrowHorizontalPadding by animateDpAsState(
-        targetValue = targetArrowHorizontalPadding,
-        label = "LibraryPillArrowPadding"
-    )
+    val rondValue = 46f
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 4.dp)
-            .onSizeChanged { availableWidthPx = it.width },
+            .wrapContentHeight()
+            .onSizeChanged { availableWidthPx = it.width }
+            .pointerInput(onClick) {
+                detectTapGestures(onTap = { onClick() })
+            }
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                val swipeThresholdPx = 50.dp.toPx()
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onHorizontalDrag = { change, dragAmount ->
+                        totalDrag += dragAmount
+                        change.consume()
+                    },
+                    onDragEnd = {
+                        if (totalDrag > swipeThresholdPx) {
+                            onSwipeRight()
+                        } else if (totalDrag < -swipeThresholdPx) {
+                            onSwipeLeft()
+                        }
+                        totalDrag = 0f
+                    },
+                    onDragCancel = { totalDrag = 0f }
+                )
+            },
         contentAlignment = Alignment.CenterStart
     ) {
-        val baseTitleStyle = rememberLibraryNavigationPillTitleStyle(
-            widthAxis = LibraryNavigationPillTitleWidthMax
-        )
-        val idealTextWidth = with(density) {
-            textMeasurer.measure(
-                text = AnnotatedString(title),
-                style = baseTitleStyle,
-                maxLines = 1,
-                softWrap = false,
-            ).size.width.toDp()
-        }
-        val targetArrowWidth = arrowContentWidth + (targetArrowHorizontalPadding * 2)
         val availableWidth = if (availableWidthPx > 0) {
             with(density) { availableWidthPx.toDp() }
         } else {
-            1000.dp
+            400.dp
         }
-        val maxTitleWidth = (availableWidth - targetArrowWidth - pillGap - 40.dp).coerceAtLeast(0.dp)
-        val idealTitleWidth = idealTextWidth +
-                titleHorizontalPadding * 2 +
-                (if (showIcon) (titleIconSize + titleIconSpacing) else 0.dp) +
-                4.dp
-        val naturalTitleWidth = minOf(idealTitleWidth, maxTitleWidth)
-        val minCompressedTitleWidth = (
-                titleHorizontalPadding * 2 +
-                        titleIconSize +
-                        titleIconSpacing +
-                        LibraryNavigationPillMinimumTextWidth
-                ).coerceAtMost(maxTitleWidth)
-        val targetTitleWidth = naturalTitleWidth.coerceAtLeast(minCompressedTitleWidth)
-        val widthCompressionRatio = if (idealTitleWidth.value > 0f) {
-            (targetTitleWidth.value / idealTitleWidth.value).coerceIn(0f, 1f)
+
+        val displayedTitle = remember(title) {
+            title.replaceFirstChar { char ->
+                if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString()
+            }
+        }
+
+        val baseTextStyle = remember {
+            TextStyle(
+                fontFamily = FontFamily(
+                    Font(
+                        resId = R.font.gflex_variable,
+                        variationSettings = FontVariation.Settings(
+                            FontVariation.weight(800),
+                            FontVariation.width(LibraryCompactTitleWidthMax),
+                            FontVariation.slant(-10f),
+                            FontVariation.Setting("ROND", rondValue),
+                            FontVariation.Setting("XTRA", 520f),
+                            FontVariation.Setting("YOPQ", 90f),
+                            FontVariation.Setting("YTLC", 505f)
+                        )
+                    )
+                ),
+                fontSize = 40.sp,
+                lineHeight = 40.sp,
+                letterSpacing = (-0.2).sp,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.None
+                )
+            )
+        }
+
+        val idealTextWidth = remember(displayedTitle, baseTextStyle) {
+            with(density) {
+                textMeasurer.measure(
+                    text = AnnotatedString(displayedTitle),
+                    style = baseTextStyle,
+                    maxLines = 1,
+                    softWrap = false
+                ).size.width.toDp()
+            }
+        }
+
+        val safetyPadding = 24.dp
+        val maxAllowedWidth = (availableWidth - safetyPadding).coerceAtLeast(0.dp)
+
+        val widthCompressionRatio = if (idealTextWidth.value > 0f) {
+            (maxAllowedWidth.value / idealTextWidth.value).coerceIn(0f, 1f)
         } else {
             1f
         }
-        val widthAxisBySpace = LibraryNavigationPillTitleWidthMin +
-                (LibraryNavigationPillTitleWidthMax - LibraryNavigationPillTitleWidthMin) *
-                widthCompressionRatio.coerceIn(0f, 1f)
-        val targetWidthAxis = widthAxisBySpace
-        val animatedTitleWidth by animateDpAsState(
-            targetValue = targetTitleWidth,
-            label = "LibraryPillTitleWidth"
-        )
+
+        // Keep a 10% margin of safety: font variation rounding can otherwise trip the ellipsis
+        // before the text has actually run out of room.
+        val conservativeRatio = (widthCompressionRatio * 0.9f).coerceIn(0f, 1f)
+
+        val targetWidthAxis = if (conservativeRatio >= 0.3f) {
+            LibraryCompactTitleWidthMin +
+                    (LibraryCompactTitleWidthMax - LibraryCompactTitleWidthMin) *
+                    ((conservativeRatio - 0.3f) / 0.7f)
+        } else {
+            LibraryCompactTitleWidthMin
+        }
         val animatedWidthAxis by animateFloatAsState(
             targetValue = targetWidthAxis,
-            label = "LibraryPillTitleAxis"
+            label = "LibraryHeaderTitleWidthAxis"
         )
-        val titleStyle = rememberLibraryNavigationPillTitleStyle(widthAxis = animatedWidthAxis)
 
-        Row(
-            modifier = Modifier.height(pillHeight),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(pillGap)
-        ) {
-            Surface(
-                shape = RoundedCornerShape(
-                    topStart = pillRadius,
-                    bottomStart = pillRadius,
-                    topEnd = innerRadius,
-                    bottomEnd = innerRadius
-                ),
-                tonalElevation = 8.dp,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .width(animatedTitleWidth)
-                    .height(pillHeight)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = pillRadius,
-                            bottomStart = pillRadius,
-                            topEnd = innerRadius,
-                            bottomEnd = innerRadius
-                        )
-                    )
-                    .clickable(onClick = onClick)
-            ) {
-                Box(
-                    modifier = Modifier.padding(horizontal = titleHorizontalPadding),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    AnimatedContent(
-                        targetState = PillState(pageIndex = pageIndex, iconRes = iconRes, title = title),
-                        transitionSpec = {
-                            val diff = targetState.pageIndex - initialState.pageIndex
-                            val direction = when {
-                                diff == 0 -> 0
-                                abs(diff) > 1 -> diff.coerceIn(-1, 1)
-                                else -> diff
-                            }
-
-                            val slideIn = slideInHorizontally { fullWidth ->
-                                if (direction >= 0) fullWidth else -fullWidth
-                            } + fadeIn(animationSpec = tween(220))
-
-                            val slideOut = slideOutHorizontally { fullWidth ->
-                                if (direction >= 0) -fullWidth else fullWidth
-                            } + fadeOut(animationSpec = tween(220))
-
-                            slideIn.togetherWith(slideOut)
-                        },
-                        label = "LibraryPillTitle"
-                    ) { targetState ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = titleVerticalPadding)
-                                .animateContentSize(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            AnimatedVisibility(
-                                visible = showIcon,
-                                enter = expandHorizontally(
-                                    animationSpec = tween(durationMillis = 220),
-                                    expandFrom = Alignment.Start
-                                ) + fadeIn(animationSpec = tween(durationMillis = 180)),
-                                exit = shrinkHorizontally(
-                                    animationSpec = tween(durationMillis = 220),
-                                    shrinkTowards = Alignment.Start
-                                ) + fadeOut(animationSpec = tween(durationMillis = 160))
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        painter = painterResource(id = targetState.iconRes),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(titleIconSize),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                    Spacer(modifier = Modifier.width(titleIconSpacing))
-                                }
-                            }
-                            Text(
-                                modifier = Modifier
-                                    .weight(1f, fill = false)
-                                    .padding(end = 4.dp),
-                                text = targetState.title,
-                                style = titleStyle,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Visible,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        }
-                    }
-                }
+        val targetWeight = remember(conservativeRatio) {
+            if (conservativeRatio < 0.3f) {
+                val ratio = (conservativeRatio / 0.3f).coerceIn(0f, 1f)
+                200 + (600 * ratio).toInt()
+            } else {
+                800
             }
+        }
 
-            Surface(
-                shape = RoundedCornerShape(
-                    topStart = animatedArrowCorner,
-                    bottomStart = animatedArrowCorner,
-                    topEnd = pillRadius,
-                    bottomEnd = pillRadius
-                ),
-                tonalElevation = 8.dp,
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier
-                    .height(pillHeight)
-                    .clip(
-                        RoundedCornerShape(
-                            topStart = animatedArrowCorner,
-                            bottomStart = animatedArrowCorner,
-                            topEnd = pillRadius,
-                            bottomEnd = pillRadius
+        val targetFontSize = remember(conservativeRatio) {
+            if (conservativeRatio < 0.4f) {
+                val ratio = (conservativeRatio / 0.4f).coerceIn(0f, 1f)
+                (14f + (26f * ratio)).sp
+            } else {
+                40.sp
+            }
+        }
+
+        val targetScaleX = remember(conservativeRatio) {
+            if (conservativeRatio < 0.3f) {
+                0.5f + 0.5f * (conservativeRatio / 0.3f)
+            } else {
+                1f
+            }
+        }
+        val animatedScaleX by animateFloatAsState(
+            targetValue = targetScaleX,
+            label = "LibraryHeaderTitleScaleX"
+        )
+
+        val targetLetterSpacing = remember(conservativeRatio) {
+            if (conservativeRatio < 1f) {
+                (-0.2 - (1.3 * (1f - conservativeRatio))).sp
+            } else {
+                (-0.2).sp
+            }
+        }
+
+        val primaryColor = MaterialTheme.colorScheme.primary
+        val finalTextStyle = remember(
+            animatedWidthAxis,
+            targetFontSize,
+            targetLetterSpacing,
+            targetWeight,
+            primaryColor
+        ) {
+            TextStyle(
+                fontFamily = FontFamily(
+                    Font(
+                        resId = R.font.gflex_variable,
+                        variationSettings = FontVariation.Settings(
+                            FontVariation.weight(targetWeight),
+                            FontVariation.width(animatedWidthAxis.coerceAtLeast(1f)),
+                            FontVariation.slant(-10f),
+                            FontVariation.Setting("ROND", rondValue),
+                            FontVariation.Setting("XTRA", 520f),
+                            FontVariation.Setting("YOPQ", 90f),
+                            FontVariation.Setting("YTLC", 505f)
                         )
                     )
-                    .clickable(
-                        indication = ripple(),
-                        interactionSource = remember { MutableInteractionSource() },
-                        onClick = onArrowClick
-                    )
+                ),
+                fontSize = targetFontSize,
+                lineHeight = targetFontSize,
+                letterSpacing = targetLetterSpacing,
+                color = primaryColor,
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                lineHeightStyle = LineHeightStyle(
+                    alignment = LineHeightStyle.Alignment.Center,
+                    trim = LineHeightStyle.Trim.None
+                )
+            )
+        }
+
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            shape = CircleShape,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .offset(y = verticalOffset)
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                contentAlignment = Alignment.CenterStart
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = animatedArrowHorizontalPadding)
-                        .width(arrowContentWidth),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        modifier = Modifier.rotate(arrowRotation),
-                        imageVector = Icons.Rounded.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.presentation_batch_d_expand_tab_menu_cd),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                AnimatedContent(
+                    targetState = Pair(pageIndex, displayedTitle),
+                    transitionSpec = {
+                        val diff = targetState.first - initialState.first
+                        val direction = when {
+                            diff == 0 -> 0
+                            abs(diff) > 1 -> diff.coerceIn(-1, 1)
+                            else -> diff
+                        }
+
+                        val slideIn = slideInHorizontally { fullWidth ->
+                            if (direction >= 0) fullWidth else -fullWidth
+                        } + fadeIn(animationSpec = tween(220))
+
+                        val slideOut = slideOutHorizontally { fullWidth ->
+                            if (direction >= 0) -fullWidth else fullWidth
+                        } + fadeOut(animationSpec = tween(220))
+
+                        slideIn.togetherWith(slideOut)
+                    },
+                    contentAlignment = Alignment.CenterStart,
+                    label = "LibraryHeaderTitleAnimation"
+                ) { (_, animatedTitle) ->
+                    Text(
+                        text = animatedTitle,
+                        modifier = Modifier
+                            .graphicsLayer {
+                                this.scaleX = animatedScaleX
+                                this.transformOrigin = TransformOrigin(0f, 0.5f)
+                            }
+                            .padding(horizontal = 6.dp),
+                        style = finalTextStyle,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -2142,39 +2219,8 @@ fun LibraryNavigationPill(
     }
 }
 
-private const val LibraryNavigationPillTitleWidthMin = 18f
-private const val LibraryNavigationPillTitleWidthMax = 100f
-private val LibraryNavigationPillMinimumTextWidth = 56.dp
-private val LibraryNavigationPillArrowPaddingExpanded = 10.dp
-
-@OptIn(ExperimentalTextApi::class)
-@Composable
-private fun rememberLibraryNavigationPillTitleStyle(widthAxis: Float): TextStyle {
-    return remember(widthAxis) {
-        TextStyle(
-            fontFamily = FontFamily(
-                Font(
-                    resId = R.font.gflex_variable,
-                    variationSettings = FontVariation.Settings(
-                        FontVariation.weight(400),
-                        FontVariation.width(widthAxis.coerceIn(
-                            LibraryNavigationPillTitleWidthMin,
-                            LibraryNavigationPillTitleWidthMax
-                        )),
-                        FontVariation.Setting("ROND", 100f),
-                        FontVariation.Setting("XTRA", 520f),
-                        FontVariation.Setting("YOPQ", 90f),
-                        FontVariation.Setting("YTLC", 505f)
-                    )
-                )
-            ),
-            fontWeight = FontWeight.SemiBold,
-            fontSize = 26.sp,
-            lineHeight = 28.sp,
-            letterSpacing = (-0.2).sp
-        )
-    }
-}
+private const val LibraryCompactTitleWidthMin = 1f
+private const val LibraryCompactTitleWidthMax = 100f
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -2298,7 +2344,7 @@ private fun LibraryTabGridItem(
             ) {
                 Icon(
                     painter = painterResource(id = tabId.iconRes()),
-                    contentDescription = tabId.title,
+                    contentDescription = stringResource(tabId.titleRes),
                     tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
                 )
             }
@@ -2359,10 +2405,8 @@ private fun LibraryTabId.iconRes(): Int = when (this) {
     LibraryTabId.LIKED -> R.drawable.round_favorite_24
 }
 
-private fun LibraryTabId.displayTitle(): String =
-    title.lowercase().replaceFirstChar { char ->
-        if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString()
-    }
+@Composable
+private fun LibraryTabId.displayTitle(): String = stringResource(titleRes)
 
 internal fun resolveFolderNavigationDirection(initialPath: String?, targetPath: String?): Int =
     when {

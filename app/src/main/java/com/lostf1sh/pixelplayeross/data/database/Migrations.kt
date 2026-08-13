@@ -87,3 +87,69 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
         db.addColumnIfMissing("songs", "mb_artist_id", "`mb_artist_id` TEXT")
     }
 }
+
+/**
+ * v3 -> v4: audio bookmarks — named position markers inside a track (audiobooks, DJ sets,
+ * podcasts), grouped per song on the Bookmarks screen.
+ *
+ * `audio_bookmarks` snapshots song metadata at save time so a bookmark stays presentable even
+ * if the underlying song leaves the library. Additive and idempotent, per the Auto Backup
+ * drift guard above.
+ */
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `audio_bookmarks` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `song_id` TEXT NOT NULL,
+                    `song_title` TEXT NOT NULL,
+                    `artist_name` TEXT NOT NULL,
+                    `album_art_uri` TEXT,
+                    `title` TEXT NOT NULL,
+                    `timestamp_ms` INTEGER NOT NULL,
+                    `created_time` INTEGER NOT NULL
+                )
+            """.trimIndent()
+        )
+    }
+}
+
+/** v4 -> v5: app-private offline copies of Navidrome and Jellyfin tracks. */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `offline_tracks` (
+                    `download_id` TEXT NOT NULL,
+                    `attempt_id` TEXT NOT NULL,
+                    `song_id` TEXT NOT NULL,
+                    `source_uri` TEXT NOT NULL,
+                    `provider` TEXT NOT NULL,
+                    `title` TEXT NOT NULL,
+                    `mime_type` TEXT,
+                    `local_path` TEXT,
+                    `state` TEXT NOT NULL,
+                    `bytes_downloaded` INTEGER NOT NULL,
+                    `total_bytes` INTEGER,
+                    `created_at` INTEGER NOT NULL,
+                    `updated_at` INTEGER NOT NULL,
+                    `error_message` TEXT,
+                    PRIMARY KEY(`download_id`)
+                )
+            """.trimIndent()
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_offline_tracks_source_uri` " +
+                "ON `offline_tracks` (`source_uri`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_offline_tracks_song_id` " +
+                "ON `offline_tracks` (`song_id`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_offline_tracks_state` " +
+                "ON `offline_tracks` (`state`)"
+        )
+    }
+}

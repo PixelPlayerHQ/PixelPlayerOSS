@@ -29,9 +29,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.CommandButton
-import androidx.media3.session.LibraryResult
-import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionCommands
 import androidx.media3.session.SessionError
@@ -42,6 +41,7 @@ import com.google.common.util.concurrent.SettableFuture
 import com.lostf1sh.pixelplayeross.PixelPlayerApplication
 import com.lostf1sh.pixelplayeross.MainActivity
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.PlayerInfo
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
@@ -149,7 +149,7 @@ suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? {
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @AndroidEntryPoint
-class MusicService : MediaLibraryService() {
+class MusicService : MediaSessionService() {
 
     @Inject
     lateinit var engine: DualPlayerEngine
@@ -179,19 +179,22 @@ class MusicService : MediaLibraryService() {
     @AppScope
     lateinit var appScope: CoroutineScope
 
-    private var replayGainEnabled = false
     private var userPlaybackSpeed = 1f
-    private var replayGainUseAlbumGain = false
-    private var replayGainJob: Job? = null
-    private var replayGainRequestToken = 0L
-    private var userSelectedVolume = 1f
-    private var expectedReplayGainVolume: Float? = null
-    private var pendingReplayGainVolume: Float? = null
-    private var lastAppliedReplayGainVolume: Float? = null
-    private var lastReplayGainMediaId: String? = null
+
+    // ReplayGain volume-normalization state + logic, extracted to a standalone
+    // component. Lazily built so the Hilt-injected engine/replayGainManager and the
+    // service scope are ready before first use (first playback event).
+    private val replayGainProcessor by lazy {
+        ReplayGainProcessor(
+            engine = engine,
+            replayGainManager = replayGainManager,
+            scope = serviceScope,
+            currentSessionMediaItem = { mediaSession?.player?.currentMediaItem },
+        )
+    }
 
     private var favoriteSongIds = emptySet<String>()
-    private var mediaSession: MediaLibrarySession? = null
+    private var mediaSession: MediaSession? = null
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var keepPlayingInBackground = true
     private var isManualShuffleEnabled = false
@@ -231,7 +234,6 @@ class MusicService : MediaLibraryService() {
         private val pendingMediaButtonForegroundStarts = AtomicInteger(0)
 
         private const val APP_PACKAGE_PREFIX = "com.lostf1sh.pixelplayeross"
-        private const val LOCAL_LIBRARY_ROOT_ID = "pixelplayer_root"
         private const val DEFAULT_STREAM_BUFFER_SIZE = 8 * 1024
         private const val WIDGET_ART_FAILURE_RETRY_MS = 30_000L
         private const val WIDGET_QUEUE_PREVIEW_LIMIT = 4
@@ -264,7 +266,7 @@ class MusicService : MediaLibraryService() {
 
     private val playerSwapListener: (Player) -> Unit = { newPlayer ->
         publishMediaSessionPlayer(newPlayer, "Swapped MediaSession player to new instance.")
-        prepareReplayGainForTransitionPlayer(newPlayer)
+        replayGainProcessor.prepareForTransition(newPlayer)
         applyPlaybackSpeed(newPlayer)
     }
 
@@ -273,36 +275,48 @@ class MusicService : MediaLibraryService() {
             displayPlayer,
             "Published incoming crossfade player to MediaSession."
         )
-        prepareReplayGainForTransitionPlayer(displayPlayer)
+        replayGainProcessor.prepareForTransition(displayPlayer)
         applyPlaybackSpeed(displayPlayer)
     }
 
     private val transitionFinishedListener: () -> Unit = {
-        onTransitionFinished()
+        replayGainProcessor.onTransitionFinished()
+    }
+
+    private fun Player.unwrapMappingPlayer(): Player {
+        return (this as? com.lostf1sh.pixelplayeross.data.service.player.MappingPlayer)?.innerPlayer ?: this
+    }
+
+    private fun Player.unwrapFadingPlayer(): Player {
+        return (this as? com.lostf1sh.pixelplayeross.data.service.player.FadingPlayer)?.innerPlayer ?: this
+    }
+
+    private fun wrapFadingPlayer(player: Player): Player {
+        val fadingPlayer = com.lostf1sh.pixelplayeross.data.service.player.FadingPlayer(
+            innerPlayer = player,
+            scope = appScope
+        )
+        return com.lostf1sh.pixelplayeross.data.service.player.MappingPlayer(
+            innerPlayer = fadingPlayer,
+            context = this
+        )
     }
 
     private fun publishMediaSessionPlayer(player: Player, logMessage: String) {
         val session = mediaSession ?: return
         val oldPlayer = session.player
-        if (oldPlayer !== player) {
+        val unwrappedOld = oldPlayer.unwrapMappingPlayer().unwrapFadingPlayer()
+        if (unwrappedOld !== player) {
             oldPlayer.removeListener(playerListener)
-            session.player = player
-            player.addListener(playerListener)
+            val wrappedPlayer = wrapFadingPlayer(player)
+            session.player = wrappedPlayer
+            wrappedPlayer.addListener(playerListener)
         }
 
         Timber.tag("MusicService").d(logMessage)
         syncLocalListeningStatsFromPlayer(player)
         requestWidgetFullUpdate(force = true)
         refreshMediaSessionUi(session)
-    }
-
-    private fun prepareReplayGainForTransitionPlayer(player: Player) {
-        val incomingItem = player.currentMediaItem
-        val cachedVolume = getCachedReplayGainVolume(incomingItem)
-        if (cachedVolume != null) {
-            engine.incomingTrackReplayGainVolume = cachedVolume
-        }
-        applyReplayGain(incomingItem)
     }
 
     private fun syncLocalListeningStatsFromPlayer(
@@ -375,7 +389,7 @@ class MusicService : MediaLibraryService() {
         listeningStatsTracker.initialize(appScope)
         
         engine.initialize()
-        userSelectedVolume = engine.masterPlayer.volume.coerceIn(0f, 1f)
+        replayGainProcessor.captureUserVolume(engine.masterPlayer.volume)
         syncLocalListeningStatsFromPlayer(engine.masterPlayer)
 
         engine.masterPlayer.addListener(playerListener)
@@ -455,14 +469,14 @@ class MusicService : MediaLibraryService() {
 
         serviceScope.launch {
             userPreferencesRepository.replayGainEnabledFlow.collect { enabled ->
-                replayGainEnabled = enabled
-                applyReplayGain(mediaSession?.player?.currentMediaItem)
+                replayGainProcessor.setEnabled(enabled)
+                replayGainProcessor.apply(mediaSession?.player?.currentMediaItem)
             }
         }
         serviceScope.launch {
             userPreferencesRepository.replayGainUseAlbumGainFlow.collect { useAlbum ->
-                replayGainUseAlbumGain = useAlbum
-                applyReplayGain(mediaSession?.player?.currentMediaItem)
+                replayGainProcessor.setUseAlbumGain(useAlbum)
+                replayGainProcessor.apply(mediaSession?.player?.currentMediaItem)
             }
         }
 
@@ -481,7 +495,7 @@ class MusicService : MediaLibraryService() {
             }
         }
 
-        val callback = object : MediaLibrarySession.Callback {
+        val callback = object : MediaSession.Callback {
             override fun onConnect(
                 session: MediaSession,
                 controller: MediaSession.ControllerInfo
@@ -631,86 +645,16 @@ class MusicService : MediaLibraryService() {
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
 
-            override fun onGetLibraryRoot(
-                session: MediaLibrarySession,
-                browser: MediaSession.ControllerInfo,
-                params: MediaLibraryService.LibraryParams?
-            ): ListenableFuture<LibraryResult<MediaItem>> {
-                val rootItem = MediaItem.Builder()
-                    .setMediaId(LOCAL_LIBRARY_ROOT_ID)
-                    .setMediaMetadata(
-                        androidx.media3.common.MediaMetadata.Builder()
-                            .setTitle("PixelPlayerOSS")
-                            .setIsBrowsable(true)
-                            .setIsPlayable(false)
-                            .setMediaType(androidx.media3.common.MediaMetadata.MEDIA_TYPE_FOLDER_MIXED)
-                            .build()
-                    )
-                    .build()
-                return Futures.immediateFuture(LibraryResult.ofItem(rootItem, params))
-            }
-
-            override fun onGetChildren(
-                session: MediaLibrarySession,
-                browser: MediaSession.ControllerInfo,
-                parentId: String,
-                page: Int,
-                pageSize: Int,
-                params: MediaLibraryService.LibraryParams?
-            ): ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
-                return Futures.immediateFuture(LibraryResult.ofItemList(emptyList(), params))
-            }
-
-            override fun onGetItem(
-                session: MediaLibrarySession,
-                browser: MediaSession.ControllerInfo,
-                mediaId: String
-            ): ListenableFuture<LibraryResult<MediaItem>> {
-                return serviceScope.future {
-                    try {
-                        val item = resolveMediaItemsByIds(listOf(MediaItem.Builder().setMediaId(mediaId).build()))
-                            .mediaItems
-                            .firstOrNull()
-                        if (item != null) {
-                            grantArtworkUriPermissions(browser.packageName, listOf(item))
-                            LibraryResult.ofItem(item, null)
-                        } else {
-                            LibraryResult.ofError(SessionError.ERROR_BAD_VALUE)
-                        }
-                    } catch (e: Exception) {
-                        Timber.tag(TAG).e(e, "onGetItem failed for mediaId=$mediaId")
-                        LibraryResult.ofError(SessionError.ERROR_UNKNOWN)
-                    }
-                }
-            }
-
-            override fun onSearch(
-                session: MediaLibrarySession,
-                browser: MediaSession.ControllerInfo,
-                query: String,
-                params: MediaLibraryService.LibraryParams?
-            ): ListenableFuture<LibraryResult<Void>> {
-                return Futures.immediateFuture(LibraryResult.ofVoid())
-            }
-
-            override fun onGetSearchResult(
-                session: MediaLibrarySession,
-                browser: MediaSession.ControllerInfo,
-                query: String,
-                page: Int,
-                pageSize: Int,
-                params: MediaLibraryService.LibraryParams?
-            ): ListenableFuture<LibraryResult<com.google.common.collect.ImmutableList<MediaItem>>> {
-                return Futures.immediateFuture(LibraryResult.ofItemList(emptyList(), params))
-            }
-
             override fun onAddMediaItems(
                 mediaSession: MediaSession,
                 controller: MediaSession.ControllerInfo,
                 mediaItems: MutableList<MediaItem>
             ): ListenableFuture<MutableList<MediaItem>> {
                 return serviceScope.future {
-                    resolveMediaItemsByIds(mediaItems).also { resolvedItems ->
+                    resolveMediaItemsByIds(
+                        requestedItems = mediaItems,
+                        exposeInternalArtwork = controller.packageName == packageName
+                    ).also { resolvedItems ->
                         grantArtworkUriPermissions(
                             controller.packageName,
                             resolvedItems.trustedArtworkGrantItems
@@ -727,7 +671,10 @@ class MusicService : MediaLibraryService() {
                 startPositionMs: Long
             ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> {
                 return serviceScope.future {
-                    val resolvedItems = resolveMediaItemsByIds(mediaItems)
+                    val resolvedItems = resolveMediaItemsByIds(
+                        requestedItems = mediaItems,
+                        exposeInternalArtwork = controller.packageName == packageName
+                    )
                     grantArtworkUriPermissions(
                         controller.packageName,
                         resolvedItems.trustedArtworkGrantItems
@@ -745,7 +692,8 @@ class MusicService : MediaLibraryService() {
             }
         }
 
-        mediaSession = MediaLibrarySession.Builder(this, engine.masterPlayer, callback)
+        mediaSession = MediaSession.Builder(this, wrapFadingPlayer(engine.masterPlayer))
+            .setCallback(callback)
             .setSessionActivity(getOpenAppPendingIntent())
             .setBitmapLoader(CoilBitmapLoader(this, serviceScope))
             .build()
@@ -960,7 +908,7 @@ class MusicService : MediaLibraryService() {
         return startCommandResult
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession? = mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? = mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         val session = mediaSession
@@ -994,7 +942,7 @@ class MusicService : MediaLibraryService() {
         followUpMediaSessionUiRefreshJob?.cancel()
         debouncedWidgetUpdateJob?.cancel()
         unregisterHeadsetReconnectMonitor()
-        replayGainJob?.cancel()
+        replayGainProcessor.cancel()
 
         engine.removePlayerSwapListener(playerSwapListener)
         engine.removeTransitionDisplayPlayerListener(transitionDisplayPlayerListener)
@@ -1077,14 +1025,7 @@ class MusicService : MediaLibraryService() {
 
     private val playerListener = object : Player.Listener {
         override fun onVolumeChanged(volume: Float) {
-            if (engine.isTransitionRunning()) return
-            val expectedVolume = expectedReplayGainVolume
-            if (expectedVolume != null && abs(expectedVolume - volume) < 0.001f) {
-                expectedReplayGainVolume = null
-                return
-            }
-            expectedReplayGainVolume = null
-            userSelectedVolume = volume.coerceIn(0f, 1f)
+            replayGainProcessor.onPlayerVolumeChanged(volume)
         }
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -1102,8 +1043,8 @@ class MusicService : MediaLibraryService() {
                 stopNavidromePlaybackReporting()
             }
 
-            if (isPlaying && !engine.isTransitionRunning()) {
-                lastAppliedReplayGainVolume?.let { setPlayerVolume(player, it) }
+            if (isPlaying) {
+                replayGainProcessor.reapplyLastAppliedVolume(player)
             }
             requestWidgetFullUpdate(force = true)
             mediaSession?.let { refreshMediaSessionUi(it) }
@@ -1162,7 +1103,7 @@ class MusicService : MediaLibraryService() {
             val player = engine.masterPlayer
             val nextIndex = player.nextMediaItemIndex
             if (nextIndex != androidx.media3.common.C.INDEX_UNSET) {
-                runCatching { prefetchReplayGain(player.getMediaItemAt(nextIndex)) }
+                runCatching { replayGainProcessor.prefetch(player.getMediaItemAt(nextIndex)) }
             }
         }
 
@@ -1196,11 +1137,9 @@ class MusicService : MediaLibraryService() {
                 val oldMediaId = oldPosition.mediaItem?.mediaId
                 val newMediaId = newPosition.mediaItem?.mediaId
                 if (oldMediaId != null && oldMediaId == newMediaId) {
-                    lastAppliedReplayGainVolume?.let {
-                        if (!engine.isTransitionRunning()) setPlayerVolume(engine.masterPlayer, it)
-                    }
+                    replayGainProcessor.reapplyLastAppliedVolume(engine.masterPlayer)
                 } else {
-                    applyReplayGain(currentItem)
+                    replayGainProcessor.apply(currentItem)
                 }
             }
         }
@@ -1218,11 +1157,11 @@ class MusicService : MediaLibraryService() {
             }
 
             playbackTimerController.handleMediaItemTransition(mediaItem, reason)
-            applyReplayGain(mediaSession?.player?.currentMediaItem)
+            replayGainProcessor.apply(mediaSession?.player?.currentMediaItem)
             val player = engine.masterPlayer
             val nextIndex = player.nextMediaItemIndex
             if (nextIndex != androidx.media3.common.C.INDEX_UNSET) {
-                runCatching { prefetchReplayGain(player.getMediaItemAt(nextIndex)) }
+                runCatching { replayGainProcessor.prefetch(player.getMediaItemAt(nextIndex)) }
             }
             requestWidgetFullUpdate(force = false)
             mediaSession?.let { refreshMediaSessionUi(it) }
@@ -1233,14 +1172,7 @@ class MusicService : MediaLibraryService() {
             requestWidgetFullUpdate(force = true)
             mediaSession?.let { refreshMediaSessionUiWithFollowUp(it) }
             val activePlayer = mediaSession?.player ?: engine.masterPlayer
-            val currentMediaId = activePlayer.currentMediaItem?.mediaId
-            if (currentMediaId != null && currentMediaId != lastReplayGainMediaId) {
-                applyReplayGain(activePlayer.currentMediaItem)
-            } else if (currentMediaId != null) {
-                lastAppliedReplayGainVolume?.let {
-                    if (!engine.isTransitionRunning()) setPlayerVolume(engine.masterPlayer, it)
-                }
-            }
+            replayGainProcessor.onMediaMetadataChanged(activePlayer.currentMediaItem)
         }
 
         override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -1260,6 +1192,15 @@ class MusicService : MediaLibraryService() {
         override fun onPlayerError(error: PlaybackException) {
             val player = mediaSession?.player ?: engine.masterPlayer
             Timber.tag(TAG).e(error, "Player error on item %s", player.currentMediaItem?.mediaId)
+            AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                type = AdvancedPerformanceDiagnostics.EventTypes.PLAYBACK,
+                name = "player_error"
+            ) {
+                mapOf(
+                    "code" to error.errorCodeName,
+                    "message" to (error.message ?: error.javaClass.simpleName)
+                )
+            }
             if (player.hasNextMediaItem() && consecutivePlaybackErrors < maxConsecutivePlaybackErrors) {
                 consecutivePlaybackErrors++
                 player.seekToNextMediaItem()
@@ -1274,139 +1215,6 @@ class MusicService : MediaLibraryService() {
     private fun applyPlaybackSpeed(player: Player) {
         if (abs(player.playbackParameters.speed - userPlaybackSpeed) > 0.001f) {
             player.setPlaybackSpeed(userPlaybackSpeed)
-        }
-    }
-
-    /**
-     * Applies ReplayGain volume normalization to the current track.
-     * Reads RG tags from the file and adjusts player.volume accordingly.
-     */
-    private fun applyReplayGain(mediaItem: MediaItem?) {
-        replayGainJob?.cancel()
-        replayGainRequestToken += 1
-        val requestToken = replayGainRequestToken
-
-        if (mediaItem == null) {
-            return
-        }
-
-        if (!replayGainEnabled) {
-            pendingReplayGainVolume = null
-            if (!engine.isTransitionRunning()) {
-                setPlayerVolume(engine.masterPlayer, userSelectedVolume)
-            }
-            return
-        }
-
-        val mediaId = mediaItem.mediaId
-        val filePath = mediaItem.mediaMetadata.extras
-            ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_FILE_PATH)
-
-        if (filePath.isNullOrBlank()) {
-            Timber.tag(TAG).d("ReplayGain: No file path for track, keeping user-selected volume")
-            if (!engine.isTransitionRunning()) {
-                setPlayerVolume(engine.masterPlayer, userSelectedVolume)
-            }
-            return
-        }
-
-        val useAlbumGain = replayGainUseAlbumGain
-
-        if (!engine.isTransitionRunning()) {
-            lastAppliedReplayGainVolume?.let { setPlayerVolume(engine.masterPlayer, it) }
-        }
-
-        replayGainJob = serviceScope.launch {
-            val rgValues = withContext(Dispatchers.IO) {
-                replayGainManager.readReplayGain(filePath)
-            }
-
-            if (requestToken != replayGainRequestToken) {
-                return@launch
-            }
-
-            val currentMediaId = mediaSession?.player?.currentMediaItem?.mediaId
-            if (currentMediaId != mediaId) {
-                Timber.tag(TAG).d("ReplayGain: Ignoring stale result for mediaId=%s", mediaId)
-                return@launch
-            }
-
-            val volume = replayGainManager.getVolumeMultiplier(
-                rgValues,
-                useAlbumGain = useAlbumGain
-            )
-
-            if (engine.isTransitionRunning()) {
-                pendingReplayGainVolume = volume
-                engine.incomingTrackReplayGainVolume = volume
-                Timber.tag(TAG).d("ReplayGain: Stored pending volume=%.2f for %s (transition running)",
-                    volume, mediaItem.mediaMetadata.title
-                )
-            } else {
-                pendingReplayGainVolume = null
-                engine.incomingTrackReplayGainVolume = null
-                lastAppliedReplayGainVolume = volume
-                lastReplayGainMediaId = mediaId
-                setPlayerVolume(engine.masterPlayer, volume)
-                Timber.tag(TAG).d("ReplayGain: Applied volume=%.2f for %s",
-                    volume, mediaItem.mediaMetadata.title
-                )
-            }
-        }
-    }
-
-    /**
-     * Returns the cached ReplayGain volume for a media item if already computed, or null.
-     * Does NOT trigger an IO read — only reads from the in-memory cache.
-     */
-    private fun getCachedReplayGainVolume(mediaItem: MediaItem?): Float? {
-        if (!replayGainEnabled || mediaItem == null) return null
-        val filePath = mediaItem.mediaMetadata.extras
-            ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_FILE_PATH) ?: return null
-        if (filePath.isBlank()) return null
-        val cached = replayGainManager.getCachedReplayGain(filePath) ?: return null
-        return replayGainManager.getVolumeMultiplier(cached, useAlbumGain = replayGainUseAlbumGain)
-    }
-
-    /**
-     * Pre-fetches ReplayGain tags for a media item into the cache without applying the volume.
-     * Called on queue changes and track transitions so the cache is warm by the time
-     * applyReplayGain() runs, avoiding the 1-2s JNI read delay on playback start.
-     */
-    private fun prefetchReplayGain(mediaItem: MediaItem?) {
-        if (!replayGainEnabled || mediaItem == null) return
-        val filePath = mediaItem.mediaMetadata.extras
-            ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_FILE_PATH) ?: return
-        if (filePath.isBlank()) return
-        serviceScope.launch(Dispatchers.IO) {
-            replayGainManager.readReplayGain(filePath)
-        }
-    }
-
-    private fun setPlayerVolume(player: Player, volume: Float) {
-        val clampedVolume = volume.coerceIn(0f, 1f)
-        expectedReplayGainVolume = clampedVolume
-        player.volume = clampedVolume
-    }
-
-    private fun onTransitionFinished() {
-        val player = engine.masterPlayer
-        val pending = pendingReplayGainVolume
-        pendingReplayGainVolume = null
-
-        if (!replayGainEnabled) {
-            setPlayerVolume(player, userSelectedVolume)
-            Timber.tag(TAG).d("ReplayGain: Transition finished, RG disabled — restored userSelectedVolume=%.2f", userSelectedVolume)
-            return
-        }
-
-        if (pending != null) {
-            lastAppliedReplayGainVolume = pending
-            setPlayerVolume(player, pending)
-            Timber.tag(TAG).d("ReplayGain: Transition finished, applied pending volume=%.2f", pending)
-        } else {
-            applyReplayGain(mediaSession?.player?.currentMediaItem)
-            Timber.tag(TAG).d("ReplayGain: Transition finished, no pending volume — triggering full recomputation")
         }
     }
 
@@ -1523,8 +1331,18 @@ class MusicService : MediaLibraryService() {
         for (index in 0 until mediaItemCount) {
             val mediaItem = player.getMediaItemAt(index)
             val metadata = mediaItem.mediaMetadata
-            val uri = mediaItem.localConfiguration?.uri?.toString()
-                ?: metadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
+            val playerUri = mediaItem.localConfiguration?.uri?.toString()
+            val originalContentUri = metadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
+            // A cloud item that resolved through a local stream proxy carries a loopback
+            // URL (http://127.0.0.1:{port}/{secret}/...) whose port and secret die with
+            // this process. Persist the original cloud URI from the extras instead so a
+            // restored queue re-resolves against the live proxy instead of failing with
+            // a source error.
+            val uri = when {
+                playerUri == null -> originalContentUri
+                isEphemeralLoopbackUri(playerUri) && !originalContentUri.isNullOrBlank() -> originalContentUri
+                else -> playerUri
+            }
 
             if (mediaItem.mediaId.isBlank() || uri.isNullOrBlank()) {
                 continue
@@ -1578,6 +1396,13 @@ class MusicService : MediaLibraryService() {
             repeatMode = safeRepeatMode,
             shuffleEnabled = isManualShuffleEnabled,
         )
+    }
+
+    private fun isEphemeralLoopbackUri(uriString: String): Boolean {
+        val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return false
+        val scheme = uri.scheme?.lowercase()
+        if (scheme != "http" && scheme != "https") return false
+        return uri.host == "127.0.0.1" || uri.host == "localhost"
     }
 
     private suspend fun restorePlaybackQueueSnapshotIfNeeded() {
@@ -1676,8 +1501,11 @@ class MusicService : MediaLibraryService() {
         snapshotItem.title?.takeIf { it.isNotBlank() }?.let { metadataBuilder.setTitle(it) }
         snapshotItem.artist?.takeIf { it.isNotBlank() }?.let { metadataBuilder.setArtist(it) }
         snapshotItem.albumTitle?.takeIf { it.isNotBlank() }?.let { metadataBuilder.setAlbumTitle(it) }
-        MediaItemBuilder.externalControllerArtworkUri(this, snapshotItem.artworkUri)
-            ?.let { metadataBuilder.setArtworkUri(it) }
+        val restoredArtworkUri = MediaItemBuilder.externalControllerArtworkUri(
+            context = this,
+            rawArtworkUri = snapshotItem.artworkUri
+        )
+        restoredArtworkUri?.let { metadataBuilder.setArtworkUri(it) }
 
         val extras = Bundle().apply {
             putBoolean(
@@ -1688,9 +1516,11 @@ class MusicService : MediaLibraryService() {
             snapshotItem.albumTitle?.takeIf { it.isNotBlank() }?.let {
                 putString(MediaItemBuilder.EXTERNAL_EXTRA_ALBUM, it)
             }
-            snapshotItem.artworkUri?.takeIf { it.isNotBlank() }?.let {
-                putString(MediaItemBuilder.EXTERNAL_EXTRA_ALBUM_ART, it)
-            }
+            (restoredArtworkUri?.toString() ?: snapshotItem.artworkUri)
+                ?.takeIf { it.isNotBlank() }
+                ?.let {
+                    putString(MediaItemBuilder.EXTERNAL_EXTRA_ALBUM_ART, it)
+                }
             snapshotItem.durationMs?.takeIf { it > 0L }?.let {
                 putLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION, it)
             }
@@ -2430,7 +2260,8 @@ class MusicService : MediaLibraryService() {
     }
 
     private suspend fun resolveMediaItemsByIds(
-        requestedItems: List<MediaItem>
+        requestedItems: List<MediaItem>,
+        exposeInternalArtwork: Boolean = false,
     ): TrustedMediaItemsResolution {
         val songIds = requestedItems.map { it.mediaId }
         val songs = musicRepository.getSongsByIds(songIds).first()
@@ -2438,7 +2269,11 @@ class MusicService : MediaLibraryService() {
 
         return resolveMediaItemsWithTrustedArtworkGrants(requestedItems) { mediaId ->
             songMap[mediaId]?.let { song ->
-                MediaItemBuilder.buildForExternalController(this, song)
+                if (exposeInternalArtwork) {
+                    MediaItemBuilder.build(song)
+                } else {
+                    MediaItemBuilder.buildForExternalController(this, song)
+                }
             }
         }
     }
@@ -2446,7 +2281,7 @@ class MusicService : MediaLibraryService() {
     /**
      * Custom session commands mutate app state, so they are limited to our own controllers
      * (in-app UI, media notification) and controllers the system marks as trusted
-     * (System UI, notification listeners such as Android Auto / Wear companions).
+     * (System UI and trusted notification listeners).
      */
     private fun isPrivilegedController(controller: MediaSession.ControllerInfo): Boolean {
         return controller.packageName == packageName || controller.isTrusted
@@ -2454,7 +2289,7 @@ class MusicService : MediaLibraryService() {
 
     /**
      * The artwork provider is not exported, so controllers connected before the current item
-     * changed (System UI, Android Auto, Wear) need a fresh grant for each new current item.
+     * changed need a fresh grant for each new current item.
      */
     private fun grantArtworkUriPermissionsToConnectedControllers(mediaItem: MediaItem) {
         val session = mediaSession ?: return
@@ -2475,7 +2310,11 @@ class MusicService : MediaLibraryService() {
         val providerAuthority = "$packageName.provider"
         val artworkAuthority = "$packageName.artwork"
         mediaItems.forEach { mediaItem ->
-            val artworkUri = resolveArtworkUri(mediaItem.mediaMetadata) ?: return@forEach
+            val storedArtworkUri = resolveStoredArtworkUriString(mediaItem.mediaMetadata)
+            val artworkUri = MediaItemBuilder.externalControllerArtworkUri(
+                context = this,
+                rawArtworkUri = storedArtworkUri
+            ) ?: resolveArtworkUri(mediaItem.mediaMetadata) ?: return@forEach
             val authority = artworkUri.authority
             if (artworkUri.scheme?.lowercase() != "content" ||
                 (authority != providerAuthority && authority != artworkAuthority)

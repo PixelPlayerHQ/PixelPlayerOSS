@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_b_accounts_linked_services">已关联服务</string>
+    <string name="presentation_batch_b_accounts_status_connected">已连接</string>
+    <string name="presentation_batch_b_accounts_open_service">打开服务</string>
+    <string name="presentation_batch_b_accounts_logging_out">正在登出…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">暂无关联账号</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">连接一个服务提供商，即可在此页面进行管理。</string>
+    <string name="presentation_batch_b_accounts_connect_service">连接 %1$s</string>
+
+    <string name="presentation_batch_b_sort_songs">排序歌曲</string>
+    <string name="presentation_batch_b_more_options">更多选项</string>
+    <string name="presentation_batch_b_play_it">立即播放</string>
+    <string name="presentation_batch_b_add_songs">添加歌曲</string>
+    <string name="presentation_batch_b_add">添加</string>
+    <string name="presentation_batch_b_remove_songs">移除歌曲</string>
+    <string name="presentation_batch_b_reorder_songs">调整歌曲顺序</string>
+    <string name="presentation_batch_b_reorder">重排顺序</string>
+    <string name="presentation_batch_b_reorder_song">调整该歌曲位置</string>
+    <string name="presentation_batch_b_playlist_empty_title">此歌单为空</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">该文件夹内没有歌曲</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">点击“添加歌曲”开始编辑。</string>
+    <string name="presentation_batch_b_playlist_empty_smart_body">暂未有歌曲满足该智能规则</string>
+    <string name="presentation_batch_b_playlist_options_title">歌单设置</string>
+    <string name="presentation_batch_b_edit_playlist">编辑歌单</string>
+    <string name="presentation_batch_b_delete_playlist">删除歌单</string>
+    <string name="presentation_batch_b_set_default_transition">设置默认过渡效果</string>
+    <string name="presentation_batch_b_export_playlist">导出歌单</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">确定删除歌单？</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">你确定要删除这个歌单吗？</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">重命名歌单</string>
+    <string name="presentation_batch_b_new_name">新名称</string>
+
+    <string name="presentation_batch_b_daily_mix_title">每日推荐</string>
+
+    <string name="presentation_batch_b_quick_fill_select_songs">选择歌曲</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">选择流派</string>
+    <string name="presentation_batch_b_search_songs_label">搜索歌曲</string>
+    <string name="presentation_batch_b_select_all">全选</string>
+    <string name="presentation_batch_b_clear">清空</string>
+    <string name="presentation_batch_b_genre_label_format">流派：%1$s</string>
+    <string name="presentation_batch_b_select_a_genre">选择一个流派</string>
+    <string name="presentation_batch_b_quick_fill">快速填充</string>
+    <string name="presentation_batch_b_add_custom_genre">添加自定义</string>
+    <string name="presentation_batch_b_new_genre">新建流派</string>
+    <string name="presentation_batch_b_add_custom_genre_title">添加自定义流派</string>
+    <string name="presentation_batch_b_genre_name_label">流派名称</string>
+    <string name="presentation_batch_b_select_icon">选择图标</string>
+
+    <string name="presentation_batch_b_recently_played_title">最近播放</string>
+    <string name="presentation_batch_b_play_latest">播放最新</string>
+    <string name="presentation_batch_b_recent_empty_title">%1$s 内暂无播放记录</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">更改时间范围或多播放一些歌曲来填充此时间线。</string>
+    <string name="presentation_batch_b_queue_recently_played">最近播放</string>
+    <string name="presentation_batch_b_date_today">今天</string>
+    <string name="presentation_batch_b_date_yesterday">昨天</string>
+
+    <string name="presentation_batch_b_navbar_adjust_title">调整圆角大小</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">让导航栏圆角匹配设备物理圆角，实现无缝视觉效果。</string>
+    <string name="presentation_batch_b_corner_radius_label">圆角半径</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <string name="presentation_batch_b_genre_shuffle_label">%1$s 随机播放</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="other">%1$d 首歌曲 · %2$s</item>
+    </plurals>
+</resources>

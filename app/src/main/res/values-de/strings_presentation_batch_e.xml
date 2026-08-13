@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_action_clear_queue">Queue leeren</string>
+    <string name="presentation_batch_e_action_locate_current_song">Aktuellen Song anzeigen</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Als Playlist speichern</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Song schließen</string>
+    <string name="presentation_batch_e_cd_hidden">Ausgeblendet</string>
+    <string name="presentation_batch_e_cd_queue_actions">Queue-Aktionen</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Aus Playlist entfernen</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Auf Standard zurücksetzen</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Sleep Timer</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Wiederholen umschalten</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Shuffle umschalten</string>
+    <string name="presentation_batch_e_cd_visible">Sichtbar</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Alle Songs außer dem aktuellen entfernen?</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Queue leeren</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Wie soll die Playlist erstellt werden?</string>
+    <string name="presentation_batch_e_create_playlist_title">Playlist erstellen</string>
+    <string name="presentation_batch_e_creation_mode_describe">Beschreiben</string>
+    <string name="presentation_batch_e_creation_mode_describe_subtitle">Tippe ein, was du hören willst, und die App sucht die Songs aus – komplett offline.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Manuell</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Cover, Icon, Form und Songs selbst wählen.</string>
+    <string name="presentation_batch_e_describe_generate">Generieren</string>
+    <string name="presentation_batch_e_describe_no_matches">Keine Songs in deiner Bibliothek passen zu dieser Beschreibung.</string>
+    <string name="presentation_batch_e_describe_playlist_hint">z. B. Songs zum Gewichtheben</string>
+    <string name="presentation_batch_e_describe_playlist_subtitle">Wird mit deiner Bibliothek auf diesem Gerät abgeglichen – nichts verlässt es.</string>
+    <string name="presentation_batch_e_describe_playlist_title">Beschreibe deine Playlist</string>
+    <string name="presentation_batch_e_describe_regenerate">Neu generieren</string>
+    <plurals name="presentation_batch_e_describe_result_count">
+        <item quantity="one">%d Song passt</item>
+        <item quantity="other">%d Songs passen</item>
+    </plurals>
+    <string name="presentation_batch_e_describe_save">Playlist speichern</string>
+    <string name="presentation_batch_e_deselect_all">Alle abwählen</string>
+    <string name="presentation_batch_e_enter_playlist_name">Playlist-Namen eingeben</string>
+    <string name="presentation_batch_e_manage_presets_title">Presets verwalten</string>
+    <string name="presentation_batch_e_more_options_for_song">Weitere Optionen für %1$s</string>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">%d Song ausgewählt</item>
+        <item quantity="other">%d Songs ausgewählt</item>
+    </plurals>
+    <string name="presentation_batch_e_new_playlist_hint">\"Neue Playlist\" antippen, um zu beginnen.</string>
+    <string name="presentation_batch_e_next_up">Als nächstes</string>
+    <string name="presentation_batch_e_no_playlist_created">Noch keine Playlist erstellt.</string>
+    <string name="presentation_batch_e_no_songs_match_query">Keine Songs für \"%1$s\"</string>
+    <string name="presentation_batch_e_playlist_name_label">Playlist-Name</string>
+    <string name="presentation_batch_e_presets_drag_hint">Ziehen zum Neuanordnen • Auf das Auge tippen zum Ein-/Ausblenden</string>
+    <string name="presentation_batch_e_queue_current">Aktuelle Queue</string>
+    <string name="presentation_batch_e_queue_empty">Queue ist leer.</string>
+    <string name="presentation_batch_e_queue_named_suffix">%1$s Queue</string>
+    <string name="presentation_batch_e_queue_source_fallback">Queue</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Queue ist gerade leer.</string>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">1 Titel in der Queue.</item>
+        <item quantity="other">%d Titel in der Queue.</item>
+    </plurals>
+    <string name="presentation_batch_e_removed">entfernt</string>
+    <string name="presentation_batch_e_reset_presets_message">Dadurch werden die Standard-Presetreihenfolge und Sichtbarkeit wiederhergestellt. Fortfahren?</string>
+    <string name="presentation_batch_e_reset_presets_title">Presets zurücksetzen</string>
+    <string name="presentation_batch_e_save_as_format">Speichern als: %1$s</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Als Playlist speichern</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Songs suchen…</string>
+</resources>

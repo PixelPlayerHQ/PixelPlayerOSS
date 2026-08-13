@@ -1866,6 +1866,24 @@ class PlayerViewModel @Inject constructor(
         showAndPlaySong(song, listOf(song), "Library")
     }
 
+    fun playSongAtPosition(song: Song, startPositionMs: Long) {
+        viewModelScope.launch {
+            val controller = mediaController ?: return@launch
+            val bookmarkStartPositionMs = startPositionMs.coerceAtLeast(0L)
+            if (controller.currentMediaItem?.mediaId == song.id) {
+                controller.seekTo(bookmarkStartPositionMs)
+                controller.play()
+            } else {
+                val mediaItem = buildResolvedPlaybackMediaItem(song)
+                controller.setMediaItem(mediaItem, bookmarkStartPositionMs)
+                controller.prepare()
+                controller.play()
+            }
+            _isSheetVisible.value = true
+            _sheetState.value = PlayerSheetState.EXPANDED
+        }
+    }
+
     private fun List<Song>.matchesSongOrder(contextSongs: List<Song>): Boolean {
         if (size != contextSongs.size) return false
         return indices.all { this[it].id == contextSongs[it].id }

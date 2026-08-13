@@ -36,9 +36,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.automirrored.rounded.PlaylistAdd
 import androidx.compose.material3.AlertDialog
@@ -72,6 +76,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -90,10 +95,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.NlpPlaylistPreviewState
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import kotlin.math.max
 import kotlin.math.min
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 import androidx.compose.ui.text.style.TextOverflow
@@ -102,7 +109,8 @@ import androidx.compose.ui.text.style.TextOverflow
 fun PlaylistCreationTypeDialog(
     visible: Boolean,
     onDismiss: () -> Unit,
-    onManualSelected: () -> Unit
+    onManualSelected: () -> Unit,
+    onDescribeSelected: () -> Unit
 ) {
     if (!visible) return
 
@@ -169,6 +177,187 @@ fun PlaylistCreationTypeDialog(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+
+                CreationModeCard(
+                    title = stringResource(R.string.presentation_batch_e_creation_mode_describe),
+                    subtitle = stringResource(R.string.presentation_batch_e_creation_mode_describe_subtitle),
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    },
+                    onClick = onDescribeSelected,
+                    enabled = true,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+}
+
+/**
+ * "Describe it" creation mode: the user types a natural-language description
+ * ("songs to lift weights to"), the offline NLP engine ranks the library against it,
+ * and the matched songs are previewed before being saved as a regular playlist.
+ * Fully offline — no network, no API keys.
+ */
+@Composable
+fun DescribePlaylistDialog(
+    visible: Boolean,
+    state: NlpPlaylistPreviewState,
+    onGenerate: (String) -> Unit,
+    onSave: (name: String, songIds: List<String>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (!visible) return
+
+    var description by rememberSaveable { mutableStateOf("") }
+
+    val dialogShape = AbsoluteSmoothCornerShape(
+        cornerRadiusTL = 24.dp,
+        smoothnessAsPercentTL = 60,
+        cornerRadiusTR = 24.dp,
+        smoothnessAsPercentTR = 60,
+        cornerRadiusBL = 40.dp,
+        smoothnessAsPercentBL = 60,
+        cornerRadiusBR = 40.dp,
+        smoothnessAsPercentBR = 60
+    )
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = true)
+    ) {
+        Surface(
+            shape = dialogShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
+                    .animateContentSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.presentation_batch_e_describe_playlist_title),
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontFamily = RoundedSans,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Text(
+                        text = stringResource(R.string.presentation_batch_e_describe_playlist_subtitle),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                    )
+                }
+
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isGenerating,
+                    minLines = 2,
+                    placeholder = {
+                        Text(text = stringResource(R.string.presentation_batch_e_describe_playlist_hint))
+                    }
+                )
+
+                FilledTonalButton(
+                    onClick = { onGenerate(description.trim()) },
+                    enabled = description.isNotBlank() && !state.isGenerating,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (state.isGenerating) {
+                        LoadingIndicator(modifier = Modifier.size(24.dp))
+                    } else {
+                        Text(
+                            text = stringResource(
+                                if (state.hasResult) {
+                                    R.string.presentation_batch_e_describe_regenerate
+                                } else {
+                                    R.string.presentation_batch_e_describe_generate
+                                }
+                            )
+                        )
+                    }
+                }
+
+                if (state.hasResult && !state.isGenerating) {
+                    if (state.songs.isEmpty()) {
+                        Text(
+                            text = stringResource(R.string.presentation_batch_e_describe_no_matches),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.presentation_batch_e_describe_result_count,
+                                state.songs.size,
+                                state.songs.size
+                            ),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 220.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(state.songs, key = { it.id }) { song ->
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    Text(
+                                        text = song.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = song.displayArtist,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text(text = stringResource(R.string.cancel))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    FilledTonalButton(
+                        onClick = {
+                            onSave(description.trim(), state.songs.map { it.id })
+                        },
+                        enabled = state.songs.isNotEmpty() && !state.isGenerating && description.isNotBlank()
+                    ) {
+                        Text(text = stringResource(R.string.presentation_batch_e_describe_save))
+                    }
+                }
             }
         }
     }

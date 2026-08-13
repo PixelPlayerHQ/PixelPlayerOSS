@@ -5,6 +5,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lostf1sh.pixelplayeross.data.backup.BackupManager
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupEncryptedException
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupWrongPassphraseException
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupSection
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupOperationType
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupTransferProgressUpdate
@@ -13,6 +15,7 @@ import com.lostf1sh.pixelplayeross.data.backup.model.RestorePlan
 import com.lostf1sh.pixelplayeross.data.backup.model.RestoreResult
 import com.lostf1sh.pixelplayeross.data.backup.model.ValidationError
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
+import com.lostf1sh.pixelplayeross.data.preferences.AppLanguage
 import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
@@ -44,6 +47,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.NavBarStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LaunchTab
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.service.player.HiFiCapabilityChecker
+import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import java.io.File
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -51,6 +55,7 @@ import kotlinx.collections.immutable.toImmutableList
 
 data class SettingsUiState(
     val isLoadingDirectories: Boolean = false,
+    val appLanguageTag: String = AppLanguage.SYSTEM.tag,
     val appThemeMode: String = AppThemeMode.FOLLOW_SYSTEM,
     val playerThemePreference: String = ThemePreference.ALBUM_ART,
     val albumArtPaletteStyle: AlbumArtPaletteStyle = AlbumArtPaletteStyle.default,
@@ -66,6 +71,7 @@ data class SettingsUiState(
     val resumeOnHeadsetReconnect: Boolean = false,
     val showQueueHistory: Boolean = true,
     val isCrossfadeEnabled: Boolean = false,
+    val smartCrossfadeEnabled: Boolean = false,
     val audioOutputMode: AudioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
     val pcmFloatOutputSupported: Boolean = true,
     val crossfadeDuration: Int = 2000,
@@ -94,6 +100,9 @@ data class SettingsUiState(
     val backupHistory: ImmutableList<BackupHistoryEntry> = persistentListOf(),
     val backupValidationErrors: List<ValidationError> = emptyList(),
     val isInspectingBackup: Boolean = false,
+    // Encrypted backup password prompt state
+    val pendingEncryptedBackupUri: String? = null,
+    val wrongBackupPassword: Boolean = false,
     val collagePattern: CollagePattern = CollagePattern.default,
     val collageAutoRotate: Boolean = false,
     val minSongDuration: Int = 10000,
@@ -233,7 +242,8 @@ class SettingsViewModel @Inject constructor(
     init {
         _uiState.update {
             it.copy(
-                pcmFloatOutputSupported = pcmFloatOutputSupported
+                pcmFloatOutputSupported = pcmFloatOutputSupported,
+                appLanguageTag = AppLocaleManager.currentLanguageTag(context)
             )
         }
 
@@ -358,6 +368,12 @@ class SettingsViewModel @Inject constructor(
             }
         }
         
+        viewModelScope.launch {
+            userPreferencesRepository.smartCrossfadeEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(smartCrossfadeEnabled = enabled) }
+            }
+        }
+
         viewModelScope.launch {
             userPreferencesRepository.fullPlayerLoadingTweaksFlow.collect { tweaks ->
                 _uiState.update { it.copy(fullPlayerLoadingTweaks = tweaks) }
@@ -536,6 +552,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setAppLanguage(languageTag: String) {
+        val normalized = AppLanguage.normalize(languageTag)
+        AppLocaleManager.applyLanguage(context, normalized)
+        _uiState.update { it.copy(appLanguageTag = normalized) }
+    }
+
     fun setAppThemeMode(mode: String) {
         viewModelScope.launch {
             themePreferencesRepository.setAppThemeMode(mode)
@@ -618,6 +640,12 @@ class SettingsViewModel @Inject constructor(
     fun setCrossfadeDuration(duration: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setCrossfadeDuration(duration)
+        }
+    }
+
+    fun setSmartCrossfadeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setSmartCrossfadeEnabled(enabled)
         }
     }
 
@@ -887,7 +915,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun exportAppData(uri: Uri, sections: Set<BackupSection>) {
+    fun exportAppData(uri: Uri, sections: Set<BackupSection>, passphrase: String? = null) {
         if (sections.isEmpty() || _uiState.value.isDataTransferInProgress) return
         viewModelScope.launch {
             _uiState.update { it.copy(isDataTransferInProgress = true) }
@@ -898,7 +926,7 @@ class SettingsViewModel @Inject constructor(
                 title = context.getString(R.string.backup_progress_preparing_backup),
                 detail = context.getString(R.string.backup_progress_starting_backup_task),
             )
-            val result = backupManager.export(uri, sections) { progress ->
+            val result = backupManager.export(uri, sections, passphrase) { progress ->
                 _dataTransferProgress.value = progress
             }
             result.fold(
@@ -918,24 +946,62 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun inspectBackupFile(uri: Uri) {
+    fun inspectBackupFile(uri: Uri, passphrase: String? = null) {
         if (_uiState.value.isInspectingBackup) return
         viewModelScope.launch {
-            _uiState.update { it.copy(isInspectingBackup = true, backupValidationErrors = emptyList(), restorePlan = null) }
-            val result = backupManager.inspectBackup(uri)
+            _uiState.update {
+                it.copy(
+                    isInspectingBackup = true,
+                    backupValidationErrors = emptyList(),
+                    restorePlan = null,
+                    wrongBackupPassword = false
+                )
+            }
+            val result = backupManager.inspectBackup(uri, passphrase)
             result.fold(
                 onSuccess = { plan ->
-                    _uiState.update { it.copy(restorePlan = plan, isInspectingBackup = false) }
+                    _uiState.update {
+                        it.copy(
+                            restorePlan = plan,
+                            isInspectingBackup = false,
+                            pendingEncryptedBackupUri = null,
+                            wrongBackupPassword = false
+                        )
+                    }
                 },
                 onFailure = { error ->
-                    _dataTransferEvents.send(
-                        context.getString(
-                            R.string.backup_invalid_format,
-                            error.localizedMessage ?: context.getString(R.string.error_unknown),
-                        ),
-                    )
-                    _uiState.update { it.copy(isInspectingBackup = false) }
+                    when (error) {
+                        is BackupEncryptedException -> _uiState.update {
+                            it.copy(isInspectingBackup = false, pendingEncryptedBackupUri = uri.toString())
+                        }
+                        is BackupWrongPassphraseException -> _uiState.update {
+                            it.copy(
+                                isInspectingBackup = false,
+                                pendingEncryptedBackupUri = uri.toString(),
+                                wrongBackupPassword = true
+                            )
+                        }
+                        else -> {
+                            _dataTransferEvents.send(
+                                context.getString(
+                                    R.string.backup_invalid_format,
+                                    error.localizedMessage ?: context.getString(R.string.error_unknown),
+                                ),
+                            )
+                            _uiState.update { it.copy(isInspectingBackup = false) }
+                        }
+                    }
                 }
+            )
+        }
+    }
+
+    /** Called when the user dismisses the encrypted-backup password prompt. */
+    fun dismissEncryptedBackupPrompt() {
+        _uiState.update {
+            it.copy(
+                pendingEncryptedBackupUri = null,
+                wrongBackupPassword = false
             )
         }
     }
@@ -988,7 +1054,17 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearRestorePlan() {
-        _uiState.update { it.copy(restorePlan = null, backupValidationErrors = emptyList()) }
+        _uiState.value.restorePlan?.backupUri?.let { planUri ->
+            runCatching { backupManager.discardDecryptedBackup(Uri.parse(planUri)) }
+        }
+        _uiState.update {
+            it.copy(
+                restorePlan = null,
+                backupValidationErrors = emptyList(),
+                pendingEncryptedBackupUri = null,
+                wrongBackupPassword = false
+            )
+        }
     }
 
     fun removeBackupHistoryEntry(entry: BackupHistoryEntry) {

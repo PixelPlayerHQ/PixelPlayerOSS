@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">Indietro</string>
+    <string name="auth_connect">Connetti</string>
+    <string name="auth_connecting">Connessione in corso…</string>
+    <string name="auth_connection_details">Dettagli connessione</string>
+    <string name="auth_connection_details_subtitle">Inserisci l\'URL del server e le credenziali del tuo account.</string>
+    <string name="auth_hide_password">Nascondi password</string>
+    <string name="auth_jellyfin_connection_subtitle">Inserisci l\'URL del server Jellyfin e le credenziali del tuo account.</string>
+    <string name="auth_jellyfin_footer">Si connette ai server Jellyfin per lo streaming della tua libreria musicale</string>
+    <string name="auth_jellyfin_info_card">Si connette ai server Jellyfin. Sono supportati sia HTTP che HTTPS per l\'accesso alla rete locale.</string>
+    <string name="auth_jellyfin_password_hint">La password del tuo account Jellyfin.</string>
+    <string name="auth_jellyfin_server_url_hint">URL completo, porta inclusa. Gli indirizzi locali, Tailscale, .local e .lan possono usare HTTP.</string>
+    <string name="auth_jellyfin_subtitle">Connettiti al tuo server multimediale Jellyfin</string>
+    <string name="auth_jellyfin_title">Jellyfin</string>
+    <string name="auth_jellyfin_username_hint">Il nome utente del tuo account Jellyfin.</string>
+    <string name="auth_local_network_permission_denied">Consenti l\'accesso ai dispositivi nelle vicinanze per connetterti a un server sulla tua rete locale.</string>
+    <string name="auth_navidrome_footer">Compatibile con Navidrome, Gonic, Airsonic e altri server compatibili Subsonic</string>
+    <string name="auth_navidrome_info_card">Supporta Navidrome, Airsonic, Gonic, Ampache e altri server compatibili con l\'API Subsonic.</string>
+    <string name="auth_navidrome_password_hint">Funziona anche la password dell\'app se il tuo server la supporta.</string>
+    <string name="auth_navidrome_server_url_hint">Usa l\'URL completo del server, incluso http:// per i server locali o https:// per quelli remoti.</string>
+    <string name="auth_navidrome_subtitle">Connettiti al tuo server musicale self-hosted</string>
+    <string name="auth_navidrome_title">Subsonic / Navidrome</string>
+    <string name="auth_navidrome_username_hint">Questo è il nome del tuo account Subsonic o Navidrome.</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_password_placeholder">Inserisci password</string>
+    <string name="auth_prefill_http">Precompila http://</string>
+    <string name="auth_select_libraries_confirm">Salva e sincronizza</string>
+    <string name="auth_select_libraries_subtitle">Questo server ha più di una libreria musicale. Scegli quali sincronizzare: potrai cambiarle in seguito dalla dashboard del server.</string>
+    <string name="auth_select_libraries_title">Scegli le librerie da sincronizzare</string>
+    <string name="auth_server_url">URL server</string>
+    <string name="auth_show_password">Mostra password</string>
+    <string name="auth_use_http">Usa HTTP / VPN</string>
+    <string name="auth_username">Nome utente</string>
+    <string name="auth_username_placeholder_admin">admin</string>
+    <string name="auth_web_retry">Riprova</string>
+    <string name="cd_jellyfin_logo">Jellyfin</string>
+    <string name="cd_navidrome_logo">Navidrome</string>
+    <string name="cd_subsonic_logo">Subsonic</string>
+    <string name="toast_welcome_user">Benvenuto, %1$s!</string>
+</resources>

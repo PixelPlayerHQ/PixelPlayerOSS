@@ -1,19 +1,21 @@
 package com.lostf1sh.pixelplayeross.data.model
 
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
+import com.lostf1sh.pixelplayeross.R
 
 @Immutable
 enum class LibraryTabId(
     val storageKey: String,
-    val title: String,
+    @StringRes val titleRes: Int,
     val defaultSort: SortOption
 ) {
-    SONGS("SONGS", "SONGS", SortOption.SongTitleAZ),
-    ALBUMS("ALBUMS", "ALBUMS", SortOption.AlbumTitleAZ),
-    ARTISTS("ARTIST", "ARTIST", SortOption.ArtistNameAZ),
-    PLAYLISTS("PLAYLISTS", "PLAYLISTS", SortOption.PlaylistNameAZ),
-    FOLDERS("FOLDERS", "FOLDERS", SortOption.FolderNameAZ),
-    LIKED("LIKED", "LIKED", SortOption.LikedSongDateLiked);
+    SONGS("SONGS", R.string.library_tab_songs, SortOption.SongTitleAZ),
+    ALBUMS("ALBUMS", R.string.library_tab_albums, SortOption.AlbumTitleAZ),
+    ARTISTS("ARTIST", R.string.library_tab_artists, SortOption.ArtistNameAZ),
+    PLAYLISTS("PLAYLISTS", R.string.library_tab_playlists, SortOption.PlaylistNameAZ),
+    FOLDERS("FOLDERS", R.string.library_tab_folders, SortOption.FolderNameAZ),
+    LIKED("LIKED", R.string.library_tab_liked, SortOption.LikedSongDateLiked);
 
     companion object {
         fun fromStorageKey(key: String): LibraryTabId =

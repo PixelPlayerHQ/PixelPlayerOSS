@@ -32,4 +32,26 @@ class JellyfinResponseParserTest {
         assertFalse(JellyfinResponseParser.isAudioPlaylist(playlist("Photo")))
         assertFalse(JellyfinResponseParser.isAudioPlaylist(playlist("Book")))
     }
+
+    private fun item(type: String?, mediaType: String?) = JSONObject().apply {
+        put("Id", "item-1")
+        put("Name", "Track")
+        if (type != null) put("Type", type)
+        if (mediaType != null) put("MediaType", mediaType)
+    }
+
+    @Test
+    fun `tracks are kept as playlist items`() {
+        assertTrue(JellyfinResponseParser.isAudioItem(item("Audio", "Audio")))
+        assertTrue(JellyfinResponseParser.isAudioItem(item(null, "Audio")))
+        assertTrue(JellyfinResponseParser.isAudioItem(item("Audio", null)))
+    }
+
+    @Test
+    fun `non-audio children of a mixed playlist are skipped`() {
+        assertFalse(JellyfinResponseParser.isAudioItem(item("Episode", "Video")))
+        assertFalse(JellyfinResponseParser.isAudioItem(item("Movie", "Video")))
+        assertFalse(JellyfinResponseParser.isAudioItem(item("Photo", "Photo")))
+        assertFalse(JellyfinResponseParser.isAudioItem(item(null, null)))
+    }
 }

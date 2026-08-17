@@ -158,6 +158,18 @@ object JellyfinResponseParser {
             mediaType.equals("Unknown", ignoreCase = true)
     }
 
+    /**
+     * Whether a playlist child is a track.
+     *
+     * Playlists kept by [isAudioPlaylist] may still hold mixed content, and every real media item
+     * carries a concrete MediaType, so anything that does not declare itself audio is skipped
+     * rather than persisted as a song.
+     */
+    fun isAudioItem(json: JSONObject): Boolean {
+        return json.optString("MediaType").equals("Audio", ignoreCase = true) ||
+            json.optString("Type").equals("Audio", ignoreCase = true)
+    }
+
     private fun containerToMimeType(container: String?): String? {
         if (container.isNullOrBlank()) return null
         return when (container.lowercase()) {

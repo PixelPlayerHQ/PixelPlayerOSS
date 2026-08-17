@@ -281,6 +281,9 @@ class JellyfinApiService @Inject constructor(
         }
     }
 
+    /**
+     * Get the tracks of a playlist. Non-audio children of a mixed-content playlist are skipped.
+     */
     suspend fun getPlaylistItems(playlistId: String): Result<List<JSONObject>> {
         val cred = credentials ?: return Result.failure(Exception("No credentials"))
         val params = mapOf(
@@ -290,7 +293,9 @@ class JellyfinApiService @Inject constructor(
 
         return requestJson("/Playlists/$playlistId/Items", params).map { response ->
             val items = response.optJSONArray("Items")
-            (0 until (items?.length() ?: 0)).mapNotNull { items?.optJSONObject(it) }
+            (0 until (items?.length() ?: 0))
+                .mapNotNull { items?.optJSONObject(it) }
+                .filter { JellyfinResponseParser.isAudioItem(it) }
         }
     }
 

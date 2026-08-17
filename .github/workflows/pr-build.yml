@@ -1,0 +1,116 @@
+name: PR Build
+
+on:
+  pull_request:
+    branches:
+      - main
+    # Docs-only changes can't break the build or need testing. Workflow changes
+    # are deliberately not ignored so edits to this file are exercised.
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "assets/**"
+      - "fastlane/**"
+      - "metadata/**"
+      - "LICENSE"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Test APK
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Compute PR version
+        id: version
+        run: |
+          BASE_VERSION="$(grep '^APP_VERSION_NAME=' gradle.properties | cut -d= -f2)"
+          PR_NUMBER="${{ github.event.pull_request.number || 'manual' }}"
+          SHORT_SHA="$(git rev-parse --short HEAD)"
+          echo "name=${BASE_VERSION}-pr.${PR_NUMBER}.${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "short-sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.2.0
+
+      # The shared CI keystore lives in the CI_KEYSTORE_B64 + CI_KEYSTORE_PASSWORD
+      # repo secrets so every workflow signs with the same stable key and builds
+      # install over each other. Pull requests from forks get no secrets, so those
+      # fall back to a throwaway keystore and testers have to uninstall first.
+      - name: Set up CI keystore
+        env:
+          CI_KEYSTORE_B64: ${{ secrets.CI_KEYSTORE_B64 }}
+          CI_KEYSTORE_PASSWORD: ${{ secrets.CI_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$CI_KEYSTORE_B64" ] && [ -n "$CI_KEYSTORE_PASSWORD" ]; then
+            KEYSTORE_PASSWORD="$CI_KEYSTORE_PASSWORD"
+            printf '%s' "$CI_KEYSTORE_B64" | base64 -d > pixelplayeross-ci.jks
+          else
+            KEYSTORE_PASSWORD="$(openssl rand -hex 24)"
+            keytool -genkey -v -keystore pixelplayeross-ci.jks -alias pixelplayeross-ci-key -keyalg RSA -keysize 4096 -validity 10000 \
+              -storepass "$KEYSTORE_PASSWORD" -keypass "$KEYSTORE_PASSWORD" \
+              -dname "CN=PixelPlayerOSS CI Throwaway, OU=Dev, O=PixelPlayerOSS, L=World, S=World, C=US"
+          fi
+          {
+            echo "storeFile=pixelplayeross-ci.jks"
+            echo "storePassword=$KEYSTORE_PASSWORD"
+            echo "keyAlias=pixelplayeross-ci-key"
+            echo "keyPassword=$KEYSTORE_PASSWORD"
+          } > keystore.properties
+
+      - name: Build PR release APKs
+        run: >
+          ./gradlew :app:assembleRelease
+          -Ppixelplayer.enableAbiSplits=true
+          -PAPP_VERSION_NAME=${{ steps.version.outputs.name }}
+
+      - name: Verify and rename split APKs
+        run: |
+          BUILD_TOOLS_VERSION="$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -n 1)"
+          mkdir -p pr-apks
+          for abi in arm64-v8a armeabi-v7a; do
+            apk="app/build/outputs/apk/release/app-$abi-release.apk"
+            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt2" dump badging "$apk" >/dev/null
+            "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner" verify --verbose "$apk"
+            cp "$apk" "pr-apks/PixelPlayerOSS-${{ steps.version.outputs.name }}-$abi.apk"
+          done
+
+      - name: Upload PR APK artifacts
+        id: upload
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: PixelPlayerOSS-pr-${{ steps.version.outputs.short-sha }}
+          path: pr-apks/*.apk
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
+
+      - name: Summarize how to install
+        run: |
+          {
+            echo "## Test APK"
+            echo
+            echo "Version \`${{ steps.version.outputs.name }}\` built from \`${{ steps.version.outputs.short-sha }}\`."
+            echo
+            echo "Download it from the [run artifacts](${{ steps.upload.outputs.artifact-url }}), unzip, and install"
+            echo "the \`arm64-v8a\` APK on any phone from the last several years (\`armeabi-v7a\` for older 32-bit devices)."
+            echo
+            echo "Artifacts expire after 14 days. Builds from forks are signed with a throwaway key, so"
+            echo "uninstall the existing app first if the installer complains about the signature."
+          } >> "$GITHUB_STEP_SUMMARY"

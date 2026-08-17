@@ -4,14 +4,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lostf1sh/PixelPlayerOSS/releases/latest">
-    <img src="https://img.shields.io/github/v/release/lostf1sh/PixelPlayerOSS?include_prereleases&logo=github&style=for-the-badge&label=Latest%20Release" alt="Latest release">
+  <a href="https://github.com/PixelPlayerHQ/PixelPlayerOSS/releases/latest">
+    <img src="https://img.shields.io/github/v/release/PixelPlayerHQ/PixelPlayerOSS?include_prereleases&logo=github&style=for-the-badge&label=Latest%20Release" alt="Latest release">
   </a>
   <a href="https://f-droid.org/packages/com.lostf1sh.pixelplayeross/">
     <img src="https://img.shields.io/f-droid/v/com.lostf1sh.pixelplayeross?logo=fdroid&style=for-the-badge&label=F-Droid" alt="F-Droid version">
   </a>
-  <a href="https://github.com/lostf1sh/PixelPlayerOSS/releases">
-    <img src="https://img.shields.io/github/downloads/lostf1sh/PixelPlayerOSS/total?logo=github&style=for-the-badge" alt="Total downloads">
+  <a href="https://github.com/PixelPlayerHQ/PixelPlayerOSS/releases">
+    <img src="https://img.shields.io/github/downloads/PixelPlayerHQ/PixelPlayerOSS/total?logo=github&style=for-the-badge" alt="Total downloads">
   </a>
   <a href="https://github.com/sponsors/lostf1sh">
     <img src="https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub Sponsors">
@@ -83,7 +83,7 @@ LRCLIB and Deezer can be enabled during first-run setup or later from `Settings 
 Clone the repository:
 
 ```sh
-git clone https://github.com/lostf1sh/PixelPlayerOSS.git
+git clone https://github.com/PixelPlayerHQ/PixelPlayerOSS.git
 cd PixelPlayerOSS
 ```
 
@@ -128,7 +128,7 @@ PixelPlayerOSS is available on F-Droid:
 GitHub releases are available at:
 
 ```text
-https://github.com/lostf1sh/PixelPlayerOSS/releases
+https://github.com/PixelPlayerHQ/PixelPlayerOSS/releases
 ```
 
 Obtainium app id:
@@ -145,7 +145,7 @@ F-Droid listing metadata lives in `fastlane/metadata/android/en-US`; build/relea
 
 ### Alpha builds
 
-Every merge into `main` automatically publishes a pre-release tagged like `v0.2.0-alpha.N` on the [releases page](https://github.com/lostf1sh/PixelPlayerOSS/releases). These are cutting-edge builds for testing new changes before they reach a stable release — expect rough edges.
+Every merge into `main` automatically publishes a pre-release tagged like `v0.3.0-alpha.N` on the [releases page](https://github.com/PixelPlayerHQ/PixelPlayerOSS/releases). These are cutting-edge builds for testing new changes before they reach a stable release — expect rough edges.
 
 To install one, download the APK for your device from the release assets and sideload it: `arm64-v8a` fits most modern devices, `armeabi-v7a` is for older 32-bit ones.
 

@@ -8,7 +8,7 @@ humans too).
 ## Getting started
 
 ```sh
-git clone https://github.com/lostf1sh/PixelPlayerOSS.git
+git clone https://github.com/PixelPlayerHQ/PixelPlayerOSS.git
 cd PixelPlayerOSS
 
 # Universal debug APK for local installation

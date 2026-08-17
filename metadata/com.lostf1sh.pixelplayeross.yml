@@ -1,16 +1,16 @@
 Categories:
   - Local Media Player
   - Online Media Player
-License: MIT
+License: GPL-3.0-or-later
 AuthorName: lostf1sh
-SourceCode: https://github.com/lostf1sh/PixelPlayerOSS
-IssueTracker: https://github.com/lostf1sh/PixelPlayerOSS/issues
-Changelog: https://github.com/lostf1sh/PixelPlayerOSS/blob/HEAD/CHANGELOG.md
+SourceCode: https://github.com/PixelPlayerHQ/PixelPlayerOSS
+IssueTracker: https://github.com/PixelPlayerHQ/PixelPlayerOSS/issues
+Changelog: https://github.com/PixelPlayerHQ/PixelPlayerOSS/blob/HEAD/CHANGELOG.md
 
 AutoName: PixelPlayerOSS
 
 RepoType: git
-Repo: https://github.com/lostf1sh/PixelPlayerOSS.git
+Repo: https://github.com/PixelPlayerHQ/PixelPlayerOSS.git
 
 Builds:
   - versionName: 0.1.0
@@ -26,8 +26,34 @@ Builds:
       - pixelplayer.enableAbiSplits=false
       - pixelplayer.disableReleaseSigning=true
 
+  - versionName: 0.2.0
+    versionCode: 2
+    commit: a846f5a06e1075ec4ade72f55e30557f6612ce40
+    subdir: app
+    gradle:
+      - yes
+    prebuild:
+      - sed -i -e '/foojay/d' ../settings.gradle.kts
+      - sed -i "s/ -XX:+ParallelRefParsingEnabled//" ../gradle.properties
+    gradleprops:
+      - pixelplayer.enableAbiSplits=false
+      - pixelplayer.disableReleaseSigning=true
+
+  - versionName: 0.3.0
+    versionCode: 3
+    commit: fe6fa4ae26616e4c44bed4cc9329bf3260bbf737
+    subdir: app
+    gradle:
+      - yes
+    prebuild:
+      - sed -i -e '/foojay/d' ../settings.gradle.kts
+      - sed -i "s/ -XX:+ParallelRefParsingEnabled//" ../gradle.properties
+    gradleprops:
+      - pixelplayer.enableAbiSplits=false
+      - pixelplayer.disableReleaseSigning=true
+
 AutoUpdateMode: Version
-UpdateCheckMode: Tags
+UpdateCheckMode: Tags ^v[0-9.]+$
 UpdateCheckData: gradle.properties|CODE=(\d+)|.|NAME=(.+)
-CurrentVersion: 0.1.0
-CurrentVersionCode: 1
+CurrentVersion: 0.3.0
+CurrentVersionCode: 3

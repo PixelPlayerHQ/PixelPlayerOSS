@@ -1,0 +1,8 @@
+PixelPlayerOSS 0.3.0:
+
+* Offline downloads for Navidrome/Subsonic and Jellyfin, with album downloads and a download manager.
+* Twelve translations with an in-app language picker, including Turkish and Simplified Chinese.
+* Optional ListenBrainz scrobbling, disabled by default, with custom-server support for Maloja and similar.
+* Audio bookmarks, passphrase-protected backups, settings search, and tempo-matched crossfades.
+* On-demand MusicBrainz metadata enrichment that never overwrites existing tags.
+* Fixes: cloud artwork in notifications, download cancellation races, lyrics rate limiting, shuffle sync.

@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Navigasjonslinje</string>
     <string name="setcat_now_playing">Spilles nå</string>
     <string name="setcat_online_services">Valgfrie nettjenester</string>
+    <string name="setcat_audio_output_mode_title">Lydutgangsmodus</string>
+    <string name="setcat_audio_output_mode_description">Velg hvordan dekodet PCM sendes til Android. Bytte av modus starter lydutgangen kort på nytt.</string>
+    <string name="setcat_audio_output_mode_system_default">Systemstandard</string>
+    <string name="setcat_audio_output_mode_system_default_description">Best kompatibilitet. Android kan blande eller resample lyden.</string>
+    <string name="setcat_audio_output_mode_direct">Direkte utgang (eksperimentell)</string>
+    <string name="setcat_audio_output_mode_direct_description">Forsøker å bruke samme samplingsfrekvens som lyden på de fleste enheter for å unngå unødvendig resampling.</string>
+    <string name="setcat_audio_output_mode_pcm_float">32-bit flyttalls-PCM</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Større behandlingsmargin for høyoppløst PCM. Android kan fortsatt resample den; dette er ikke bitperfekt.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Utilgjengelig fordi denne enheten ikke kunne initialisere en PCM_FLOAT AudioTrack.</string>
     <string name="setcat_persistent_shuffle_subtitle">Husk blandingsinnstilling selv etter at appen er lukket.</string>
     <string name="setcat_persistent_shuffle_title">Vedvarende blanding</string>
     <string name="setcat_player_gestures">Spiller-gester</string>

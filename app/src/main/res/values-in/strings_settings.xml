@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Bilah Navigasi</string>
     <string name="setcat_now_playing">Sedang Diputar</string>
     <string name="setcat_online_services">Layanan online opsional</string>
+    <string name="setcat_audio_output_mode_title">Mode keluaran audio</string>
+    <string name="setcat_audio_output_mode_description">Pilih cara PCM hasil dekode dikirim ke Android. Mengubah mode akan memulai ulang keluaran audio sesaat.</string>
+    <string name="setcat_audio_output_mode_system_default">Default sistem</string>
+    <string name="setcat_audio_output_mode_system_default_description">Kompatibilitas terbaik. Android dapat mencampur atau mengambil sampel ulang audio.</string>
+    <string name="setcat_audio_output_mode_direct">Keluaran langsung (eksperimental)</string>
+    <string name="setcat_audio_output_mode_direct_description">Mencoba menggunakan laju sampel yang sama dengan audio di sebagian besar perangkat untuk menghindari pengambilan sampel ulang yang tidak perlu.</string>
+    <string name="setcat_audio_output_mode_pcm_float">PCM float 32-bit</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Ruang pemrosesan lebih besar untuk PCM resolusi tinggi. Android mungkin masih mengambil sampel ulang; ini bukan keluaran bit-perfect.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Tidak tersedia karena perangkat ini tidak dapat menginisialisasi AudioTrack PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Ingat pengaturan acak bahkan setelah menutup aplikasi.</string>
     <string name="setcat_persistent_shuffle_title">Acak Persisten</string>
     <string name="setcat_player_gestures">Gerakan Pemutar</string>

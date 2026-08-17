@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Navigationsleiste</string>
     <string name="setcat_now_playing">Läuft gerade</string>
     <string name="setcat_online_services">Optionale Online-Dienste</string>
+    <string name="setcat_audio_output_mode_title">Audioausgabemodus</string>
+    <string name="setcat_audio_output_mode_description">Wähle, wie dekodiertes PCM an Android übergeben wird. Beim Wechsel des Modus wird die Audioausgabe kurz neu gestartet.</string>
+    <string name="setcat_audio_output_mode_system_default">Systemstandard</string>
+    <string name="setcat_audio_output_mode_system_default_description">Beste Kompatibilität. Android kann Audio mischen oder neu abtasten.</string>
+    <string name="setcat_audio_output_mode_direct">Direktausgabe (experimentell)</string>
+    <string name="setcat_audio_output_mode_direct_description">Versucht auf den meisten Geräten, die Abtastrate des Audios zu verwenden, um unnötiges Neuabtasten zu vermeiden.</string>
+    <string name="setcat_audio_output_mode_pcm_float">32-Bit-Gleitkomma-PCM</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Mehr Verarbeitungsreserve für hochauflösendes PCM. Android kann es dennoch neu abtasten; dies ist keine bitgenaue Ausgabe.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Nicht verfügbar, da dieses Gerät keinen PCM_FLOAT-AudioTrack initialisieren konnte.</string>
     <string name="setcat_persistent_shuffle_subtitle">Shuffle bleibt aktiv, auch nachdem die App geschlossen wurde.</string>
     <string name="setcat_persistent_shuffle_title">Shuffle merken</string>
     <string name="setcat_player_gestures">Player-Gesten</string>

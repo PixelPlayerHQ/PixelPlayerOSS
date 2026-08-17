@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Barra di navigazione</string>
     <string name="setcat_now_playing">In riproduzione</string>
     <string name="setcat_online_services">Servizi online opzionali</string>
+    <string name="setcat_audio_output_mode_title">Modalità di uscita audio</string>
+    <string name="setcat_audio_output_mode_description">Scegli come inviare ad Android l’audio PCM decodificato. Il cambio di modalità riavvia brevemente l’uscita audio.</string>
+    <string name="setcat_audio_output_mode_system_default">Predefinita di sistema</string>
+    <string name="setcat_audio_output_mode_system_default_description">Compatibilità ottimale. Android può mixare o ricampionare l’audio.</string>
+    <string name="setcat_audio_output_mode_direct">Uscita diretta (sperimentale)</string>
+    <string name="setcat_audio_output_mode_direct_description">Tenta di usare la stessa frequenza di campionamento dell’audio sulla maggior parte dei dispositivi per evitare ricampionamenti non necessari.</string>
+    <string name="setcat_audio_output_mode_pcm_float">PCM float a 32 bit</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Maggiore margine di elaborazione per PCM ad alta risoluzione. Android può comunque ricampionarlo; ciò non garantisce un’uscita bit-perfect.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Non disponibile perché il dispositivo non è riuscito a inizializzare un AudioTrack PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Ricorda l\'impostazione shuffle anche dopo aver chiuso l\'app.</string>
     <string name="setcat_persistent_shuffle_title">Shuffle persistente</string>
     <string name="setcat_player_gestures">Gesti player</string>

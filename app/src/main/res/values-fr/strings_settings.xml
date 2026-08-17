@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Barre de navigation</string>
     <string name="setcat_now_playing">En cours de lecture</string>
     <string name="setcat_online_services">Services en ligne facultatifs</string>
+    <string name="setcat_audio_output_mode_title">Mode de sortie audio</string>
+    <string name="setcat_audio_output_mode_description">Choisissez comment le PCM décodé est envoyé à Android. Le changement de mode redémarre brièvement la sortie audio.</string>
+    <string name="setcat_audio_output_mode_system_default">Valeur par défaut du système</string>
+    <string name="setcat_audio_output_mode_system_default_description">Compatibilité optimale. Android peut mixer ou rééchantillonner le son.</string>
+    <string name="setcat_audio_output_mode_direct">Sortie directe (expérimentale)</string>
+    <string name="setcat_audio_output_mode_direct_description">Tente d’utiliser la même fréquence d’échantillonnage que le son sur la plupart des appareils afin d’éviter un rééchantillonnage inutile.</string>
+    <string name="setcat_audio_output_mode_pcm_float">PCM flottant 32 bits</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Plus de marge de traitement pour le PCM haute résolution. Android peut encore le rééchantillonner ; cela ne garantit pas une sortie bit-perfect.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Indisponible car cet appareil n’a pas pu initialiser un AudioTrack PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Se souvenir du réglage de lecture aléatoire même après la fermeture de l\'application.</string>
     <string name="setcat_persistent_shuffle_title">Mode aléatoire persistant</string>
     <string name="setcat_player_gestures">Gestes du lecteur</string>

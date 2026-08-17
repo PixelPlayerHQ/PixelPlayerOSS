@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">Панель навигации</string>
     <string name="setcat_now_playing">Сейчас играет</string>
     <string name="setcat_online_services">Дополнительные онлайн-сервисы</string>
+    <string name="setcat_audio_output_mode_title">Режим вывода звука</string>
+    <string name="setcat_audio_output_mode_description">Выберите способ передачи декодированного PCM-звука в Android. Смена режима ненадолго перезапускает аудиовыход.</string>
+    <string name="setcat_audio_output_mode_system_default">Системный по умолчанию</string>
+    <string name="setcat_audio_output_mode_system_default_description">Наилучшая совместимость. Android может микшировать или передискретизировать звук.</string>
+    <string name="setcat_audio_output_mode_direct">Прямой вывод (экспериментальный)</string>
+    <string name="setcat_audio_output_mode_direct_description">На большинстве устройств пытается использовать частоту дискретизации исходного аудио, чтобы избежать ненужной передискретизации.</string>
+    <string name="setcat_audio_output_mode_pcm_float">32-битный PCM с плавающей точкой</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Больше запаса для обработки PCM высокого разрешения. Android всё равно может выполнить передискретизацию; это не гарантирует побитовый вывод.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Недоступно, поскольку устройство не смогло инициализировать PCM_FLOAT AudioTrack.</string>
     <string name="setcat_persistent_shuffle_subtitle">Запоминать режим перемешивания даже после закрытия приложения.</string>
     <string name="setcat_persistent_shuffle_title">Сохранять перемешивание</string>
     <string name="setcat_player_gestures">Жесты плеера</string>

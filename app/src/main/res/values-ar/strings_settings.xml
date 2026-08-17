@@ -170,6 +170,15 @@
     <string name="setcat_navigation_bar">شريط التنقل</string>
     <string name="setcat_now_playing">شاشة المشغل الحالي</string>
     <string name="setcat_online_services">خدمات الإنترنت الاختيارية</string>
+    <string name="setcat_audio_output_mode_title">وضع إخراج الصوت</string>
+    <string name="setcat_audio_output_mode_description">اختر كيفية إرسال صوت PCM الذي تم فك ترميزه إلى Android. يؤدي تغيير الوضع إلى إعادة تشغيل إخراج الصوت لفترة وجيزة.</string>
+    <string name="setcat_audio_output_mode_system_default">الإعداد الافتراضي للنظام</string>
+    <string name="setcat_audio_output_mode_system_default_description">أفضل توافق. قد يقوم Android بمزج الصوت أو إعادة أخذ عيناته.</string>
+    <string name="setcat_audio_output_mode_direct">الإخراج المباشر (تجريبي)</string>
+    <string name="setcat_audio_output_mode_direct_description">يحاول استخدام معدل أخذ العينات نفسه للصوت على معظم الأجهزة لتجنب إعادة أخذ العينات غير الضرورية.</string>
+    <string name="setcat_audio_output_mode_pcm_float">PCM بنقطة عائمة 32 بت</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">مساحة معالجة أكبر لصوت PCM عالي الدقة. قد يعيد Android أخذ عيناته؛ وهذا لا يعني إخراجًا مطابقًا للبتات.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">غير متاح لأن هذا الجهاز لم يتمكن من تهيئة AudioTrack بصيغة PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">تذكر إعداد التشغيل العشوائي والاحتفاظ به حتى بعد إغلاق التطبيق.</string>
     <string name="setcat_persistent_shuffle_title">التشغيل العشوائي الدائم</string>
     <string name="setcat_player_gestures">إيماءات المشغل</string>

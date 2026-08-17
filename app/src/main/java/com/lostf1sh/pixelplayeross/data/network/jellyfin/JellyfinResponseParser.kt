@@ -145,6 +145,19 @@ object JellyfinResponseParser {
         return jsonArray.map { parsePlaylist(it) }
     }
 
+    /**
+     * Whether a playlist item can hold audio.
+     *
+     * Since Jellyfin 10.10 playlists can hold mixed content, so audio playlists are frequently
+     * reported with an empty or `Unknown` MediaType. Only playlists that explicitly declare
+     * another media type are rejected.
+     */
+    fun isAudioPlaylist(json: JSONObject): Boolean {
+        val mediaType = json.optString("MediaType").takeIf { it.isNotBlank() } ?: return true
+        return mediaType.equals("Audio", ignoreCase = true) ||
+            mediaType.equals("Unknown", ignoreCase = true)
+    }
+
     private fun containerToMimeType(container: String?): String? {
         if (container.isNullOrBlank()) return null
         return when (container.lowercase()) {

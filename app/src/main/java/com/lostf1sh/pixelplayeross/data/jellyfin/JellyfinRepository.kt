@@ -249,6 +249,7 @@ class JellyfinRepository @Inject constructor(
                         Timber.w("$TAG: Server returned empty playlists but we have $localCount locally. Aborting sync.")
                         return@withContext Result.success(emptyList())
                     }
+                    Timber.w("$TAG: Server reported no audio playlists for this user")
                 }
 
                 val entities = playlists.map { playlist ->

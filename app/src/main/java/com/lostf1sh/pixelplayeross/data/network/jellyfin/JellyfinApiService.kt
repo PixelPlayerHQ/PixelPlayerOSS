@@ -257,18 +257,27 @@ class JellyfinApiService @Inject constructor(
         }
     }
 
+    /**
+     * Get the user's audio playlists.
+     *
+     * The request deliberately omits `MediaTypes=Audio`: since Jellyfin 10.10 playlists can hold
+     * mixed content, so audio playlists are frequently reported with an empty or `Unknown`
+     * MediaType and a server-side filter would drop them. Non-audio playlists are rejected
+     * client-side instead.
+     */
     suspend fun getPlaylists(): Result<List<JSONObject>> {
         val cred = credentials ?: return Result.failure(Exception("No credentials"))
         val params = mapOf(
             "IncludeItemTypes" to "Playlist",
             "Recursive" to "true",
-            "Fields" to "ChildCount",
-            "MediaTypes" to "Audio"
+            "Fields" to "ChildCount"
         )
 
         return requestJson("/Users/${cred.userId}/Items", params).map { response ->
             val items = response.optJSONArray("Items")
-            (0 until (items?.length() ?: 0)).mapNotNull { items?.optJSONObject(it) }
+            (0 until (items?.length() ?: 0))
+                .mapNotNull { items?.optJSONObject(it) }
+                .filter { JellyfinResponseParser.isAudioPlaylist(it) }
         }
     }
 

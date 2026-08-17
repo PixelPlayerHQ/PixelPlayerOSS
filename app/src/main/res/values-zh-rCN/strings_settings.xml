@@ -144,9 +144,11 @@
     <string name="setcat_audio_output_mode_title">音频输出模式</string>
     <string name="setcat_audio_output_mode_description">选择解码后的 PCM 音频交给 Android 的方式。切换模式会短暂重启音频输出。</string>
     <string name="setcat_audio_output_mode_system_default">系统默认</string>
-    <string name="setcat_audio_output_mode_system_default_description">兼容性最佳。Android 仍可能混音或重采样。</string>
+    <string name="setcat_audio_output_mode_system_default_description">兼容性最佳。</string>
+    <string name="setcat_audio_output_mode_direct">Direct 直通输出（实验性）</string>
+    <string name="setcat_audio_output_mode_direct_description">用于在多数设备上直接启用与音频相同的采样率，避免不必要的重采样。</string>
     <string name="setcat_audio_output_mode_pcm_float">32 位浮点 PCM</string>
-    <string name="setcat_audio_output_mode_pcm_float_description">为高解析度 PCM 提供更大的处理余量。Android 仍可能重采样；这不代表位完美输出。</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">为高解析度 PCM 提供更大的处理余量。</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">当前设备无法初始化 PCM_FLOAT AudioTrack，因此不可用。</string>
     <string name="setcat_persistent_shuffle_title">记忆随机播放状态</string>
     <string name="setcat_persistent_shuffle_subtitle">关闭应用后保留随机播放开关状态</string>

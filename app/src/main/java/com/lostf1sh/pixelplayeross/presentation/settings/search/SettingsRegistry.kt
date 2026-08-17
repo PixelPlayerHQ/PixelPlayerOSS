@@ -402,7 +402,10 @@ object SettingsRegistry {
                 category = SettingsCategory.PLAYBACK,
                 subscreenRoute = Screen.SettingsCategory.createRoute("playback"),
                 type = SettingType.NAVIGABLE_CARD,
-                keywordsStatic = listOf("audio", "output", "hifi", "high fidelity", "pcm", "float", "quality", "lossless")
+                keywordsStatic = listOf(
+                    "audio", "output", "direct", "hifi", "high fidelity",
+                    "pcm", "float", "quality", "lossless"
+                )
             ),
             SettingSpec(
                 id = "playback_persistent_shuffle",

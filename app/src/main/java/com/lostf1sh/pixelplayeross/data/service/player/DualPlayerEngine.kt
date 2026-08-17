@@ -111,6 +111,13 @@ internal fun shouldDisableAudioOffloadByDefaultForDevice(
     return sdkInt >= 35 && (isReportedLxxFamily || isMtkLavaVariant)
 }
 
+internal fun shouldEnableAudioOffloadForMode(
+    audioOffloadAvailableForSession: Boolean,
+    audioOutputMode: AudioOutputMode
+): Boolean {
+    return audioOffloadAvailableForSession && audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT
+}
+
 internal fun shouldTriggerAudioOffloadStallFallback(
     audioOffloadEnabled: Boolean,
     transitionRunning: Boolean,
@@ -194,6 +201,8 @@ class DualPlayerEngine @Inject constructor(
     var audioOutputMode: AudioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
         private set
     private var audioOffloadEnabled = !shouldDisableAudioOffloadByDefault()
+    private val audioOffloadEnabledForCurrentMode: Boolean
+        get() = shouldEnableAudioOffloadForMode(audioOffloadEnabled, audioOutputMode)
     private var transitionJob: Job? = null
     private var bufferingFallbackJob: Job? = null
     private var transitionRunning = false
@@ -228,7 +237,7 @@ class DualPlayerEngine @Inject constructor(
      * read-only for the diagnostic performance report.
      */
     val isAudioOffloadEnabled: Boolean
-        get() = audioOffloadEnabled
+        get() = audioOffloadEnabledForCurrentMode
 
     /** Lightweight, allocation-cheap snapshot of the live audio format, for diagnostics. */
     data class AudioFormatSnapshot(
@@ -437,7 +446,7 @@ class DualPlayerEngine @Inject constructor(
                     val isPostMediaItemTransition = lastMediaItemTransitionAtMs > 0L &&
                         timeSinceMediaItemTransitionMs < 2_000L
                     if (shouldDisableAudioOffloadOnEarlyBuffering(
-                            audioOffloadEnabled = audioOffloadEnabled,
+                            audioOffloadEnabled = audioOffloadEnabledForCurrentMode,
                             transitionRunning = transitionRunning,
                             lastPlayingAtMs = lastPlayingAtMs,
                             timeSincePlayingMs = timeSincePlayingMs,
@@ -653,7 +662,7 @@ class DualPlayerEngine @Inject constructor(
 
     private fun scheduleAudioOffloadFallbackIfNeeded(player: ExoPlayer) {
         cancelAudioOffloadFallback()
-        if (!audioOffloadEnabled || transitionRunning || !player.playWhenReady || player.isPlaying) return
+        if (!audioOffloadEnabledForCurrentMode || transitionRunning || !player.playWhenReady || player.isPlaying) return
         if (!isLikelyLocalMedia(player.currentMediaItem)) return
 
         val watchedMediaId = player.currentMediaItem?.mediaId ?: return
@@ -663,7 +672,7 @@ class DualPlayerEngine @Inject constructor(
 
             val currentMediaId = player.currentMediaItem?.mediaId
             val shouldFallback = shouldTriggerAudioOffloadStallFallback(
-                audioOffloadEnabled = audioOffloadEnabled,
+                audioOffloadEnabled = audioOffloadEnabledForCurrentMode,
                 transitionRunning = transitionRunning,
                 isCurrentMasterPlayer = player === playerA,
                 mediaIdMatches = currentMediaId == watchedMediaId,
@@ -728,7 +737,7 @@ class DualPlayerEngine @Inject constructor(
     }
 
     private fun disableAudioOffloadForSession(reason: String) {
-        if (!audioOffloadEnabled) return
+        if (!audioOffloadEnabledForCurrentMode) return
         if (transitionRunning) {
             Timber.tag("DualPlayerEngine").w("Skipping offload fallback during active transition. %s", reason)
             return
@@ -852,6 +861,18 @@ class DualPlayerEngine @Inject constructor(
                 enableFloatOutput: Boolean,
                 enableAudioOutputPlaybackParams: Boolean
             ): AudioSink {
+                if (audioOutputMode.usesUnmodifiedMedia3AudioSink) {
+                    // Android's audio policy may
+                    // grant a DIRECT thread for a compatible device/format, or safely fall back
+                    // to the mixed path. This deliberately does not promise exclusive output.
+                    return requireNotNull(
+                        super.buildAudioSink(
+                            context,
+                            false,
+                            enableAudioOutputPlaybackParams
+                        )
+                    ) { "Media3 did not create its default AudioSink" }
+                }
                 return DefaultAudioSink.Builder(context)
                     .setEnableFloatOutput(audioOutputMode.usesFloatOutput)
                     .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
@@ -961,7 +982,9 @@ class DualPlayerEngine @Inject constructor(
             .setMediaSourceFactory(DefaultMediaSourceFactory(resolvingFactory, extractorsFactory))
             .setLoadControl(loadControl)
             .build().apply {
-            sharedAudioSessionIdOrNull()?.let { setAudioSessionId(it) }
+            if (!audioOutputMode.usesUnmodifiedMedia3AudioSink) {
+                sharedAudioSessionIdOrNull()?.let { setAudioSessionId(it) }
+            }
             setAudioAttributes(audioAttributes, false)
             // Gapless support is required, not optional: on a HAL that only advertises plain
             // offload, the data written ahead for the next item is dropped at the automatic
@@ -969,7 +992,7 @@ class DualPlayerEngine @Inject constructor(
             // back to the regular PCM path instead.
             val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
                 .setAudioOffloadMode(
-                    if (audioOffloadEnabled) {
+                    if (audioOffloadEnabledForCurrentMode) {
                         TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
                     } else {
                         TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED

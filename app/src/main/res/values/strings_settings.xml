@@ -157,6 +157,8 @@
     <string name="setcat_audio_output_mode_description">Choose how decoded PCM is sent to Android. Changing mode briefly restarts the audio output.</string>
     <string name="setcat_audio_output_mode_system_default">System default</string>
     <string name="setcat_audio_output_mode_system_default_description">Best compatibility. Android may mix or resample audio.</string>
+    <string name="setcat_audio_output_mode_direct">Direct output (experimental)</string>
+    <string name="setcat_audio_output_mode_direct_description">Attempts to use the same sample rate as the audio on most devices to avoid unnecessary resampling.</string>
     <string name="setcat_audio_output_mode_pcm_float">32-bit float PCM</string>
     <string name="setcat_audio_output_mode_pcm_float_description">More processing headroom for high-resolution PCM. Android may still resample it; this is not bit-perfect.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Unavailable because this device could not initialize a PCM_FLOAT AudioTrack.</string>

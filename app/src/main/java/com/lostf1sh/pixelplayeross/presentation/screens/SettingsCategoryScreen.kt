@@ -842,12 +842,16 @@ fun SettingsCategoryScreen(
                                     options = linkedMapOf(
                                         AudioOutputMode.SYSTEM_DEFAULT.storageKey to
                                             stringResource(R.string.setcat_audio_output_mode_system_default),
+                                        AudioOutputMode.DIRECT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_direct),
                                         AudioOutputMode.PCM_FLOAT.storageKey to
                                             stringResource(R.string.setcat_audio_output_mode_pcm_float)
                                     ),
                                     optionDescriptions = mapOf(
                                         AudioOutputMode.SYSTEM_DEFAULT.storageKey to
                                             stringResource(R.string.setcat_audio_output_mode_system_default_description),
+                                        AudioOutputMode.DIRECT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_direct_description),
                                         AudioOutputMode.PCM_FLOAT.storageKey to if (uiState.pcmFloatOutputSupported) {
                                             stringResource(R.string.setcat_audio_output_mode_pcm_float_description)
                                         } else {

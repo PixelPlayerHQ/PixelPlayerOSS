@@ -7,13 +7,13 @@ on:
     # Docs-only and CI-only merges shouldn't ship a new alpha. Use the manual
     # trigger below to build one from a workflow change when needed.
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'assets/**'
-      - 'fastlane/**'
-      - 'metadata/**'
-      - 'LICENSE'
-      - '.github/**'
+      - "**.md"
+      - "docs/**"
+      - "assets/**"
+      - "fastlane/**"
+      - "metadata/**"
+      - "LICENSE"
+      - ".github/**"
   workflow_dispatch:
 
 permissions:
@@ -25,7 +25,6 @@ concurrency:
 
 jobs:
   build-and-release:
-    if: github.actor != 'dependabot[bot]'
     runs-on: blacksmith-4vcpu-ubuntu-2404
 
     steps:
@@ -49,7 +48,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '21'
+          java-version: "21"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.2.0

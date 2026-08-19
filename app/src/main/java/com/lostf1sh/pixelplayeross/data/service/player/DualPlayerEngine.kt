@@ -40,6 +40,7 @@ import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.utils.envelope
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -64,6 +65,48 @@ data class ActiveDecoderInfo(
     val name: String,
     val isHardware: Boolean
 )
+
+internal class TransitionRunTracker {
+    private var generation = 0L
+
+    fun start(): Long {
+        generation += 1
+        return generation
+    }
+
+    fun invalidate() {
+        generation += 1
+    }
+
+    fun isCurrent(runId: Long): Boolean = runId == generation
+}
+
+internal data class PlayerRebuildQueueWindow(
+    val startIndex: Int,
+    val usesWindowedQueue: Boolean
+)
+
+internal fun shouldUsePresentedAuxiliaryForPlayerRebuild(
+    transitionRunning: Boolean,
+    auxiliaryPlayerPresented: Boolean,
+    auxiliaryMediaItemCount: Int
+): Boolean {
+    return transitionRunning && auxiliaryPlayerPresented && auxiliaryMediaItemCount > 0
+}
+
+internal fun selectPlayerRebuildQueueWindow(
+    useAuxiliaryPlayer: Boolean,
+    activeWindowStartIndex: Int,
+    activePlayerUsesWindowedQueue: Boolean,
+    preparedWindowStartIndex: Int,
+    preparedPlayerUsesWindowedQueue: Boolean
+): PlayerRebuildQueueWindow {
+    return if (useAuxiliaryPlayer) {
+        PlayerRebuildQueueWindow(preparedWindowStartIndex, preparedPlayerUsesWindowedQueue)
+    } else {
+        PlayerRebuildQueueWindow(activeWindowStartIndex, activePlayerUsesWindowedQueue)
+    }
+}
 
 internal fun shouldResumeAfterTransientAudioFocusLoss(
     masterPlayWhenReady: Boolean,
@@ -203,15 +246,18 @@ class DualPlayerEngine @Inject constructor(
     private var audioOffloadEnabled = !shouldDisableAudioOffloadByDefault()
     private val audioOffloadEnabledForCurrentMode: Boolean
         get() = shouldEnableAudioOffloadForMode(audioOffloadEnabled, audioOutputMode)
+    private val transitionRunTracker = TransitionRunTracker()
     private var transitionJob: Job? = null
     private var bufferingFallbackJob: Job? = null
     private var transitionRunning = false
+    private var auxiliaryPlayerPresented = false
     private var preResolutionJob: Job? = null
     private var queueSnapshot: List<MediaItem> = emptyList()
     private var activeWindowStartIndex = 0
     private var activePlayerUsesWindowedQueue = false
     private var preparedWindowStartIndex = 0
     private var preparedPlayerUsesWindowedQueue = false
+    private var preserveQueueSnapshotOnNextPlaylistChange = false
 
     private lateinit var playerA: ExoPlayer
     private var playerB: ExoPlayer? = null
@@ -221,6 +267,20 @@ class DualPlayerEngine @Inject constructor(
     private val onTransitionFinishedListeners = mutableListOf<() -> Unit>()
 
     private var onPlayerAboutToBeReleasedListener: ((Player) -> Unit)? = null
+
+    private data class PlayerRebuildState(
+        val mediaItems: List<MediaItem>,
+        val currentIndex: Int,
+        val positionMs: Long,
+        val playWhenReady: Boolean,
+        val repeatMode: Int,
+        val shuffleModeEnabled: Boolean,
+        val volume: Float,
+        val pauseAtEndOfMediaItems: Boolean,
+        val playbackParameters: PlaybackParameters,
+        val queueWindow: PlayerRebuildQueueWindow,
+        val promotedPresentedAuxiliary: Boolean
+    )
 
     fun setOnPlayerAboutToBeReleasedListener(listener: (Player) -> Unit) {
         onPlayerAboutToBeReleasedListener = listener
@@ -427,6 +487,12 @@ class DualPlayerEngine @Inject constructor(
 
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
             if (transitionRunning) return
+            if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED &&
+                preserveQueueSnapshotOnNextPlaylistChange
+            ) {
+                preserveQueueSnapshotOnNextPlaylistChange = false
+                return
+            }
             if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED || queueSnapshot.isEmpty()) {
                 refreshQueueSnapshotFromMaster(windowStartIndex = 0, usesWindowedQueue = false)
             }
@@ -618,6 +684,7 @@ class DualPlayerEngine @Inject constructor(
         queueSnapshot = emptyList()
         activeWindowStartIndex = 0
         activePlayerUsesWindowedQueue = false
+        preserveQueueSnapshotOnNextPlaylistChange = false
         resetPreparedWindowState()
     }
 
@@ -750,19 +817,9 @@ class DualPlayerEngine @Inject constructor(
     }
 
     private fun rebuildPlayersPreservingMasterState(logMessage: String) {
+        val state = capturePlayerRebuildState()
+        cancelTransitionForPlayerRebuild()
         cancelAudioOffloadFallback()
-
-        val desiredPlayWhenReady = playerA.playWhenReady
-        val positionMs = if (playerA.currentPosition > 5_000L) playerA.currentPosition else 0L
-        val currentIndex = playerA.currentMediaItemIndex.coerceAtLeast(0)
-        val mediaItemCount = playerA.mediaItemCount
-        val mediaItems = ArrayList<MediaItem>(mediaItemCount)
-        for (i in 0 until mediaItemCount) mediaItems.add(playerA.getMediaItemAt(i))
-        val repeatMode = playerA.repeatMode
-        val shuffleMode = playerA.shuffleModeEnabled
-        val volume = playerA.volume
-        val pauseAtEnd = playerA.pauseAtEndOfMediaItems
-        val playbackParameters: PlaybackParameters = playerA.playbackParameters
 
         removeMasterPlayerListeners(playerA)
         onPlayerAboutToBeReleasedListener?.invoke(playerA)
@@ -773,23 +830,109 @@ class DualPlayerEngine @Inject constructor(
         playerA = buildPlayer()
 
         addMasterPlayerListeners(playerA)
-        playerA.volume = volume
-        playerA.pauseAtEndOfMediaItems = pauseAtEnd
-        playerA.playbackParameters = playbackParameters
+        playerA.volume = state.volume
+        playerA.pauseAtEndOfMediaItems = state.pauseAtEndOfMediaItems
+        playerA.playbackParameters = state.playbackParameters
 
-        if (mediaItems.isNotEmpty()) {
-            playerA.setMediaItems(mediaItems, currentIndex, positionMs)
-            playerA.repeatMode = repeatMode
-            playerA.shuffleModeEnabled = shuffleMode
+        if (state.mediaItems.isNotEmpty()) {
+            activeWindowStartIndex = state.queueWindow.startIndex
+            activePlayerUsesWindowedQueue = state.queueWindow.usesWindowedQueue
+            preserveQueueSnapshotOnNextPlaylistChange = state.queueWindow.usesWindowedQueue
+            playerA.setMediaItems(state.mediaItems, state.currentIndex, state.positionMs)
+            playerA.repeatMode = state.repeatMode
+            playerA.shuffleModeEnabled = state.shuffleModeEnabled
             playerA.prepare()
-            playerA.playWhenReady = desiredPlayWhenReady
+            playerA.playWhenReady = state.playWhenReady
             applyWakeModeForCurrentItem()
+        } else {
+            activeWindowStartIndex = 0
+            activePlayerUsesWindowedQueue = false
+            preserveQueueSnapshotOnNextPlaylistChange = false
         }
+        resetPreparedWindowState()
 
         _activeAudioSessionId.value = playerA.audioSessionId
         onPlayerSwappedListeners.forEach { it(playerA) }
+        if (state.promotedPresentedAuxiliary) {
+            lastTransitionFinishedAtMs = SystemClock.elapsedRealtime()
+            onTransitionFinishedListeners.forEach { it() }
+        }
 
         Timber.tag("DualPlayerEngine").d(logMessage)
+    }
+
+    private fun capturePlayerRebuildState(): PlayerRebuildState {
+        val auxiliaryPlayer = playerB
+        val useAuxiliaryPlayer = shouldUsePresentedAuxiliaryForPlayerRebuild(
+            transitionRunning = transitionRunning,
+            auxiliaryPlayerPresented = auxiliaryPlayerPresented,
+            auxiliaryMediaItemCount = auxiliaryPlayer?.mediaItemCount ?: 0
+        )
+        val sourcePlayer = if (useAuxiliaryPlayer) auxiliaryPlayer!! else playerA
+        val queueWindow = selectPlayerRebuildQueueWindow(
+            useAuxiliaryPlayer = useAuxiliaryPlayer,
+            activeWindowStartIndex = activeWindowStartIndex,
+            activePlayerUsesWindowedQueue = activePlayerUsesWindowedQueue,
+            preparedWindowStartIndex = preparedWindowStartIndex,
+            preparedPlayerUsesWindowedQueue = preparedPlayerUsesWindowedQueue
+        )
+        val mediaItemCount = sourcePlayer.mediaItemCount
+        val mediaItems = ArrayList<MediaItem>(mediaItemCount)
+        for (i in 0 until mediaItemCount) mediaItems.add(sourcePlayer.getMediaItemAt(i))
+        val currentIndex = sourcePlayer.currentMediaItemIndex.coerceIn(
+            minimumValue = 0,
+            maximumValue = (mediaItemCount - 1).coerceAtLeast(0)
+        )
+        val positionMs = if (useAuxiliaryPlayer) {
+            sourcePlayer.currentPosition.coerceAtLeast(0L)
+        } else {
+            sourcePlayer.currentPosition.takeIf { it > 5_000L } ?: 0L
+        }
+        val transitionWasRunning = transitionRunning
+        val stableVolume = when {
+            useAuxiliaryPlayer -> incomingTrackReplayGainVolume ?: 1f
+            transitionWasRunning -> 1f
+            else -> sourcePlayer.volume
+        }
+
+        return PlayerRebuildState(
+            mediaItems = mediaItems,
+            currentIndex = currentIndex,
+            positionMs = positionMs,
+            playWhenReady = sourcePlayer.playWhenReady,
+            repeatMode = sourcePlayer.repeatMode,
+            shuffleModeEnabled = sourcePlayer.shuffleModeEnabled,
+            volume = stableVolume,
+            pauseAtEndOfMediaItems = if (transitionWasRunning) {
+                false
+            } else {
+                sourcePlayer.pauseAtEndOfMediaItems
+            },
+            playbackParameters = sourcePlayer.playbackParameters,
+            queueWindow = queueWindow,
+            promotedPresentedAuxiliary = useAuxiliaryPlayer
+        )
+    }
+
+    private fun cancelTransitionForPlayerRebuild() {
+        if (!transitionRunning && transitionJob == null) return
+
+        invalidateActiveTransition()
+        resetPreparedWindowState()
+        incomingTrackReplayGainVolume = null
+        if (::playerA.isInitialized) {
+            playerA.volume = 1f
+            playerA.pauseAtEndOfMediaItems = false
+        }
+        Timber.tag("TransitionDebug").d("Cancelled active transition before rebuilding players.")
+    }
+
+    private fun invalidateActiveTransition() {
+        transitionRunTracker.invalidate()
+        transitionJob?.cancel()
+        transitionJob = null
+        transitionRunning = false
+        auxiliaryPlayerPresented = false
     }
 
     /**
@@ -1164,9 +1307,8 @@ class DualPlayerEngine @Inject constructor(
     }
 
     fun cancelNext() {
-        val shouldPublishMasterPlayer = transitionRunning
-        transitionJob?.cancel()
-        transitionRunning = false
+        val shouldPublishMasterPlayer = auxiliaryPlayerPresented
+        invalidateActiveTransition()
         resetPreparedWindowState()
         playerB?.takeIf { it.mediaItemCount > 0 }?.let { auxiliaryPlayer ->
             try {
@@ -1186,21 +1328,29 @@ class DualPlayerEngine @Inject constructor(
 
     fun performTransition(settings: TransitionSettings) {
         transitionJob?.cancel()
+        val transitionRunId = transitionRunTracker.start()
         transitionRunning = true
+        auxiliaryPlayerPresented = false
         transitionJob = scope.launch {
             try {
                 performOverlapTransition(settings)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                if (e !is kotlinx.coroutines.CancellationException) {
+                if (transitionRunTracker.isCurrent(transitionRunId)) {
                     Timber.tag("TransitionDebug").e(e, "Error performing transition")
+                    playerA.volume = 1f
+                    setPauseAtEndOfMediaItems(false)
+                    playerB?.stop()
                 }
-                playerA.volume = 1f
-                setPauseAtEndOfMediaItems(false)
-                playerB?.stop()
             } finally {
-                transitionRunning = false
-                lastTransitionFinishedAtMs = SystemClock.elapsedRealtime()
-                onTransitionFinishedListeners.forEach { it() }
+                if (transitionRunTracker.isCurrent(transitionRunId)) {
+                    transitionJob = null
+                    transitionRunning = false
+                    auxiliaryPlayerPresented = false
+                    lastTransitionFinishedAtMs = SystemClock.elapsedRealtime()
+                    onTransitionFinishedListeners.forEach { it() }
+                }
             }
         }
     }
@@ -1235,6 +1385,7 @@ class DualPlayerEngine @Inject constructor(
         incomingPlayer.shuffleModeEnabled = outgoingPlayer.shuffleModeEnabled
         outgoingPlayer.pauseAtEndOfMediaItems = true
         incomingPlayer.pauseAtEndOfMediaItems = false
+        auxiliaryPlayerPresented = true
         onTransitionDisplayPlayerListeners.forEach { it(incomingPlayer) }
 
         val duration = settings.durationMs.toLong().coerceAtLeast(500L)
@@ -1264,6 +1415,7 @@ class DualPlayerEngine @Inject constructor(
         playerB = outgoingPlayer
         activeWindowStartIndex = preparedWindowStartIndex
         activePlayerUsesWindowedQueue = preparedPlayerUsesWindowedQueue
+        auxiliaryPlayerPresented = false
         resetPreparedWindowState()
 
         playerA.pauseAtEndOfMediaItems = false
@@ -1380,7 +1532,7 @@ class DualPlayerEngine @Inject constructor(
     }
 
     fun release() {
-        transitionJob?.cancel()
+        invalidateActiveTransition()
         preResolutionJob?.cancel()
         cancelAudioOffloadFallback()
         scope.coroutineContext[Job]?.cancel()

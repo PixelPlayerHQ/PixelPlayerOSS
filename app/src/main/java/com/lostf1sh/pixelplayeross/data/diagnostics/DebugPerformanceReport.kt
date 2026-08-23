@@ -101,7 +101,7 @@ data class DebugPerformanceReport(
         kv("Decoder class", playback.decoderHardware?.let { if (it) "hardware" else "software" } ?: UNKNOWN)
         kv("Audio offload enabled", playback.audioOffloadEnabled.toString())
         kv("Offload fallbacks this session", playback.offloadFallbackCount.toString())
-        kv("Hi-Fi mode", playback.hiFiModeEnabled.toString())
+        kv("Audio output mode", playback.audioOutputMode)
         kv("Crossfade", if (playback.crossfadeEnabled) "on (${playback.crossfadeDurationMs} ms)" else "off")
         kv("Equalizer", playback.equalizerEnabled.toString())
         kv("ReplayGain", if (playback.replayGainEnabled) "on (${if (playback.replayGainAlbumMode) "album" else "track"})" else "off")
@@ -288,7 +288,7 @@ data class PlaybackSection(
     val decoderHardware: Boolean?,
     val audioOffloadEnabled: Boolean,
     val offloadFallbackCount: Long,
-    val hiFiModeEnabled: Boolean,
+    val audioOutputMode: String,
     val crossfadeEnabled: Boolean,
     val crossfadeDurationMs: Int,
     val equalizerEnabled: Boolean,

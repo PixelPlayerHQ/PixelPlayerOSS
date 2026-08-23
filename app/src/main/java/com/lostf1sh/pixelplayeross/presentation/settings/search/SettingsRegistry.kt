@@ -395,16 +395,17 @@ object SettingsRegistry {
                 keywordsStatic = listOf("speed", "tempo", "rate", "faster", "slower")
             ),
             SettingSpec(
-                id = "playback_hifi_mode",
-                itemKey = "item_playback_hifi_mode",
-                titleRes = R.string.setcat_hifi_mode_title,
-                subtitleRes = R.string.setcat_hifi_mode_subtitle_supported,
+                id = "playback_audio_output_mode",
+                itemKey = "item_playback_audio_output_mode",
+                titleRes = R.string.setcat_audio_output_mode_title,
+                subtitleRes = R.string.setcat_audio_output_mode_description,
                 category = SettingsCategory.PLAYBACK,
                 subscreenRoute = Screen.SettingsCategory.createRoute("playback"),
-                type = SettingType.SWITCH,
-                keywordsStatic = listOf("hifi", "high fidelity", "float", "quality", "lossless"),
-                getValue = { it.hiFiModeEnabled },
-                onToggle = { viewModel, checked -> viewModel.setHiFiModeEnabled(checked) }
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf(
+                    "audio", "output", "direct", "hifi", "high fidelity",
+                    "pcm", "float", "quality", "lossless"
+                )
             ),
             SettingSpec(
                 id = "playback_persistent_shuffle",

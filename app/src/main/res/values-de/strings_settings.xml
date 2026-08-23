@@ -134,9 +134,6 @@
     <string name="setcat_headphones">Kopfhörer</string>
     <string name="setcat_headphones_resume_subtitle">Wurde die Musik durch das Trennen der Kopfhörer pausiert, läuft sie beim Wiederverbinden weiter.</string>
     <string name="setcat_headphones_resume_title">Fortsetzen beim Wiederverbinden</string>
-    <string name="setcat_hifi_mode_subtitle_supported">32-Bit-Float-Ausgabe für maximale Qualität. Bei Aussetzern deaktivieren.</string>
-    <string name="setcat_hifi_mode_subtitle_unsupported">Auf diesem Gerät nicht verfügbar (PCM_FLOAT AudioTrack fehlt).</string>
-    <string name="setcat_hifi_mode_title">Hi-Fi-Modus</string>
     <string name="setcat_home_collage">Home-Collage</string>
     <string name="setcat_immersive_lyrics_subtitle">Steuerung automatisch ausblenden und Text im Vollbild genießen.</string>
     <string name="setcat_immersive_lyrics_title">Immersive Lyrics</string>
@@ -173,6 +170,15 @@
     <string name="setcat_navigation_bar">Navigationsleiste</string>
     <string name="setcat_now_playing">Läuft gerade</string>
     <string name="setcat_online_services">Optionale Online-Dienste</string>
+    <string name="setcat_audio_output_mode_title">Audioausgabemodus</string>
+    <string name="setcat_audio_output_mode_description">Wähle, wie dekodiertes PCM an Android übergeben wird. Beim Wechsel des Modus wird die Audioausgabe kurz neu gestartet.</string>
+    <string name="setcat_audio_output_mode_system_default">Systemstandard</string>
+    <string name="setcat_audio_output_mode_system_default_description">Beste Kompatibilität. Android kann Audio mischen oder neu abtasten.</string>
+    <string name="setcat_audio_output_mode_direct">Direktausgabe (experimentell)</string>
+    <string name="setcat_audio_output_mode_direct_description">Versucht auf den meisten Geräten, die Abtastrate des Audios zu verwenden, um unnötiges Neuabtasten zu vermeiden.</string>
+    <string name="setcat_audio_output_mode_pcm_float">32-Bit-Gleitkomma-PCM</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Mehr Verarbeitungsreserve für hochauflösendes PCM. Android kann es dennoch neu abtasten; dies ist keine bitgenaue Ausgabe.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Nicht verfügbar, da dieses Gerät keinen PCM_FLOAT-AudioTrack initialisieren konnte.</string>
     <string name="setcat_persistent_shuffle_subtitle">Shuffle bleibt aktiv, auch nachdem die App geschlossen wurde.</string>
     <string name="setcat_persistent_shuffle_title">Shuffle merken</string>
     <string name="setcat_player_gestures">Player-Gesten</string>

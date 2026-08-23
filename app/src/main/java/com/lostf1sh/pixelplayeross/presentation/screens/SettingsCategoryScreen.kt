@@ -157,6 +157,7 @@ import com.lostf1sh.pixelplayeross.data.backup.model.BackupSection
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupTransferProgressUpdate
 import com.lostf1sh.pixelplayeross.data.backup.model.ModuleRestoreDetail
 import com.lostf1sh.pixelplayeross.data.backup.model.RestorePlan
+import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.preferences.AppLanguage
 import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CollagePattern
@@ -835,17 +836,41 @@ fun SettingsCategoryScreen(
                                     valueText = { value -> String.format(Locale.US, "%.2f×", value) },
                                     modifier = Modifier.settingHighlight("item_playback_speed", highlightKey)
                                 )
-                                SwitchSettingItem(
-                                    title = stringResource(R.string.setcat_hifi_mode_title),
-                                    subtitle = if (uiState.hiFiModeDeviceSupported)
-                                        stringResource(R.string.setcat_hifi_mode_subtitle_supported)
-                                    else
-                                        stringResource(R.string.setcat_hifi_mode_subtitle_unsupported),
-                                    checked = uiState.hiFiModeEnabled,
-                                    onCheckedChange = { settingsViewModel.setHiFiModeEnabled(it) },
-                                    enabled = uiState.hiFiModeDeviceSupported,
+                                ThemeSelectorItem(
+                                    label = stringResource(R.string.setcat_audio_output_mode_title),
+                                    description = stringResource(R.string.setcat_audio_output_mode_description),
+                                    options = linkedMapOf(
+                                        AudioOutputMode.SYSTEM_DEFAULT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_system_default),
+                                        AudioOutputMode.DIRECT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_direct),
+                                        AudioOutputMode.PCM_FLOAT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_pcm_float)
+                                    ),
+                                    optionDescriptions = mapOf(
+                                        AudioOutputMode.SYSTEM_DEFAULT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_system_default_description),
+                                        AudioOutputMode.DIRECT.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_direct_description),
+                                        AudioOutputMode.PCM_FLOAT.storageKey to if (uiState.pcmFloatOutputSupported) {
+                                            stringResource(R.string.setcat_audio_output_mode_pcm_float_description)
+                                        } else {
+                                            stringResource(R.string.setcat_audio_output_mode_pcm_float_unsupported)
+                                        }
+                                    ),
+                                    disabledOptionKeys = if (uiState.pcmFloatOutputSupported) {
+                                        emptySet()
+                                    } else {
+                                        setOf(AudioOutputMode.PCM_FLOAT.storageKey)
+                                    },
+                                    selectedKey = uiState.audioOutputMode.storageKey,
+                                    onSelectionChanged = { key ->
+                                        settingsViewModel.setAudioOutputMode(
+                                            AudioOutputMode.fromStorageKey(key)
+                                        )
+                                    },
                                     leadingIcon = { Icon(painterResource(R.drawable.outline_high_quality_24), null, tint = MaterialTheme.colorScheme.secondary) },
-                                    modifier = Modifier.settingHighlight("item_playback_hifi_mode", highlightKey)
+                                    modifier = Modifier.settingHighlight("item_playback_audio_output_mode", highlightKey)
                                 )
                                 SwitchSettingItem(
                                     title = stringResource(R.string.setcat_persistent_shuffle_title),

@@ -2,9 +2,42 @@ package com.lostf1sh.pixelplayeross.data.service.player
 
 import androidx.media3.common.Player
 import com.google.common.truth.Truth.assertThat
+import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import org.junit.jupiter.api.Test
 
 class AudioOffloadPolicyTest {
+
+    @Test
+    fun outputModePolicy_enablesOffloadOnlyForSystemDefault() {
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = true,
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
+            )
+        ).isTrue()
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = true,
+                audioOutputMode = AudioOutputMode.DIRECT
+            )
+        ).isFalse()
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = true,
+                audioOutputMode = AudioOutputMode.PCM_FLOAT
+            )
+        ).isFalse()
+    }
+
+    @Test
+    fun outputModePolicy_keepsOffloadDisabledWhenUnavailableForSession() {
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = false,
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
+            )
+        ).isFalse()
+    }
 
     @Test
     fun defaultPolicy_disablesOffloadForReportedLavaMtkDeviceOnAndroid15() {

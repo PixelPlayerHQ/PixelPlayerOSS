@@ -447,8 +447,8 @@ class MusicService : MediaSessionService() {
         }
 
         serviceScope.launch {
-            userPreferencesRepository.hiFiModeEnabledFlow.collect { enabled ->
-                engine.setHiFiMode(enabled)
+            userPreferencesRepository.audioOutputModeFlow.collect { mode ->
+                engine.setAudioOutputMode(mode)
             }
         }
 

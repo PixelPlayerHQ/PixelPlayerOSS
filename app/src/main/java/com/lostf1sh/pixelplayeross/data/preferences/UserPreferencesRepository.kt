@@ -18,6 +18,7 @@ import com.lostf1sh.pixelplayeross.data.model.Playlist
 import com.lostf1sh.pixelplayeross.data.model.SortOption
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
 import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
+import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
 import com.lostf1sh.pixelplayeross.data.model.StorageFilter
@@ -140,6 +141,7 @@ constructor(
         val USE_SMOOTH_CORNERS = booleanPreferencesKey("use_smooth_corners")
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
         val IS_CROSSFADE_ENABLED = booleanPreferencesKey("is_crossfade_enabled")
+        val AUDIO_OUTPUT_MODE = stringPreferencesKey("audio_output_mode_v1")
         val SMART_CROSSFADE_ENABLED = booleanPreferencesKey("smart_crossfade_enabled")
         val HI_FI_MODE_ENABLED = booleanPreferencesKey("hi_fi_mode_enabled")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
@@ -272,14 +274,18 @@ constructor(
         }
     }
 
-    val hiFiModeEnabledFlow: Flow<Boolean> =
+    val audioOutputModeFlow: Flow<AudioOutputMode> =
         dataStore.data.map { preferences ->
-            preferences[PreferencesKeys.HI_FI_MODE_ENABLED] ?: false
-        }
+            AudioOutputMode.fromStorageKey(
+                value = preferences[PreferencesKeys.AUDIO_OUTPUT_MODE],
+                legacyHiFiEnabled = preferences[PreferencesKeys.HI_FI_MODE_ENABLED] ?: false
+            )
+        }.distinctUntilChanged()
 
-    suspend fun setHiFiModeEnabled(enabled: Boolean) {
+    suspend fun setAudioOutputMode(mode: AudioOutputMode) {
         dataStore.edit { preferences ->
-            preferences[PreferencesKeys.HI_FI_MODE_ENABLED] = enabled
+            preferences[PreferencesKeys.AUDIO_OUTPUT_MODE] = mode.storageKey
+            preferences.remove(PreferencesKeys.HI_FI_MODE_ENABLED)
         }
     }
 

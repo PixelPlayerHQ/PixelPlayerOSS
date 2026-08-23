@@ -76,7 +76,7 @@ class DebugPerformanceReportCollector @Inject constructor(
             // Read playback-related settings once.
             val crossfadeEnabled = userPreferencesRepository.isCrossfadeEnabledFlow.first()
             val crossfadeDuration = userPreferencesRepository.crossfadeDurationFlow.first()
-            val hiFiEnabled = userPreferencesRepository.hiFiModeEnabledFlow.first()
+            val audioOutputMode = userPreferencesRepository.audioOutputModeFlow.first().storageKey
             val replayGainEnabled = userPreferencesRepository.replayGainEnabledFlow.first()
             val replayGainAlbumMode = userPreferencesRepository.replayGainUseAlbumGainFlow.first()
             val equalizerEnabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
@@ -94,7 +94,7 @@ class DebugPerformanceReportCollector @Inject constructor(
                     decoderHardware = engineState.decoderHardware,
                     audioOffloadEnabled = engineState.audioOffloadEnabled,
                     metrics = metrics,
-                    hiFiEnabled = hiFiEnabled,
+                    audioOutputMode = audioOutputMode,
                     crossfadeEnabled = crossfadeEnabled,
                     crossfadeDuration = crossfadeDuration,
                     equalizerEnabled = equalizerEnabled,
@@ -201,7 +201,7 @@ class DebugPerformanceReportCollector @Inject constructor(
         decoderHardware: Boolean?,
         audioOffloadEnabled: Boolean,
         metrics: PerformanceMetrics.Snapshot,
-        hiFiEnabled: Boolean,
+        audioOutputMode: String,
         crossfadeEnabled: Boolean,
         crossfadeDuration: Int,
         equalizerEnabled: Boolean,
@@ -217,7 +217,7 @@ class DebugPerformanceReportCollector @Inject constructor(
         decoderHardware = decoderHardware,
         audioOffloadEnabled = audioOffloadEnabled,
         offloadFallbackCount = metrics.counters[PerformanceMetrics.Counters.OFFLOAD_FALLBACKS] ?: 0L,
-        hiFiModeEnabled = hiFiEnabled,
+        audioOutputMode = audioOutputMode,
         crossfadeEnabled = crossfadeEnabled,
         crossfadeDurationMs = crossfadeDuration,
         equalizerEnabled = equalizerEnabled,

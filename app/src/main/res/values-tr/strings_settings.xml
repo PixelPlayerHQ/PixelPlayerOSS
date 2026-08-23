@@ -134,9 +134,6 @@
     <string name="setcat_headphones">Kulaklıklar</string>
     <string name="setcat_headphones_resume_subtitle">Kulaklık çıkarıldığı için oynatma duraklatıldıysa, tekrar bağlandığında otomatik olarak devam ettirilir.</string>
     <string name="setcat_headphones_resume_title">Kulaklık tekrar bağlandığında devam et</string>
-    <string name="setcat_hifi_mode_subtitle_supported">Float 32-bit ses çıkışı. Cihazınızda oynatırken takılmalar oluyorsa devre dışı bırakın.</string>
-    <string name="setcat_hifi_mode_subtitle_unsupported">Bu cihazda desteklenmiyor (PCM_FLOAT AudioTrack mevcut değil).</string>
-    <string name="setcat_hifi_mode_title">Hi-Fi Modu</string>
     <string name="setcat_home_collage">Ana Sayfa Kolajı</string>
     <string name="setcat_immersive_lyrics_subtitle">Kontrolleri otomatik olarak gizler ve metni büyütür.</string>
     <string name="setcat_immersive_lyrics_title">Sarmalayıcı Şarkı Sözleri</string>
@@ -173,6 +170,15 @@
     <string name="setcat_navigation_bar">Gezinme Çubuğu</string>
     <string name="setcat_now_playing">Şu An Çalınan</string>
     <string name="setcat_online_services">İsteğe bağlı çevrimiçi hizmetler</string>
+    <string name="setcat_audio_output_mode_title">Ses çıkış modu</string>
+    <string name="setcat_audio_output_mode_description">Kodu çözülmüş PCM sesinin Android’e nasıl gönderileceğini seçin. Mod değiştirmek ses çıkışını kısa süreliğine yeniden başlatır.</string>
+    <string name="setcat_audio_output_mode_system_default">Sistem varsayılanı</string>
+    <string name="setcat_audio_output_mode_system_default_description">En iyi uyumluluk. Android sesi karıştırabilir veya yeniden örnekleyebilir.</string>
+    <string name="setcat_audio_output_mode_direct">Doğrudan çıkış (deneysel)</string>
+    <string name="setcat_audio_output_mode_direct_description">Gereksiz yeniden örneklemeyi önlemek için çoğu cihazda sesle aynı örnekleme hızını kullanmayı dener.</string>
+    <string name="setcat_audio_output_mode_pcm_float">32 bit kayan noktalı PCM</string>
+    <string name="setcat_audio_output_mode_pcm_float_description">Yüksek çözünürlüklü PCM için daha fazla işleme payı sağlar. Android yine de yeniden örnekleyebilir; bu, bit-perfect çıkış garantisi vermez.</string>
+    <string name="setcat_audio_output_mode_pcm_float_unsupported">Bu cihaz PCM_FLOAT AudioTrack’i başlatamadığı için kullanılamıyor.</string>
     <string name="setcat_persistent_shuffle_subtitle">Uygulama kapatıldıktan sonra bile karışık çalma ayarını hatırla.</string>
     <string name="setcat_persistent_shuffle_title">Kalıcı Karışık Çal</string>
     <string name="setcat_player_gestures">Oynatıcı Hareketleri</string>

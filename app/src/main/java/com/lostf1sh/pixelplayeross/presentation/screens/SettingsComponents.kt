@@ -61,6 +61,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -234,6 +238,8 @@ fun ThemeSelectorItem(
         label: String,
         description: String,
         options: Map<String, String>,
+        optionDescriptions: Map<String, String> = emptyMap(),
+        disabledOptionKeys: Set<String> = emptySet(),
         selectedKey: String,
         onSelectionChanged: (String) -> Unit,
         leadingIcon: @Composable () -> Unit,
@@ -314,17 +320,34 @@ fun ThemeSelectorItem(
                 ) {
                     items(options.entries.toList()) { (key, optionLabel) ->
                         val isSelected = key == selectedKey
+                        val isEnabled = key !in disabledOptionKeys
+                        val optionDescription = optionDescriptions[key]
                         val containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
                         val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                        val resolvedContentColor = if (isEnabled) {
+                            contentColor
+                        } else {
+                            contentColor.copy(alpha = 0.38f)
+                        }
+                        val resolvedDescriptionColor = contentColor.copy(
+                            alpha = if (isEnabled) 0.75f else 0.38f
+                        )
                         
                         Surface(
                             onClick = {
                                 onSelectionChanged(key)
                                 showSheet = false
                             },
+                            enabled = isEnabled,
                             shape = RoundedCornerShape(24.dp),
                             color = containerColor,
-                            modifier = Modifier.fillMaxWidth().height(72.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 72.dp)
+                                .semantics(mergeDescendants = true) {
+                                    role = Role.RadioButton
+                                    selected = isSelected
+                                }
                         ) {
                             Row(
                                 modifier = Modifier
@@ -332,19 +355,30 @@ fun ThemeSelectorItem(
                                     .padding(horizontal = 24.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = optionLabel,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = contentColor,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Column(
+                                    modifier = Modifier.weight(1f).padding(vertical = 16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = optionLabel,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = resolvedContentColor
+                                    )
+                                    if (optionDescription != null) {
+                                        Text(
+                                            text = optionDescription,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = resolvedDescriptionColor
+                                        )
+                                    }
+                                }
                                 
                                 if (isSelected) {
                                     Icon(
                                         imageVector = Icons.Rounded.Check,
-                                        contentDescription = stringResource(R.string.presentation_batch_f_cd_selected),
-                                        tint = contentColor
+                                        contentDescription = null,
+                                        tint = resolvedContentColor
                                     )
                                 }
                             }

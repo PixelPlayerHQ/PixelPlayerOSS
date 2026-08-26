@@ -1,4 +1,4 @@
-package com.lostf1sh.pixelplayeross.presentation.components.player
+package com.lostf1sh.pixelplayeross.presentation.player
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -24,6 +24,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ColorScheme
@@ -75,7 +77,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -90,7 +94,6 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.drag
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
@@ -152,6 +155,45 @@ private const val PREVIOUS_TRACK_RESTART_THRESHOLD_MS = 10_000L
 private const val SKIP_COMMAND_GUARD_MS = 96L
 
 private enum class SkipDirection { PREVIOUS, NEXT }
+
+@Composable
+private fun Modifier.liquidGlass(
+    shape: Shape = RoundedCornerShape(24.dp),
+    borderWidth: Dp = 1.dp,
+    tintColor: Color = MaterialTheme.colorScheme.surfaceContainerHighest,
+    tintAlpha: Float = 0.45f
+): Modifier {
+    val highlightRim = Color.White.copy(alpha = 0.40f)
+    val shadowRim = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.20f)
+
+    return this
+        .clip(shape)
+        .background(
+            color = tintColor.copy(alpha = tintAlpha),
+            shape = shape
+        )
+        .background(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.20f),
+                    Color.Transparent,
+                    MaterialTheme.colorScheme.surfaceTint.copy(alpha = 0.08f)
+                )
+            ),
+            shape = shape
+        )
+        .border(
+            width = borderWidth,
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    highlightRim,
+                    shadowRim,
+                    highlightRim.copy(alpha = 0.10f)
+                )
+            ),
+            shape = shape
+        )
+}
 
 private suspend fun validateLyricsImport(
     context: Context,
@@ -317,7 +359,6 @@ fun FullPlayerContent(
 
     val isLandscape =
         LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-
 
     val onLyricsClick = {
         val lyrics = lyricsProvider()
@@ -735,8 +776,11 @@ fun FullPlayerContent(
                             Box(
                                 modifier = Modifier
                                     .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .liquidGlass(
+                                        shape = CircleShape,
+                                        tintColor = playerOnAccentColor,
+                                        tintAlpha = 0.50f
+                                    )
                                     .clickable(onClick = onCollapse),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -758,8 +802,11 @@ fun FullPlayerContent(
                             Box(
                                 modifier = Modifier
                                     .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .liquidGlass(
+                                        shape = CircleShape,
+                                        tintColor = playerOnAccentColor,
+                                        tintAlpha = 0.50f
+                                    )
                                     .clickable { showSaveBookmarkDialog = true },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -772,8 +819,11 @@ fun FullPlayerContent(
                             Box(
                                 modifier = Modifier
                                     .size(42.dp)
-                                    .clip(CircleShape)
-                                    .background(playerOnAccentColor.copy(alpha = 0.7f))
+                                    .liquidGlass(
+                                        shape = CircleShape,
+                                        tintColor = playerOnAccentColor,
+                                        tintAlpha = 0.50f
+                                    )
                                     .clickable {
                                         showSongInfoBottomSheet = true
                                         onShowQueueClicked()
@@ -1268,7 +1318,7 @@ private fun FullPlayerPortraitContent(
             .fillMaxSize()
             .padding(paddingValues)
             .padding(
-                horizontal = 24.dp,
+                horizontal = 20.dp,
                 vertical = 0.dp
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1277,7 +1327,14 @@ private fun FullPlayerPortraitContent(
         albumCoverSection(Modifier)
 
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .liquidGlass(
+                    shape = RoundedCornerShape(28.dp),
+                    tintColor = LocalMaterialTheme.current.surfaceContainerLowest,
+                    tintAlpha = 0.40f
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Box(Modifier.align(Alignment.Start)) {
@@ -1303,7 +1360,7 @@ private fun FullPlayerLandscapeContent(
             .fillMaxSize()
             .padding(paddingValues)
             .padding(
-                horizontal = 24.dp,
+                horizontal = 20.dp,
                 vertical = 0.dp
             ),
         verticalAlignment = Alignment.CenterVertically
@@ -1313,14 +1370,19 @@ private fun FullPlayerLandscapeContent(
                 .fillMaxHeight()
                 .weight(1f)
         )
-        Spacer(Modifier.width(9.dp))
+        Spacer(Modifier.width(10.dp))
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
+                .liquidGlass(
+                    shape = RoundedCornerShape(28.dp),
+                    tintColor = LocalMaterialTheme.current.surfaceContainerLowest,
+                    tintAlpha = 0.40f
+                )
                 .padding(
-                    horizontal = 0.dp,
-                    vertical = 0.dp
+                    horizontal = 16.dp,
+                    vertical = 8.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
@@ -1381,7 +1443,6 @@ private fun SongMetadataDisplaySection(
         val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
         val isBuffering = stablePlayerState.isBuffering
 
-
         AnimatedVisibility(
             visible = isBuffering,
             enter = scaleIn(
@@ -1434,15 +1495,16 @@ private fun SongMetadataDisplaySection(
                 Box(
                     modifier = Modifier
                         .size(height = 42.dp, width = 50.dp)
-                        .clip(
-                            RoundedCornerShape(
+                        .liquidGlass(
+                            shape = RoundedCornerShape(
                                 topStart = 50.dp,
                                 topEnd = 6.dp,
                                 bottomStart = 50.dp,
                                 bottomEnd = 6.dp
-                            )
+                            ),
+                            tintColor = chipColor,
+                            tintAlpha = 0.60f
                         )
-                        .background(chipColor)
                         .clickable { onClickLyrics() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -1455,15 +1517,16 @@ private fun SongMetadataDisplaySection(
                 Box(
                     modifier = Modifier
                         .size(height = 42.dp, width = 50.dp)
-                        .clip(
-                            RoundedCornerShape(
+                        .liquidGlass(
+                            shape = RoundedCornerShape(
                                 topStart = 6.dp,
                                 topEnd = 50.dp,
                                 bottomStart = 6.dp,
                                 bottomEnd = 50.dp
-                            )
+                            ),
+                            tintColor = chipColor,
+                            tintAlpha = 0.60f
                         )
-                        .background(chipColor)
                         .clickable { onClickQueue() },
                     contentAlignment = Alignment.Center
                 ) {
@@ -1477,9 +1540,14 @@ private fun SongMetadataDisplaySection(
         } else {
             FilledIconButton(
                 modifier = Modifier
-                    .size(width = 48.dp, height = 48.dp),
+                    .size(width = 48.dp, height = 48.dp)
+                    .liquidGlass(
+                        shape = CircleShape,
+                        tintColor = chipColor,
+                        tintAlpha = 0.60f
+                    ),
                 colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = chipColor,
+                    containerColor = Color.Transparent,
                     contentColor = chipContentColor
                 ),
                 onClick = onClickLyrics,
@@ -2020,9 +2088,9 @@ private fun PlayerSongInfo(
 
     Column(
         horizontalAlignment = Alignment.Start,
-            modifier = modifier
-                .padding(vertical = 4.dp)
-                .fillMaxWidth()
+        modifier = modifier
+            .padding(vertical = 4.dp)
+            .fillMaxWidth()
             .graphicsLayer {
                 val fraction = expansionFractionProvider()
                 alpha = fraction
@@ -2038,8 +2106,6 @@ private fun PlayerSongInfo(
             canScroll = isPlayingProvider()
         )
         Spacer(modifier = Modifier.height(2.dp))
-
-
 
         AutoScrollingTextOnDemand(
             text = artist,
@@ -2062,19 +2128,18 @@ private fun PlayerSongInfo(
                             }
                         }
                     },
-
-                onLongClick = {
-                    if (isNavigatingToArtist) return@combinedClickable
-                    coroutineScope.launch {
-                        isNavigatingToArtist = true
-                        try {
-                            playerViewModel.triggerArtistNavigationFromPlayer(resolvedArtistId)
-                        } finally {
-                            isNavigatingToArtist = false
+                    onLongClick = {
+                        if (isNavigatingToArtist) return@combinedClickable
+                        coroutineScope.launch {
+                            isNavigatingToArtist = true
+                            try {
+                                playerViewModel.triggerArtistNavigationFromPlayer(resolvedArtistId)
+                            } finally {
+                                isNavigatingToArtist = false
+                            }
                         }
                     }
-                }
-            ),
+                ),
             canScroll = isPlayingProvider()
         )
     }
@@ -2407,10 +2472,8 @@ private fun BottomToggleRow(
     val inactiveBg = LocalMaterialTheme.current.onSurface.copy(alpha = 0.07f)
     val inactiveContentColor = LocalMaterialTheme.current.onSurface
 
-
     Box(
-        modifier = modifier.background(
-            color = LocalMaterialTheme.current.surfaceContainerLowest.copy(alpha = 0.7f),
+        modifier = modifier.liquidGlass(
             shape = AbsoluteSmoothCornerShape(
                 cornerRadiusBL = rowCorners,
                 smoothnessAsPercentTR = 60,
@@ -2420,7 +2483,9 @@ private fun BottomToggleRow(
                 smoothnessAsPercentBR = 60,
                 cornerRadiusTR = rowCorners,
                 smoothnessAsPercentTL = 60
-            )
+            ),
+            tintColor = LocalMaterialTheme.current.surfaceContainerLowest,
+            tintAlpha = 0.40f
         )
     ) {
         Row(

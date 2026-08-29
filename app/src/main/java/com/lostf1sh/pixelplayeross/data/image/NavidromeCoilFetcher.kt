@@ -54,19 +54,19 @@ class NavidromeCoilFetcher(
     override suspend fun fetch(): FetchResult? {
         Timber.v("$TAG: Fetching $uri")
 
-        val coverArtId = uri.host ?: uri.path?.removePrefix("/")
+        val coverArtId = uri.schemeSpecificPart
+            .substringBefore('?')
+            .removePrefix("//")
+            .ifBlank { uri.host ?: uri.path?.removePrefix("/") }
+
         if (coverArtId.isNullOrBlank()) {
             Timber.w("$TAG: Invalid URI format: $uri")
             return null
         }
 
-        if (!repository.isLoggedIn) {
-            Timber.v("$TAG: Not logged in, skipping fetch")
-            return null
-        }
-
         val sizeParam = uri.getQueryParameter("size")?.toIntOrNull() ?: 500
 
+        // 1. Check local disk cache FIRST (so cached covers display even offline or on cold start)
         val cachedFile = File(cacheDir, "navidrome_cover_${coverArtId}_$sizeParam.jpg")
         if (cachedFile.exists() && cachedFile.length() > 0) {
             Timber.v("$TAG: Using cached cover for $coverArtId")
@@ -78,6 +78,12 @@ class NavidromeCoilFetcher(
                 mimeType = "image/jpeg",
                 dataSource = coil.decode.DataSource.DISK
             )
+        }
+
+        // 2. Only check login if we actually need to download from network
+        if (!repository.isLoggedIn) {
+            Timber.v("$TAG: Not logged in and no local cache, skipping fetch")
+            return null
         }
 
         val coverArtUrl = repository.getCoverArtUrl(coverArtId, sizeParam)
@@ -152,7 +158,10 @@ class NavidromeCoilFetcher(
 
         override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
             return if (data.scheme == "navidrome_cover") {
-                val cache = cacheDir ?: options.context.cacheDir.also { cacheDir = it }
+                val cache = cacheDir ?: File(options.context.filesDir, "album_art").also {
+                    if (!it.exists()) it.mkdirs()
+                    cacheDir = it
+                }
                 NavidromeCoilFetcher(data, repository, okHttpClient, cache)
             } else {
                 null

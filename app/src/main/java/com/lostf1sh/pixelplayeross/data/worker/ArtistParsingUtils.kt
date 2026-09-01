@@ -10,7 +10,36 @@ internal fun collectArtistNames(
     wordDelimiters: List<String> = emptyList(),
     extractFromTitle: Boolean = true
 ): List<String> {
-    val splitFromArtist = rawArtistName.splitArtistsByDelimiters(artistDelimiters, wordDelimiters)
+    return collectArtistNames(
+        rawArtistNames = listOf(rawArtistName),
+        title = title,
+        artistDelimiters = artistDelimiters,
+        wordDelimiters = wordDelimiters,
+        extractFromTitle = extractFromTitle
+    )
+}
+
+/**
+ * Splits every ARTIST field before case-insensitively de-duplicating the result.
+ * The physical tag order is retained, so the first value remains the primary artist.
+ */
+internal fun collectArtistNames(
+    rawArtistNames: List<String>,
+    title: String,
+    artistDelimiters: List<String>,
+    wordDelimiters: List<String> = emptyList(),
+    extractFromTitle: Boolean = true
+): List<String> {
+    val splitFromArtist = mutableListOf<String>()
+    rawArtistNames.forEach { rawArtistName ->
+        rawArtistName
+            .splitArtistsByDelimiters(artistDelimiters, wordDelimiters)
+            .forEach { artistName ->
+                if (splitFromArtist.none { it.equals(artistName, ignoreCase = true) }) {
+                    splitFromArtist += artistName
+                }
+            }
+    }
     if (!extractFromTitle) {
         return splitFromArtist
     }

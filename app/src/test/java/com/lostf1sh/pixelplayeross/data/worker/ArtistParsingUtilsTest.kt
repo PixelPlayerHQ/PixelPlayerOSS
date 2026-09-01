@@ -50,4 +50,48 @@ class ArtistParsingUtilsTest {
             result
         )
     }
+
+    @Test
+    fun `collectArtistNames splits the reporter artist string with configured delimiters`() {
+        val result =
+            collectArtistNames(
+                rawArtistName = "-M-, Toumani Diabaté, Sidiki Diabate, Fatoumata Diawara & Oxmo Puccino",
+                title = "Bal de Bamako",
+                artistDelimiters = listOf(",", "&"),
+                wordDelimiters = emptyList(),
+                extractFromTitle = false
+            )
+
+        assertEquals(
+            listOf(
+                "-M-",
+                "Toumani Diabaté",
+                "Sidiki Diabate",
+                "Fatoumata Diawara",
+                "Oxmo Puccino"
+            ),
+            result
+        )
+    }
+
+    @Test
+    fun `collectArtistNames preserves and splits every repeated artist tag value`() {
+        val result =
+            collectArtistNames(
+                rawArtistNames = listOf(
+                    "Primary Artist",
+                    "Guest Artist & Another Guest",
+                    "primary artist"
+                ),
+                title = "Track",
+                artistDelimiters = listOf("&"),
+                wordDelimiters = emptyList(),
+                extractFromTitle = false
+            )
+
+        assertEquals(
+            listOf("Primary Artist", "Guest Artist", "Another Guest"),
+            result
+        )
+    }
 }

@@ -424,7 +424,16 @@ interface MusicDao {
         applyDirectoryFilter: Boolean
     ): Flow<List<SongEntity>>
 
-    @Query("SELECT * FROM songs WHERE album_id = :albumId ORDER BY disc_number ASC, track_number ASC")
+    @Query("""
+        SELECT * FROM songs
+        WHERE album_id = :albumId
+        ORDER BY
+            CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END ASC,
+            CASE WHEN track_number > 0 THEN 0 ELSE 1 END ASC,
+            CASE WHEN track_number > 0 THEN track_number END ASC,
+            title COLLATE NOCASE ASC,
+            id ASC
+    """)
     fun getSongsByAlbumId(albumId: Long): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM songs WHERE artist_id = :artistId ORDER BY title ASC")
@@ -646,6 +655,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
+                THEN track_number END ASC,
             CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
             CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
             CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
@@ -682,6 +697,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'liked_artist_desc' THEN songs.artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'liked_album' THEN songs.album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'liked_album_desc' THEN songs.album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN COALESCE(songs.disc_number, 0) <= 0 THEN 1 ELSE songs.disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN songs.track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc') AND songs.track_number > 0
+                THEN songs.track_number END ASC,
             CASE WHEN :sortOrder = 'liked_date_liked' THEN favorites.timestamp END DESC,
             CASE WHEN :sortOrder = 'liked_date_liked_asc' THEN favorites.timestamp END ASC,
             songs.title COLLATE NOCASE ASC,
@@ -720,6 +741,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
+                THEN track_number END ASC,
             CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
             CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
             CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
@@ -759,6 +786,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
+                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
+                THEN track_number END ASC,
             CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
             CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
             CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
@@ -802,6 +835,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'liked_artist_desc' THEN songs.artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'liked_album' THEN songs.album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'liked_album_desc' THEN songs.album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN COALESCE(songs.disc_number, 0) <= 0 THEN 1 ELSE songs.disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN songs.track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc') AND songs.track_number > 0
+                THEN songs.track_number END ASC,
             CASE WHEN :sortOrder = 'liked_date_liked' THEN favorites.timestamp END DESC,
             CASE WHEN :sortOrder = 'liked_date_liked_asc' THEN favorites.timestamp END ASC,
             songs.title COLLATE NOCASE ASC,
@@ -863,6 +902,12 @@ interface MusicDao {
             CASE WHEN :sortOrder = 'liked_artist_desc' THEN songs.artist_name END COLLATE NOCASE DESC,
             CASE WHEN :sortOrder = 'liked_album' THEN songs.album_name END COLLATE NOCASE ASC,
             CASE WHEN :sortOrder = 'liked_album_desc' THEN songs.album_name END COLLATE NOCASE DESC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN COALESCE(songs.disc_number, 0) <= 0 THEN 1 ELSE songs.disc_number END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc')
+                THEN CASE WHEN songs.track_number > 0 THEN 0 ELSE 1 END END ASC,
+            CASE WHEN :sortOrder IN ('liked_album', 'liked_album_desc') AND songs.track_number > 0
+                THEN songs.track_number END ASC,
             CASE WHEN :sortOrder = 'liked_date_liked' THEN favorites.timestamp END DESC,
             CASE WHEN :sortOrder = 'liked_date_liked_asc' THEN favorites.timestamp END ASC,
             songs.title COLLATE NOCASE ASC,

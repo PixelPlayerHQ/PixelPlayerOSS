@@ -53,10 +53,18 @@ class ThemeStateHolder @Inject constructor(
         this.scope = scope
 
         scope.launch {
-            combine(playerThemePreference, _currentAlbumArtColorSchemePair) { playerPref, albumScheme ->
-                when (playerPref) {
-                    com.lostf1sh.pixelplayeross.data.preferences.ThemePreference.ALBUM_ART -> albumScheme
-                    else -> null
+            combine(
+                playerThemePreference,
+                themePreferencesRepository.globalNowPlayingThemeEnabledFlow,
+                _currentAlbumArtColorSchemePair
+            ) { playerPref, useNowPlayingColorsAppWide, albumScheme ->
+                if (
+                    playerPref == com.lostf1sh.pixelplayeross.data.preferences.ThemePreference.ALBUM_ART ||
+                    useNowPlayingColorsAppWide
+                ) {
+                    albumScheme
+                } else {
+                    null
                 }
             }.collect { _activePlayerColorSchemePair.value = it }
         }

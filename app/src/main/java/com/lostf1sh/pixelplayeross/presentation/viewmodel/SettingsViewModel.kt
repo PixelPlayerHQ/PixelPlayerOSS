@@ -57,6 +57,7 @@ data class SettingsUiState(
     val isLoadingDirectories: Boolean = false,
     val appLanguageTag: String = AppLanguage.SYSTEM.tag,
     val appThemeMode: String = AppThemeMode.FOLLOW_SYSTEM,
+    val globalNowPlayingThemeEnabled: Boolean = false,
     val playerThemePreference: String = ThemePreference.ALBUM_ART,
     val albumArtPaletteStyle: AlbumArtPaletteStyle = AlbumArtPaletteStyle.default,
     val albumArtColorAccuracy: Int = AlbumArtColorAccuracy.DEFAULT,
@@ -146,7 +147,8 @@ private sealed interface SettingsUiUpdate {
         val libraryNavigationMode: String,
         val carouselStyle: String,
         val launchTab: String,
-        val showPlayerFileInfo: Boolean
+        val showPlayerFileInfo: Boolean,
+        val globalNowPlayingThemeEnabled: Boolean
     ) : SettingsUiUpdate
     
     data class Group2(
@@ -262,7 +264,8 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.libraryNavigationModeFlow,
                 userPreferencesRepository.carouselStyleFlow,
                 userPreferencesRepository.launchTabFlow,
-                userPreferencesRepository.showPlayerFileInfoFlow
+                userPreferencesRepository.showPlayerFileInfoFlow,
+                themePreferencesRepository.globalNowPlayingThemeEnabledFlow
             ) { values ->
                 SettingsUiUpdate.Group1(
                     appRebrandDialogShown = values[0] as Boolean,
@@ -277,7 +280,8 @@ class SettingsViewModel @Inject constructor(
                     libraryNavigationMode = values[9] as String,
                     carouselStyle = values[10] as String,
                     launchTab = values[11] as String,
-                    showPlayerFileInfo = values[12] as Boolean
+                    showPlayerFileInfo = values[12] as Boolean,
+                    globalNowPlayingThemeEnabled = values[13] as Boolean
                 )
             }.collect { update ->
                 _uiState.update { state ->
@@ -294,7 +298,8 @@ class SettingsViewModel @Inject constructor(
                         libraryNavigationMode = update.libraryNavigationMode,
                         carouselStyle = update.carouselStyle,
                         launchTab = update.launchTab,
-                        showPlayerFileInfo = update.showPlayerFileInfo
+                        showPlayerFileInfo = update.showPlayerFileInfo,
+                        globalNowPlayingThemeEnabled = update.globalNowPlayingThemeEnabled
                     )
                 }
             }
@@ -517,6 +522,12 @@ class SettingsViewModel @Inject constructor(
     fun setPlayerThemePreference(preference: String) {
         viewModelScope.launch {
             themePreferencesRepository.setPlayerThemePreference(preference)
+        }
+    }
+
+    fun setGlobalNowPlayingThemeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            themePreferencesRepository.setGlobalNowPlayingThemeEnabled(enabled)
         }
     }
 

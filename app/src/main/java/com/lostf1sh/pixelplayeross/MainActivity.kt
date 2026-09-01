@@ -134,6 +134,7 @@ import com.lostf1sh.pixelplayeross.presentation.screens.SetupScreen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.MainViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
+import com.lostf1sh.pixelplayeross.ui.theme.resolveAppWideNowPlayingColorSchemePair
 import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.LogUtils
@@ -261,6 +262,47 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.LIGHT -> false
                 else -> systemDarkTheme
             }
+            val globalNowPlayingThemeEnabled by themePreferencesRepository
+                .globalNowPlayingThemeEnabledFlow
+                .collectAsStateWithLifecycle(initialValue = false)
+            val activePlayerColorSchemePair by playerViewModel
+                .activePlayerColorSchemePair
+                .collectAsStateWithLifecycle()
+            val themedAlbumArtUri by playerViewModel
+                .currentThemedAlbumArtUri
+                .collectAsStateWithLifecycle()
+            val stablePlayerState by playerViewModel
+                .stablePlayerState
+                .collectAsStateWithLifecycle()
+            val currentSongId = stablePlayerState.currentSong?.id
+            val currentSongScheme = activePlayerColorSchemePair.takeIf {
+                val artworkUri = stablePlayerState.currentSong?.albumArtUriString
+                !artworkUri.isNullOrBlank() && artworkUri == themedAlbumArtUri
+            }
+            var lastValidNowPlayingSongId by remember { mutableStateOf<String?>(null) }
+            var lastValidNowPlayingScheme by remember {
+                mutableStateOf<com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair?>(null)
+            }
+            LaunchedEffect(currentSongId, currentSongScheme) {
+                when {
+                    currentSongId == null -> {
+                        lastValidNowPlayingSongId = null
+                        lastValidNowPlayingScheme = null
+                    }
+                    currentSongScheme != null -> {
+                        lastValidNowPlayingSongId = currentSongId
+                        lastValidNowPlayingScheme = currentSongScheme
+                    }
+                }
+            }
+            val appWideNowPlayingScheme = resolveAppWideNowPlayingColorSchemePair(
+                enabled = globalNowPlayingThemeEnabled,
+                currentSongId = currentSongId,
+                isPlaying = stablePlayerState.isPlaying,
+                currentSongScheme = currentSongScheme,
+                lastValidSongId = lastValidNowPlayingSongId,
+                lastValidScheme = lastValidNowPlayingScheme
+            )
             val isSetupComplete by mainViewModel.isSetupComplete.collectAsStateWithLifecycle()
             
             var showCrashReportDialog by remember { mutableStateOf(false) }
@@ -297,7 +339,8 @@ class MainActivity : ComponentActivity() {
             }
 
             PixelPlayerTheme(
-                darkTheme = useDarkTheme
+                darkTheme = useDarkTheme,
+                colorSchemePairOverride = appWideNowPlayingScheme
             ) {
                 var contentVisible by remember { mutableStateOf(false) }
                 val contentAlpha by animateFloatAsState(

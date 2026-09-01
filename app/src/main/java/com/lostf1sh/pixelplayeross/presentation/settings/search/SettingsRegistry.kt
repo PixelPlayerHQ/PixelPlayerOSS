@@ -187,6 +187,22 @@ object SettingsRegistry {
                 keywordsStatic = listOf("dark mode", "light mode", "theme", "system", "night")
             ),
             SettingSpec(
+                id = "appearance_global_now_playing_theme",
+                itemKey = "item_appearance_global_now_playing_theme",
+                titleRes = R.string.setcat_global_now_playing_theme_title,
+                subtitleRes = R.string.setcat_global_now_playing_theme_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf(
+                    "now playing", "album art", "dynamic colors", "app theme", "palette"
+                ),
+                getValue = { it.globalNowPlayingThemeEnabled },
+                onToggle = { viewModel, checked ->
+                    viewModel.setGlobalNowPlayingThemeEnabled(checked)
+                }
+            ),
+            SettingSpec(
                 id = "appearance_smooth_corners",
                 itemKey = "item_appearance_smooth_corners",
                 titleRes = R.string.setcat_smooth_corners_title,

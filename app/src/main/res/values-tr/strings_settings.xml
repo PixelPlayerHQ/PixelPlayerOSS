@@ -75,6 +75,8 @@
     <string name="setcat_app_navigation_section">Uygulama Gezinmesi</string>
     <string name="setcat_app_theme_desc">Açık, koyu tema arasında geçiş yapın veya sistem görünümünü takip edin.</string>
     <string name="setcat_app_theme_label">Uygulama Teması</string>
+    <string name="setcat_global_now_playing_theme_title">Çalan parçanın renklerini uygulamada kullan</string>
+    <string name="setcat_global_now_playing_theme_subtitle">Tüm uygulamayı geçerli parçanın albüm kapağıyla renklendirir. Açık ve koyu mod korunur.</string>
     <string name="setcat_application">Uygulama</string>
     <string name="setcat_artists_subtitle">Çoklu sanatçı ayrıştırma ve düzenleme seçenekleri.</string>
     <string name="setcat_artists_title">Sanatçılar</string>

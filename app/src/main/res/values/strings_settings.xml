@@ -84,6 +84,8 @@
     <string name="language_zh_rCN" translatable="false">简体中文</string>
     <string name="setcat_app_theme_label">App Theme</string>
     <string name="setcat_app_theme_desc">Switch between light, dark, or follow system appearance.</string>
+    <string name="setcat_global_now_playing_theme_title" tools:ignore="MissingTranslation">Use now playing colors across the app</string>
+    <string name="setcat_global_now_playing_theme_subtitle" tools:ignore="MissingTranslation">Colors the whole app from the current song\'s album art. Light and dark mode are still respected.</string>
     <string name="setcat_theme_light">Light Theme</string>
     <string name="setcat_theme_dark">Dark Theme</string>
     <string name="setcat_theme_follow_system">Follow System</string>

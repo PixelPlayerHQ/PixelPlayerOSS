@@ -583,6 +583,14 @@ fun SettingsCategoryScreen(
                                     modifier = Modifier.settingHighlight("item_appearance_app_theme", highlightKey)
                                 )
                                 SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_global_now_playing_theme_title),
+                                    subtitle = stringResource(R.string.setcat_global_now_playing_theme_subtitle),
+                                    checked = uiState.globalNowPlayingThemeEnabled,
+                                    onCheckedChange = settingsViewModel::setGlobalNowPlayingThemeEnabled,
+                                    leadingIcon = { Icon(Icons.Outlined.PlayCircle, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_appearance_global_now_playing_theme", highlightKey)
+                                )
+                                SwitchSettingItem(
                                     title = stringResource(R.string.setcat_smooth_corners_title),
                                     subtitle = stringResource(R.string.setcat_smooth_corners_subtitle),
                                     checked = useSmoothCorners,

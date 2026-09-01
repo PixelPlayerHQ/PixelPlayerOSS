@@ -208,8 +208,9 @@
         <provider
             android:name=".data.provider.SharedArtworkContentProvider"
             android:authorities="${applicationId}.artwork"
-            android:exported="false"
-            android:grantUriPermissions="true" />
+            android:exported="true"
+            android:grantUriPermissions="true"
+            tools:ignore="ExportedContentProvider" />
 
         <service
             android:name=".data.service.tile.ShuffleAllTileService"

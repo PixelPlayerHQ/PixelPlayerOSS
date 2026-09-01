@@ -6,6 +6,39 @@ import org.junit.Test
 class SharedArtworkContentProviderTest {
 
     @Test
+    fun artworkReadAccess_allowsProviderProcess() {
+        assertThat(
+            SharedArtworkContentProvider.hasArtworkReadAccess(
+                callingUid = 1001,
+                providerUid = 1001,
+                uriPermissionResult = android.content.pm.PackageManager.PERMISSION_DENIED,
+            )
+        ).isTrue()
+    }
+
+    @Test
+    fun artworkReadAccess_allowsExplicitUriGrant() {
+        assertThat(
+            SharedArtworkContentProvider.hasArtworkReadAccess(
+                callingUid = 2001,
+                providerUid = 1001,
+                uriPermissionResult = android.content.pm.PackageManager.PERMISSION_GRANTED,
+            )
+        ).isTrue()
+    }
+
+    @Test
+    fun artworkReadAccess_rejectsUntrustedExternalCaller() {
+        assertThat(
+            SharedArtworkContentProvider.hasArtworkReadAccess(
+                callingUid = 2001,
+                providerUid = 1001,
+                uriPermissionResult = android.content.pm.PackageManager.PERMISSION_DENIED,
+            )
+        ).isFalse()
+    }
+
+    @Test
     fun buildSongUri_usesDedicatedArtworkAuthority() {
         val uri = SharedArtworkContentProvider.buildSongUriString(
             packageName = "com.lostf1sh.pixelplayeross",

@@ -27,7 +27,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AudioBookmarkEntity::class,
         OfflineTrackEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class PixelPlayerDatabase : RoomDatabase() {

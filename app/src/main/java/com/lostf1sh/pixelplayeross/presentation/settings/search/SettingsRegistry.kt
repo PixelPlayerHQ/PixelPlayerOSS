@@ -67,6 +67,26 @@ object SettingsRegistry {
                 keywordsStatic = listOf("scan", "rescan", "sync", "refresh", "rebuild", "database")
             ),
             SettingSpec(
+                id = "library_m3u_sync",
+                itemKey = "item_library_m3u_sync",
+                titleRes = R.string.setcat_m3u_sync_title,
+                subtitleRes = R.string.setcat_m3u_sync_disabled_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("m3u", "m3u8", "playlist", "sync", "folder", "import", "export")
+            ),
+            SettingSpec(
+                id = "library_m3u_sync_now",
+                itemKey = "item_library_m3u_sync_now",
+                titleRes = R.string.setcat_m3u_sync_now_title,
+                subtitleRes = R.string.setcat_m3u_sync_now_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.ACTION,
+                keywordsStatic = listOf("m3u", "playlist", "sync now", "reconcile")
+            ),
+            SettingSpec(
                 id = "library_auto_scan_lrc",
                 itemKey = "item_library_auto_scan_lrc",
                 titleRes = R.string.setcat_auto_scan_lrc_title,

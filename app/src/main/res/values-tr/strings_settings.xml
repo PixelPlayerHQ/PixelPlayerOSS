@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="setcat_m3u_sync_section">Çalma listesi eşitleme</string>
+    <string name="setcat_m3u_sync_title">Otomatik M3U eşitleme</string>
+    <string name="setcat_m3u_sync_disabled_subtitle">Yerel çalma listelerini iki yönlü eşitlemek için harici bir klasör seçin</string>
+    <string name="setcat_m3u_sync_enabled_subtitle">%1$s ile eşitleniyor</string>
+    <string name="setcat_m3u_sync_selected_folder">seçili klasör</string>
+    <string name="setcat_m3u_sync_now_title">Çalma listelerini şimdi eşitle</string>
+    <string name="setcat_m3u_sync_now_subtitle">Çakışmaların üzerine yazmadan değişiklikleri içe ve dışa aktar</string>
+    <string name="setcat_m3u_sync_result">%1$d değişti · %2$d çakışma · %3$d çözülemeyen kayıt</string>
     <string name="backup_confirm_export_pxpl">.pxpl Olarak Dışa Aktar</string>
     <string name="backup_dialog_creating">Yedek Oluşturuluyor</string>
     <string name="backup_dialog_restoring">Yedek Geri Yükleniyor</string>

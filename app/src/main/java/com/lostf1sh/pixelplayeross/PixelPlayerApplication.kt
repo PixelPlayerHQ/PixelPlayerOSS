@@ -15,6 +15,7 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnosticsController
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.playlist.M3uSyncCoordinator
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LibraryStateHolder
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ThemeStateHolder
@@ -68,6 +69,9 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     @Inject
     lateinit var advancedPerformanceDiagnosticsController: dagger.Lazy<AdvancedPerformanceDiagnosticsController>
 
+    @Inject
+    lateinit var m3uSyncCoordinator: dagger.Lazy<M3uSyncCoordinator>
+
     private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
@@ -77,6 +81,12 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     private val appLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
             libraryStateHolder.get().restoreAfterTrimIfNeeded()
+            m3uSyncCoordinator.get().onAppForeground()
+            advancedPerformanceDiagnosticsController.get().onAppForeground()
+        }
+
+        override fun onStop(owner: LifecycleOwner) {
+            advancedPerformanceDiagnosticsController.get().onAppBackground()
         }
     }
 
@@ -110,6 +120,8 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
         ProcessLifecycleOwner.get().lifecycle.addObserver(appLifecycleObserver)
 
         syncManager.get().start()
+
+        m3uSyncCoordinator.get().start()
 
         advancedPerformanceDiagnosticsController.get().start(startupScope)
 

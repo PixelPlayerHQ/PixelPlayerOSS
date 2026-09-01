@@ -176,6 +176,7 @@ import com.lostf1sh.pixelplayeross.presentation.model.SettingsCategory
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.settings.search.settingHighlight
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LyricsRefreshProgress
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.M3uSyncViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
@@ -192,6 +193,7 @@ fun SettingsCategoryScreen(
     navController: NavController,
     playerViewModel: PlayerViewModel,
     settingsViewModel: SettingsViewModel = hiltViewModel(),
+    m3uSyncViewModel: M3uSyncViewModel = hiltViewModel(),
     statsViewModel: com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel = hiltViewModel(),
     onBackClick: () -> Unit
 ) {
@@ -211,6 +213,7 @@ fun SettingsCategoryScreen(
     val isSyncing by settingsViewModel.isSyncing.collectAsStateWithLifecycle()
     val syncProgress by settingsViewModel.syncProgress.collectAsStateWithLifecycle()
     val dataTransferProgress by settingsViewModel.dataTransferProgress.collectAsStateWithLifecycle()
+    val m3uSyncState by m3uSyncViewModel.state.collectAsStateWithLifecycle()
     val paletteRegenerateTargets by playerViewModel.paletteRegenerationTargets.collectAsStateWithLifecycle()
     val explorerRoot = settingsViewModel.explorerRoot()
 
@@ -257,11 +260,25 @@ fun SettingsCategoryScreen(
         }
     }
 
+    val m3uFolderPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) m3uSyncViewModel.selectFolder(uri)
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     LaunchedEffect(settingsViewModel, lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             settingsViewModel.dataTransferEvents.collectLatest { message ->
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(m3uSyncViewModel, lifecycleOwner) {
+        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            m3uSyncViewModel.messages.collectLatest { message ->
+                Toast.makeText(context, message, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -501,6 +518,76 @@ fun SettingsCategoryScreen(
                                     modifier = Modifier.settingHighlight("item_library_find_duplicates", highlightKey),
                                     onClick = { navController.navigateSafely(Screen.Duplicates.createRoute()) }
                                 )
+                            }
+
+                            SettingsSubsection(title = stringResource(R.string.setcat_m3u_sync_section)) {
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_m3u_sync_title),
+                                    subtitle = if (m3uSyncState.enabled) {
+                                        val folder = remember(m3uSyncState.treeUri) {
+                                            m3uSyncState.treeUri
+                                                ?.let(Uri::parse)
+                                                ?.lastPathSegment
+                                                ?.substringAfterLast(':')
+                                                .orEmpty()
+                                        }
+                                        stringResource(
+                                            R.string.setcat_m3u_sync_enabled_subtitle,
+                                            folder.ifBlank { stringResource(R.string.setcat_m3u_sync_selected_folder) },
+                                        )
+                                    } else {
+                                        stringResource(R.string.setcat_m3u_sync_disabled_subtitle)
+                                    },
+                                    checked = m3uSyncState.enabled,
+                                    onCheckedChange = { enabled ->
+                                        if (enabled) m3uFolderPicker.launch(null) else m3uSyncViewModel.disable()
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.Folder,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.secondary,
+                                        )
+                                    },
+                                    modifier = Modifier.settingHighlight("item_library_m3u_sync", highlightKey),
+                                )
+                                if (m3uSyncState.enabled) {
+                                    SettingsItem(
+                                        title = stringResource(R.string.setcat_m3u_sync_now_title),
+                                        subtitle = when {
+                                            m3uSyncState.error != null -> m3uSyncState.error.orEmpty()
+                                            m3uSyncState.lastReport != null -> {
+                                                val report = m3uSyncState.lastReport!!
+                                                stringResource(
+                                                    R.string.setcat_m3u_sync_result,
+                                                    report.changed,
+                                                    report.conflicts.size,
+                                                    report.unresolvedEntries,
+                                                )
+                                            }
+                                            else -> stringResource(R.string.setcat_m3u_sync_now_subtitle)
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Rounded.Restore,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.secondary,
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            if (m3uSyncState.isSyncing) {
+                                                CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                                            }
+                                        },
+                                        modifier = Modifier.settingHighlight(
+                                            "item_library_m3u_sync_now",
+                                            highlightKey,
+                                        ),
+                                        onClick = {
+                                            if (!m3uSyncState.isSyncing) m3uSyncViewModel.syncNow()
+                                        },
+                                    )
+                                }
                             }
 
                             SettingsSubsection(title = stringResource(R.string.setcat_online_services)) {

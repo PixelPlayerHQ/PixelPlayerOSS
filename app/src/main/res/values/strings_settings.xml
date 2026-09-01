@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="setcat_m3u_sync_section" tools:ignore="MissingTranslation">Playlist synchronization</string>
+    <string name="setcat_m3u_sync_title" tools:ignore="MissingTranslation">Automatic M3U sync</string>
+    <string name="setcat_m3u_sync_disabled_subtitle" tools:ignore="MissingTranslation">Choose an external folder to keep local playlists in sync both ways</string>
+    <string name="setcat_m3u_sync_enabled_subtitle" tools:ignore="MissingTranslation">Synchronizing with %1$s</string>
+    <string name="setcat_m3u_sync_selected_folder" tools:ignore="MissingTranslation">selected folder</string>
+    <string name="setcat_m3u_sync_now_title" tools:ignore="MissingTranslation">Sync playlists now</string>
+    <string name="setcat_m3u_sync_now_subtitle" tools:ignore="MissingTranslation">Import and export changes without overwriting conflicts</string>
+    <string name="setcat_m3u_sync_result" tools:ignore="MissingTranslation">%1$d changed · %2$d conflicts · %3$d unresolved entries</string>
     <string name="settings_top_bar_title">Settings</string>
     <string name="settings_accounts_row_title">Accounts</string>
     <string name="settings_accounts_row_subtitle">Manage Navidrome and Jellyfin services</string>

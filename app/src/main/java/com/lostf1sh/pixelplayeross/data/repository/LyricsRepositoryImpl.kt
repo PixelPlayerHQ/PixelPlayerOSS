@@ -496,18 +496,22 @@ class LyricsRepositoryImpl @Inject constructor(
             ).firstOrNull()?.response
 
             if (bestMatch != null) {
-                val rawLyrics = bestMatch.syncedLyrics ?: bestMatch.plainLyrics
+                val rawLyrics = bestMatch.preferredLyricsContent()
                 if (!rawLyrics.isNullOrBlank()) {
                     val parsedLyrics = LyricsUtils.parseLyrics(rawLyrics).copy(areFromRemote = true)
                     if (parsedLyrics.isValid()) {
-                        Timber.tag(TAG).d("LRCLIB lyrics found - Synced: ${!bestMatch.syncedLyrics.isNullOrBlank()}, Plain: ${!bestMatch.plainLyrics.isNullOrBlank()}")
+                        Timber.tag(TAG).d(
+                            "LRCLIB lyrics found - Word synced: ${!bestMatch.lyricsfile.isNullOrBlank()}, " +
+                                "Synced: ${bestMatch.hasSyncedContent}, " +
+                                "Plain: ${!bestMatch.plainLyrics.isNullOrBlank()}"
+                        )
                         
                         try {
                             lyricsDao.insert(
                                 com.lostf1sh.pixelplayeross.data.database.LyricsEntity(
                                     songId = song.id.toLong(),
                                     content = rawLyrics,
-                                    isSynced = !bestMatch.syncedLyrics.isNullOrBlank(),
+                                    isSynced = !parsedLyrics.synced.isNullOrEmpty(),
                                     source = "remote"
                                 )
                             )
@@ -528,10 +532,10 @@ class LyricsRepositoryImpl @Inject constructor(
     }
 
     private fun hasLyrics(response: LrcLibResponse): Boolean =
-        !response.plainLyrics.isNullOrBlank() || !response.syncedLyrics.isNullOrBlank()
+        !response.plainLyrics.isNullOrBlank() || response.hasSyncedContent
 
     private fun hasSyncedLyrics(response: LrcLibResponse): Boolean =
-        !response.syncedLyrics.isNullOrBlank()
+        response.hasSyncedContent
 
     private fun rankRemoteLyricsMatches(
         song: Song,
@@ -1123,7 +1127,7 @@ class LyricsRepositoryImpl @Inject constructor(
                 ?.let { rankRemoteLyricsMatches(song, listOf(it), RemoteLyricsMatchMode.AUTOMATIC).firstOrNull()?.response }
 
             if (exactMatch != null) {
-                val rawLyricsToSave = exactMatch.syncedLyrics ?: exactMatch.plainLyrics
+                val rawLyricsToSave = exactMatch.preferredLyricsContent()
                     ?: return@withContext Result.failure(NoLyricsFoundException())
 
                 val parsedLyrics = LyricsUtils.parseLyrics(rawLyricsToSave).copy(areFromRemote = true)
@@ -1212,19 +1216,19 @@ class LyricsRepositoryImpl @Inject constructor(
                 )
                 val results = rankedMatches.mapNotNull { match ->
                     val response = match.response
-                    val rawLyrics = response.syncedLyrics ?: response.plainLyrics ?: return@mapNotNull null
+                    val rawLyrics = response.preferredLyricsContent() ?: return@mapNotNull null
                     val parsedLyrics = LyricsUtils.parseLyrics(rawLyrics).copy(areFromRemote = true)
                     if (!parsedLyrics.isValid()) {
                         LogUtils.w(this@LyricsRepositoryImpl, "Parsed lyrics are empty for: ${song.title}")
                         return@mapNotNull null
                     }
-                    val hasSynced = !response.syncedLyrics.isNullOrEmpty()
+                    val hasSynced = response.hasSyncedContent
                     LogUtils.d(this@LyricsRepositoryImpl, "  Found: ${response.name} by ${response.artistName} (synced: $hasSynced)")
                     LyricsSearchResult(response, parsedLyrics, rawLyrics)
                 }
 
                 if (results.isNotEmpty()) {
-                    val syncedCount = results.count { !it.record.syncedLyrics.isNullOrEmpty() }
+                    val syncedCount = results.count { it.record.hasSyncedContent }
                     LogUtils.d(this@LyricsRepositoryImpl, "Found ${results.size} lyrics for: ${song.title} ($syncedCount with synced)")
                     Result.success(Pair(combinedQuery, results))
                 } else {
@@ -1280,12 +1284,12 @@ class LyricsRepositoryImpl @Inject constructor(
             }
 
             val results = responses.mapNotNull { response ->
-                val rawLyrics = response.syncedLyrics ?: response.plainLyrics ?: return@mapNotNull null
+                val rawLyrics = response.preferredLyricsContent() ?: return@mapNotNull null
                 val parsed = LyricsUtils.parseLyrics(rawLyrics).copy(areFromRemote = true)
                 if (!parsed.isValid()) return@mapNotNull null
 
                 LyricsSearchResult(response, parsed, rawLyrics)
-            }.sortedByDescending { !it.record.syncedLyrics.isNullOrEmpty() }
+            }.sortedByDescending { it.record.hasSyncedContent }
 
             if (results.isEmpty()) {
                 Result.failure(NoLyricsFoundException(query))

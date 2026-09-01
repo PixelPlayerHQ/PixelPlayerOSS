@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
+import android.animation.ValueAnimator
 import android.widget.Toast
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
@@ -71,6 +72,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.input.pointer.pointerInput
@@ -123,12 +125,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.lostf1sh.pixelplayeross.data.preferences.dataStore
 
 import kotlin.math.abs
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilledTonalIconButton
@@ -329,6 +333,11 @@ fun LyricsSheet(
         context.dataStore.data.map { it[booleanPreferencesKey("use_animated_lyrics")] ?: false }
     }
     val useAnimatedLyrics by useAnimatedLyricsFlow.collectAsStateWithLifecycle(initialValue = false)
+
+    val playbackSpeedFlow = remember(context) {
+        context.dataStore.data.map { it[floatPreferencesKey("playback_speed")] ?: 1f }
+    }
+    val playbackSpeed by playbackSpeedFlow.collectAsStateWithLifecycle(initialValue = 1f)
 
     val animatedLyricsBlurEnabledFlow = remember(context) {
         context.dataStore.data.map { it[booleanPreferencesKey("animated_lyrics_blur_enabled")] ?: true }
@@ -738,6 +747,8 @@ fun LyricsSheet(
                                 lines = syncedLines,
                                 listState = syncedListState,
                                 playbackPositionFlow = playbackPositionFlow,
+                                isPlaying = isPlaying,
+                                playbackSpeed = playbackSpeed,
                                 lyricsSyncOffset = lyricsSyncOffset,
                                 positionOverrideMs = previewSeekPositionMs,
                                 accentColor = lyricHighlightColor,
@@ -1141,6 +1152,8 @@ fun SyncedLyricsList(
     lines: ImmutableList<SyncedLine>,
     listState: LazyListState,
     playbackPositionFlow: StateFlow<Long>,
+    isPlaying: Boolean,
+    playbackSpeed: Float,
     lyricsSyncOffset: Int,
     positionOverrideMs: Long? = null,
     accentColor: Color,
@@ -1161,7 +1174,14 @@ fun SyncedLyricsList(
     footer: LazyListScope.() -> Unit = {}
 ) {
     val density = LocalDensity.current
-    val playbackPosition by playbackPositionFlow.collectAsStateWithLifecycle()
+    val sampledPlaybackPosition by playbackPositionFlow.collectAsStateWithLifecycle()
+    val hasWordTimings = remember(lines) { lines.any { !it.words.isNullOrEmpty() } }
+    val playbackPosition = rememberInterpolatedPlaybackPosition(
+        sampledPositionMs = sampledPlaybackPosition,
+        isPlaying = isPlaying && hasWordTimings,
+        playbackSpeed = playbackSpeed,
+        positionOverrideMs = positionOverrideMs
+    )
     val position = remember(playbackPosition, lyricsSyncOffset, positionOverrideMs) {
         positionOverrideMs ?: (playbackPosition + lyricsSyncOffset).coerceAtLeast(0L)
     }
@@ -1356,60 +1376,48 @@ fun LyricLineRow(
     val isCurrentLine by remember(position, line.time, lineEndTime) {
         derivedStateOf { position in line.time.toLong()..<lineEndTime }
     }
+    val decorativeMotionEnabled = useAnimatedLyrics && ValueAnimator.areAnimatorsEnabled()
     val unhighlightedColor = LocalContentColor.current.copy(alpha = 0.45f)
     val lineColor by animateColorAsState(
         targetValue = if (isCurrentLine) accentColor else unhighlightedColor,
-        animationSpec = if (useAnimatedLyrics) spring(
-            stiffness = Spring.StiffnessVeryLow,
-            dampingRatio = Spring.DampingRatioMediumBouncy
-        ) else tween(durationMillis = 250),
+        animationSpec = tween(
+            durationMillis = if (decorativeMotionEnabled) 90 else 160,
+            easing = FastOutSlowInEasing
+        ),
         label = "lineColor"
     )
 
-    val targetScale = if (useAnimatedLyrics) when (distanceFromCurrent) {
-        0 -> if (immersiveMode) 1.02f else 1.1f; 1 -> 0.95f; else -> 0.85f
+    val targetScale = if (decorativeMotionEnabled) when (distanceFromCurrent) {
+        0 -> if (immersiveMode) 1.02f else 1.07f; 1 -> 0.97f; else -> 0.92f
     } else 1f
-    val targetPadding = if (useAnimatedLyrics) when (distanceFromCurrent) {
-        0 -> 32.dp; 1 -> 16.dp; else -> 8.dp
-    } else 12.dp
-    val targetAlpha = if (useAnimatedLyrics) when (distanceFromCurrent) {
+    val targetAlpha = if (decorativeMotionEnabled) when (distanceFromCurrent) {
         0 -> 1.0f; 1 -> 0.6f; else -> 0.3f
     } else 1f
 
     val scale by animateFloatAsState(
         targetValue = targetScale,
-        animationSpec = if (useAnimatedLyrics) spring(
-            stiffness = Spring.StiffnessVeryLow,
-            dampingRatio = Spring.DampingRatioMediumBouncy
-        ) else tween(durationMillis = 200),
+        animationSpec = tween(durationMillis = 160, easing = FastOutSlowInEasing),
         label = "lineScale"
-    )
-    val verticalPadding by animateDpAsState(
-        targetValue = targetPadding,
-        animationSpec = if (useAnimatedLyrics) spring(
-            stiffness = Spring.StiffnessVeryLow,
-            dampingRatio = Spring.DampingRatioMediumBouncy
-        ) else tween(durationMillis = 200),
-        label = "linePadding"
     )
     val alpha by animateFloatAsState(
         targetValue = targetAlpha,
-        animationSpec = if (useAnimatedLyrics) spring(
-            stiffness = Spring.StiffnessLow,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        ) else tween(durationMillis = 200),
+        animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing),
         label = "lineAlpha"
     )
 
-    val targetBlur = if (useAnimatedLyrics && animatedLyricsBlurEnabled && distanceFromCurrent > 0) {
+    val targetBlur = if (decorativeMotionEnabled && animatedLyricsBlurEnabled && distanceFromCurrent > 0) {
         (distanceFromCurrent * animatedLyricsBlurStrength).coerceAtMost(10f).dp
     } else 0.dp
 
     val blurRadius by animateDpAsState(
         targetValue = targetBlur,
-        animationSpec = if (useAnimatedLyrics) tween(durationMillis = 400) else tween(durationMillis = 200),
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
         label = "lineBlur"
     )
+
+    // Keep line height stable while the visual focus moves. Scaling happens in a graphics layer,
+    // so neither the word pulse nor the active-line transition can make the lazy list jump.
+    val verticalPadding = if (useAnimatedLyrics) 16.dp else 12.dp
 
     val baseModifier = if (useAnimatedLyrics && !immersiveMode) {
         when (lyricsAlignment) {
@@ -1516,9 +1524,9 @@ fun LyricLineRow(
             }
         }
     } else {
-        val highlightedWordIndex by remember(position, sanitizedWords, line.time, lineEndTime) {
+        val wordVisualStates by remember(position, sanitizedWords, line.time, lineEndTime) {
             derivedStateOf {
-                resolveHighlightedWordIndex(
+                resolveWordVisualStates(
                     words = requireNotNull(sanitizedWords),
                     positionMs = position,
                     lineStartTimeMs = line.time.toLong(),
@@ -1550,8 +1558,8 @@ fun LyricLineRow(
                         key("${line.time}_${word.time}_${word.word}_$wordIndex") {
                             LyricWordSpan(
                                 word = word,
-                                isHighlighted = isCurrentLine && wordIndex == highlightedWordIndex,
-                                useAnimatedLyrics = useAnimatedLyrics,
+                                visualState = wordVisualStates[wordIndex],
+                                motionEnabled = decorativeMotionEnabled,
                                 style = style,
                                 highlightedColor = accentColor,
                                 unhighlightedColor = unhighlightedColor
@@ -1585,40 +1593,19 @@ fun LyricLineRow(
 }
 
 @Composable
-fun LyricWordSpan(
+private fun LyricWordSpan(
     word: SyncedWord,
-    isHighlighted: Boolean,
-    useAnimatedLyrics: Boolean = false,
+    visualState: LyricWordVisualState,
+    motionEnabled: Boolean = false,
     style: TextStyle,
     highlightedColor: Color,
     unhighlightedColor: Color,
     modifier: Modifier = Modifier
 ) {
-    val wordAnimSpec = if (useAnimatedLyrics) spring<Float>(
-        stiffness = Spring.StiffnessVeryLow,
-        dampingRatio = Spring.DampingRatioMediumBouncy
-    ) else tween(durationMillis = 200)
-
-    val color by animateColorAsState(
-        targetValue = if (isHighlighted) highlightedColor else unhighlightedColor,
-        animationSpec = if (useAnimatedLyrics) spring(
-            stiffness = Spring.StiffnessVeryLow,
-            dampingRatio = Spring.DampingRatioMediumBouncy
-        ) else tween(durationMillis = 200),
-        label = "wordColor"
-    )
-
-    val scale by animateFloatAsState(
-        targetValue = if (useAnimatedLyrics && isHighlighted) 1.10f else 1f,
-        animationSpec = wordAnimSpec,
-        label = "wordScale"
-    )
-
-    val alpha by animateFloatAsState(
-        targetValue = if (useAnimatedLyrics && !isHighlighted) 0.55f else 1f,
-        animationSpec = wordAnimSpec,
-        label = "wordAlpha"
-    )
+    val isHighlighted = visualState.phase != LyricWordPhase.Future
+    val color = if (isHighlighted) highlightedColor else unhighlightedColor
+    val scale = resolveWordScale(visualState, motionEnabled)
+    val alpha = if (motionEnabled && visualState.phase == LyricWordPhase.Future) 0.55f else 1f
 
     Box(
         modifier = modifier,
@@ -1629,6 +1616,7 @@ fun LyricWordSpan(
             style = style,
             color = Color.Transparent,
             fontWeight = FontWeight.Bold,
+            modifier = Modifier.clearAndSetSemantics { }
         )
         Text(
             text = word.word,
@@ -1780,6 +1768,75 @@ internal fun clusterSyncedWords(words: List<SyncedWord>): List<SyncedWordCluster
     return clusters
 }
 
+internal enum class LyricWordPhase {
+    Future,
+    Active,
+    Completed
+}
+
+internal data class LyricWordVisualState(
+    val phase: LyricWordPhase,
+    /** Timestamp-derived progress for the short active-word emphasis, from 0 to 1. */
+    val progress: Float
+)
+
+private const val MAX_WORD_EMPHASIS_DURATION_MS = 240L
+private const val ACTIVE_WORD_SCALE_DELTA = 0.08f
+
+/**
+ * Resolves the whole line in one pass so completed words stay highlighted. Exactly one word can
+ * be active, including when multiple words share the same timestamp: the last matching word wins.
+ */
+internal fun resolveWordVisualStates(
+    words: List<SyncedWord>,
+    positionMs: Long,
+    lineStartTimeMs: Long,
+    lineEndTimeMs: Long
+): List<LyricWordVisualState> {
+    if (words.isEmpty()) return emptyList()
+    if (positionMs < lineStartTimeMs || positionMs >= lineEndTimeMs) {
+        return List(words.size) { LyricWordVisualState(LyricWordPhase.Future, 0f) }
+    }
+
+    val activeIndex = words.indexOfLast { it.time.toLong() <= positionMs }
+    if (activeIndex < 0) {
+        return List(words.size) { LyricWordVisualState(LyricWordPhase.Future, 0f) }
+    }
+
+    val activeWordStart = words[activeIndex].time.toLong()
+    val nextWordStart = words.getOrNull(activeIndex + 1)?.time?.toLong() ?: lineEndTimeMs
+    val normalizedEnd = normalizeWordEndTime(
+        currentWordTimeMs = activeWordStart,
+        nextWordTimeMs = nextWordStart,
+        lineEndTimeMs = lineEndTimeMs
+    )
+    val emphasisEnd = minOf(normalizedEnd, activeWordStart + MAX_WORD_EMPHASIS_DURATION_MS)
+    val emphasisDuration = (emphasisEnd - activeWordStart).coerceAtLeast(1L)
+    val activeProgress = (
+        (positionMs - activeWordStart).toFloat() / emphasisDuration.toFloat()
+    ).coerceIn(0f, 1f)
+
+    return List(words.size) { index ->
+        when {
+            index < activeIndex -> LyricWordVisualState(LyricWordPhase.Completed, 1f)
+            index == activeIndex -> LyricWordVisualState(LyricWordPhase.Active, activeProgress)
+            else -> LyricWordVisualState(LyricWordPhase.Future, 0f)
+        }
+    }
+}
+
+/**
+ * A short timestamp-driven settle replaces the old unbounded spring. Graphics-layer scaling does
+ * not participate in measurement, and reduced-motion users always receive the stable 1x size.
+ */
+internal fun resolveWordScale(
+    state: LyricWordVisualState,
+    motionEnabled: Boolean
+): Float {
+    if (!motionEnabled || state.phase != LyricWordPhase.Active) return 1f
+    return 1f + ACTIVE_WORD_SCALE_DELTA * (1f - state.progress.coerceIn(0f, 1f))
+}
+
 internal fun normalizeWordEndTime(
     currentWordTimeMs: Long,
     nextWordTimeMs: Long,
@@ -1788,6 +1845,39 @@ internal fun normalizeWordEndTime(
     val minEnd = currentWordTimeMs + 1L
     val boundedLineEnd = lineEndTimeMs.coerceAtLeast(minEnd)
     return nextWordTimeMs.coerceIn(minEnd, boundedLineEnd)
+}
+
+@Composable
+private fun rememberInterpolatedPlaybackPosition(
+    sampledPositionMs: Long,
+    isPlaying: Boolean,
+    playbackSpeed: Float,
+    positionOverrideMs: Long?
+): Long {
+    var interpolatedPositionMs by remember {
+        mutableLongStateOf(positionOverrideMs ?: sampledPositionMs)
+    }
+
+    LaunchedEffect(sampledPositionMs, isPlaying, playbackSpeed, positionOverrideMs) {
+        positionOverrideMs?.let {
+            interpolatedPositionMs = it.coerceAtLeast(0L)
+            return@LaunchedEffect
+        }
+
+        val anchorPositionMs = sampledPositionMs.coerceAtLeast(0L)
+        val safePlaybackSpeed = playbackSpeed.takeIf { it.isFinite() && it > 0f } ?: 1f
+        interpolatedPositionMs = anchorPositionMs
+        if (!isPlaying) return@LaunchedEffect
+
+        val anchorFrameNanos = withFrameNanos { it }
+        while (true) {
+            val frameNanos = withFrameNanos { it }
+            val elapsedMs = ((frameNanos - anchorFrameNanos) / 1_000_000L).coerceAtLeast(0L)
+            interpolatedPositionMs = anchorPositionMs + (elapsedMs * safePlaybackSpeed).roundToLong()
+        }
+    }
+
+    return interpolatedPositionMs
 }
 
 internal fun resolveLineEndTimeMs(line: SyncedLine, nextLineStartMs: Int): Long {

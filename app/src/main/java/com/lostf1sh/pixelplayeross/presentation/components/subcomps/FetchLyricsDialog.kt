@@ -343,7 +343,7 @@ private fun ResultItemCard(
     result: LyricsSearchResult,
     onClick: () -> Unit
 ) {
-    val hasSyncedLyrics = !result.record.syncedLyrics.isNullOrEmpty()
+    val hasSyncedLyrics = result.record.hasSyncedContent
     
     Surface(
         onClick = onClick,

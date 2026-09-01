@@ -226,7 +226,7 @@ internal fun UnifiedPlayerSongInfoLayer(
                 onNavigateToAlbum = { onNavigateToAlbum(liveSong) },
                 onNavigateToArtist = { onNavigateToArtist(liveSong) },
                 onNavigateToGenre = { onNavigateToGenre(liveSong) },
-                onEditSong = { title, artist, album, albumArtist, composer, genre, lyrics, trackNumber, discNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+                onEditSong = { title, artist, album, albumArtist, composer, genre, lyrics, trackNumber, discNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                     playerViewModel.editSongMetadata(
                         liveSong,
                         title,
@@ -240,7 +240,8 @@ internal fun UnifiedPlayerSongInfoLayer(
                         discNumber,
                         replayGainTrackGainDb,
                         replayGainAlbumGainDb,
-                        coverArtUpdate
+                        coverArtUpdate,
+                        customMetadataChanges
                     )
                     onDismissSongInfo()
                 },

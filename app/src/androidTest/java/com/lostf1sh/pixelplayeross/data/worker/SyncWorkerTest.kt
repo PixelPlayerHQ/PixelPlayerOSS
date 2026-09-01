@@ -1,13 +1,16 @@
 package com.lostf1sh.pixelplayeross.data.worker
 
+import android.Manifest
 import android.content.Context
 import android.database.MatrixCursor
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
 import androidx.concurrent.futures.ResolvableFuture
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.rule.GrantPermissionRule
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
@@ -15,12 +18,16 @@ import androidx.work.testing.TestListenableWorkerBuilder
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.IOException
@@ -28,16 +35,22 @@ import java.io.IOException
 @RunWith(AndroidJUnit4::class)
 class SyncWorkerTest {
 
+    @get:Rule
+    val mediaReadPermissionRule: GrantPermissionRule = GrantPermissionRule.grant(
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_AUDIO
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+    )
+
     private lateinit var context: Context
     private lateinit var database: PixelPlayerDatabase
     private lateinit var musicDao: MusicDao
     private lateinit var mockContentResolver: android.content.ContentResolver
 
 
-    class TestSyncWorkerFactory(
-        private val dao: MusicDao,
-        private val resolver: android.content.ContentResolver? = null
-    ) : WorkerFactory() {
+    class TestSyncWorkerFactory(private val dao: MusicDao) : WorkerFactory() {
         override fun createWorker(
             appContext: Context,
             workerClassName: String,
@@ -48,7 +61,7 @@ class SyncWorkerTest {
                     appContext = appContext,
                     workerParams = workerParameters,
                     musicDao = dao,
-                    userPreferencesRepository = mockk(relaxed = true),
+                    userPreferencesRepository = createTestPreferencesRepository(),
                     lyricsRepository = mockk(relaxed = true),
                     cloudSyncCoordinator = mockk(relaxed = true)
                 )
@@ -135,7 +148,7 @@ class SyncWorkerTest {
             .build()
 
         val result = worker.doWork()
-        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        assertSuccessfulSongCount(result, expectedCount = 2)
 
         val songsInDb = musicDao.getSongs(emptyList(), false).first()
         assertThat(songsInDb).hasSize(2)
@@ -147,12 +160,16 @@ class SyncWorkerTest {
 
         val artistsInDb = musicDao.getArtists(emptyList(), false).first()
         assertThat(artistsInDb).hasSize(2)
-        assertThat(artistsInDb.find { it.id == 101L }?.name).isEqualTo("Test Artist 1")
+        assertThat(artistsInDb.map { it.name })
+            .containsExactly("Test Artist 1", "Test Artist 2")
+        Unit
     }
 
     @Test
     fun testSyncWorker_success_whenMediaStoreIsEmpty() = runBlocking {
-        every { mockContentResolver.query(any(), any(), any(), any(), any()) } returns MatrixCursor(arrayOf())
+        every { mockContentResolver.query(any(), any(), any(), any(), any()) } answers {
+            MatrixCursor(secondArg<Array<String>?>() ?: emptyArray())
+        }
 
         val testContext = object : ContextWrapper(context) {
             override fun getContentResolver(): android.content.ContentResolver {
@@ -165,11 +182,40 @@ class SyncWorkerTest {
             .build()
 
         val result = worker.doWork()
-        assertThat(result).isEqualTo(ListenableWorker.Result.success())
+        assertSuccessfulSongCount(result, expectedCount = 0)
         assertThat(musicDao.getSongCount().first()).isEqualTo(0)
         assertThat(musicDao.getAlbumCount().first()).isEqualTo(0)
         assertThat(musicDao.getArtistCount().first()).isEqualTo(0)
     }
+
+    private fun assertSuccessfulSongCount(
+        result: ListenableWorker.Result,
+        expectedCount: Int,
+    ) {
+        assertThat(result).isInstanceOf(ListenableWorker.Result.Success::class.java)
+        val output = (result as ListenableWorker.Result.Success).outputData
+        assertThat(output.getInt(SyncWorker.OUTPUT_TOTAL_SONGS, -1)).isEqualTo(expectedCount)
+    }
+}
+
+private fun createTestPreferencesRepository(): UserPreferencesRepository {
+    val repository = mockk<UserPreferencesRepository>(relaxed = true)
+    every { repository.artistDelimitersFlow } returns
+        flowOf(UserPreferencesRepository.DEFAULT_ARTIST_DELIMITERS)
+    every { repository.artistWordDelimitersFlow } returns
+        flowOf(UserPreferencesRepository.DEFAULT_ARTIST_WORD_DELIMITERS)
+    every { repository.extractArtistsFromTitleFlow } returns flowOf(false)
+    every { repository.groupByAlbumArtistFlow } returns flowOf(false)
+    every { repository.artistSettingsRescanRequiredFlow } returns flowOf(false)
+    every { repository.allowedDirectoriesFlow } returns flowOf(emptySet())
+    every { repository.blockedDirectoriesFlow } returns flowOf(emptySet())
+    every { repository.minTracksPerAlbumFlow } returns flowOf(1)
+    every { repository.autoScanLrcFilesFlow } returns flowOf(false)
+    coEvery { repository.getDirectoryRulesVersion() } returns 0
+    coEvery { repository.getLastAppliedDirectoryRulesVersion() } returns 0
+    coEvery { repository.getLastSyncTimestamp() } returns 0L
+    coEvery { repository.getMinSongDuration() } returns 10_000
+    return repository
 }
 
 open class ContextWrapper(base: Context) : android.content.ContextWrapper(base)

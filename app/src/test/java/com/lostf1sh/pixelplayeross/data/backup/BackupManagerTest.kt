@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.data.backup
 import android.content.Context
 import android.net.Uri
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupReader
+import com.lostf1sh.pixelplayeross.data.backup.format.BackupFormatDetector
 import com.lostf1sh.pixelplayeross.data.backup.format.BackupWriter
 import com.lostf1sh.pixelplayeross.data.backup.history.BackupHistoryRepository
 import com.lostf1sh.pixelplayeross.data.backup.model.BackupManifest
@@ -49,6 +50,12 @@ class BackupManagerTest {
     )
 
     private val backupUri: Uri = mockk(relaxed = true)
+
+    init {
+        coEvery { backupReader.detectFormat(backupUri) } returns Result.success(
+            BackupFormatDetector.Format.PXPL_V3_ZIP
+        )
+    }
 
     @Test
     fun `inspectBackup surfaces file and module warnings in the restore plan`() = runTest {

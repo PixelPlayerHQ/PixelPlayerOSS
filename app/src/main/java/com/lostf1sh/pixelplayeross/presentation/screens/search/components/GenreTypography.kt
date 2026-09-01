@@ -104,6 +104,52 @@ object GenreTypography {
         return buildStyleCandidates(hash = hash, profile = profile, isGridView = true).first()
     }
 
+    /**
+     * Resolves the card title without synchronous text measurement.
+     *
+     * The previous card path tried several variable-font styles and every possible word break
+     * through TextMeasurer during composition. A handful of visible cards was enough to block a
+     * low-end device's first Search frame. Compose still applies ellipsis, so a deterministic
+     * character-weighted break preserves the expressive layout without main-thread probing.
+     */
+    fun resolveTitlePresentationFast(
+        genreId: String,
+        genreName: String,
+        isGridView: Boolean,
+    ): TitlePresentation {
+        val normalizedName = genreName.trim().replace(Regex("\\s+"), " ")
+        val profile = GenreTitleProfile.from(normalizedName)
+        val hash = genreId.hashCode().toLong().absoluteValue
+        val styles = buildStyleCandidates(hash = hash, profile = profile, isGridView = isGridView)
+        val style = styles[
+            when {
+                profile.isVeryDense -> styles.lastIndex
+                profile.isDense -> 1.coerceAtMost(styles.lastIndex)
+                else -> 0
+            }
+        ]
+        val secondLineWidth = secondLineWidthFraction(profile, isGridView)
+        val words = normalizedName.split(' ').filter(String::isNotBlank)
+        val shouldSplit = isGridView && words.size > 1 && normalizedName.length > 12
+        if (!shouldSplit) {
+            return TitlePresentation(normalizedName, null, style, secondLineWidth)
+        }
+
+        val breakIndex = (1 until words.size).minByOrNull { index ->
+            val firstLength = words.take(index).sumOf(String::length) + index - 1
+            val secondWordCount = words.size - index
+            val secondLength = words.drop(index).sumOf(String::length) + secondWordCount - 1
+            kotlin.math.abs(firstLength * secondLineWidth - secondLength)
+        } ?: words.lastIndex
+
+        return TitlePresentation(
+            firstLine = words.take(breakIndex).joinToString(" "),
+            secondLine = words.drop(breakIndex).joinToString(" "),
+            style = style,
+            secondLineWidthFraction = secondLineWidth,
+        )
+    }
+
     @OptIn(ExperimentalTextApi::class)
     private fun fitsSingleLine(
         text: String,

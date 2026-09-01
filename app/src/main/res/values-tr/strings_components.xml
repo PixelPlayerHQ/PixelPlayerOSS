@@ -78,6 +78,16 @@
     <string name="edit_song_info_dialog_title">Şarkı meta verisi düzenleniyor</string>
     <string name="edit_song_toolbar_title">Şarkıyı düzenle</string>
     <string name="edit_song_unable_to_load_image">Seçilen görsel yüklenemedi</string>
+    <string name="edit_song_custom_metadata_heading">İsteğe bağlı meta veri</string>
+    <string name="edit_song_custom_metadata_description">0–5 arasında puan verin veya MOOD, COMMENT, YEAR ya da BPM gibi metin alanları ekleyin.</string>
+    <string name="edit_song_rating">Puan (0–5)</string>
+    <string name="edit_song_rating_not_set">Ayarlanmadı</string>
+    <string name="edit_song_custom_field_name">Alan adı</string>
+    <string name="edit_song_custom_field_value">Değer</string>
+    <string name="edit_song_add_custom_field">Meta veri alanı ekle</string>
+    <string name="edit_song_remove_custom_field">Alanı kaldır</string>
+    <string name="edit_song_custom_metadata_formats">Puan ve özel alanlar MP3, WAV, AIFF, FLAC, OGG, Opus, M4A, M4B ve MP4 dosyalarına yazılabilir.</string>
+    <string name="edit_song_custom_metadata_invalid">İsteğe bağlı meta veri alanlarını kontrol edin.</string>
     <string name="equalizer_action_save_new">Yeni olarak kaydet</string>
     <string name="equalizer_preset_name_label">Ön ayar adı</string>
     <string name="equalizer_rename_preset_title">Ön ayarı yeniden adlandır</string>

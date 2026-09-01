@@ -515,7 +515,7 @@ fun ArtistDetailScreen(
                     }
                     showSongInfoBottomSheet = false
                 },
-                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                     playerViewModel.editSongMetadata(
                         currentSong,
                         newTitle,
@@ -529,7 +529,8 @@ fun ArtistDetailScreen(
                         newDiscNumber,
                         replayGainTrackGainDb,
                         replayGainAlbumGainDb,
-                        coverArtUpdate
+                        coverArtUpdate,
+                        customMetadataChanges
                     )
                 },
                 removeFromListTrigger = removeFromListTrigger

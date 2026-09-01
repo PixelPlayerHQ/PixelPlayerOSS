@@ -30,6 +30,7 @@ import org.gagravarr.opus.OpusTags
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.Tag
+import org.jaudiotagger.tag.aiff.AiffTag
 import org.jaudiotagger.tag.flac.FlacTag
 import org.jaudiotagger.tag.id3.AbstractID3v2Frame
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag
@@ -39,6 +40,7 @@ import org.jaudiotagger.tag.id3.ID3v23Tag
 import org.jaudiotagger.tag.id3.ID3v24Frame
 import org.jaudiotagger.tag.id3.ID3v24Frames
 import org.jaudiotagger.tag.id3.ID3v24Tag
+import org.jaudiotagger.tag.id3.Id3SupportingTag
 import org.jaudiotagger.tag.id3.framebody.FrameBodyTXXX
 import org.jaudiotagger.tag.images.AndroidArtwork
 import org.jaudiotagger.tag.mp4.Mp4Tag
@@ -240,6 +242,7 @@ class SongMetadataEditor(
         newDiscNumber: Int?,
         newReplayGainTrackGainDb: String? = null,
         newReplayGainAlbumGainDb: String? = null,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
         coverArtUpdate: CoverArtUpdate? = null,
     ): SongMetadataEditResult = withContext(Dispatchers.IO) {
         val validationError = validateMetadataInput(newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics)
@@ -279,6 +282,15 @@ class SongMetadataEditor(
                     errorMessage = error.message ?: "Invalid Album ReplayGain value"
                 )
             }
+            val validatedCustomMetadataChanges = validateCustomMetadataChanges(customMetadataChanges)
+                .getOrElse { error ->
+                    return@withContext SongMetadataEditResult(
+                        success = false,
+                        updatedAlbumArtUri = null,
+                        error = MetadataEditError.INVALID_INPUT,
+                        errorMessage = error.message ?: "Invalid custom metadata"
+                    )
+                }
 
             val filePath = getFilePathFromMediaStore(songId)
 
@@ -322,6 +334,15 @@ class SongMetadataEditor(
             }
             val needsExtensionSwap =
                 effectiveExtension != extension && detectedContainer != DetectedContainer.OGG_OPUS
+            val tagFamily = metadataTagFamily(effectiveExtension)
+            if (validatedCustomMetadataChanges.hasChanges && tagFamily == MetadataTagFamily.UNSUPPORTED) {
+                return@withContext SongMetadataEditResult(
+                    success = false,
+                    updatedAlbumArtUri = null,
+                    error = MetadataEditError.UNSUPPORTED_FORMAT,
+                    errorMessage = "Rating and custom fields are supported for MP3, WAV, AIFF, FLAC, OGG, Opus, M4A, M4B, and MP4 files"
+                )
+            }
             val flacAnalysis = isProblematicFlacFile(finalFilePath)
             val isHighResFlac = flacAnalysis is FlacAnalysisResult.Problematic
             val useVorbisJavaPrimary = effectiveExtension == "opus"
@@ -344,6 +365,7 @@ class SongMetadataEditor(
                         newDiscNumber = newDiscNumber,
                         replayGainTrackUpdate = replayGainTrackUpdate,
                         replayGainAlbumUpdate = replayGainAlbumUpdate,
+                        customMetadataChanges = validatedCustomMetadataChanges,
                         coverArtUpdate = coverArtUpdate
                     )
                 } else if (useJAudioTaggerPrimary) {
@@ -361,6 +383,8 @@ class SongMetadataEditor(
                         newDiscNumber = newDiscNumber,
                         replayGainTrackUpdate = replayGainTrackUpdate,
                         replayGainAlbumUpdate = replayGainAlbumUpdate,
+                        customMetadataChanges = validatedCustomMetadataChanges,
+                        tagFamily = tagFamily,
                         coverArtUpdate = coverArtUpdate
                     )
                 } else {
@@ -396,16 +420,33 @@ class SongMetadataEditor(
                             newDiscNumber = newDiscNumber,
                             replayGainTrackUpdate = replayGainTrackUpdate,
                             replayGainAlbumUpdate = replayGainAlbumUpdate,
+                            customMetadataChanges = validatedCustomMetadataChanges,
+                            tagFamily = tagFamily,
                             coverArtUpdate = coverArtUpdate
                         )
-                    } else true
+                    } else if (validatedCustomMetadataChanges.hasChanges) {
+                        updateCustomMetadataWithJAudioTagger(
+                            filePath = path,
+                            customMetadataChanges = validatedCustomMetadataChanges,
+                            tagFamily = tagFamily
+                        )
+                    } else {
+                        true
+                    }
                 }
             }
 
+            val needsTransactionalTempWrite = needsExtensionSwap ||
+                (validatedCustomMetadataChanges.hasChanges &&
+                    !useVorbisJavaPrimary &&
+                    !useJAudioTaggerPrimary)
             val fileUpdateSuccess = if (!fileExists) {
                 Timber.tag(TAG).e("METADATA_EDIT: File does not exist: $finalFilePath")
                 false
-            } else if (needsExtensionSwap) {
+            } else if (needsTransactionalTempWrite) {
+                // TagLib and the container-specific rating/custom-field writer are two separate
+                // commits. Run both against a copy so a failure in the second pass cannot leave
+                // only the standard fields changed in the user's original file.
                 writeMetadataViaExtensionSwap(finalFilePath, effectiveExtension, runPipeline)
             } else {
                 runPipeline(finalFilePath)
@@ -865,6 +906,8 @@ class SongMetadataEditor(
         newDiscNumber: Int?,
         replayGainTrackUpdate: ReplayGainUpdate = ReplayGainUpdate.Keep,
         replayGainAlbumUpdate: ReplayGainUpdate = ReplayGainUpdate.Keep,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
+        tagFamily: MetadataTagFamily = metadataTagFamily(filePath.substringAfterLast('.', "")),
         coverArtUpdate: CoverArtUpdate? = null
     ): Boolean {
         val targetFile = File(filePath)
@@ -907,6 +950,7 @@ class SongMetadataEditor(
             }
             tag.applyReplayGainUpdate(REPLAYGAIN_TRACK_GAIN_KEY, replayGainTrackUpdate)
             tag.applyReplayGainUpdate(REPLAYGAIN_ALBUM_GAIN_KEY, replayGainAlbumUpdate)
+            tag.applyCustomMetadataChanges(customMetadataChanges, tagFamily)
 
             coverArtUpdate?.let { update ->
                 if (update.isDeletion) {
@@ -946,6 +990,32 @@ class SongMetadataEditor(
         }
     }
 
+    /**
+     * TagLib remains the established writer for ordinary MP3/MP4/FLAC edits. Custom fields are
+     * committed in a second, narrowly scoped JAudioTagger pass so Rating is represented by the
+     * container's real POPM/score/comment field instead of a generic TagLib property.
+     */
+    private fun updateCustomMetadataWithJAudioTagger(
+        filePath: String,
+        customMetadataChanges: CustomMetadataChanges,
+        tagFamily: MetadataTagFamily
+    ): Boolean {
+        if (!customMetadataChanges.hasChanges) return true
+
+        return try {
+            java.util.logging.Logger.getLogger("org.jaudiotagger").level = java.util.logging.Level.OFF
+            val audioFile = AudioFileIO.read(File(filePath))
+            val tag = audioFile.tag ?: audioFile.createDefaultTag()
+            tag.applyCustomMetadataChanges(customMetadataChanges, tagFamily)
+            audioFile.commit()
+            Timber.tag(TAG).d("JAUDIOTAGGER: Updated rating/custom metadata: $filePath")
+            true
+        } catch (error: Exception) {
+            Timber.tag(TAG).e(error, "JAUDIOTAGGER: Failed to update rating/custom metadata: $filePath")
+            false
+        }
+    }
+
     private fun updateFileMetadataWithVorbisJava(
         filePath: String,
         newTitle: String,
@@ -959,6 +1029,7 @@ class SongMetadataEditor(
         newDiscNumber: Int?,
         replayGainTrackUpdate: ReplayGainUpdate = ReplayGainUpdate.Keep,
         replayGainAlbumUpdate: ReplayGainUpdate = ReplayGainUpdate.Keep,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
         coverArtUpdate: CoverArtUpdate? = null
     ): Boolean {
         val audioFile = File(filePath)
@@ -991,6 +1062,7 @@ class SongMetadataEditor(
             tags.replaceSingleComment("DISCNUMBER", newDiscNumber?.takeIf { it > 0 }?.toString())
             tags.applyReplayGainUpdate(REPLAYGAIN_TRACK_GAIN_KEY, replayGainTrackUpdate)
             tags.applyReplayGainUpdate(REPLAYGAIN_ALBUM_GAIN_KEY, replayGainAlbumUpdate)
+            tags.applyCustomMetadataChanges(customMetadataChanges)
             coverArtUpdate?.let { update ->
                 tags.applyCoverArtUpdate(update)
             }
@@ -1145,6 +1217,20 @@ private fun OpusTags.applyReplayGainUpdate(key: String, update: ReplayGainUpdate
     }
 }
 
+private fun OpusTags.applyCustomMetadataChanges(changes: CustomMetadataChanges) {
+    when (val ratingUpdate = changes.rating) {
+        MetadataValueUpdate.Keep -> Unit
+        MetadataValueUpdate.Clear -> removeComments("RATING")
+        is MetadataValueUpdate.Set -> replaceSingleComment(
+            "RATING",
+            encodeRatingForTag(ratingUpdate.value, MetadataTagFamily.VORBIS)
+        )
+    }
+    changes.fields.forEach { field ->
+        replaceSingleComment(field.key, field.value)
+    }
+}
+
 private fun OpusTags.applyCoverArtUpdate(update: CoverArtUpdate) {
     removeComments("METADATA_BLOCK_PICTURE")
     removeComments("COVERART")
@@ -1223,13 +1309,90 @@ private fun Tag.applyReplayGainUpdate(key: String, update: ReplayGainUpdate) {
     }
 }
 
+private fun Tag.applyCustomMetadataChanges(
+    changes: CustomMetadataChanges,
+    family: MetadataTagFamily
+) {
+    when (val ratingUpdate = changes.rating) {
+        MetadataValueUpdate.Keep -> Unit
+        MetadataValueUpdate.Clear -> {
+            runCatching { deleteField(FieldKey.RATING) }
+            // Older PixelPlayer builds and third-party taggers may have used a generic RATING
+            // field. Remove it as well even when deleting the standard field was a successful no-op.
+            runCatching { removeRawCustomMetadataField("RATING") }
+        }
+        is MetadataValueUpdate.Set -> {
+            val encodedRating = encodeRatingForTag(ratingUpdate.value, family)
+            runCatching { deleteField(FieldKey.RATING) }
+            runCatching { removeRawCustomMetadataField("RATING") }
+            runCatching { setField(FieldKey.RATING, encodedRating) }
+                .getOrElse {
+                    upsertRawCustomMetadataField("RATING", encodedRating)
+                }
+        }
+    }
+
+    changes.fields.forEach { field ->
+        applyCustomMetadataField(field)
+    }
+}
+
+private fun Tag.applyCustomMetadataField(update: CustomMetadataFieldUpdate) {
+    val standardFieldKey = runCatching {
+        FieldKey.valueOf(update.key.replace(Regex("[ .-]+"), "_"))
+    }.getOrNull()
+
+    if (standardFieldKey != null) {
+        runCatching { deleteField(standardFieldKey) }
+        runCatching { removeRawCustomMetadataField(update.key) }
+        if (update.value == null) {
+            return
+        }
+        val standardUpdate = runCatching { setField(standardFieldKey, update.value) }
+        if (standardUpdate.isSuccess) return
+    }
+
+    if (update.value == null) {
+        removeRawCustomMetadataField(update.key)
+    } else {
+        upsertRawCustomMetadataField(update.key, update.value)
+    }
+}
+
+private fun Tag.upsertRawCustomMetadataField(key: String, value: String) {
+    when (this) {
+        is AbstractID3v2Tag -> upsertReplayGainId3Field(key, value)
+        is Id3SupportingTag -> getOrCreateEmbeddedId3Tag().upsertReplayGainId3Field(key, value)
+        is FlacTag -> setField(key, value)
+        is VorbisCommentTag -> setField(key, value)
+        is Mp4Tag -> {
+            val fieldId = replayGainMp4FieldId(key)
+            deleteField(fieldId)
+            setField(Mp4TagReverseDnsField(fieldId, MP4_REVERSE_DNS_ISSUER, key, value))
+        }
+        else -> throw IllegalArgumentException(
+            "Custom metadata is not supported for tag type ${this::class.java.simpleName}"
+        )
+    }
+}
+
+private fun Tag.removeRawCustomMetadataField(key: String) {
+    when (this) {
+        is AbstractID3v2Tag -> removeReplayGainId3Field(key)
+        is Id3SupportingTag -> getID3Tag()?.removeReplayGainId3Field(key)
+        is FlacTag -> deleteField(key)
+        is VorbisCommentTag -> deleteField(key)
+        is Mp4Tag -> deleteField(replayGainMp4FieldId(key))
+        else -> throw IllegalArgumentException(
+            "Custom metadata is not supported for tag type ${this::class.java.simpleName}"
+        )
+    }
+}
+
 private fun Tag.upsertReplayGainField(key: String, value: String) {
     when (this) {
         is AbstractID3v2Tag -> upsertReplayGainId3Field(key, value)
-        is WavTag -> {
-            val id3Tag = getID3Tag() ?: ID3v24Tag().also(::setID3Tag)
-            id3Tag.upsertReplayGainId3Field(key, value)
-        }
+        is Id3SupportingTag -> getOrCreateEmbeddedId3Tag().upsertReplayGainId3Field(key, value)
         is FlacTag -> setField(key, value)
         is VorbisCommentTag -> setField(key, value)
         is Mp4Tag -> {
@@ -1244,12 +1407,23 @@ private fun Tag.upsertReplayGainField(key: String, value: String) {
 private fun Tag.removeReplayGainField(key: String) {
     when (this) {
         is AbstractID3v2Tag -> removeReplayGainId3Field(key)
-        is WavTag -> getID3Tag()?.removeReplayGainId3Field(key)
+        is Id3SupportingTag -> getID3Tag()?.removeReplayGainId3Field(key)
         is FlacTag -> deleteField(key)
         is VorbisCommentTag -> deleteField(key)
         is Mp4Tag -> deleteField(replayGainMp4FieldId(key))
         else -> Timber.tag(TAG).w("ReplayGain removal is not supported for tag type: ${this::class.java.simpleName}")
     }
+}
+
+private fun Id3SupportingTag.getOrCreateEmbeddedId3Tag(): AbstractID3v2Tag {
+    getID3Tag()?.let { return it }
+    val created = when (this) {
+        is AiffTag -> AiffTag.createDefaultID3Tag()
+        is WavTag -> WavTag.createDefaultID3Tag()
+        else -> ID3v24Tag()
+    }
+    setID3Tag(created)
+    return created
 }
 
 private fun AbstractID3v2Tag.upsertReplayGainId3Field(key: String, value: String) {

@@ -177,7 +177,7 @@ fun DailyMixScreen(
                 }
                 showSongInfoSheet = false
             },
-            onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+            onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                 playerViewModel.editSongMetadata(
                     song,
                     newTitle,
@@ -191,7 +191,8 @@ fun DailyMixScreen(
                     newDiscNumber,
                     replayGainTrackGainDb,
                     replayGainAlbumGainDb,
-                    coverArtUpdate
+                    coverArtUpdate,
+                    customMetadataChanges
                 )
             },
             removeFromListTrigger = removeFromListTrigger

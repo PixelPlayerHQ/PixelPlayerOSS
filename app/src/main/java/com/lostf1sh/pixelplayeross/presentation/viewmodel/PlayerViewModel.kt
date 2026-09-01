@@ -39,6 +39,7 @@ import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.EotStateHolder
 import com.lostf1sh.pixelplayeross.data.database.AlbumArtThemeDao
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataChanges
 import com.lostf1sh.pixelplayeross.data.model.Album
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
@@ -211,7 +212,8 @@ private data class PendingMetadataEdit(
     val discNumber: Int?,
     val replayGainTrackGainDb: String?,
     val replayGainAlbumGainDb: String?,
-    val coverArtUpdate: CoverArtUpdate?
+    val coverArtUpdate: CoverArtUpdate?,
+    val customMetadataChanges: CustomMetadataChanges
 )
 
 private data class PendingBatchMetadataEdit(
@@ -4321,6 +4323,7 @@ class PlayerViewModel @Inject constructor(
         newReplayGainTrackGainDb: String? = null,
         newReplayGainAlbumGainDb: String? = null,
         coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
     ) {
         viewModelScope.launch {
             Timber.tag("PlayerViewModel").e("METADATA_EDIT_VM: Starting editSongMetadata via Holder")
@@ -4343,7 +4346,8 @@ class PlayerViewModel @Inject constructor(
                         discNumber = newDiscNumber,
                         replayGainTrackGainDb = newReplayGainTrackGainDb,
                         replayGainAlbumGainDb = newReplayGainAlbumGainDb,
-                        coverArtUpdate = coverArtUpdate
+                        coverArtUpdate = coverArtUpdate,
+                        customMetadataChanges = customMetadataChanges
                     )
                     _writePermissionRequest.emit(intentSender)
                     return@launch
@@ -4351,7 +4355,8 @@ class PlayerViewModel @Inject constructor(
             }
 
             performMetadataEdit(song, newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics,
-                newTrackNumber, newDiscNumber, newReplayGainTrackGainDb, newReplayGainAlbumGainDb, coverArtUpdate)
+                newTrackNumber, newDiscNumber, newReplayGainTrackGainDb, newReplayGainAlbumGainDb, coverArtUpdate,
+                customMetadataChanges)
         }
     }
 
@@ -4425,7 +4430,8 @@ class PlayerViewModel @Inject constructor(
                 pending.song, pending.title, pending.artist, pending.album,
                 pending.albumArtist, pending.composer, pending.genre, pending.lyrics,
                 pending.trackNumber, pending.discNumber,
-                pending.replayGainTrackGainDb, pending.replayGainAlbumGainDb, pending.coverArtUpdate
+                pending.replayGainTrackGainDb, pending.replayGainAlbumGainDb, pending.coverArtUpdate,
+                pending.customMetadataChanges
             )
         }
     }
@@ -4489,6 +4495,7 @@ class PlayerViewModel @Inject constructor(
         newReplayGainTrackGainDb: String?,
         newReplayGainAlbumGainDb: String?,
         coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
     ) {
         val previousAlbumArt = song.albumArtUriString
 
@@ -4505,7 +4512,8 @@ class PlayerViewModel @Inject constructor(
             newDiscNumber = newDiscNumber,
             newReplayGainTrackGainDb = newReplayGainTrackGainDb,
             newReplayGainAlbumGainDb = newReplayGainAlbumGainDb,
-            coverArtUpdate = coverArtUpdate
+            coverArtUpdate = coverArtUpdate,
+            customMetadataChanges = customMetadataChanges
         )
 
         Timber.tag("PlayerViewModel").e("METADATA_EDIT_VM: Result success=${result.success}")

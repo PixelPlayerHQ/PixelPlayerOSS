@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.presentation.viewmodel
 import android.content.Context
 import android.net.Uri
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataChanges
 import com.lostf1sh.pixelplayeross.data.media.ImageCacheManager
 import com.lostf1sh.pixelplayeross.data.media.MetadataEditError
 import com.lostf1sh.pixelplayeross.data.media.SongMetadataEditor
@@ -65,7 +66,8 @@ class MetadataEditStateHolder @Inject constructor(
         newDiscNumber: Int?,
         newReplayGainTrackGainDb: String? = null,
         newReplayGainAlbumGainDb: String? = null,
-        coverArtUpdate: CoverArtUpdate?
+        coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges()
     ): MetadataEditResult = withContext(Dispatchers.IO) {
         
         Timber.tag("MetadataEditStateHolder").d("Starting saveMetadata for: ${song.title}")
@@ -115,6 +117,7 @@ class MetadataEditStateHolder @Inject constructor(
             newDiscNumber = newDiscNumber,
             newReplayGainTrackGainDb = newReplayGainTrackGainDb,
             newReplayGainAlbumGainDb = newReplayGainAlbumGainDb,
+            customMetadataChanges = customMetadataChanges,
             coverArtUpdate = finalCoverArtUpdate,
             songId = resolvedSongId,
         )

@@ -9,6 +9,9 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.withTransaction
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -16,12 +19,13 @@ import com.google.common.truth.Truth.assertThat
 import com.google.common.truth.Truth.assertWithMessage
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
 import com.lostf1sh.pixelplayeross.data.database.ArtistEntity
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_1_2
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_2_3
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_3_4
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_4_5
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
@@ -44,17 +48,12 @@ import java.util.concurrent.TimeUnit
  */
 @RunWith(AndroidJUnit4::class)
 class MusicServiceWorkflowTest {
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface WorkflowTestEntryPoint {
-        fun musicDao(): MusicDao
-    }
-
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context: Context = ApplicationProvider.getApplicationContext()
+    private lateinit var database: PixelPlayerDatabase
     private lateinit var musicDao: MusicDao
     private lateinit var controller: MediaController
+    private lateinit var wavFile: File
 
     private val testSongIds = listOf(TEST_SONG_ID_1, TEST_SONG_ID_2, TEST_SONG_ID_3)
 
@@ -66,14 +65,28 @@ class MusicServiceWorkflowTest {
                 android.Manifest.permission.POST_NOTIFICATIONS
             )
         }
-        musicDao = EntryPointAccessors
-            .fromApplication(context, WorkflowTestEntryPoint::class.java)
-            .musicDao()
+        // A test-only Hilt entry point cannot be installed into the already compiled production
+        // SingletonComponent. Open a test-owned connection to the same on-device database instead;
+        // MusicService will still exercise its real production Hilt graph and DAO.
+        database = Room.databaseBuilder(
+            context.applicationContext,
+            PixelPlayerDatabase::class.java,
+            DATABASE_NAME,
+        )
+            .addCallback(PixelPlayerDatabase.createRuntimeArtifactsCallback())
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+            .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
+        musicDao = database.musicDao()
 
-        val wavFile = File(context.cacheDir, "workflow_test_tone.wav").apply {
+        wavFile = File(context.cacheDir, "workflow_test_tone.wav").apply {
             writeBytes(buildSilentWav(durationMs = 2_000))
         }
-        runBlocking { seedLibrary(wavFile) }
+        runBlocking {
+            removeFixture()
+            seedLibrary(wavFile)
+        }
 
         val token = SessionToken(context, ComponentName(context, MusicService::class.java))
         controller = MediaController.Builder(context, token)
@@ -90,7 +103,15 @@ class MusicServiceWorkflowTest {
                 controller.release()
             }
         }
-        runBlocking { musicDao.deleteSongsAndRelatedData(testSongIds) }
+        if (this::database.isInitialized && database.isOpen && this::musicDao.isInitialized) {
+            runBlocking { removeFixture() }
+        }
+        if (this::database.isInitialized) {
+            database.close()
+        }
+        if (this::wavFile.isInitialized) {
+            wavFile.delete()
+        }
     }
 
     @Test
@@ -234,7 +255,49 @@ class MusicServiceWorkflowTest {
                 mimeType = "audio/wav",
             )
         }
-        musicDao.insertMusicData(songs, listOf(album), listOf(artist))
+        // Parent rows must exist before songs because the production schema enforces foreign keys.
+        // These upserts touch only the reserved fixture ids and leave the emulator's library intact.
+        musicDao.insertArtists(listOf(artist))
+        musicDao.insertAlbums(listOf(album))
+        musicDao.insertSongs(songs)
+    }
+
+    private suspend fun removeFixture() {
+        database.withTransaction {
+            musicDao.deleteCrossRefsBySongIds(testSongIds)
+            musicDao.deleteFavoritesBySongIds(testSongIds)
+            musicDao.deleteLyricsBySongIds(testSongIds)
+
+            val stringIds = testSongIds.map(Long::toString).toTypedArray<Any>()
+            val stringPlaceholders = testSongIds.joinToString(separator = ",") { "?" }
+            val sqlite = database.openHelper.writableDatabase
+            sqlite.execSQL(
+                "DELETE FROM playlist_songs WHERE song_id IN ($stringPlaceholders)",
+                stringIds,
+            )
+            sqlite.execSQL(
+                "DELETE FROM song_engagements WHERE song_id IN ($stringPlaceholders)",
+                stringIds,
+            )
+            sqlite.execSQL(
+                "DELETE FROM audio_bookmarks WHERE song_id IN ($stringPlaceholders)",
+                stringIds,
+            )
+            sqlite.execSQL(
+                "DELETE FROM offline_tracks WHERE song_id IN ($stringPlaceholders)",
+                stringIds,
+            )
+            sqlite.execSQL(
+                "DELETE FROM transition_rules " +
+                    "WHERE fromTrackId IN ($stringPlaceholders) " +
+                    "OR toTrackId IN ($stringPlaceholders)",
+                (stringIds.asList() + stringIds.asList()).toTypedArray(),
+            )
+
+            musicDao.deleteSongsByIds(testSongIds)
+            sqlite.execSQL("DELETE FROM albums WHERE id = ?", arrayOf(TEST_ALBUM_ID))
+            sqlite.execSQL("DELETE FROM artists WHERE id = ?", arrayOf(TEST_ARTIST_ID))
+        }
     }
 
     private fun setSeededQueue() {
@@ -290,12 +353,13 @@ class MusicServiceWorkflowTest {
     }
 
     private companion object {
+        const val DATABASE_NAME = "pixelplayer_database"
         const val CONNECT_TIMEOUT_SECONDS = 15L
         const val COMMAND_TIMEOUT_SECONDS = 10L
-        const val TEST_ARTIST_ID = 990_001L
-        const val TEST_ALBUM_ID = 990_001L
-        const val TEST_SONG_ID_1 = 990_101L
-        const val TEST_SONG_ID_2 = 990_102L
-        const val TEST_SONG_ID_3 = 990_103L
+        const val TEST_ARTIST_ID = -9_000_000_000_000_001L
+        const val TEST_ALBUM_ID = -9_000_000_000_000_002L
+        const val TEST_SONG_ID_1 = -9_000_000_000_000_101L
+        const val TEST_SONG_ID_2 = -9_000_000_000_000_102L
+        const val TEST_SONG_ID_3 = -9_000_000_000_000_103L
     }
 }

@@ -12,6 +12,28 @@ import java.nio.file.Files
 class UserPreferencesRepositoryTest {
 
     @Test
+    fun `keep screen awake while playing is opt-in and persists`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            assertEquals(false, repository.keepScreenAwakeWhilePlayingFlow.first())
+
+            repository.setKeepScreenAwakeWhilePlaying(true)
+
+            assertTrue(repository.keepScreenAwakeWhilePlayingFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
     fun `clearPreferencesExceptKeys preserves initial setup completion`() = runTest {
         val tempDir = Files.createTempDirectory("user-preferences-repository-test")
         try {

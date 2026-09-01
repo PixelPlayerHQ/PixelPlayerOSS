@@ -761,6 +761,25 @@ fun SettingsCategoryScreen(
                                     leadingIcon = { Icon(Icons.Rounded.MusicNote, null, tint = MaterialTheme.colorScheme.secondary) },
                                     modifier = Modifier.settingHighlight("item_playback_keep_playing", highlightKey)
                                 )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_keep_screen_awake_title),
+                                    subtitle = stringResource(R.string.setcat_keep_screen_awake_subtitle),
+                                    checked = uiState.keepScreenAwakeWhilePlaying,
+                                    onCheckedChange = {
+                                        settingsViewModel.setKeepScreenAwakeWhilePlaying(it)
+                                    },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Outlined.LightMode,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.secondary,
+                                        )
+                                    },
+                                    modifier = Modifier.settingHighlight(
+                                        "item_playback_keep_screen_awake",
+                                        highlightKey,
+                                    ),
+                                )
                             }
 
                             SettingsSubsection(title = stringResource(R.string.setcat_replaygain_section)) {

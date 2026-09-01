@@ -338,6 +338,22 @@ object SettingsRegistry {
                 onToggle = { viewModel, checked -> viewModel.setKeepPlayingInBackground(checked) }
             ),
             SettingSpec(
+                id = "playback_keep_screen_awake",
+                itemKey = "item_playback_keep_screen_awake",
+                titleRes = R.string.setcat_keep_screen_awake_title,
+                subtitleRes = R.string.setcat_keep_screen_awake_subtitle,
+                category = SettingsCategory.PLAYBACK,
+                subscreenRoute = Screen.SettingsCategory.createRoute("playback"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf(
+                    "screen", "awake", "display", "driving", "sleep", "lock"
+                ),
+                getValue = { it.keepScreenAwakeWhilePlaying },
+                onToggle = { viewModel, checked ->
+                    viewModel.setKeepScreenAwakeWhilePlaying(checked)
+                }
+            ),
+            SettingSpec(
                 id = "playback_replaygain",
                 itemKey = "item_playback_replaygain",
                 titleRes = R.string.setcat_replaygain_enable_title,

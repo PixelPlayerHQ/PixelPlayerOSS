@@ -141,6 +141,8 @@
     <string name="setcat_import_backup_title">Yedeği İçe Aktar</string>
     <string name="setcat_keep_playing_desc">Kapalıysa, uygulama son kullanılanlardan kaldırıldığında oynatma durdurulur.</string>
     <string name="setcat_keep_playing_label">Kapatıldıktan sonra oynatmaya devam et</string>
+    <string name="setcat_keep_screen_awake_title">Oynatırken ekranı açık tut</string>
+    <string name="setcat_keep_screen_awake_subtitle">Müzik çalarken ve uygulama görünürken ekranın uykuya geçmesini önler.</string>
     <string name="setcat_language_system">Sistem varsayılanı</string>
     <string name="setcat_library_nav_compact_pill">Kompakt buton ve ızgara</string>
     <string name="setcat_library_nav_tab_row">Sekme satırı (varsayılan)</string>

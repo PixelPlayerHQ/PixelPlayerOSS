@@ -140,6 +140,8 @@ constructor(
         val FOLDER_BACK_GESTURE_NAVIGATION = booleanPreferencesKey("folder_back_gesture_navigation")
         val USE_SMOOTH_CORNERS = booleanPreferencesKey("use_smooth_corners")
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
+        val KEEP_SCREEN_AWAKE_WHILE_PLAYING =
+                booleanPreferencesKey("keep_screen_awake_while_playing")
         val IS_CROSSFADE_ENABLED = booleanPreferencesKey("is_crossfade_enabled")
         val AUDIO_OUTPUT_MODE = stringPreferencesKey("audio_output_mode_v1")
         val SMART_CROSSFADE_ENABLED = booleanPreferencesKey("smart_crossfade_enabled")
@@ -820,6 +822,11 @@ constructor(
                 preferences[PreferencesKeys.KEEP_PLAYING_IN_BACKGROUND] ?: true
             }
 
+    val keepScreenAwakeWhilePlayingFlow: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.KEEP_SCREEN_AWAKE_WHILE_PLAYING] ?: false
+            }.distinctUntilChanged()
+
     val resumeOnHeadsetReconnectFlow: Flow<Boolean> =
             dataStore.data.map { preferences ->
                 preferences[PreferencesKeys.RESUME_ON_HEADSET_RECONNECT] ?: false
@@ -1287,6 +1294,12 @@ constructor(
     suspend fun setKeepPlayingInBackground(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEEP_PLAYING_IN_BACKGROUND] = enabled
+        }
+    }
+
+    suspend fun setKeepScreenAwakeWhilePlaying(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEEP_SCREEN_AWAKE_WHILE_PLAYING] = enabled
         }
     }
 

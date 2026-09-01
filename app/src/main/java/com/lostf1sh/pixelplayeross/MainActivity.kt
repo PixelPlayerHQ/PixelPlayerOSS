@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import android.provider.Settings
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -65,6 +66,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -134,6 +137,7 @@ import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
 import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.LogUtils
+import com.lostf1sh.pixelplayeross.utils.shouldKeepScreenAwake
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -148,6 +152,7 @@ import com.lostf1sh.pixelplayeross.presentation.utils.NoOpHapticFeedback
 import com.lostf1sh.pixelplayeross.utils.CrashLogData
 import javax.annotation.concurrent.Immutable
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 
@@ -207,6 +212,28 @@ class MainActivity : ComponentActivity() {
             window.isNavigationBarContrastEnforced = false
         }
         super.onCreate(savedInstanceState)
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    combine(
+                        userPreferencesRepository.keepScreenAwakeWhilePlayingFlow,
+                        playerViewModel.stablePlayerState
+                            .map { state -> state.isPlaying }
+                            .distinctUntilChanged(),
+                        ::shouldKeepScreenAwake,
+                    ).distinctUntilChanged().collect { keepAwake ->
+                        if (keepAwake) {
+                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        } else {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        }
+                    }
+                } finally {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
 
         splashScreen.setKeepOnScreenCondition { false }
 

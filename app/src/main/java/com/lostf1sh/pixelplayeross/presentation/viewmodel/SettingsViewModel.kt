@@ -68,6 +68,7 @@ data class SettingsUiState(
     val libraryNavigationMode: String = LibraryNavigationMode.TAB_ROW,
     val launchTab: String = LaunchTab.HOME,
     val keepPlayingInBackground: Boolean = true,
+    val keepScreenAwakeWhilePlaying: Boolean = false,
     val resumeOnHeadsetReconnect: Boolean = false,
     val showQueueHistory: Boolean = true,
     val isCrossfadeEnabled: Boolean = false,
@@ -375,6 +376,12 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            userPreferencesRepository.keepScreenAwakeWhilePlayingFlow.collect { enabled ->
+                _uiState.update { it.copy(keepScreenAwakeWhilePlaying = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
             userPreferencesRepository.fullPlayerLoadingTweaksFlow.collect { tweaks ->
                 _uiState.update { it.copy(fullPlayerLoadingTweaks = tweaks) }
             }
@@ -603,6 +610,12 @@ class SettingsViewModel @Inject constructor(
     fun setKeepPlayingInBackground(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setKeepPlayingInBackground(enabled)
+        }
+    }
+
+    fun setKeepScreenAwakeWhilePlaying(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setKeepScreenAwakeWhilePlaying(enabled)
         }
     }
 

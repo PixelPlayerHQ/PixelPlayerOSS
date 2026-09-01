@@ -137,6 +137,8 @@
     <string name="setcat_background_playback">Background Playback</string>
     <string name="setcat_keep_playing_label">Keep playing after closing</string>
     <string name="setcat_keep_playing_desc">If off, removing the app from recents will stop playback.</string>
+    <string name="setcat_keep_screen_awake_title" tools:ignore="MissingTranslation">Keep screen awake while playing</string>
+    <string name="setcat_keep_screen_awake_subtitle" tools:ignore="MissingTranslation">Prevents the screen from sleeping while music is actively playing and the app is visible.</string>
     <string name="setcat_replaygain_section">Volume Normalization (ReplayGain)</string>
     <string name="setcat_replaygain_enable_title">Enable ReplayGain</string>
     <string name="setcat_replaygain_enable_subtitle">Normalize volume levels using ReplayGain metadata from audio files.</string>

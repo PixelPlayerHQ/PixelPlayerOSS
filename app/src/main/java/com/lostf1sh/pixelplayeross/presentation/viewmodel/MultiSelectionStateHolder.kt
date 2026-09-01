@@ -92,6 +92,15 @@ class MultiSelectionStateHolder @Inject constructor() {
     }
 
     /**
+     * Replaces any previous selection with a resolved album/artist song set.
+     * Duplicate IDs are removed while the first occurrence and its order are retained.
+     */
+    fun replaceSelection(songs: List<Song>) {
+        val uniqueSongs = songs.distinctBy { it.id }
+        updateState(uniqueSongs, uniqueSongs.mapTo(linkedSetOf()) { it.id })
+    }
+
+    /**
      * Clears all selected songs, exiting selection mode.
      */
     fun clearSelection() {

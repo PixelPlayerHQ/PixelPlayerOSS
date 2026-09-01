@@ -75,6 +75,8 @@ import com.lostf1sh.pixelplayeross.utils.StorageType
 import com.lostf1sh.pixelplayeross.utils.StorageUtils
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import com.lostf1sh.pixelplayeross.utils.ZipShareHelper
+import com.lostf1sh.pixelplayeross.presentation.selection.flattenDistinctGroups
+import com.lostf1sh.pixelplayeross.presentation.selection.effectiveLibraryStorageFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.ImmutableList
@@ -579,13 +581,7 @@ class PlayerViewModel @Inject constructor(
             try {
                 val sortOption = playerUiState.value.currentSongSortOption
                 
-                val baseFilter = playerUiState.value.currentStorageFilter
-                val hideLocal = playerUiState.value.hideLocalMedia
-                val storageFilter = if (hideLocal) {
-                    com.lostf1sh.pixelplayeross.data.model.StorageFilter.ONLINE
-                } else {
-                    baseFilter
-                }
+                val storageFilter = currentEffectiveLibraryStorageFilter()
 
                 val sortedIds = musicRepository.getSongIdsSorted(sortOption, storageFilter)
 
@@ -620,7 +616,7 @@ class PlayerViewModel @Inject constructor(
             failureMessage = "Failed to build full library queue for songId=%s"
         ) {
             val sortOption = playerUiState.value.currentSongSortOption
-            val storageFilter = playerUiState.value.currentStorageFilter
+            val storageFilter = currentEffectiveLibraryStorageFilter()
             musicRepository.getSongIdsSorted(sortOption, storageFilter)
         }
     }
@@ -637,16 +633,27 @@ class PlayerViewModel @Inject constructor(
             failureMessage = "Failed to build favorites queue for songId=%s"
         ) {
             val sortOption = playerUiState.value.currentFavoriteSortOption
-            val storageFilter = playerUiState.value.currentStorageFilter
+            val storageFilter = currentEffectiveLibraryStorageFilter()
             musicRepository.getFavoriteSongIdsSorted(sortOption, storageFilter)
         }
     }
 
     suspend fun getSongsForCurrentLibrarySelection(): List<Song> {
-        val sortOption = playerUiState.value.currentSongSortOption
-        val storageFilter = playerUiState.value.currentStorageFilter
-        val sortedIds = musicRepository.getSongIdsSorted(sortOption, storageFilter)
+        val state = playerUiState.value
+        val sortedIds = musicRepository.getSongIdsSorted(
+            state.currentSongSortOption,
+            currentEffectiveLibraryStorageFilter(state),
+        )
         return resolvePlaybackQueueFromSortedIds(sortedIds)
+    }
+
+    private fun currentEffectiveLibraryStorageFilter(
+        state: PlayerUiState = playerUiState.value,
+    ): com.lostf1sh.pixelplayeross.data.model.StorageFilter {
+        return effectiveLibraryStorageFilter(
+            selected = state.currentStorageFilter,
+            hideLocalMedia = state.hideLocalMedia,
+        )
     }
 
     private fun launchLatestFullQueuePlayback(
@@ -3438,6 +3445,47 @@ class PlayerViewModel @Inject constructor(
             songs = songs,
             wasTrimmed = wasTrimmed
         )
+    }
+
+    /** Resolves whole albums to the currently visible songs consumed by the batch-action sheet. */
+    suspend fun resolveAlbumSongsForBatchActions(albums: List<Album>): List<Song> {
+        if (albums.isEmpty()) return emptyList()
+        val visibleSongIds = currentLibrarySelectionSongIds()
+        return withContext(Dispatchers.IO) {
+            flattenDistinctGroups(
+                groups = albums.map { album ->
+                    sortSongsForAlbumSelection(musicRepository.getSongsForAlbum(album.id).first())
+                        .filter { it.id in visibleSongIds }
+                },
+                keyOf = Song::id
+            )
+        }
+    }
+
+    /**
+     * Resolves whole artists to songs and removes overlaps from multi-artist tracks so delete,
+     * edit, queue and playlist actions are each applied once per file.
+     */
+    suspend fun resolveArtistSongsForBatchActions(artists: List<Artist>): List<Song> {
+        if (artists.isEmpty()) return emptyList()
+        val visibleSongIds = currentLibrarySelectionSongIds()
+        return withContext(Dispatchers.IO) {
+            flattenDistinctGroups(
+                groups = artists.map { artist ->
+                    musicRepository.getSongsForArtist(artist.id).first()
+                        .filter { it.id in visibleSongIds }
+                },
+                keyOf = Song::id
+            )
+        }
+    }
+
+    private suspend fun currentLibrarySelectionSongIds(): Set<String> {
+        val state = playerUiState.value
+        return musicRepository.getSongIdsSorted(
+            sortOption = state.currentSongSortOption,
+            storageFilter = currentEffectiveLibraryStorageFilter(state),
+        ).mapTo(hashSetOf()) { it.toString() }
     }
 
     private fun sortSongsForAlbumSelection(songs: List<Song>): List<Song> {

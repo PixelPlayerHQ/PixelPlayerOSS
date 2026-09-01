@@ -220,6 +220,7 @@
     <string name="cloud_remove_download">İndirmeyi sil</string>
     <string name="cloud_download_retry">Yeniden dene</string>
     <string name="cloud_album_download">Albümü indir</string>
+    <string name="cloud_playlist_download">Çalma listesini indir</string>
     <string name="cloud_album_remove_downloads">İndirilenleri sil</string>
     <string name="cloud_downloads_title">İndirmeler</string>
     <string name="cloud_downloads_settings_subtitle">Çevrimdışı bulut parçalarını ve depolamayı yönet</string>

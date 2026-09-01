@@ -113,7 +113,7 @@ fun MultiSelectionBottomSheet(
     val context = LocalContext.current
     val sheetState = rememberModalSheetState(skipPartiallyExpanded = true)
     val cloudSongCount = remember(selectedSongs) {
-        selectedSongs.count(CloudOfflineRepository::isCloudSong)
+        CloudOfflineRepository.downloadCandidates(selectedSongs).size
     }
     
     val allAreLiked by remember(selectedSongs, favoriteSongIds) {

@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">PixelPlayerOSS</string>
     <string name="app_name_change_title">App Name Change</string>
     <string name="app_name_change_message">This app is now PixelPlayerOSS. Keep playing!</string>
@@ -245,6 +245,7 @@
     <string name="cloud_remove_download">Remove download</string>
     <string name="cloud_download_retry">Retry</string>
     <string name="cloud_album_download">Download album</string>
+    <string name="cloud_playlist_download" tools:ignore="MissingTranslation">Download playlist</string>
     <string name="cloud_album_remove_downloads">Remove downloads</string>
     <string name="cloud_downloads_title">Downloads</string>
     <string name="cloud_downloads_settings_subtitle">Manage offline cloud tracks and storage</string>

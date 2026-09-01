@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
@@ -95,6 +97,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -125,6 +128,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupied
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel.Companion.FOLDER_PLAYLIST_PREFIX
 import com.lostf1sh.pixelplayeross.presentation.utils.LocalAppHapticsConfig
 import com.lostf1sh.pixelplayeross.presentation.utils.performAppCompatHapticFeedback
@@ -157,6 +162,7 @@ fun PlaylistDetailScreen(
     onDeletePlayListClick: () -> Unit,
     playerViewModel: PlayerViewModel,
     playlistViewModel: PlaylistViewModel = hiltViewModel(),
+    cloudDownloadsViewModel: CloudDownloadsViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val uiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
@@ -185,6 +191,7 @@ fun PlaylistDetailScreen(
     val deletePlaylistLabel = stringResource(R.string.presentation_batch_b_delete_playlist)
     val setDefaultTransitionLabel = stringResource(R.string.presentation_batch_b_set_default_transition)
     val exportPlaylistLabel = stringResource(R.string.presentation_batch_b_export_playlist)
+    val downloadPlaylistLabel = stringResource(R.string.cloud_playlist_download)
     val deletePlaylistConfirmTitle = stringResource(R.string.presentation_batch_b_delete_playlist_confirm_title)
     val deletePlaylistConfirmBody = stringResource(R.string.presentation_batch_b_delete_playlist_confirm_body)
     val sortSheetTitle = stringResource(R.string.presentation_batch_b_sort_songs)
@@ -195,6 +202,9 @@ fun PlaylistDetailScreen(
     val isSmartPlaylist = currentPlaylist?.isSmartPlaylist == true
     val isEditablePlaylist = !isFolderPlaylist && !isSmartPlaylist
     val songsInPlaylist = uiState.currentPlaylistSongs
+    val cloudSongsInPlaylist = remember(songsInPlaylist) {
+        CloudOfflineRepository.downloadCandidates(songsInPlaylist)
+    }
 
     LaunchedEffect(playlistId) {
         playlistViewModel.loadPlaylistDetails(playlistId)
@@ -889,6 +899,24 @@ fun PlaylistDetailScreen(
                         navController.navigateSafely(Screen.EditTransition.createRoute(playlistId))
                     }
                 )
+                if (cloudSongsInPlaylist.isNotEmpty()) {
+                    PlaylistActionItem(
+                        icon = rememberVectorPainter(Icons.Rounded.CloudDownload),
+                        label = downloadPlaylistLabel,
+                        onClick = {
+                            showPlaylistOptionsSheet = false
+                            cloudDownloadsViewModel.downloadSelected(cloudSongsInPlaylist)
+                            Toast.makeText(
+                                context,
+                                context.getString(
+                                    R.string.cloud_download_selected_started,
+                                    cloudSongsInPlaylist.size,
+                                ),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                    )
+                }
                 PlaylistActionItem(
                     icon = painterResource(R.drawable.rounded_attach_file_24),
                     label = exportPlaylistLabel,

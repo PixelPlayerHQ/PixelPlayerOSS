@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicLong
 
 @Singleton
 class AdvancedPerformanceDiagnosticsController @Inject constructor(
@@ -18,9 +19,14 @@ class AdvancedPerformanceDiagnosticsController @Inject constructor(
     private val stallMonitor = MainThreadStallMonitor()
     private var observerJob: Job? = null
     private var expiryJob: Job? = null
+    private var controllerScope: CoroutineScope? = null
+    private val monitorUpdateGeneration = AtomicLong(0L)
+    @Volatile private var sessionActive = false
+    @Volatile private var appForeground = false
 
     fun start(scope: CoroutineScope) {
         if (observerJob != null) return
+        controllerScope = scope
         observerJob = scope.launch {
             userPreferencesRepository.disableExpiredAdvancedPerformanceDiagnostics()
             userPreferencesRepository.advancedPerformanceDiagnosticsSettingsFlow.collectLatest { settings ->
@@ -29,6 +35,7 @@ class AdvancedPerformanceDiagnosticsController @Inject constructor(
                     startedAtEpochMs = settings.sessionStartedEpochMs,
                     expiresAtEpochMs = settings.expiresAtEpochMs
                 )
+                sessionActive = active
                 expiryJob?.cancel()
                 if (active && settings.expiresAtEpochMs != null) {
                     expiryJob = scope.launch {
@@ -37,14 +44,35 @@ class AdvancedPerformanceDiagnosticsController @Inject constructor(
                         userPreferencesRepository.disableExpiredAdvancedPerformanceDiagnostics()
                     }
                 }
-                withContext(Dispatchers.Main.immediate) {
-                    if (active) {
-                        stallMonitor.start()
-                    } else {
-                        stallMonitor.stop()
-                    }
-                }
+                updateStallMonitor()
+            }
+        }
+    }
+
+    fun onAppForeground() {
+        appForeground = true
+        updateStallMonitor()
+    }
+
+    fun onAppBackground() {
+        appForeground = false
+        updateStallMonitor()
+    }
+
+    private fun updateStallMonitor() {
+        val scope = controllerScope ?: return
+        val generation = monitorUpdateGeneration.incrementAndGet()
+        scope.launch {
+            withContext(Dispatchers.Main.immediate) {
+                if (generation != monitorUpdateGeneration.get()) return@withContext
+                val shouldRun = shouldRunMainThreadStallMonitor(sessionActive, appForeground)
+                if (shouldRun) stallMonitor.start() else stallMonitor.stop()
             }
         }
     }
 }
+
+internal fun shouldRunMainThreadStallMonitor(
+    sessionActive: Boolean,
+    appForeground: Boolean,
+): Boolean = sessionActive && appForeground

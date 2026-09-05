@@ -63,20 +63,33 @@ class SyncWorkerRequestTest {
     }
 
     @Test
-    fun `artist or directory settings force local rescan for incremental requests`() {
-        val plan = buildSyncExecutionPlan(
+    fun `artist settings force deep metadata rescan while directory settings stay shallow`() {
+        val artistPlan = buildSyncExecutionPlan(
             requestedMode = SyncMode.INCREMENTAL,
             requestedForceMetadata = false,
             requestedRunMaintenance = false,
             rescanRequired = true,
+            directoryRulesChanged = false,
+            isFreshInstall = false
+        )
+
+        assertEquals(LocalScanMode.DEEP_RESCAN, artistPlan.localScanMode)
+        assertTrue(artistPlan.forceProcessAll)
+        assertTrue(artistPlan.forceMetadata)
+        assertFalse(artistPlan.runMaintenance)
+
+        val directoryPlan = buildSyncExecutionPlan(
+            requestedMode = SyncMode.INCREMENTAL,
+            requestedForceMetadata = false,
+            requestedRunMaintenance = false,
+            rescanRequired = false,
             directoryRulesChanged = true,
             isFreshInstall = false
         )
 
-        assertEquals(LocalScanMode.LOCAL_RESCAN, plan.localScanMode)
-        assertTrue(plan.forceProcessAll)
-        assertFalse(plan.forceMetadata)
-        assertFalse(plan.runMaintenance)
+        assertEquals(LocalScanMode.LOCAL_RESCAN, directoryPlan.localScanMode)
+        assertTrue(directoryPlan.forceProcessAll)
+        assertFalse(directoryPlan.forceMetadata)
     }
 
     @Test
@@ -94,6 +107,30 @@ class SyncWorkerRequestTest {
         assertTrue(plan.forceProcessAll)
         assertTrue(plan.forceMetadata)
         assertTrue(plan.resetExistingLocalData)
+    }
+
+    @Test
+    fun `multi value tag formats read embedded artist values during a shallow scan`() {
+        listOf("song.mp3", "song.flac", "song.opus", "song.ogg", "song.oga").forEach { fileName ->
+            assertTrue(
+                shouldReadEmbeddedMetadata(
+                    filePath = "/music/$fileName",
+                    deepScan = false,
+                    rawArtist = "MediaStore Artist",
+                    rawAlbum = "MediaStore Album"
+                ),
+                fileName
+            )
+        }
+
+        assertFalse(
+            shouldReadEmbeddedMetadata(
+                filePath = "/music/song.m4a",
+                deepScan = false,
+                rawArtist = "MediaStore Artist",
+                rawAlbum = "MediaStore Album"
+            )
+        )
     }
 
     @Test

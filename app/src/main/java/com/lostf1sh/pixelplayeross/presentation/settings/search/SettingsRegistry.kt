@@ -67,6 +67,26 @@ object SettingsRegistry {
                 keywordsStatic = listOf("scan", "rescan", "sync", "refresh", "rebuild", "database")
             ),
             SettingSpec(
+                id = "library_m3u_sync",
+                itemKey = "item_library_m3u_sync",
+                titleRes = R.string.setcat_m3u_sync_title,
+                subtitleRes = R.string.setcat_m3u_sync_disabled_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("m3u", "m3u8", "playlist", "sync", "folder", "import", "export")
+            ),
+            SettingSpec(
+                id = "library_m3u_sync_now",
+                itemKey = "item_library_m3u_sync_now",
+                titleRes = R.string.setcat_m3u_sync_now_title,
+                subtitleRes = R.string.setcat_m3u_sync_now_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.ACTION,
+                keywordsStatic = listOf("m3u", "playlist", "sync now", "reconcile")
+            ),
+            SettingSpec(
                 id = "library_auto_scan_lrc",
                 itemKey = "item_library_auto_scan_lrc",
                 titleRes = R.string.setcat_auto_scan_lrc_title,
@@ -185,6 +205,22 @@ object SettingsRegistry {
                 subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("dark mode", "light mode", "theme", "system", "night")
+            ),
+            SettingSpec(
+                id = "appearance_global_now_playing_theme",
+                itemKey = "item_appearance_global_now_playing_theme",
+                titleRes = R.string.setcat_global_now_playing_theme_title,
+                subtitleRes = R.string.setcat_global_now_playing_theme_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf(
+                    "now playing", "album art", "dynamic colors", "app theme", "palette"
+                ),
+                getValue = { it.globalNowPlayingThemeEnabled },
+                onToggle = { viewModel, checked ->
+                    viewModel.setGlobalNowPlayingThemeEnabled(checked)
+                }
             ),
             SettingSpec(
                 id = "appearance_smooth_corners",
@@ -336,6 +372,22 @@ object SettingsRegistry {
                 keywordsStatic = listOf("background", "close app", "swipe away", "recents", "keep playing"),
                 getValue = { it.keepPlayingInBackground },
                 onToggle = { viewModel, checked -> viewModel.setKeepPlayingInBackground(checked) }
+            ),
+            SettingSpec(
+                id = "playback_keep_screen_awake",
+                itemKey = "item_playback_keep_screen_awake",
+                titleRes = R.string.setcat_keep_screen_awake_title,
+                subtitleRes = R.string.setcat_keep_screen_awake_subtitle,
+                category = SettingsCategory.PLAYBACK,
+                subscreenRoute = Screen.SettingsCategory.createRoute("playback"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf(
+                    "screen", "awake", "display", "driving", "sleep", "lock"
+                ),
+                getValue = { it.keepScreenAwakeWhilePlaying },
+                onToggle = { viewModel, checked ->
+                    viewModel.setKeepScreenAwakeWhilePlaying(checked)
+                }
             ),
             SettingSpec(
                 id = "playback_replaygain",

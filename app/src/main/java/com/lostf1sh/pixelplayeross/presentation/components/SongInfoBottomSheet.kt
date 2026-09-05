@@ -83,6 +83,7 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataChanges
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SongInfoBottomSheetViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SongInfoBottomSheetViewModel.ToneTarget
 import kotlinx.coroutines.launch
@@ -122,7 +123,8 @@ fun SongInfoBottomSheet(
         discNumber: Int?,
         replayGainTrackGainDb: String,
         replayGainAlbumGainDb: String,
-        coverArtUpdate: CoverArtUpdate?
+        coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges
     ) -> Unit,
     removeFromListTrigger: () -> Unit,
     songInfoViewModel: SongInfoBottomSheetViewModel = hiltViewModel()
@@ -853,7 +855,7 @@ fun SongInfoBottomSheet(
         visible = showEditSheet,
         song = song,
         onDismiss = { showEditSheet = false },
-        onSave = { title, artist, album, albumArtist, composer, genre, lyrics, trackNumber, discNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArt ->
+        onSave = { title, artist, album, albumArtist, composer, genre, lyrics, trackNumber, discNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArt, customMetadataChanges ->
             onEditSong(
                 title,
                 artist,
@@ -866,7 +868,8 @@ fun SongInfoBottomSheet(
                 discNumber,
                 replayGainTrackGainDb,
                 replayGainAlbumGainDb,
-                coverArt
+                coverArt,
+                customMetadataChanges
             )
             showEditSheet = false
         },

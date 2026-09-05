@@ -57,6 +57,7 @@ data class SettingsUiState(
     val isLoadingDirectories: Boolean = false,
     val appLanguageTag: String = AppLanguage.SYSTEM.tag,
     val appThemeMode: String = AppThemeMode.FOLLOW_SYSTEM,
+    val globalNowPlayingThemeEnabled: Boolean = false,
     val playerThemePreference: String = ThemePreference.ALBUM_ART,
     val albumArtPaletteStyle: AlbumArtPaletteStyle = AlbumArtPaletteStyle.default,
     val albumArtColorAccuracy: Int = AlbumArtColorAccuracy.DEFAULT,
@@ -68,6 +69,7 @@ data class SettingsUiState(
     val libraryNavigationMode: String = LibraryNavigationMode.TAB_ROW,
     val launchTab: String = LaunchTab.HOME,
     val keepPlayingInBackground: Boolean = true,
+    val keepScreenAwakeWhilePlaying: Boolean = false,
     val resumeOnHeadsetReconnect: Boolean = false,
     val showQueueHistory: Boolean = true,
     val isCrossfadeEnabled: Boolean = false,
@@ -145,7 +147,8 @@ private sealed interface SettingsUiUpdate {
         val libraryNavigationMode: String,
         val carouselStyle: String,
         val launchTab: String,
-        val showPlayerFileInfo: Boolean
+        val showPlayerFileInfo: Boolean,
+        val globalNowPlayingThemeEnabled: Boolean
     ) : SettingsUiUpdate
     
     data class Group2(
@@ -261,7 +264,8 @@ class SettingsViewModel @Inject constructor(
                 userPreferencesRepository.libraryNavigationModeFlow,
                 userPreferencesRepository.carouselStyleFlow,
                 userPreferencesRepository.launchTabFlow,
-                userPreferencesRepository.showPlayerFileInfoFlow
+                userPreferencesRepository.showPlayerFileInfoFlow,
+                themePreferencesRepository.globalNowPlayingThemeEnabledFlow
             ) { values ->
                 SettingsUiUpdate.Group1(
                     appRebrandDialogShown = values[0] as Boolean,
@@ -276,7 +280,8 @@ class SettingsViewModel @Inject constructor(
                     libraryNavigationMode = values[9] as String,
                     carouselStyle = values[10] as String,
                     launchTab = values[11] as String,
-                    showPlayerFileInfo = values[12] as Boolean
+                    showPlayerFileInfo = values[12] as Boolean,
+                    globalNowPlayingThemeEnabled = values[13] as Boolean
                 )
             }.collect { update ->
                 _uiState.update { state ->
@@ -293,7 +298,8 @@ class SettingsViewModel @Inject constructor(
                         libraryNavigationMode = update.libraryNavigationMode,
                         carouselStyle = update.carouselStyle,
                         launchTab = update.launchTab,
-                        showPlayerFileInfo = update.showPlayerFileInfo
+                        showPlayerFileInfo = update.showPlayerFileInfo,
+                        globalNowPlayingThemeEnabled = update.globalNowPlayingThemeEnabled
                     )
                 }
             }
@@ -371,6 +377,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.smartCrossfadeEnabledFlow.collect { enabled ->
                 _uiState.update { it.copy(smartCrossfadeEnabled = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.keepScreenAwakeWhilePlayingFlow.collect { enabled ->
+                _uiState.update { it.copy(keepScreenAwakeWhilePlaying = enabled) }
             }
         }
 
@@ -513,6 +525,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setGlobalNowPlayingThemeEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            themePreferencesRepository.setGlobalNowPlayingThemeEnabled(enabled)
+        }
+    }
+
     fun setAlbumArtPaletteStyle(style: AlbumArtPaletteStyle) {
         viewModelScope.launch {
             themePreferencesRepository.setAlbumArtPaletteStyle(style)
@@ -603,6 +621,12 @@ class SettingsViewModel @Inject constructor(
     fun setKeepPlayingInBackground(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setKeepPlayingInBackground(enabled)
+        }
+    }
+
+    fun setKeepScreenAwakeWhilePlaying(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setKeepScreenAwakeWhilePlaying(enabled)
         }
     }
 

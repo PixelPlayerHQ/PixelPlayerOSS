@@ -165,7 +165,6 @@ import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.LibraryActionRow
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.components.MultiSelectionBottomSheet
-import com.lostf1sh.pixelplayeross.presentation.components.AlbumMultiSelectionOptionSheet
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistMultiSelectionBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.DescribePlaylistDialog
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCreationTypeDialog
@@ -186,6 +185,9 @@ import com.lostf1sh.pixelplayeross.data.worker.SyncProgress
 import com.lostf1sh.pixelplayeross.presentation.screens.search.components.GenreTypography
 import com.lostf1sh.pixelplayeross.presentation.components.SyncProgressBar
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LibraryViewModel
+import com.lostf1sh.pixelplayeross.presentation.selection.appendDistinctSelection
+import com.lostf1sh.pixelplayeross.presentation.selection.selectionIndex
+import com.lostf1sh.pixelplayeross.presentation.selection.toggleOrderedSelection
 import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import androidx.paging.compose.collectAsLazyPagingItems
 import android.content.Intent
@@ -225,6 +227,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -242,6 +245,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.subcomps.PlayingEqIco
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import java.util.Locale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLocale
 import android.widget.Toast
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.ui.focus.focusModifier
@@ -260,7 +264,6 @@ import com.lostf1sh.pixelplayeross.presentation.components.rememberModalSheetSta
 
 val ListExtraBottomGap = 30.dp
 val PlayerSheetCollapsedCornerRadius = 32.dp
-private const val MAX_ALBUM_MULTI_SELECTION = 6
 private const val ENABLE_FOLDERS_SOURCE_TOGGLE = true
 private const val ENABLE_FOLDERS_STORAGE_FILTER = false
 private const val FOLDER_NAVIGATION_ROOT_KEY = "__folder_root__"
@@ -389,7 +392,11 @@ fun LibraryScreen(
     var selectedAlbums by remember { mutableStateOf<ImmutableList<Album>>(persistentListOf()) }
     val selectedAlbumIds = remember(selectedAlbums) { selectedAlbums.map { it.id }.toSet() }
     val isAlbumSelectionMode = selectedAlbums.isNotEmpty()
-    var showAlbumMultiSelectionSheet by remember { mutableStateOf(false) }
+    var selectedArtists by remember { mutableStateOf<ImmutableList<Artist>>(persistentListOf()) }
+    val selectedArtistIds = remember(selectedArtists) { selectedArtists.map { it.id }.toSet() }
+    val isArtistSelectionMode = selectedArtists.isNotEmpty()
+    val latestSelectedAlbums by rememberUpdatedState(selectedAlbums)
+    val latestSelectedArtists by rememberUpdatedState(selectedArtists)
     var showBatchEditSheet by remember { mutableStateOf(false) }
 
     var songsShowLocateButton by remember { mutableStateOf(false) }
@@ -411,16 +418,12 @@ fun LibraryScreen(
         { song -> multiSelectionState.toggleSelection(song) }
     }
 
-    val toggleAlbumSelection: (Album) -> Unit = remember(selectedAlbums, playerViewModel, context) {
+    val toggleAlbumSelection: (Album) -> Unit = remember(selectedAlbums, multiSelectionState) {
         { album ->
-            val existingIndex = selectedAlbums.indexOfFirst { it.id == album.id }
-            if (existingIndex >= 0) {
-                selectedAlbums = selectedAlbums.toMutableList().also { it.removeAt(existingIndex) }.toImmutableList()
-            } else if (selectedAlbums.size >= MAX_ALBUM_MULTI_SELECTION) {
-                playerViewModel.sendToast(context.getString(R.string.presentation_batch_d_max_albums_selection, MAX_ALBUM_MULTI_SELECTION))
-            } else {
-                selectedAlbums = (selectedAlbums + album).toImmutableList()
-            }
+            // A changed category selection invalidates any songs resolved for an earlier snapshot.
+            multiSelectionState.clearSelection()
+            showMultiSelectionSheet = false
+            selectedAlbums = toggleOrderedSelection(selectedAlbums, album, Album::id).toImmutableList()
         }
     }
 
@@ -436,9 +439,97 @@ fun LibraryScreen(
     }
 
     val getAlbumSelectionIndex: (Long) -> Int? = remember(selectedAlbums) {
-        { albumId ->
-            val index = selectedAlbums.indexOfFirst { it.id == albumId }
-            if (index >= 0) index + 1 else null
+        { albumId -> selectionIndex(selectedAlbums, albumId, Album::id) }
+    }
+
+    val toggleArtistSelection: (Artist) -> Unit = remember(selectedArtists, multiSelectionState) {
+        { artist ->
+            // A changed category selection invalidates any songs resolved for an earlier snapshot.
+            multiSelectionState.clearSelection()
+            showMultiSelectionSheet = false
+            selectedArtists = toggleOrderedSelection(selectedArtists, artist, Artist::id).toImmutableList()
+        }
+    }
+
+    val onArtistLongPress: (Artist) -> Unit = remember(toggleArtistSelection, haptic) {
+        { artist ->
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            toggleArtistSelection(artist)
+        }
+    }
+
+    val onArtistSelectionToggle: (Artist) -> Unit = remember(toggleArtistSelection) {
+        { artist -> toggleArtistSelection(artist) }
+    }
+
+    val getArtistSelectionIndex: (Long) -> Int? = remember(selectedArtists) {
+        { artistId -> selectionIndex(selectedArtists, artistId, Artist::id) }
+    }
+
+    val presentResolvedCategorySongs: (List<Song>) -> Unit = remember(
+        multiSelectionState,
+        playerViewModel,
+        context
+    ) {
+        { songs ->
+            if (songs.isEmpty()) {
+                playerViewModel.sendToast(context.getString(R.string.no_valid_songs))
+            } else {
+                multiSelectionState.replaceSelection(songs)
+                showMultiSelectionSheet = true
+            }
+        }
+    }
+
+    val openSelectedAlbumActions: () -> Unit = remember(
+        selectedAlbums,
+        playerViewModel,
+        scope,
+        presentResolvedCategorySongs
+    ) {
+        {
+            val selectionSnapshot = selectedAlbums.toList()
+            val snapshotIds = selectionSnapshot.map(Album::id)
+            scope.launch {
+                runCatching {
+                    playerViewModel.resolveAlbumSongsForBatchActions(selectionSnapshot)
+                }.onSuccess { songs ->
+                    if (latestSelectedAlbums.map(Album::id) == snapshotIds) {
+                        presentResolvedCategorySongs(songs)
+                    }
+                }
+                    .onFailure { error ->
+                        if (error is CancellationException) throw error
+                        Timber.tag("LibrarySelection").e(error, "Unable to resolve selected albums")
+                        playerViewModel.sendToast(context.getString(R.string.no_valid_songs))
+                    }
+            }
+        }
+    }
+
+    val openSelectedArtistActions: () -> Unit = remember(
+        selectedArtists,
+        playerViewModel,
+        scope,
+        presentResolvedCategorySongs
+    ) {
+        {
+            val selectionSnapshot = selectedArtists.toList()
+            val snapshotIds = selectionSnapshot.map(Artist::id)
+            scope.launch {
+                runCatching {
+                    playerViewModel.resolveArtistSongsForBatchActions(selectionSnapshot)
+                }.onSuccess { songs ->
+                    if (latestSelectedArtists.map(Artist::id) == snapshotIds) {
+                        presentResolvedCategorySongs(songs)
+                    }
+                }
+                    .onFailure { error ->
+                        if (error is CancellationException) throw error
+                        Timber.tag("LibrarySelection").e(error, "Unable to resolve selected artists")
+                        playerViewModel.sendToast(context.getString(R.string.no_valid_songs))
+                    }
+            }
         }
     }
 
@@ -533,17 +624,13 @@ fun LibraryScreen(
         }
     }
 
-    val hasSelectionInCurrentTab by remember {
-        derivedStateOf {
-            when (currentTabId) {
-                LibraryTabId.PLAYLISTS -> isPlaylistSelectionMode
-                LibraryTabId.ALBUMS -> isAlbumSelectionMode
-                LibraryTabId.SONGS,
-                LibraryTabId.LIKED,
-                LibraryTabId.FOLDERS -> isSelectionMode
-                LibraryTabId.ARTISTS -> false
-            }
-        }
+    val hasSelectionInCurrentTab = when (currentTabId) {
+        LibraryTabId.PLAYLISTS -> isPlaylistSelectionMode
+        LibraryTabId.ALBUMS -> isAlbumSelectionMode
+        LibraryTabId.SONGS,
+        LibraryTabId.LIKED,
+        LibraryTabId.FOLDERS -> isSelectionMode
+        LibraryTabId.ARTISTS -> isArtistSelectionMode
     }
     val canHandleFolderBack by remember {
         derivedStateOf {
@@ -566,7 +653,14 @@ fun LibraryScreen(
 
                     LibraryTabId.ALBUMS -> {
                         selectedAlbums = persistentListOf()
-                        showAlbumMultiSelectionSheet = false
+                        multiSelectionState.clearSelection()
+                        showMultiSelectionSheet = false
+                    }
+
+                    LibraryTabId.ARTISTS -> {
+                        selectedArtists = persistentListOf()
+                        multiSelectionState.clearSelection()
+                        showMultiSelectionSheet = false
                     }
 
                     LibraryTabId.SONGS,
@@ -576,7 +670,6 @@ fun LibraryScreen(
                         showMultiSelectionSheet = false
                     }
 
-                    LibraryTabId.ARTISTS -> Unit
                 }
             }
 
@@ -612,9 +705,9 @@ fun LibraryScreen(
         multiSelectionState.clearSelection()
         playlistMultiSelectionState.clearSelection()
         selectedAlbums = persistentListOf()
+        selectedArtists = persistentListOf()
         showMultiSelectionSheet = false
         showPlaylistMultiSelectionSheet = false
-        showAlbumMultiSelectionSheet = false
     }
 
     val fabState by remember { derivedStateOf { currentTabIndex } }
@@ -776,7 +869,7 @@ fun LibraryScreen(
                                 }
                             ) {
                                 Text(
-                                    text = stringResource(tabId.titleRes).uppercase(Locale.getDefault()),
+                                    text = stringResource(tabId.titleRes).uppercase(LocalLocale.current.platformLocale),
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = if (currentTabIndex == index) FontWeight.Bold else FontWeight.Medium
                                 )
@@ -920,7 +1013,7 @@ fun LibraryScreen(
                         }
 
                         AnimatedContent(
-                            targetState = isSelectionMode || isPlaylistSelectionMode || isAlbumSelectionMode,
+                            targetState = hasSelectionInCurrentTab,
                             label = "ActionRowModeSwitch",
                             transitionSpec = {
                                 (slideInHorizontally { -it } + fadeIn()) togetherWith
@@ -948,25 +1041,39 @@ fun LibraryScreen(
                                     SelectionActionRow(
                                         selectedCount = selectedAlbums.size,
                                         onSelectAll = {
-                                            val remaining = MAX_ALBUM_MULTI_SELECTION - selectedAlbums.size
-                                            if (remaining <= 0) {
-                                                playerViewModel.sendToast(
-                                                    context.getString(
-                                                        R.string.presentation_batch_d_max_albums_selection,
-                                                        MAX_ALBUM_MULTI_SELECTION
-                                                    )
-                                                )
-                                            } else {
-                                                val albumsToAppend = playerViewModel.albumsFlow.value
-                                                    .filterNot { selectedAlbumIds.contains(it.id) }
-                                                    .take(remaining)
-                                                if (albumsToAppend.isNotEmpty()) {
-                                                    selectedAlbums = (selectedAlbums + albumsToAppend).toImmutableList()
-                                                }
-                                            }
+                                            multiSelectionState.clearSelection()
+                                            showMultiSelectionSheet = false
+                                            selectedAlbums = appendDistinctSelection(
+                                                current = selectedAlbums,
+                                                candidates = playerViewModel.albumsFlow.value,
+                                                keyOf = Album::id
+                                            ).toImmutableList()
                                         },
-                                        onDeselect = { selectedAlbums = persistentListOf() },
-                                        onOptionsClick = { showAlbumMultiSelectionSheet = true }
+                                        onDeselect = {
+                                            selectedAlbums = persistentListOf()
+                                            multiSelectionState.clearSelection()
+                                            showMultiSelectionSheet = false
+                                        },
+                                        onOptionsClick = openSelectedAlbumActions
+                                    )
+                                } else if (currentTabId == LibraryTabId.ARTISTS && isArtistSelectionMode) {
+                                    SelectionActionRow(
+                                        selectedCount = selectedArtists.size,
+                                        onSelectAll = {
+                                            multiSelectionState.clearSelection()
+                                            showMultiSelectionSheet = false
+                                            selectedArtists = appendDistinctSelection(
+                                                current = selectedArtists,
+                                                candidates = playerViewModel.artistsFlow.value,
+                                                keyOf = Artist::id
+                                            ).toImmutableList()
+                                        },
+                                        onDeselect = {
+                                            selectedArtists = persistentListOf()
+                                            multiSelectionState.clearSelection()
+                                            showMultiSelectionSheet = false
+                                        },
+                                        onOptionsClick = openSelectedArtistActions
                                     )
                                 } else {
                                     SelectionActionRow(
@@ -1272,6 +1379,11 @@ fun LibraryScreen(
                                             },
                                             isRefreshing = isRefreshing,
                                             onRefresh = onRefresh,
+                                            isSelectionMode = isArtistSelectionMode,
+                                            selectedArtistIds = selectedArtistIds,
+                                            onArtistLongPress = onArtistLongPress,
+                                            onArtistSelectionToggle = onArtistSelectionToggle,
+                                            getSelectionIndex = getArtistSelectionIndex,
                                             storageFilter = playerUiState.currentStorageFilter
                                         )
                                     }
@@ -1373,10 +1485,13 @@ fun LibraryScreen(
                                 }
                             }
 
-                            val selectionCount = when {
-                                currentTabId == LibraryTabId.PLAYLISTS && isPlaylistSelectionMode -> selectedPlaylists.size
-                                currentTabId == LibraryTabId.ALBUMS && isAlbumSelectionMode -> selectedAlbums.size
-                                else -> selectedSongs.size
+                            val selectionCount = when (currentTabId) {
+                                LibraryTabId.PLAYLISTS -> selectedPlaylists.size.takeIf { isPlaylistSelectionMode } ?: 0
+                                LibraryTabId.ALBUMS -> selectedAlbums.size.takeIf { isAlbumSelectionMode } ?: 0
+                                LibraryTabId.ARTISTS -> selectedArtists.size.takeIf { isArtistSelectionMode } ?: 0
+                                LibraryTabId.SONGS,
+                                LibraryTabId.LIKED,
+                                LibraryTabId.FOLDERS -> selectedSongs.size
                             }
                             SelectionCountPill(
                                 selectedCount = selectionCount,
@@ -1539,7 +1654,7 @@ fun LibraryScreen(
                     }
                     showSongInfoBottomSheet = false
                 },
-                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                     playerViewModel.editSongMetadata(
                         currentSong,
                         newTitle,
@@ -1553,7 +1668,8 @@ fun LibraryScreen(
                         newDiscNumber,
                         replayGainTrackGainDb,
                         replayGainAlbumGainDb,
-                        coverArtUpdate
+                        coverArtUpdate,
+                        customMetadataChanges
                     )
                 },
                 removeFromListTrigger = {},
@@ -1574,27 +1690,35 @@ fun LibraryScreen(
         )
     }
 
-    if (showMultiSelectionSheet && selectedSongs.isNotEmpty()) {
-        val activity = context as? android.app.Activity
+    val clearResolvedCategorySelection: () -> Unit = {
+        selectedAlbums = persistentListOf()
+        selectedArtists = persistentListOf()
+    }
 
+    if (showMultiSelectionSheet && selectedSongs.isNotEmpty()) {
         MultiSelectionBottomSheet(
             selectedSongs = selectedSongs,
             favoriteSongIds = favoriteIds,
             onDismiss = { showMultiSelectionSheet = false },
             onPlayAll = {
                 playerViewModel.playSelectedSongs(selectedSongs)
+                clearResolvedCategorySelection()
                 showMultiSelectionSheet = false
             },
             onAddToQueue = {
                 playerViewModel.addSelectedToQueue(selectedSongs)
+                clearResolvedCategorySelection()
                 showMultiSelectionSheet = false
             },
             onPlayNext = {
                 playerViewModel.addSelectedAsNext(selectedSongs)
+                clearResolvedCategorySelection()
                 showMultiSelectionSheet = false
             },
             onAddToPlaylist = {
                 playlistSheetSongs = selectedSongs
+                clearResolvedCategorySelection()
+                multiSelectionState.clearSelection()
                 showMultiSelectionSheet = false
                 showPlaylistBottomSheet = true
             },
@@ -1604,55 +1728,34 @@ fun LibraryScreen(
                 } else {
                     playerViewModel.unlikeSelectedSongs(selectedSongs)
                 }
+                clearResolvedCategorySelection()
                 showMultiSelectionSheet = false
             },
             onShareAll = {
                 playerViewModel.shareSelectedAsZip(selectedSongs)
+                clearResolvedCategorySelection()
                 showMultiSelectionSheet = false
             },
             onDownloadAll = {
-                val cloudSongCount = selectedSongs.count(CloudOfflineRepository::isCloudSong)
+                val cloudSongCount = CloudOfflineRepository.downloadCandidates(selectedSongs).size
                 cloudDownloadsViewModel.downloadSelected(selectedSongs)
                 multiSelectionState.clearSelection()
+                clearResolvedCategorySelection()
                 playerViewModel.sendToast(
                     context.getString(R.string.cloud_download_selected_started, cloudSongCount)
                 )
                 showMultiSelectionSheet = false
             },
-            onDeleteAll = { _, onComplete ->
-                activity?.let {
-                    playerViewModel.deleteSelectedFromDevice(it, selectedSongs) {
-                        showMultiSelectionSheet = false
-                        onComplete(true)
-                    }
+            onDeleteAll = { deleteActivity, onComplete ->
+                playerViewModel.deleteSelectedFromDevice(deleteActivity, selectedSongs) {
+                    clearResolvedCategorySelection()
+                    showMultiSelectionSheet = false
+                    onComplete(true)
                 }
             },
             onBatchEdit = {
                 showMultiSelectionSheet = false
                 showBatchEditSheet = true
-            }
-        )
-    }
-
-    if (showAlbumMultiSelectionSheet && selectedAlbums.isNotEmpty()) {
-        AlbumMultiSelectionOptionSheet(
-            selectedAlbums = selectedAlbums,
-            maxSelection = MAX_ALBUM_MULTI_SELECTION,
-            onDismiss = { showAlbumMultiSelectionSheet = false },
-            onPlay = {
-                playerViewModel.playSelectedAlbums(selectedAlbums)
-                selectedAlbums = persistentListOf()
-                showAlbumMultiSelectionSheet = false
-            },
-            onPlayNext = {
-                playerViewModel.addSelectedAlbumsAsNext(selectedAlbums)
-                selectedAlbums = persistentListOf()
-                showAlbumMultiSelectionSheet = false
-            },
-            onAddToQueue = {
-                playerViewModel.addSelectedAlbumsToQueue(selectedAlbums)
-                selectedAlbums = persistentListOf()
-                showAlbumMultiSelectionSheet = false
             }
         )
     }
@@ -1811,6 +1914,7 @@ fun LibraryScreen(
                     replayGainAlbumGainDb = replayGainAlbumGainDb,
                     coverArtUpdate = coverArtUpdate
                 )
+                clearResolvedCategorySelection()
             }
         )
     }
@@ -3053,68 +3157,140 @@ fun AlbumGridItemRedesigned(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun ArtistListItem(artist: Artist, onClick: () -> Unit, isLoading: Boolean = false) {
+fun ArtistListItem(
+    artist: Artist,
+    onClick: () -> Unit,
+    isLoading: Boolean = false,
+    isSelectionMode: Boolean = false,
+    isSelected: Boolean = false,
+    selectionIndex: Int? = null,
+    onLongPress: () -> Unit = {},
+    onSelectionToggle: () -> Unit = {}
+) {
+    val cardShape = RoundedCornerShape(18.dp)
+    val selectionScale by animateFloatAsState(
+        targetValue = if (isSelected) 0.99f else 1f,
+        animationSpec = tween(durationMillis = 200),
+        label = "artistSelectionScale"
+    )
+    val selectionBorderWidth by animateDpAsState(
+        targetValue = if (isSelected) 2.dp else 0.dp,
+        animationSpec = tween(durationMillis = 200),
+        label = "artistSelectionBorder"
+    )
+
     Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(selectionScale)
+            .then(
+                if (isSelected) {
+                    Modifier.border(
+                        width = selectionBorderWidth,
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = cardShape
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .clip(cardShape)
+            .combinedClickable(
+                enabled = !isLoading,
+                onClick = {
+                    if (isSelectionMode) onSelectionToggle() else onClick()
+                },
+                onLongClick = onLongPress
+            ),
+        shape = cardShape,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (isLoading) {
-                ShimmerBox(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = 12.dp,
+                        top = 12.dp,
+                        end = if (isSelected) 54.dp else 12.dp,
+                        bottom = 12.dp
+                    ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isLoading) {
                     ShimmerBox(
                         modifier = Modifier
-                            .fillMaxWidth(0.6f)
-                            .height(20.dp)
-                            .clip(RoundedCornerShape(4.dp))
+                            .size(48.dp)
+                            .clip(CircleShape)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    ShimmerBox(
-                        modifier = Modifier
-                            .fillMaxWidth(0.3f)
-                            .height(16.dp)
-                            .clip(RoundedCornerShape(4.dp))
-                    )
-                }
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(ShapeCache.expressiveAvatar)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!artist.effectiveImageUrl.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(artist.effectiveImageUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = artist.name,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        ShimmerBox(
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .height(20.dp)
+                                .clip(RoundedCornerShape(4.dp))
                         )
-                    } else {
-                        Icon(
-                            painter = painterResource(R.drawable.rounded_artist_24),
-                            contentDescription = stringResource(R.string.presentation_batch_d_cd_artist),
-                            modifier = Modifier.padding(8.dp),
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        Spacer(modifier = Modifier.height(4.dp))
+                        ShimmerBox(
+                            modifier = Modifier
+                                .fillMaxWidth(0.3f)
+                                .height(16.dp)
+                                .clip(RoundedCornerShape(4.dp))
                         )
                     }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(ShapeCache.expressiveAvatar)
+                            .background(MaterialTheme.colorScheme.primaryContainer),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (!artist.effectiveImageUrl.isNullOrEmpty()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(artist.effectiveImageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = artist.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(R.drawable.rounded_artist_24),
+                                contentDescription = stringResource(R.string.presentation_batch_d_cd_artist),
+                                modifier = Modifier.padding(8.dp),
+                                tint = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(artist.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(formatSongCount(artist.songCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(artist.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text(formatSongCount(artist.songCount), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+
+            if (isSelectionMode && isSelected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .padding(end = 14.dp)
+                        .size(28.dp)
+                        .background(MaterialTheme.colorScheme.primary, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = selectionIndex?.toString() ?: "✓",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

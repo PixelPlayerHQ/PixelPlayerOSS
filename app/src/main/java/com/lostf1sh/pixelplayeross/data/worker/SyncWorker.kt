@@ -24,6 +24,7 @@ import com.lostf1sh.pixelplayeross.data.database.serializeArtistRefs
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
 import com.lostf1sh.pixelplayeross.data.media.AudioMetadataReader
+import com.lostf1sh.pixelplayeross.data.media.normalizeArtistMetadataValues
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.LyricsRepository
@@ -43,6 +44,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -58,6 +60,39 @@ enum class SyncMode {
     INCREMENTAL,
     FULL,
     REBUILD
+}
+
+private val EMBEDDED_METADATA_FIRST_EXTENSIONS = setOf(
+    "mp3",
+    "flac",
+    "wav",
+    "opus",
+    "ogg",
+    "oga",
+    "aiff",
+)
+
+/** File formats whose tag models commonly retain metadata that MediaStore flattens or drops. */
+internal fun shouldReadEmbeddedMetadata(
+    filePath: String,
+    deepScan: Boolean,
+    rawArtist: String,
+    rawAlbum: String
+): Boolean {
+    val extension = File(filePath).extension.lowercase(Locale.ROOT)
+    return deepScan ||
+        extension in EMBEDDED_METADATA_FIRST_EXTENSIONS ||
+        isDefaultMetadata(rawArtist) ||
+        isDefaultMetadata(rawAlbum)
+}
+
+private fun isDefaultMetadata(value: String): Boolean {
+    val lower = value.trim().lowercase(Locale.ROOT)
+    return lower.isEmpty() ||
+        lower == "<unknown>" ||
+        lower == "unknown" ||
+        lower == "unknown artist" ||
+        lower == "unknown album"
 }
 
 @HiltWorker
@@ -451,11 +486,21 @@ constructor(
     )
 
     /**
+     * Artist tag values only need to live between file scanning and relationship generation.
+     * Keeping them beside the entity avoids a database migration or a delimiter-dependent
+     * encoding in [SongEntity.artistName].
+     */
+    private data class ScannedSong(
+        val entity: SongEntity,
+        val artistValues: List<String>
+    )
+
+    /**
      * Process songs with multi-artist support. Splits artist names by delimiters and creates proper
      * cross-references.
      */
     private fun preProcessAndDeduplicateWithMultiArtist(
-            songs: List<SongEntity>,
+            songs: List<ScannedSong>,
             artistDelimiters: List<String>,
             wordDelimiters: List<String> = emptyList(),
             extractFromTitle: Boolean = true,
@@ -483,14 +528,17 @@ constructor(
                 }
             }
 
-        songs.forEach { song ->
+        songs.forEach { scannedSong ->
+            val song = scannedSong.entity
             val rawArtistName = song.artistName
             val songArtistNameTrimmed = rawArtistName.trim()
 
             val allArtistsForSong =
-                    artistSplitCache.getOrPut("$rawArtistName\u0000${song.title}\u0000$extractFromTitle") {
+                    artistSplitCache.getOrPut(
+                        "${scannedSong.artistValues.joinToString("\u0001")}\u0000${song.title}\u0000$extractFromTitle"
+                    ) {
                         collectArtistNames(
-                            rawArtistName = rawArtistName,
+                            rawArtistNames = scannedSong.artistValues.ifEmpty { listOf(rawArtistName) },
                             title = song.title,
                             artistDelimiters = artistDelimiters,
                             wordDelimiters = wordDelimiters,
@@ -766,7 +814,7 @@ constructor(
             resetExistingLocalData: Boolean,
             progressBatchSize: Int,
             onProgress: suspend (current: Int, total: Int, phaseOrdinal: Int) -> Unit
-    ): List<SongEntity> = traceAsyncSection("SyncWorker.fetchMusicFromMediaStore") {
+    ): List<ScannedSong> = traceAsyncSection("SyncWorker.fetchMusicFromMediaStore") {
         val deepScan = forceMetadata
         val genreMap = fetchGenreMap()
 
@@ -930,7 +978,7 @@ constructor(
         val concurrencyLimit = 4
         val semaphore = Semaphore(concurrencyLimit)
 
-        val songs = mutableListOf<SongEntity>()
+        val songs = mutableListOf<ScannedSong>()
         for (batch in songsToProcess.chunked(200)) {
             val ids = batch.map { it.id }
             val existingMap = if (resetExistingLocalData) emptyMap() else musicDao.getSongsByIdsListSimple(ids).associateBy { it.id }
@@ -939,7 +987,7 @@ constructor(
                     async {
                         semaphore.withPermit {
                             val localSong = existingMap[raw.id]
-                            val mediaStoreSong =
+                            val scannedMediaStoreSong =
                                 processSongData(
                                     raw = raw,
                                     genreMap = genreMap,
@@ -948,37 +996,43 @@ constructor(
                                 )
 
                             val song = if (localSong != null) {
-                                mediaStoreSong.copy(
+                                scannedMediaStoreSong.entity.copy(
                                     dateAdded = if (
                                         localSong.mediaStoreDateAdded > 0 &&
-                                        localSong.mediaStoreDateAdded == mediaStoreSong.mediaStoreDateAdded
+                                        localSong.mediaStoreDateAdded == scannedMediaStoreSong.entity.mediaStoreDateAdded
                                     ) {
                                         localSong.dateAdded
                                     } else {
-                                        mediaStoreSong.dateAdded
+                                        scannedMediaStoreSong.entity.dateAdded
                                     },
                                     lyrics = localSong.lyrics,
-                                    title = if (localSong.titleUserEdited) localSong.title else mediaStoreSong.title,
-                                    artistName = if (localSong.artistUserEdited) localSong.artistName else mediaStoreSong.artistName,
-                                    albumName = if (localSong.albumUserEdited) localSong.albumName else mediaStoreSong.albumName,
-                                    genre = if (localSong.genreUserEdited) localSong.genre else mediaStoreSong.genre,
-                                    trackNumber = if (localSong.trackNumber != 0) localSong.trackNumber else mediaStoreSong.trackNumber,
-                                    discNumber = localSong.discNumber ?: mediaStoreSong.discNumber,
-                                    albumArtUriString = mediaStoreSong.albumArtUriString,
+                                    title = if (localSong.titleUserEdited) localSong.title else scannedMediaStoreSong.entity.title,
+                                    artistName = if (localSong.artistUserEdited) localSong.artistName else scannedMediaStoreSong.entity.artistName,
+                                    albumName = if (localSong.albumUserEdited) localSong.albumName else scannedMediaStoreSong.entity.albumName,
+                                    genre = if (localSong.genreUserEdited) localSong.genre else scannedMediaStoreSong.entity.genre,
+                                    trackNumber = if (localSong.trackNumber != 0) localSong.trackNumber else scannedMediaStoreSong.entity.trackNumber,
+                                    discNumber = localSong.discNumber ?: scannedMediaStoreSong.entity.discNumber,
+                                    albumArtUriString = scannedMediaStoreSong.entity.albumArtUriString,
                                     titleUserEdited = localSong.titleUserEdited,
                                     artistUserEdited = localSong.artistUserEdited,
                                     albumUserEdited = localSong.albumUserEdited,
                                     genreUserEdited = localSong.genreUserEdited
                                 )
                             } else {
-                                mediaStoreSong
+                                scannedMediaStoreSong.entity
+                            }
+
+                            val artistValues = if (localSong?.artistUserEdited == true) {
+                                listOf(localSong.artistName)
+                            } else {
+                                scannedMediaStoreSong.artistValues
                             }
 
                             val count = processedCount.incrementAndGet()
                             if (count % progressBatchSize == 0 || count == totalCount) {
                                 onProgress(count, totalCount, SyncProgress.SyncPhase.PROCESSING_FILES.ordinal)
                             }
-                            song
+                            ScannedSong(entity = song, artistValues = artistValues)
                         }
                     }
                 }.awaitAll()
@@ -990,20 +1044,6 @@ constructor(
     }
 
     /**
-     * Checks if a metadata field from MediaStore is a default/unknown placeholder.
-     * MediaStore uses `<unknown>` for unreadable fields, and our normalization
-     * may fall back to `"Unknown Artist"` / `"Unknown Album"` etc.
-     */
-    private fun isDefaultMetadata(value: String): Boolean {
-        val lower = value.trim().lowercase()
-        return lower.isEmpty() ||
-            lower == "<unknown>" ||
-            lower == "unknown" ||
-            lower == "unknown artist" ||
-            lower == "unknown album"
-    }
-
-    /**
      * Process a single song's raw data into a SongEntity. This is the CPU/IO intensive work that
      * benefits from parallelization.
      */
@@ -1012,7 +1052,7 @@ constructor(
             genreMap: Map<Long, String>,
             deepScan: Boolean,
             forceAlbumArtRefresh: Boolean
-    ): SongEntity {
+    ): ScannedSong {
         val parentDir = java.io.File(raw.filePath).parent ?: ""
         val contentUriString =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, raw.id)
@@ -1032,6 +1072,7 @@ constructor(
 
         var title = raw.title
         var artist = raw.artist
+        var artistValues = listOf(raw.artist)
         var album = raw.album
         var albumArtist = resolveAlbumArtist(
             rawAlbumArtist = raw.albumArtist,
@@ -1042,15 +1083,12 @@ constructor(
         var year = raw.year
         var genre: String? = genreMap[raw.id] ?: raw.genre
 
-        val shouldAugmentMetadata =
-                deepScan ||
-                        raw.filePath.endsWith(".wav", true) ||
-                        raw.filePath.endsWith(".opus", true) ||
-                        raw.filePath.endsWith(".ogg", true) ||
-                        raw.filePath.endsWith(".oga", true) ||
-                        raw.filePath.endsWith(".aiff", true) ||
-                        isDefaultMetadata(raw.artist) ||
-                        isDefaultMetadata(raw.album)
+        val shouldAugmentMetadata = shouldReadEmbeddedMetadata(
+            filePath = raw.filePath,
+            deepScan = deepScan,
+            rawArtist = raw.artist,
+            rawAlbum = raw.album
+        )
 
         if (shouldAugmentMetadata) {
             val file = java.io.File(raw.filePath)
@@ -1058,7 +1096,16 @@ constructor(
                 try {
                     AudioMetadataReader.read(file, readArtwork = false)?.let { meta ->
                         if (!meta.title.isNullOrBlank()) title = meta.title
-                        if (!meta.artist.isNullOrBlank()) artist = meta.artist
+                        if (meta.artists.isNotEmpty()) {
+                            artist = meta.artists.first()
+                            // Embedded fields are the authoritative physical ARTIST values here.
+                            // Adding MediaStore's flattened display value can create a spurious
+                            // extra artist when the platform joined repeated tags itself.
+                            artistValues = normalizeArtistMetadataValues(meta.artists)
+                        } else if (!meta.artist.isNullOrBlank()) {
+                            artist = meta.artist
+                            artistValues = normalizeArtistMetadataValues(listOf(meta.artist))
+                        }
                         if (!meta.album.isNullOrBlank()) album = meta.album
                         albumArtist = resolveAlbumArtist(
                             rawAlbumArtist = albumArtist,
@@ -1075,7 +1122,8 @@ constructor(
             }
         }
 
-        return SongEntity(
+        return ScannedSong(
+            entity = SongEntity(
                 id = raw.id,
                 title = title,
                 artistName = artist,
@@ -1103,6 +1151,8 @@ constructor(
                 sourceType = SourceType.LOCAL,
                 mediaStoreDateAdded = raw.dateAdded,
                 mediaStoreDateModified = raw.dateModified
+            ),
+            artistValues = artistValues
         )
     }
 

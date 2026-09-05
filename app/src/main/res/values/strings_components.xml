@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="widget_tap_to_open">Tap to open</string>
     <string name="widget_album_art">Album art</string>
     <string name="widget_album_art_placeholder">Album art placeholder</string>
@@ -80,6 +80,16 @@
     <string name="edit_song_crop_dialog_hint">Use pinch and drag gestures to find the perfect framing.</string>
     <string name="edit_song_apply_cover_art">Apply cover art</string>
     <string name="edit_song_unable_to_load_image">Unable to load the selected image</string>
+    <string name="edit_song_custom_metadata_heading" tools:ignore="MissingTranslation">Optional metadata</string>
+    <string name="edit_song_custom_metadata_description" tools:ignore="MissingTranslation">Set a 0–5 rating or add text fields such as MOOD, COMMENT, YEAR, or BPM.</string>
+    <string name="edit_song_rating" tools:ignore="MissingTranslation">Rating (0–5)</string>
+    <string name="edit_song_rating_not_set" tools:ignore="MissingTranslation">Not set</string>
+    <string name="edit_song_custom_field_name" tools:ignore="MissingTranslation">Field name</string>
+    <string name="edit_song_custom_field_value" tools:ignore="MissingTranslation">Value</string>
+    <string name="edit_song_add_custom_field" tools:ignore="MissingTranslation">Add metadata field</string>
+    <string name="edit_song_remove_custom_field" tools:ignore="MissingTranslation">Remove field</string>
+    <string name="edit_song_custom_metadata_formats" tools:ignore="MissingTranslation">Rating and custom fields can be written to MP3, WAV, AIFF, FLAC, OGG, Opus, M4A, M4B, and MP4 files.</string>
+    <string name="edit_song_custom_metadata_invalid" tools:ignore="MissingTranslation">Check the optional metadata fields.</string>
 
     <string name="song_info_share_chooser_title">Share song file via</string>
     <string name="cd_play_song_action">Play song</string>

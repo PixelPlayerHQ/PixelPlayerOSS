@@ -39,6 +39,7 @@ import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.EotStateHolder
 import com.lostf1sh.pixelplayeross.data.database.AlbumArtThemeDao
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataChanges
 import com.lostf1sh.pixelplayeross.data.model.Album
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.FolderSource
@@ -75,6 +76,8 @@ import com.lostf1sh.pixelplayeross.utils.StorageType
 import com.lostf1sh.pixelplayeross.utils.StorageUtils
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import com.lostf1sh.pixelplayeross.utils.ZipShareHelper
+import com.lostf1sh.pixelplayeross.presentation.selection.flattenDistinctGroups
+import com.lostf1sh.pixelplayeross.presentation.selection.effectiveLibraryStorageFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.ImmutableList
@@ -119,6 +122,7 @@ import javax.inject.Inject
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import coil.memory.MemoryCache
+import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 
 private const val ENABLE_FOLDERS_SOURCE_SWITCHING = true
 private const val MAX_ALBUM_BATCH_SELECTION = 6
@@ -209,7 +213,8 @@ private data class PendingMetadataEdit(
     val discNumber: Int?,
     val replayGainTrackGainDb: String?,
     val replayGainAlbumGainDb: String?,
-    val coverArtUpdate: CoverArtUpdate?
+    val coverArtUpdate: CoverArtUpdate?,
+    val customMetadataChanges: CustomMetadataChanges
 )
 
 private data class PendingBatchMetadataEdit(
@@ -579,13 +584,7 @@ class PlayerViewModel @Inject constructor(
             try {
                 val sortOption = playerUiState.value.currentSongSortOption
                 
-                val baseFilter = playerUiState.value.currentStorageFilter
-                val hideLocal = playerUiState.value.hideLocalMedia
-                val storageFilter = if (hideLocal) {
-                    com.lostf1sh.pixelplayeross.data.model.StorageFilter.ONLINE
-                } else {
-                    baseFilter
-                }
+                val storageFilter = currentEffectiveLibraryStorageFilter()
 
                 val sortedIds = musicRepository.getSongIdsSorted(sortOption, storageFilter)
 
@@ -620,7 +619,7 @@ class PlayerViewModel @Inject constructor(
             failureMessage = "Failed to build full library queue for songId=%s"
         ) {
             val sortOption = playerUiState.value.currentSongSortOption
-            val storageFilter = playerUiState.value.currentStorageFilter
+            val storageFilter = currentEffectiveLibraryStorageFilter()
             musicRepository.getSongIdsSorted(sortOption, storageFilter)
         }
     }
@@ -637,16 +636,27 @@ class PlayerViewModel @Inject constructor(
             failureMessage = "Failed to build favorites queue for songId=%s"
         ) {
             val sortOption = playerUiState.value.currentFavoriteSortOption
-            val storageFilter = playerUiState.value.currentStorageFilter
+            val storageFilter = currentEffectiveLibraryStorageFilter()
             musicRepository.getFavoriteSongIdsSorted(sortOption, storageFilter)
         }
     }
 
     suspend fun getSongsForCurrentLibrarySelection(): List<Song> {
-        val sortOption = playerUiState.value.currentSongSortOption
-        val storageFilter = playerUiState.value.currentStorageFilter
-        val sortedIds = musicRepository.getSongIdsSorted(sortOption, storageFilter)
+        val state = playerUiState.value
+        val sortedIds = musicRepository.getSongIdsSorted(
+            state.currentSongSortOption,
+            currentEffectiveLibraryStorageFilter(state),
+        )
         return resolvePlaybackQueueFromSortedIds(sortedIds)
+    }
+
+    private fun currentEffectiveLibraryStorageFilter(
+        state: PlayerUiState = playerUiState.value,
+    ): com.lostf1sh.pixelplayeross.data.model.StorageFilter {
+        return effectiveLibraryStorageFilter(
+            selected = state.currentStorageFilter,
+            hideLocalMedia = state.hideLocalMedia,
+        )
     }
 
     private fun launchLatestFullQueuePlayback(
@@ -2985,7 +2995,7 @@ class PlayerViewModel @Inject constructor(
         }
         _isSheetVisible.value = true
 
-        val startMediaItem = buildResolvedPlaybackMediaItem(effectiveStartSong)
+        val startMediaItem = buildResolvedPlaybackMediaItem(effectiveStartSong, playlistId)
 
         val playSongsAction = {
             dualPlayerEngine.cancelNext()
@@ -3023,23 +3033,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun buildResolvedPlaybackMediaItem(song: Song): MediaItem {
-        val mediaItem = MediaItemBuilder.build(song)
-        val originalUri = mediaItem.localConfiguration?.uri ?: return mediaItem
-        val scheme = originalUri.scheme
-        if (
-            scheme != "navidrome" &&
-            scheme != "jellyfin"
-        ) {
-            return mediaItem
-        }
-
-        val resolvedUri = dualPlayerEngine.resolveCloudUri(originalUri)
-        return if (resolvedUri == originalUri) {
-            mediaItem
-        } else {
-            mediaItem.buildUpon().setUri(resolvedUri).build()
-        }
+    private suspend fun buildResolvedPlaybackMediaItem(
+        song: Song,
+        playlistId: String? = null,
+    ): MediaItem {
+        val mediaItem = buildPlaybackMediaItem(song, playlistId)
+        return dualPlayerEngine.resolveMediaItem(mediaItem)
     }
 
 
@@ -3451,6 +3450,47 @@ class PlayerViewModel @Inject constructor(
         )
     }
 
+    /** Resolves whole albums to the currently visible songs consumed by the batch-action sheet. */
+    suspend fun resolveAlbumSongsForBatchActions(albums: List<Album>): List<Song> {
+        if (albums.isEmpty()) return emptyList()
+        val visibleSongIds = currentLibrarySelectionSongIds()
+        return withContext(Dispatchers.IO) {
+            flattenDistinctGroups(
+                groups = albums.map { album ->
+                    sortSongsForAlbumSelection(musicRepository.getSongsForAlbum(album.id).first())
+                        .filter { it.id in visibleSongIds }
+                },
+                keyOf = Song::id
+            )
+        }
+    }
+
+    /**
+     * Resolves whole artists to songs and removes overlaps from multi-artist tracks so delete,
+     * edit, queue and playlist actions are each applied once per file.
+     */
+    suspend fun resolveArtistSongsForBatchActions(artists: List<Artist>): List<Song> {
+        if (artists.isEmpty()) return emptyList()
+        val visibleSongIds = currentLibrarySelectionSongIds()
+        return withContext(Dispatchers.IO) {
+            flattenDistinctGroups(
+                groups = artists.map { artist ->
+                    musicRepository.getSongsForArtist(artist.id).first()
+                        .filter { it.id in visibleSongIds }
+                },
+                keyOf = Song::id
+            )
+        }
+    }
+
+    private suspend fun currentLibrarySelectionSongIds(): Set<String> {
+        val state = playerUiState.value
+        return musicRepository.getSongIdsSorted(
+            sortOption = state.currentSongSortOption,
+            storageFilter = currentEffectiveLibraryStorageFilter(state),
+        ).mapTo(hashSetOf()) { it.toString() }
+    }
+
     private fun sortSongsForAlbumSelection(songs: List<Song>): List<Song> {
         return songs.sortedWith(
             compareBy<Song> { it.discNumber ?: 1 }
@@ -3788,10 +3828,18 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun nextSong() {
+        AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+            type = AdvancedPerformanceDiagnostics.EventTypes.PLAYBACK,
+            name = "next_requested",
+        )
         playbackStateHolder.nextSong()
     }
 
     fun previousSong() {
+        AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+            type = AdvancedPerformanceDiagnostics.EventTypes.PLAYBACK,
+            name = "previous_requested",
+        )
         playbackStateHolder.previousSong()
     }
 
@@ -4284,6 +4332,7 @@ class PlayerViewModel @Inject constructor(
         newReplayGainTrackGainDb: String? = null,
         newReplayGainAlbumGainDb: String? = null,
         coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
     ) {
         viewModelScope.launch {
             Timber.tag("PlayerViewModel").e("METADATA_EDIT_VM: Starting editSongMetadata via Holder")
@@ -4306,7 +4355,8 @@ class PlayerViewModel @Inject constructor(
                         discNumber = newDiscNumber,
                         replayGainTrackGainDb = newReplayGainTrackGainDb,
                         replayGainAlbumGainDb = newReplayGainAlbumGainDb,
-                        coverArtUpdate = coverArtUpdate
+                        coverArtUpdate = coverArtUpdate,
+                        customMetadataChanges = customMetadataChanges
                     )
                     _writePermissionRequest.emit(intentSender)
                     return@launch
@@ -4314,7 +4364,8 @@ class PlayerViewModel @Inject constructor(
             }
 
             performMetadataEdit(song, newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics,
-                newTrackNumber, newDiscNumber, newReplayGainTrackGainDb, newReplayGainAlbumGainDb, coverArtUpdate)
+                newTrackNumber, newDiscNumber, newReplayGainTrackGainDb, newReplayGainAlbumGainDb, coverArtUpdate,
+                customMetadataChanges)
         }
     }
 
@@ -4388,7 +4439,8 @@ class PlayerViewModel @Inject constructor(
                 pending.song, pending.title, pending.artist, pending.album,
                 pending.albumArtist, pending.composer, pending.genre, pending.lyrics,
                 pending.trackNumber, pending.discNumber,
-                pending.replayGainTrackGainDb, pending.replayGainAlbumGainDb, pending.coverArtUpdate
+                pending.replayGainTrackGainDb, pending.replayGainAlbumGainDb, pending.coverArtUpdate,
+                pending.customMetadataChanges
             )
         }
     }
@@ -4452,6 +4504,7 @@ class PlayerViewModel @Inject constructor(
         newReplayGainTrackGainDb: String?,
         newReplayGainAlbumGainDb: String?,
         coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges = CustomMetadataChanges(),
     ) {
         val previousAlbumArt = song.albumArtUriString
 
@@ -4468,7 +4521,8 @@ class PlayerViewModel @Inject constructor(
             newDiscNumber = newDiscNumber,
             newReplayGainTrackGainDb = newReplayGainTrackGainDb,
             newReplayGainAlbumGainDb = newReplayGainAlbumGainDb,
-            coverArtUpdate = coverArtUpdate
+            coverArtUpdate = coverArtUpdate,
+            customMetadataChanges = customMetadataChanges
         )
 
         Timber.tag("PlayerViewModel").e("METADATA_EDIT_VM: Result success=${result.success}")

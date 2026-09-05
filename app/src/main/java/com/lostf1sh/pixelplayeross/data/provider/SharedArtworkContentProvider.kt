@@ -3,10 +3,13 @@ package com.lostf1sh.pixelplayeross.data.provider
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.AssetFileDescriptor
 import android.database.Cursor
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Binder
 import android.os.ParcelFileDescriptor
 import androidx.core.graphics.drawable.toBitmap
 import coil.imageLoader
@@ -64,6 +67,7 @@ class SharedArtworkContentProvider : ContentProvider() {
 
         val appContext = context?.applicationContext
             ?: throw FileNotFoundException("Artwork provider is unavailable")
+        enforceArtworkReadAccess(uri, appContext)
         val cloudArtworkUri = parseCloudArtworkUri(uri.toString(), appContext.packageName)
         if (cloudArtworkUri != null) {
             return openCloudArtworkPipe(appContext, cloudArtworkUri)
@@ -87,6 +91,33 @@ class SharedArtworkContentProvider : ContentProvider() {
             appContext = appContext,
             songId = songId
         )?.takeIf { it.exists() && it.isFile && it.canRead() }
+    }
+
+    /**
+     * Some vendor System UI implementations reject URI grants before attempting to open a
+     * non-exported provider. The provider is therefore exported for compatibility, while every
+     * file open still requires either our own UID or the explicit per-item grant issued by the
+     * media session.
+     */
+    private fun enforceArtworkReadAccess(uri: Uri, appContext: Context) {
+        val callingUid = Binder.getCallingUid()
+        val permissionResult = appContext.checkUriPermission(
+            uri,
+            Binder.getCallingPid(),
+            callingUid,
+            Intent.FLAG_GRANT_READ_URI_PERMISSION,
+        )
+        if (
+            !hasArtworkReadAccess(
+                callingUid = callingUid,
+                providerUid = appContext.applicationInfo.uid,
+                uriPermissionResult = permissionResult,
+            )
+        ) {
+            // FileNotFoundException is intentionally used here: media clients commonly treat a
+            // missing cover as optional, whereas vendor System UI code may crash on SecurityException.
+            throw FileNotFoundException("Artwork URI has not been granted to the caller")
+        }
     }
 
     private fun openCloudArtworkPipe(
@@ -231,6 +262,15 @@ class SharedArtworkContentProvider : ContentProvider() {
                 return null
             }
             return songIdSegment.toLongOrNull()
+        }
+
+        internal fun hasArtworkReadAccess(
+            callingUid: Int,
+            providerUid: Int,
+            uriPermissionResult: Int,
+        ): Boolean {
+            return callingUid == providerUid ||
+                uriPermissionResult == PackageManager.PERMISSION_GRANTED
         }
     }
 }

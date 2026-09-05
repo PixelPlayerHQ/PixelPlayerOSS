@@ -31,7 +31,11 @@ internal fun buildSyncExecutionPlan(
         directoryRulesChanged ||
         isFreshInstall
     val resetExistingLocalData = requestedMode == SyncMode.REBUILD
-    val effectiveForceMetadata = requestedForceMetadata || requestedMode == SyncMode.REBUILD
+    // Artist delimiter changes must re-read the physical tags as well as rebuild relationships.
+    // MediaStore often exposes only the first ARTIST value, especially for Vorbis comments.
+    val effectiveForceMetadata = requestedForceMetadata ||
+        requestedMode == SyncMode.REBUILD ||
+        rescanRequired
     val localScanMode = when {
         resetExistingLocalData -> LocalScanMode.LOCAL_REBUILD
         effectiveForceMetadata -> LocalScanMode.DEEP_RESCAN

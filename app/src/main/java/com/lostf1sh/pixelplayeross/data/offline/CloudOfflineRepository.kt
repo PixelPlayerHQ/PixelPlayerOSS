@@ -16,6 +16,7 @@ import com.lostf1sh.pixelplayeross.data.worker.CloudTrackDownloadWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.security.MessageDigest
+import java.util.Locale
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -78,9 +79,11 @@ class CloudOfflineRepository @Inject constructor(
             val provider = providerFor(song.contentUriString) ?: return@withLock
             val downloadId = downloadId(song.contentUriString)
             val existing = dao.getBySourceUri(song.contentUriString)
-            if (existing?.state == OfflineDownloadStatus.COMPLETE.storageValue &&
-                existing.localPath?.let(::File)?.isFile == true
-            ) {
+            val completedFileAvailable = existing?.localPath
+                ?.let(::File)
+                ?.let { it.isFile && it.length() > 0L }
+                ?: false
+            if (!shouldStartNewAttempt(existing?.state, completedFileAvailable)) {
                 return@withLock
             }
             existing?.let {
@@ -121,10 +124,7 @@ class CloudOfflineRepository @Inject constructor(
     }
 
     suspend fun enqueueAll(songs: Collection<Song>) {
-        songs.asSequence()
-            .filter { isCloudSong(it) }
-            .distinctBy { it.contentUriString }
-            .forEach { enqueue(it) }
+        downloadCandidates(songs).forEach { enqueue(it) }
     }
 
     suspend fun retry(sourceUri: String) = withContext(Dispatchers.IO) {
@@ -195,7 +195,14 @@ class CloudOfflineRepository @Inject constructor(
     companion object {
         fun isCloudSong(song: Song): Boolean = providerFor(song.contentUriString) != null
 
-        fun providerFor(sourceUri: String): String? = when (sourceUri.substringBefore(':', "").lowercase()) {
+        fun downloadCandidates(songs: Iterable<Song>): List<Song> = songs.asSequence()
+            .filter { isCloudSong(it) }
+            .distinctBy(Song::contentUriString)
+            .toList()
+
+        fun providerFor(sourceUri: String): String? = when (
+            sourceUri.substringBefore(':', "").lowercase(Locale.ROOT)
+        ) {
             "navidrome" -> "navidrome"
             "jellyfin" -> "jellyfin"
             else -> null
@@ -207,6 +214,20 @@ class CloudOfflineRepository @Inject constructor(
                 .joinToString("") { "%02x".format(it) }
 
         fun workName(downloadId: String): String = "cloud_track_download_$downloadId"
+
+        /**
+         * Album, playlist, and selection actions can all target the same track. Preserve an
+         * in-flight attempt instead of replacing it and discarding already-downloaded bytes.
+         */
+        internal fun shouldStartNewAttempt(
+            existingState: String?,
+            completedFileAvailable: Boolean
+        ): Boolean = when (existingState) {
+            OfflineDownloadStatus.QUEUED.storageValue,
+            OfflineDownloadStatus.DOWNLOADING.storageValue -> false
+            OfflineDownloadStatus.COMPLETE.storageValue -> !completedFileAvailable
+            else -> true
+        }
 
         internal fun attemptFileStem(downloadId: String, attemptId: String): String =
             "$downloadId.$attemptId"

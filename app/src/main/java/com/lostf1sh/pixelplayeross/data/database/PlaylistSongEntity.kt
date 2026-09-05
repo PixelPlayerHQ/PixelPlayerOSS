@@ -6,7 +6,7 @@ import androidx.room.Index
 
 @Entity(
     tableName = "playlist_songs",
-    primaryKeys = ["playlist_id", "song_id"],
+    primaryKeys = ["playlist_id", "sort_order"],
     indices = [
         Index(value = ["playlist_id", "sort_order"]),
         Index(value = ["song_id"])

@@ -487,6 +487,11 @@ fun LibraryArtistsTab(
     onArtistClick: (Long) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    isSelectionMode: Boolean = false,
+    selectedArtistIds: Set<Long> = emptySet(),
+    onArtistLongPress: (Artist) -> Unit = {},
+    onArtistSelectionToggle: (Artist) -> Unit = {},
+    getSelectionIndex: (Long) -> Int? = { null },
     storageFilter: StorageFilter = StorageFilter.ALL
 ) {
     val listState = rememberLazyListState()
@@ -636,7 +641,21 @@ fun LibraryArtistsTab(
                                     val rememberedOnClick = remember(artist.id, onArtistClick) {
                                         { onArtistClick(artist.id) }
                                     }
-                                    ArtistListItem(artist = artist, onClick = rememberedOnClick)
+                                    val rememberedOnLongPress = remember(artist.id, onArtistLongPress) {
+                                        { onArtistLongPress(artist) }
+                                    }
+                                    val rememberedOnSelectionToggle = remember(artist.id, onArtistSelectionToggle) {
+                                        { onArtistSelectionToggle(artist) }
+                                    }
+                                    ArtistListItem(
+                                        artist = artist,
+                                        onClick = rememberedOnClick,
+                                        isSelectionMode = isSelectionMode,
+                                        isSelected = selectedArtistIds.contains(artist.id),
+                                        selectionIndex = getSelectionIndex(artist.id),
+                                        onLongPress = rememberedOnLongPress,
+                                        onSelectionToggle = rememberedOnSelectionToggle
+                                    )
                                 } else {
                                     ArtistListItem(
                                         artist = Artist.empty(),

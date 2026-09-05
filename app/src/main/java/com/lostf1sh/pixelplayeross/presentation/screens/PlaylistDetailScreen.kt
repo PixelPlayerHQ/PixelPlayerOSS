@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -32,7 +33,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.RemoveCircleOutline
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
@@ -95,6 +96,7 @@ import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -125,6 +127,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupied
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
+import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel.Companion.FOLDER_PLAYLIST_PREFIX
 import com.lostf1sh.pixelplayeross.presentation.utils.LocalAppHapticsConfig
 import com.lostf1sh.pixelplayeross.presentation.utils.performAppCompatHapticFeedback
@@ -157,6 +161,7 @@ fun PlaylistDetailScreen(
     onDeletePlayListClick: () -> Unit,
     playerViewModel: PlayerViewModel,
     playlistViewModel: PlaylistViewModel = hiltViewModel(),
+    cloudDownloadsViewModel: CloudDownloadsViewModel = hiltViewModel(),
     navController: NavController
 ) {
     val uiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
@@ -185,6 +190,7 @@ fun PlaylistDetailScreen(
     val deletePlaylistLabel = stringResource(R.string.presentation_batch_b_delete_playlist)
     val setDefaultTransitionLabel = stringResource(R.string.presentation_batch_b_set_default_transition)
     val exportPlaylistLabel = stringResource(R.string.presentation_batch_b_export_playlist)
+    val downloadPlaylistLabel = stringResource(R.string.cloud_playlist_download)
     val deletePlaylistConfirmTitle = stringResource(R.string.presentation_batch_b_delete_playlist_confirm_title)
     val deletePlaylistConfirmBody = stringResource(R.string.presentation_batch_b_delete_playlist_confirm_body)
     val sortSheetTitle = stringResource(R.string.presentation_batch_b_sort_songs)
@@ -195,6 +201,9 @@ fun PlaylistDetailScreen(
     val isSmartPlaylist = currentPlaylist?.isSmartPlaylist == true
     val isEditablePlaylist = !isFolderPlaylist && !isSmartPlaylist
     val songsInPlaylist = uiState.currentPlaylistSongs
+    val cloudSongsInPlaylist = remember(songsInPlaylist) {
+        CloudOfflineRepository.downloadCandidates(songsInPlaylist)
+    }
 
     LaunchedEffect(playlistId) {
         playlistViewModel.loadPlaylistDetails(playlistId)
@@ -231,7 +240,14 @@ fun PlaylistDetailScreen(
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
     val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
-    var localReorderableSongs by remember(songsInPlaylist) { mutableStateOf(songsInPlaylist) }
+    // The initial position identifies an occurrence, even when the same song appears twice.
+    // Move the entry with its key so dragging never changes a row's identity.
+    var localReorderableEntries by remember(songsInPlaylist) {
+        mutableStateOf(songsInPlaylist.withIndex().toList())
+    }
+    val localReorderableSongs = remember(localReorderableEntries) {
+        localReorderableEntries.map { it.value }
+    }
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -243,7 +259,7 @@ fun PlaylistDetailScreen(
     val reorderableState = rememberReorderableLazyListState(
         lazyListState = listState,
         onMove = { from, to ->
-            localReorderableSongs = localReorderableSongs.toMutableList().apply {
+            localReorderableEntries = localReorderableEntries.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
             if (lastMovedFrom == null) {
@@ -376,7 +392,8 @@ fun PlaylistDetailScreen(
                                 playerViewModel.playSongs(
                                     localReorderableSongs,
                                     localReorderableSongs.first(),
-                                    currentPlaylist.name
+                                    currentPlaylist.name,
+                                    currentPlaylist.id,
                                 )
                                 if (playerStableState.isShuffleEnabled) playerViewModel.toggleShuffle()
                             }
@@ -715,10 +732,11 @@ fun PlaylistDetailScreen(
                                 )
                             }
                         ) {
-                            itemsIndexed(
-                                localReorderableSongs,
-                                key = { _, item -> item.id },
-                                contentType = { _, _ -> "playlist_song" }) { _, song ->
+                            items(
+                                localReorderableEntries,
+                                key = { it.index },
+                                contentType = { "playlist_song" }) { entry ->
+                                val song = entry.value
                                 val playbackUiState by remember(song.id, playerViewModel) {
                                     playerViewModel.stablePlayerState
                                         .map { state ->
@@ -732,7 +750,7 @@ fun PlaylistDetailScreen(
                                 }.collectAsStateWithLifecycle(initialValue = LibrarySongPlaybackUiState())
                                 ReorderableItem(
                                     state = reorderableState,
-                                    key = song.id,
+                                    key = entry.index,
                                 ) { isDragging ->
                                     val scale by animateFloatAsState(
                                         if (isDragging) 1.05f else 1f,
@@ -888,6 +906,24 @@ fun PlaylistDetailScreen(
                         navController.navigateSafely(Screen.EditTransition.createRoute(playlistId))
                     }
                 )
+                if (cloudSongsInPlaylist.isNotEmpty()) {
+                    PlaylistActionItem(
+                        icon = rememberVectorPainter(Icons.Rounded.CloudDownload),
+                        label = downloadPlaylistLabel,
+                        onClick = {
+                            showPlaylistOptionsSheet = false
+                            cloudDownloadsViewModel.downloadSelected(cloudSongsInPlaylist)
+                            Toast.makeText(
+                                context,
+                                context.getString(
+                                    R.string.cloud_download_selected_started,
+                                    cloudSongsInPlaylist.size,
+                                ),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                    )
+                }
                 PlaylistActionItem(
                     icon = painterResource(R.drawable.rounded_attach_file_24),
                     label = exportPlaylistLabel,
@@ -1036,7 +1072,7 @@ fun PlaylistDetailScreen(
                     }
                     showSongInfoBottomSheet = false
                 },
-                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+                onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                     playerViewModel.editSongMetadata(
                         currentSong,
                         newTitle,
@@ -1050,7 +1086,8 @@ fun PlaylistDetailScreen(
                         newDiscNumber,
                         replayGainTrackGainDb,
                         replayGainAlbumGainDb,
-                        coverArtUpdate
+                        coverArtUpdate,
+                        customMetadataChanges
                     )
                 },
                 removeFromListTrigger = {

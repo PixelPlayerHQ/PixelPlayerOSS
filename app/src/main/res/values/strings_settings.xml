@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="setcat_m3u_sync_section" tools:ignore="MissingTranslation">Playlist synchronization</string>
+    <string name="setcat_m3u_sync_title" tools:ignore="MissingTranslation">Automatic M3U sync</string>
+    <string name="setcat_m3u_sync_disabled_subtitle" tools:ignore="MissingTranslation">Choose an external folder to keep local playlists in sync both ways</string>
+    <string name="setcat_m3u_sync_enabled_subtitle" tools:ignore="MissingTranslation">Synchronizing with %1$s</string>
+    <string name="setcat_m3u_sync_selected_folder" tools:ignore="MissingTranslation">selected folder</string>
+    <string name="setcat_m3u_sync_now_title" tools:ignore="MissingTranslation">Sync playlists now</string>
+    <string name="setcat_m3u_sync_now_subtitle" tools:ignore="MissingTranslation">Import and export changes without overwriting conflicts</string>
+    <string name="setcat_m3u_sync_result" tools:ignore="MissingTranslation">%1$d changed · %2$d conflicts · %3$d unresolved entries</string>
     <string name="settings_top_bar_title">Settings</string>
     <string name="settings_accounts_row_title">Accounts</string>
     <string name="settings_accounts_row_subtitle">Manage Navidrome and Jellyfin services</string>
@@ -84,6 +92,8 @@
     <string name="language_zh_rCN" translatable="false">简体中文</string>
     <string name="setcat_app_theme_label">App Theme</string>
     <string name="setcat_app_theme_desc">Switch between light, dark, or follow system appearance.</string>
+    <string name="setcat_global_now_playing_theme_title" tools:ignore="MissingTranslation">Use now playing colors across the app</string>
+    <string name="setcat_global_now_playing_theme_subtitle" tools:ignore="MissingTranslation">Colors the whole app from the current song\'s album art. Light and dark mode are still respected.</string>
     <string name="setcat_theme_light">Light Theme</string>
     <string name="setcat_theme_dark">Dark Theme</string>
     <string name="setcat_theme_follow_system">Follow System</string>
@@ -137,6 +147,8 @@
     <string name="setcat_background_playback">Background Playback</string>
     <string name="setcat_keep_playing_label">Keep playing after closing</string>
     <string name="setcat_keep_playing_desc">If off, removing the app from recents will stop playback.</string>
+    <string name="setcat_keep_screen_awake_title" tools:ignore="MissingTranslation">Keep screen awake while playing</string>
+    <string name="setcat_keep_screen_awake_subtitle" tools:ignore="MissingTranslation">Prevents the screen from sleeping while music is actively playing and the app is visible.</string>
     <string name="setcat_replaygain_section">Volume Normalization (ReplayGain)</string>
     <string name="setcat_replaygain_enable_title">Enable ReplayGain</string>
     <string name="setcat_replaygain_enable_subtitle">Normalize volume levels using ReplayGain metadata from audio files.</string>

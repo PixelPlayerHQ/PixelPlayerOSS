@@ -6,12 +6,19 @@ import android.os.ParcelFileDescriptor
 import com.kyant.taglib.TagLib
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
+import org.jaudiotagger.tag.flac.FlacTag
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag
+import org.jaudiotagger.tag.mp4.Mp4Tag
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag
+import org.jaudiotagger.tag.wav.WavTag
 import timber.log.Timber
 import java.io.File
 
 data class AudioMetadata(
     val title: String?,
     val artist: String?,
+    /** Every physical ARTIST field, in tag order. [artist] remains the primary value. */
+    val artists: List<String>,
     val albumArtist: String?,
     val album: String?,
     val genre: String?,
@@ -25,8 +32,32 @@ data class AudioMetadata(
     val sampleRate: Int?,
     val artwork: AudioMetadataArtwork?,
     val replayGainTrackGainDb: Float? = null,
-    val replayGainAlbumGainDb: Float? = null
+    val replayGainAlbumGainDb: Float? = null,
+    val rating: Int? = null,
+    val customFields: List<CustomMetadataField> = emptyList()
 )
+
+/**
+ * Normalizes values read from repeated metadata fields without changing their source order.
+ *
+ * Vorbis comments and some ID3 writers can store ARTIST more than once. Keeping this helper
+ * format-agnostic lets both TagLib's property map and JAudioTagger's field list use the exact
+ * same case-insensitive de-duplication policy.
+ */
+internal fun normalizeArtistMetadataValues(
+    vararg sources: Iterable<String>?
+): List<String> {
+    val result = mutableListOf<String>()
+    sources.forEach { source ->
+        source?.forEach { value ->
+            val normalized = value.trim()
+            if (normalized.isNotEmpty() && result.none { it.equals(normalized, ignoreCase = true) }) {
+                result += normalized
+            }
+        }
+    }
+    return result
+}
 
 data class AudioMetadataArtwork(
     val bytes: ByteArray,
@@ -54,7 +85,11 @@ object AudioMetadataReader {
         }
     }
 
-    fun read(file: File, readArtwork: Boolean = true): AudioMetadata? {
+    fun read(
+        file: File,
+        readArtwork: Boolean = true,
+        readCustomMetadata: Boolean = false
+    ): AudioMetadata? {
         return try {
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { fd ->
                 val audioProperties = TagLib.getAudioProperties(fd.dup().detachFd())
@@ -68,7 +103,8 @@ object AudioMetadataReader {
                 Timber.tag(TAG).w("TagLib propertyMap keys for ${file.name}: ${propertyMap.keys}")
 
                 val title = propertyMap["TITLE"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                val artist = propertyMap["ARTIST"]?.firstOrNull()?.takeIf { it.isNotBlank() }
+                val artists = normalizeArtistMetadataValues(propertyMap["ARTIST"]?.asIterable())
+                val artist = artists.firstOrNull()
                 val albumArtist = propertyMap["ALBUMARTIST"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["ALBUM ARTIST"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["BAND"]?.firstOrNull()?.takeIf { it.isNotBlank() }
@@ -94,6 +130,19 @@ object AudioMetadataReader {
                     propertyMap = propertyMap,
                     keys = listOf("REPLAYGAIN_ALBUM_GAIN", "REPLAYGAIN_ALBUM_GAIN_DB", "R128_ALBUM_GAIN")
                 )
+                val tagFamily = metadataTagFamily(file.extension)
+                val propertyMapRating = if (readCustomMetadata) {
+                    listOf("RATING", "POPULARIMETER")
+                        .firstNotNullOfOrNull { key -> propertyMap[key]?.firstOrNull() }
+                        ?.let { decodeRatingFromTag(it, tagFamily) }
+                } else {
+                    null
+                }
+                val customFields = if (readCustomMetadata) {
+                    extractEditableCustomMetadataFields(propertyMap)
+                } else {
+                    emptyList()
+                }
 
                 Timber.tag(TAG).w("TagLib result for ${file.name}: title=$title, artist=$artist, album=$album, genre=$genre")
 
@@ -111,14 +160,19 @@ object AudioMetadataReader {
                     null
                 }
 
-                val fallback = if (title == null || artist == null || (readArtwork && artwork == null)) {
+                val fallback = if (
+                    title == null || artist == null || (readArtwork && artwork == null) || readCustomMetadata
+                ) {
                     Timber.tag(TAG).w("TagLib incomplete for ${file.name}, trying JAudioTagger fallback...")
-                    readWithJAudioTagger(file)
+                    readWithJAudioTagger(file, readCustomMetadata = readCustomMetadata)
                 } else null
+
+                val resolvedArtists = artists.ifEmpty { fallback?.artists.orEmpty() }
 
                 AudioMetadata(
                     title = title ?: fallback?.title,
-                    artist = artist ?: fallback?.artist,
+                    artist = resolvedArtists.firstOrNull() ?: artist ?: fallback?.artist,
+                    artists = resolvedArtists,
                     albumArtist = albumArtist ?: fallback?.albumArtist,
                     album = album ?: fallback?.album,
                     genre = genre ?: fallback?.genre,
@@ -132,7 +186,9 @@ object AudioMetadataReader {
                     sampleRate = sampleRate ?: fallback?.sampleRate,
                     artwork = artwork ?: fallback?.artwork,
                     replayGainTrackGainDb = replayGainTrackGainDb ?: fallback?.replayGainTrackGainDb,
-                    replayGainAlbumGainDb = replayGainAlbumGainDb ?: fallback?.replayGainAlbumGainDb
+                    replayGainAlbumGainDb = replayGainAlbumGainDb ?: fallback?.replayGainAlbumGainDb,
+                    rating = fallback?.rating ?: propertyMapRating,
+                    customFields = customFields.ifEmpty { fallback?.customFields.orEmpty() }
                 )
             }
         } catch (error: Exception) {
@@ -145,7 +201,10 @@ object AudioMetadataReader {
      * Fallback reader using JAudioTagger for files where TagLib can't map ID3 frames.
      * Called when TagLib leaves key metadata or requested artwork unresolved.
      */
-    private fun readWithJAudioTagger(file: File): AudioMetadata? {
+    private fun readWithJAudioTagger(
+        file: File,
+        readCustomMetadata: Boolean = false
+    ): AudioMetadata? {
         return try {
             java.util.logging.Logger.getLogger("org.jaudiotagger").level = java.util.logging.Level.OFF
 
@@ -157,7 +216,15 @@ object AudioMetadataReader {
                     "header=${header?.format}, sampleRate=${header?.sampleRateAsNumber}")
 
             val title = tag?.getFirst(FieldKey.TITLE)?.takeIf { it.isNotBlank() }
-            val artist = tag?.getFirst(FieldKey.ARTIST)?.takeIf { it.isNotBlank() }
+            val artists = normalizeArtistMetadataValues(
+                runCatching { tag?.getAll(FieldKey.ARTIST) }.getOrNull(),
+                listOfNotNull(
+                    runCatching { tag?.getFirst(FieldKey.ARTIST) }
+                        .getOrNull()
+                        ?.takeIf { it.isNotBlank() }
+                )
+            )
+            val artist = artists.firstOrNull()
             val albumArtist = tag?.getFirst(FieldKey.ALBUM_ARTIST)?.takeIf { it.isNotBlank() }
             val album = tag?.getFirst(FieldKey.ALBUM)?.takeIf { it.isNotBlank() }
             val genre = tag?.getFirst(FieldKey.GENRE)?.takeIf { it.isNotBlank() }
@@ -169,6 +236,20 @@ object AudioMetadataReader {
                 ?.substringBefore('/')?.toIntOrNull()
             val year = tag?.getFirst(FieldKey.YEAR)?.takeIf { it.isNotBlank() }
                 ?.take(4)?.toIntOrNull()
+            val rating = if (readCustomMetadata) {
+                val actualTagFamily = when (tag) {
+                    is AbstractID3v2Tag, is WavTag -> MetadataTagFamily.ID3
+                    is FlacTag, is VorbisCommentTag -> MetadataTagFamily.VORBIS
+                    is Mp4Tag -> MetadataTagFamily.MP4
+                    else -> metadataTagFamily(file.extension)
+                }
+                runCatching { tag?.getFirst(FieldKey.RATING) }
+                    .getOrNull()
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { decodeRatingFromTag(it, actualTagFamily) }
+            } else {
+                null
+            }
 
             val durationMs = header?.trackLength?.takeIf { it > 0 }?.let { it * 1000L }
             val bitrate = header?.bitRateAsNumber?.takeIf { it > 0 }?.toInt()?.let { it * 1000 }
@@ -189,6 +270,7 @@ object AudioMetadataReader {
             AudioMetadata(
                 title = title,
                 artist = artist,
+                artists = artists,
                 albumArtist = albumArtist,
                 album = album,
                 genre = genre,
@@ -200,7 +282,8 @@ object AudioMetadataReader {
                 year = year,
                 bitrate = bitrate,
                 sampleRate = sampleRate,
-                artwork = artwork
+                artwork = artwork,
+                rating = rating
             )
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "JAudioTagger fallback FAILED for: ${file.name}")

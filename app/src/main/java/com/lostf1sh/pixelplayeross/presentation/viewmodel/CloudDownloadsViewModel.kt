@@ -66,9 +66,7 @@ class CloudDownloadsViewModel @Inject constructor(
     }
 
     fun downloadSelected(songs: List<Song>) {
-        val cloudSongs = songs
-            .filter(CloudOfflineRepository::isCloudSong)
-            .distinctBy(Song::contentUriString)
+        val cloudSongs = CloudOfflineRepository.downloadCandidates(songs)
         if (cloudSongs.isEmpty()) return
         viewModelScope.launch { repository.enqueueAll(cloudSongs) }
     }

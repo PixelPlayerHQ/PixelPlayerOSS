@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.aspectRatio
@@ -37,9 +36,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.model.Genre
@@ -182,33 +178,23 @@ private fun GenreCard(
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(20.dp))
                 .background(backgroundColor)
         ) {
-            val textMeasurer = rememberTextMeasurer()
-            val density = LocalDensity.current
             val titleStartPadding = 14.dp
             val titleEndPadding = if (isGridView) 14.dp else 96.dp
             val titlePresentation = remember(
                 genre.id,
                 genre.name,
                 isGridView,
-                maxWidth,
-                density.density,
-                density.fontScale
             ) {
-                val startPaddingPx = with(density) { titleStartPadding.roundToPx() }
-                val endPaddingPx = with(density) { titleEndPadding.roundToPx() }
-                GenreTypography.resolveTitlePresentation(
+                GenreTypography.resolveTitlePresentationFast(
                     genreId = genre.id,
                     genreName = genre.name,
                     isGridView = isGridView,
-                    cardWidthPx = with(density) { maxWidth.roundToPx() },
-                    horizontalPaddingPx = (startPaddingPx + endPaddingPx) / 2,
-                    textMeasurer = textMeasurer
                 )
             }
 

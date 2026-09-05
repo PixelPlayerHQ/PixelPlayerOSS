@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import android.provider.Settings
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -65,6 +66,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -131,9 +134,11 @@ import com.lostf1sh.pixelplayeross.presentation.screens.SetupScreen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.MainViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
+import com.lostf1sh.pixelplayeross.ui.theme.resolveAppWideNowPlayingColorSchemePair
 import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.LogUtils
+import com.lostf1sh.pixelplayeross.utils.shouldKeepScreenAwake
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
@@ -148,6 +153,7 @@ import com.lostf1sh.pixelplayeross.presentation.utils.NoOpHapticFeedback
 import com.lostf1sh.pixelplayeross.utils.CrashLogData
 import javax.annotation.concurrent.Immutable
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 
@@ -208,6 +214,28 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                try {
+                    combine(
+                        userPreferencesRepository.keepScreenAwakeWhilePlayingFlow,
+                        playerViewModel.stablePlayerState
+                            .map { state -> state.isPlaying }
+                            .distinctUntilChanged(),
+                        ::shouldKeepScreenAwake,
+                    ).distinctUntilChanged().collect { keepAwake ->
+                        if (keepAwake) {
+                            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        } else {
+                            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                        }
+                    }
+                } finally {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
+
         splashScreen.setKeepOnScreenCondition { false }
 
         val isBenchmarkMode = intent.getBooleanExtra("is_benchmark", false)
@@ -234,6 +262,47 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.LIGHT -> false
                 else -> systemDarkTheme
             }
+            val globalNowPlayingThemeEnabled by themePreferencesRepository
+                .globalNowPlayingThemeEnabledFlow
+                .collectAsStateWithLifecycle(initialValue = false)
+            val activePlayerColorSchemePair by playerViewModel
+                .activePlayerColorSchemePair
+                .collectAsStateWithLifecycle()
+            val themedAlbumArtUri by playerViewModel
+                .currentThemedAlbumArtUri
+                .collectAsStateWithLifecycle()
+            val stablePlayerState by playerViewModel
+                .stablePlayerState
+                .collectAsStateWithLifecycle()
+            val currentSongId = stablePlayerState.currentSong?.id
+            val currentSongScheme = activePlayerColorSchemePair.takeIf {
+                val artworkUri = stablePlayerState.currentSong?.albumArtUriString
+                !artworkUri.isNullOrBlank() && artworkUri == themedAlbumArtUri
+            }
+            var lastValidNowPlayingSongId by remember { mutableStateOf<String?>(null) }
+            var lastValidNowPlayingScheme by remember {
+                mutableStateOf<com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair?>(null)
+            }
+            LaunchedEffect(currentSongId, currentSongScheme) {
+                when {
+                    currentSongId == null -> {
+                        lastValidNowPlayingSongId = null
+                        lastValidNowPlayingScheme = null
+                    }
+                    currentSongScheme != null -> {
+                        lastValidNowPlayingSongId = currentSongId
+                        lastValidNowPlayingScheme = currentSongScheme
+                    }
+                }
+            }
+            val appWideNowPlayingScheme = resolveAppWideNowPlayingColorSchemePair(
+                enabled = globalNowPlayingThemeEnabled,
+                currentSongId = currentSongId,
+                isPlaying = stablePlayerState.isPlaying,
+                currentSongScheme = currentSongScheme,
+                lastValidSongId = lastValidNowPlayingSongId,
+                lastValidScheme = lastValidNowPlayingScheme
+            )
             val isSetupComplete by mainViewModel.isSetupComplete.collectAsStateWithLifecycle()
             
             var showCrashReportDialog by remember { mutableStateOf(false) }
@@ -270,7 +339,8 @@ class MainActivity : ComponentActivity() {
             }
 
             PixelPlayerTheme(
-                darkTheme = useDarkTheme
+                darkTheme = useDarkTheme,
+                colorSchemePairOverride = appWideNowPlayingScheme
             ) {
                 var contentVisible by remember { mutableStateOf(false) }
                 val contentAlpha by animateFloatAsState(

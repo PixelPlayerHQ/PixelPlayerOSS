@@ -153,3 +153,49 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
         )
     }
 }
+
+/**
+ * v5 -> v6: playlist positions are unique, while song ids may repeat.
+ *
+ * M3U playlists can intentionally contain the same track more than once. The previous
+ * `(playlist_id, song_id)` primary key silently collapsed those entries during persistence.
+ * Existing rows are copied in their current order and assigned dense positions so even legacy
+ * databases with duplicate sort values migrate without dropping a song.
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("DROP TABLE IF EXISTS `playlist_songs_v6`")
+        db.execSQL(
+            """
+                CREATE TABLE `playlist_songs_v6` (
+                    `playlist_id` TEXT NOT NULL,
+                    `song_id` TEXT NOT NULL,
+                    `sort_order` INTEGER NOT NULL,
+                    PRIMARY KEY(`playlist_id`, `sort_order`)
+                )
+            """.trimIndent()
+        )
+        db.execSQL(
+            """
+                INSERT INTO `playlist_songs_v6` (`playlist_id`, `song_id`, `sort_order`)
+                SELECT
+                    `playlist_id`,
+                    `song_id`,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY `playlist_id`
+                        ORDER BY `sort_order`, `rowid`
+                    ) - 1
+                FROM `playlist_songs`
+            """.trimIndent()
+        )
+        db.execSQL("DROP TABLE `playlist_songs`")
+        db.execSQL("ALTER TABLE `playlist_songs_v6` RENAME TO `playlist_songs`")
+        db.execSQL(
+            "CREATE INDEX `index_playlist_songs_playlist_id_sort_order` " +
+                "ON `playlist_songs` (`playlist_id`, `sort_order`)"
+        )
+        db.execSQL(
+            "CREATE INDEX `index_playlist_songs_song_id` ON `playlist_songs` (`song_id`)"
+        )
+    }
+}

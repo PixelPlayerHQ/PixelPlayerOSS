@@ -38,6 +38,7 @@ import androidx.media3.extractor.flac.FlacExtractor
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
+import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
 import com.lostf1sh.pixelplayeross.utils.envelope
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
@@ -1217,19 +1218,26 @@ class DualPlayerEngine @Inject constructor(
 
     suspend fun resolveCloudUri(uri: Uri): Uri = withContext(Dispatchers.IO) {
         val uriString = uri.toString()
-        resolvedUriCache.get(uriString)?.let { return@withContext it }
-
-        val resolved: Uri? = when (uri.scheme) {
-            "navidrome" -> resolveNavidromeUriAsync(uriString)
-            "jellyfin" -> resolveJellyfinUriAsync(uriString)
-            else -> null
-        }
-
-        if (resolved != null) {
-            resolvedUriCache.put(uriString, resolved)
-            return@withContext resolved
-        }
-        uri
+        resolvePreferredCloudPlaybackValue(
+            original = uri,
+            resolveOffline = {
+                try {
+                    cloudOfflineRepository.resolveLocalUri(uriString)
+                } catch (error: Exception) {
+                    Timber.tag("DualPlayerEngine").w(error, "Offline copy lookup failed")
+                    null
+                }
+            },
+            resolveCachedRemote = { resolvedUriCache.get(uriString) },
+            resolveRemote = {
+                when (uri.scheme) {
+                    "navidrome" -> resolveNavidromeUriAsync(uriString)
+                    "jellyfin" -> resolveJellyfinUriAsync(uriString)
+                    else -> null
+                }
+            },
+            onRemoteResolved = { resolved -> resolvedUriCache.put(uriString, resolved) }
+        )
     }
 
     private suspend fun resolveNavidromeUriAsync(uriString: String): Uri? = withContext(Dispatchers.IO) {
@@ -1245,11 +1253,25 @@ class DualPlayerEngine @Inject constructor(
     }
 
     suspend fun resolveMediaItem(mediaItem: MediaItem): MediaItem {
-        val uri = mediaItem.localConfiguration?.uri ?: return mediaItem
-        val scheme = uri.scheme
-        if (scheme !in CLOUD_PROXY_SCHEMES) return mediaItem
-        val resolvedUri = resolveCloudUri(uri)
-        return if (resolvedUri == uri) mediaItem else mediaItem.buildUpon().setUri(resolvedUri).build()
+        val playerUri = mediaItem.localConfiguration?.uri ?: return mediaItem
+        val originalContentUri = mediaItem.mediaMetadata.extras
+            ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
+        val canonicalUriString = selectCanonicalCloudPlaybackUri(
+            playerUri = playerUri.toString(),
+            originalContentUri = originalContentUri,
+        )
+        if (!isCanonicalCloudPlaybackUri(canonicalUriString)) return mediaItem
+
+        val canonicalUri = Uri.parse(canonicalUriString)
+        // Warm the offline/proxy path, but keep the durable URI in the player's timeline. The
+        // ResolvingDataSource selects the current offline copy or proxy again for every load, so
+        // removing a download cannot strand a queued item on a stale file:// URI.
+        resolveCloudUri(canonicalUri)
+        return if (playerUri == canonicalUri) {
+            mediaItem
+        } else {
+            mediaItem.buildUpon().setUri(canonicalUri).build()
+        }
     }
 
     suspend fun prepareNext(target: TransitionTarget, startPositionMs: Long = 0L) {

@@ -6,6 +6,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
@@ -52,6 +53,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material.icons.rounded.RepeatOne
 import androidx.compose.ui.platform.LocalContext
@@ -84,6 +86,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.Player
 import com.lostf1sh.pixelplayeross.data.media.AudioMetadataReader
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataChanges
+import com.lostf1sh.pixelplayeross.data.media.CustomMetadataField
+import com.lostf1sh.pixelplayeross.data.media.buildCustomMetadataChanges
 import dev.shreyaspatil.capturable.controller.rememberCaptureController
 import java.io.ByteArrayOutputStream
 import java.util.Locale
@@ -112,7 +117,8 @@ fun EditSongSheet(
         discNumber: Int?,
         replayGainTrackGainDb: String,
         replayGainAlbumGainDb: String,
-        coverArtUpdate: CoverArtUpdate?
+        coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges
     ) -> Unit
 ) {
     val transitionState = remember { MutableTransitionState(false) }
@@ -158,7 +164,8 @@ private fun EditSongContent(
         discNumber: Int?,
         replayGainTrackGainDb: String,
         replayGainAlbumGainDb: String,
-        coverArtUpdate: CoverArtUpdate?
+        coverArtUpdate: CoverArtUpdate?,
+        customMetadataChanges: CustomMetadataChanges
     ) -> Unit,
 ) {
     var title by remember { mutableStateOf(song.title) }
@@ -172,6 +179,12 @@ private fun EditSongContent(
     var discNumber by remember { mutableStateOf(song.discNumber?.toString() ?: "") }
     var replayGainTrackGainDb by remember { mutableStateOf("") }
     var replayGainAlbumGainDb by remember { mutableStateOf("") }
+    var metadataWasRead by remember { mutableStateOf(false) }
+    var originalRating by remember { mutableStateOf<Int?>(null) }
+    var rating by remember { mutableStateOf<Int?>(null) }
+    var originalCustomFields by remember { mutableStateOf<List<CustomMetadataField>>(emptyList()) }
+    var customFields by remember { mutableStateOf<List<CustomMetadataField>>(emptyList()) }
+    var customMetadataError by remember { mutableStateOf<String?>(null) }
     var coverArtPreview by remember { mutableStateOf<ImageBitmap?>(null) }
     var editedCoverArt by remember { mutableStateOf<CoverArtUpdate?>(null) }
     var isCoverArtDeleted by remember { mutableStateOf(false) }
@@ -199,6 +212,12 @@ private fun EditSongContent(
         discNumber = song.discNumber?.toString() ?: ""
         replayGainTrackGainDb = ""
         replayGainAlbumGainDb = ""
+        metadataWasRead = false
+        originalRating = null
+        rating = null
+        originalCustomFields = emptyList()
+        customFields = emptyList()
+        customMetadataError = null
         coverArtPreview = null
         editedCoverArt = null
         isCoverArtDeleted = false
@@ -208,7 +227,11 @@ private fun EditSongContent(
                 try {
                     val file = java.io.File(song.path)
                     if (file.exists()) {
-                        AudioMetadataReader.read(file, readArtwork = false)
+                        AudioMetadataReader.read(
+                            file,
+                            readArtwork = false,
+                            readCustomMetadata = true
+                        )
                     } else {
                         null
                     }
@@ -227,6 +250,11 @@ private fun EditSongContent(
             embeddedMetadata?.composer?.takeIf { it.isNotBlank() }?.let { composer = it }
             replayGainTrackGainDb = formatReplayGainForInput(embeddedMetadata?.replayGainTrackGainDb)
             replayGainAlbumGainDb = formatReplayGainForInput(embeddedMetadata?.replayGainAlbumGainDb)
+            metadataWasRead = embeddedMetadata != null
+            originalRating = embeddedMetadata?.rating
+            rating = embeddedMetadata?.rating
+            originalCustomFields = embeddedMetadata?.customFields.orEmpty()
+            customFields = embeddedMetadata?.customFields.orEmpty()
         }
     }
 
@@ -372,6 +400,152 @@ private fun EditSongContent(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+                }
+            }
+
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.edit_song_custom_metadata_heading),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(R.string.edit_song_custom_metadata_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+
+                        Text(
+                            text = stringResource(R.string.edit_song_rating),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = rating == null,
+                                onClick = {
+                                    rating = null
+                                    customMetadataError = null
+                                },
+                                label = { Text(stringResource(R.string.edit_song_rating_not_set)) }
+                            )
+                            (0..5).forEach { value ->
+                                FilterChip(
+                                    selected = rating == value,
+                                    onClick = {
+                                        rating = value
+                                        customMetadataError = null
+                                    },
+                                    label = { Text(value.toString()) }
+                                )
+                            }
+                        }
+
+                        HorizontalDivider()
+
+                        customFields.forEachIndexed { index, field ->
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    OutlinedTextField(
+                                        value = field.key,
+                                        onValueChange = { updatedKey ->
+                                            customFields = customFields.toMutableList().also { fields ->
+                                                fields[index] = field.copy(key = updatedKey)
+                                            }
+                                            customMetadataError = null
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text(stringResource(R.string.edit_song_custom_field_name)) },
+                                        singleLine = true,
+                                        shape = textFieldShape,
+                                        colors = textFieldColors
+                                    )
+                                    OutlinedTextField(
+                                        value = field.value,
+                                        onValueChange = { updatedValue ->
+                                            customFields = customFields.toMutableList().also { fields ->
+                                                fields[index] = field.copy(value = updatedValue)
+                                            }
+                                            customMetadataError = null
+                                        },
+                                        modifier = Modifier.fillMaxWidth(),
+                                        label = { Text(stringResource(R.string.edit_song_custom_field_value)) },
+                                        singleLine = true,
+                                        shape = textFieldShape,
+                                        colors = textFieldColors
+                                    )
+                                    TextButton(
+                                        onClick = {
+                                            customFields = customFields.toMutableList().also { fields ->
+                                                fields.removeAt(index)
+                                            }
+                                            customMetadataError = null
+                                        },
+                                        modifier = Modifier.align(Alignment.End)
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.Delete,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(stringResource(R.string.edit_song_remove_custom_field))
+                                    }
+                                }
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                customFields = customFields + CustomMetadataField("", "")
+                                customMetadataError = null
+                            },
+                            enabled = customFields.size < 24,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(R.string.edit_song_add_custom_field))
+                        }
+
+                        Text(
+                            text = stringResource(R.string.edit_song_custom_metadata_formats),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        customMetadataError?.let { error ->
+                            Text(
+                                text = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
                 }
             }
 
@@ -656,20 +830,33 @@ private fun EditSongContent(
                             onClick = {
                                 val resolvedTrackNumber = trackNumber.toIntOrNull() ?: song.trackNumber
                                 val resolvedDiscNumber = discNumber.toIntOrNull()
-                                onSave(
-                                    title.trim(),
-                                    artist.trim(),
-                                    album.trim(),
-                                    albumArtist.trim(),
-                                    composer.trim(),
-                                    genre.trim(),
-                                    lyrics,
-                                    resolvedTrackNumber,
-                                    resolvedDiscNumber,
-                                    replayGainTrackGainDb.trim(),
-                                    replayGainAlbumGainDb.trim(),
-                                    editedCoverArt
-                                )
+                                buildCustomMetadataChanges(
+                                    metadataWasRead = metadataWasRead,
+                                    originalRating = originalRating,
+                                    editedRating = rating,
+                                    originalFields = originalCustomFields,
+                                    editedFields = customFields
+                                ).onSuccess { customMetadataChanges ->
+                                    customMetadataError = null
+                                    onSave(
+                                        title.trim(),
+                                        artist.trim(),
+                                        album.trim(),
+                                        albumArtist.trim(),
+                                        composer.trim(),
+                                        genre.trim(),
+                                        lyrics,
+                                        resolvedTrackNumber,
+                                        resolvedDiscNumber,
+                                        replayGainTrackGainDb.trim(),
+                                        replayGainAlbumGainDb.trim(),
+                                        editedCoverArt,
+                                        customMetadataChanges
+                                    )
+                                }.onFailure { error ->
+                                    customMetadataError = error.message
+                                        ?: context.getString(R.string.edit_song_custom_metadata_invalid)
+                                }
                             },
                             modifier = Modifier.height(48.dp)
                         ) {

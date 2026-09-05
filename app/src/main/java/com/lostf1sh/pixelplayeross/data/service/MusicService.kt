@@ -51,6 +51,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.data.service.player.TransitionController
+import com.lostf1sh.pixelplayeross.data.service.player.selectCanonicalCloudPlaybackUri
 import com.lostf1sh.pixelplayeross.ui.glancewidget.ControlWidget4x2
 import com.lostf1sh.pixelplayeross.ui.glancewidget.PixelPlayerGlanceWidget
 import com.lostf1sh.pixelplayeross.ui.glancewidget.PlayerActions
@@ -208,6 +209,8 @@ class MusicService : MediaSessionService() {
     }
     private var playbackSnapshotPersistJob: Job? = null
     private var playbackSnapshotUnloadWriteJob: Job? = null
+    private val playbackSnapshotItemCache =
+        PlaybackSnapshotItemCache<PlaybackQueueItemSnapshot>()
     private var isRestoringPlaybackSnapshot = false
     private var isPlaybackUnloadInProgress = false
     private val audioManager by lazy {
@@ -1098,6 +1101,12 @@ class MusicService : MediaSessionService() {
         }
 
         override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+            // Source timeline updates (for example, a newly prepared next item) do not change
+            // the queue metadata persisted here. Rebuilding hundreds of items for those updates
+            // puts the same work back on the next/previous transition hot path.
+            if (reason == Player.TIMELINE_CHANGE_REASON_PLAYLIST_CHANGED) {
+                playbackSnapshotItemCache.invalidate()
+            }
             requestWidgetFullUpdate(force = true)
             schedulePlaybackSnapshotPersist(immediate = timeline.isEmpty)
             val player = engine.masterPlayer
@@ -1145,6 +1154,12 @@ class MusicService : MediaSessionService() {
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            AdvancedPerformanceDiagnostics.recordEventIfEnabled(
+                type = AdvancedPerformanceDiagnostics.EventTypes.PLAYBACK,
+                name = "media_item_transition",
+            ) {
+                mapOf("reason" to reason.toString())
+            }
             mediaItem?.let(::grantArtworkUriPermissionsToConnectedControllers)
             syncLocalListeningStatsFromPlayer(mediaSession?.player ?: engine.masterPlayer, forceNewSession = true)
             if (isNavidromeMediaItem(mediaItem)) {
@@ -1327,42 +1342,8 @@ class MusicService : MediaSessionService() {
             return null
         }
 
-        val snapshotItems = ArrayList<PlaybackQueueItemSnapshot>(mediaItemCount)
-        for (index in 0 until mediaItemCount) {
-            val mediaItem = player.getMediaItemAt(index)
-            val metadata = mediaItem.mediaMetadata
-            val playerUri = mediaItem.localConfiguration?.uri?.toString()
-            val originalContentUri = metadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
-            // A cloud item that resolved through a local stream proxy carries a loopback
-            // URL (http://127.0.0.1:{port}/{secret}/...) whose port and secret die with
-            // this process. Persist the original cloud URI from the extras instead so a
-            // restored queue re-resolves against the live proxy instead of failing with
-            // a source error.
-            val uri = when {
-                playerUri == null -> originalContentUri
-                isEphemeralLoopbackUri(playerUri) && !originalContentUri.isNullOrBlank() -> originalContentUri
-                else -> playerUri
-            }
-
-            if (mediaItem.mediaId.isBlank() || uri.isNullOrBlank()) {
-                continue
-            }
-
-            val durationMs = metadata.extras
-                ?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)
-                ?.takeIf { it > 0L }
-
-            snapshotItems.add(
-                PlaybackQueueItemSnapshot(
-                    mediaId = mediaItem.mediaId,
-                    uri = uri,
-                    title = metadata.title?.toString(),
-                    artist = metadata.artist?.toString(),
-                    albumTitle = metadata.albumTitle?.toString(),
-                    artworkUri = resolveStoredArtworkUriString(metadata),
-                    durationMs = durationMs,
-                )
-            )
+        val snapshotItems = playbackSnapshotItemCache.getOrBuild {
+            buildPlaybackSnapshotItems(player, mediaItemCount)
         }
 
         if (snapshotItems.isEmpty()) {
@@ -1398,11 +1379,35 @@ class MusicService : MediaSessionService() {
         )
     }
 
-    private fun isEphemeralLoopbackUri(uriString: String): Boolean {
-        val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return false
-        val scheme = uri.scheme?.lowercase()
-        if (scheme != "http" && scheme != "https") return false
-        return uri.host == "127.0.0.1" || uri.host == "localhost"
+    private fun buildPlaybackSnapshotItems(
+        player: Player,
+        mediaItemCount: Int,
+    ): List<PlaybackQueueItemSnapshot> {
+        val snapshotItems = ArrayList<PlaybackQueueItemSnapshot>(mediaItemCount)
+        for (index in 0 until mediaItemCount) {
+            val mediaItem = player.getMediaItemAt(index)
+            val metadata = mediaItem.mediaMetadata
+            val playerUri = mediaItem.localConfiguration?.uri?.toString()
+            val originalContentUri = metadata.extras
+                ?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)
+            // Persist the provider URI for cloud items. Proxy ports die with the process and an
+            // app-private offline file can be removed while this item remains in the queue.
+            val uri = selectCanonicalCloudPlaybackUri(playerUri, originalContentUri)
+            if (mediaItem.mediaId.isBlank() || uri.isNullOrBlank()) continue
+
+            snapshotItems += PlaybackQueueItemSnapshot(
+                mediaId = mediaItem.mediaId,
+                uri = uri,
+                title = metadata.title?.toString(),
+                artist = metadata.artist?.toString(),
+                albumTitle = metadata.albumTitle?.toString(),
+                artworkUri = resolveStoredArtworkUriString(metadata),
+                durationMs = metadata.extras
+                    ?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)
+                    ?.takeIf { it > 0L },
+            )
+        }
+        return snapshotItems
     }
 
     private suspend fun restorePlaybackQueueSnapshotIfNeeded() {
@@ -2288,8 +2293,8 @@ class MusicService : MediaSessionService() {
     }
 
     /**
-     * The artwork provider is not exported, so controllers connected before the current item
-     * changed need a fresh grant for each new current item.
+     * Controllers connected before the current item changed need a fresh, narrowly scoped read
+     * grant for each new artwork URI. The provider enforces these grants when opening a file.
      */
     private fun grantArtworkUriPermissionsToConnectedControllers(mediaItem: MediaItem) {
         val session = mediaSession ?: return

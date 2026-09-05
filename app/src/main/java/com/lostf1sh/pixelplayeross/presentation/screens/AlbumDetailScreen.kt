@@ -201,7 +201,9 @@ fun AlbumDetailScreen(
             uiState.album != null -> {
                 val album = uiState.album!!
                 val songs = uiState.songs
-                val cloudSongs = remember(songs) { songs.filter(CloudOfflineRepository::isCloudSong) }
+                val cloudSongs = remember(songs) {
+                    CloudOfflineRepository.downloadCandidates(songs)
+                }
                 val allCloudSongsDownloaded = remember(cloudSongs, completedOfflineUris) {
                     cloudSongs.isNotEmpty() && cloudSongs.all { it.contentUriString in completedOfflineUris }
                 }
@@ -493,7 +495,7 @@ fun AlbumDetailScreen(
                         }
                         showSongInfoBottomSheet = false
                     },
-                    onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate ->
+                    onEditSong = { newTitle, newArtist, newAlbum, newAlbumArtist, newComposer, newGenre, newLyrics, newTrackNumber, newDiscNumber, replayGainTrackGainDb, replayGainAlbumGainDb, coverArtUpdate, customMetadataChanges ->
                         playerViewModel.editSongMetadata(
                             currentSong,
                             newTitle,
@@ -507,7 +509,8 @@ fun AlbumDetailScreen(
                             newDiscNumber,
                             replayGainTrackGainDb,
                             replayGainAlbumGainDb,
-                            coverArtUpdate
+                            coverArtUpdate,
+                            customMetadataChanges
                         )
                     },
                     removeFromListTrigger = removeFromListTrigger

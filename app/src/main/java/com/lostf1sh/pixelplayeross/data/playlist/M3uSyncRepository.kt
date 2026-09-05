@@ -605,7 +605,7 @@ class M3uSyncRepository @Inject constructor(
         content: String,
     ): M3uDocument {
         val names = m3uReplacementNames(desiredName, UUID.randomUUID().toString())
-        val temporary = createDocument(treeUri, names.temporary)
+        val temporary = createTemporaryDocument(treeUri, names.temporary)
         var temporaryUriForCleanup: Uri? = temporary.uri
 
         try {
@@ -661,7 +661,7 @@ class M3uSyncRepository @Inject constructor(
         }
     }
 
-    private fun createDocument(treeUri: Uri, displayName: String): M3uDocument {
+    private fun createTemporaryDocument(treeUri: Uri, displayName: String): M3uDocument {
         val rootDocumentUri = DocumentsContract.buildDocumentUriUsingTree(
             treeUri,
             DocumentsContract.getTreeDocumentId(treeUri),
@@ -669,7 +669,9 @@ class M3uSyncRepository @Inject constructor(
         val created = DocumentsContract.createDocument(
             resolver,
             rootDocumentUri,
-            M3U_MIME_TYPE,
+            // A playlist MIME type makes the system provider append .m3u to our .tmp name.
+            // Keep incomplete writes outside playlist scans until the final rename.
+            "application/octet-stream",
             displayName,
         ) ?: throw IOException("Unable to create temporary playlist file")
         return M3uDocument(created, displayName(created, displayName))
@@ -739,7 +741,6 @@ class M3uSyncRepository @Inject constructor(
     }.getOrNull()?.takeIf(String::isNotBlank) ?: fallback
 
     private companion object {
-        const val M3U_MIME_TYPE = "audio/x-mpegurl"
         val TREE_PERMISSION_FLAGS: Int =
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
 

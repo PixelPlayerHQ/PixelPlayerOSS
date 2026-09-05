@@ -624,17 +624,13 @@ fun LibraryScreen(
         }
     }
 
-    val hasSelectionInCurrentTab by remember {
-        derivedStateOf {
-            when (currentTabId) {
-                LibraryTabId.PLAYLISTS -> isPlaylistSelectionMode
-                LibraryTabId.ALBUMS -> isAlbumSelectionMode
-                LibraryTabId.SONGS,
-                LibraryTabId.LIKED,
-                LibraryTabId.FOLDERS -> isSelectionMode
-                LibraryTabId.ARTISTS -> isArtistSelectionMode
-            }
-        }
+    val hasSelectionInCurrentTab = when (currentTabId) {
+        LibraryTabId.PLAYLISTS -> isPlaylistSelectionMode
+        LibraryTabId.ALBUMS -> isAlbumSelectionMode
+        LibraryTabId.SONGS,
+        LibraryTabId.LIKED,
+        LibraryTabId.FOLDERS -> isSelectionMode
+        LibraryTabId.ARTISTS -> isArtistSelectionMode
     }
     val canHandleFolderBack by remember {
         derivedStateOf {

@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -241,7 +240,14 @@ fun PlaylistDetailScreen(
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
     val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
-    var localReorderableSongs by remember(songsInPlaylist) { mutableStateOf(songsInPlaylist) }
+    // The initial position identifies an occurrence, even when the same song appears twice.
+    // Move the entry with its key so dragging never changes a row's identity.
+    var localReorderableEntries by remember(songsInPlaylist) {
+        mutableStateOf(songsInPlaylist.withIndex().toList())
+    }
+    val localReorderableSongs = remember(localReorderableEntries) {
+        localReorderableEntries.map { it.value }
+    }
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -253,7 +259,7 @@ fun PlaylistDetailScreen(
     val reorderableState = rememberReorderableLazyListState(
         lazyListState = listState,
         onMove = { from, to ->
-            localReorderableSongs = localReorderableSongs.toMutableList().apply {
+            localReorderableEntries = localReorderableEntries.toMutableList().apply {
                 add(to.index, removeAt(from.index))
             }
             if (lastMovedFrom == null) {
@@ -726,10 +732,11 @@ fun PlaylistDetailScreen(
                                 )
                             }
                         ) {
-                            itemsIndexed(
-                                localReorderableSongs,
-                                key = { _, item -> item.id },
-                                contentType = { _, _ -> "playlist_song" }) { _, song ->
+                            items(
+                                localReorderableEntries,
+                                key = { it.index },
+                                contentType = { "playlist_song" }) { entry ->
+                                val song = entry.value
                                 val playbackUiState by remember(song.id, playerViewModel) {
                                     playerViewModel.stablePlayerState
                                         .map { state ->
@@ -743,7 +750,7 @@ fun PlaylistDetailScreen(
                                 }.collectAsStateWithLifecycle(initialValue = LibrarySongPlaybackUiState())
                                 ReorderableItem(
                                     state = reorderableState,
-                                    key = song.id,
+                                    key = entry.index,
                                 ) { isDragging ->
                                     val scale by animateFloatAsState(
                                         if (isDragging) 1.05f else 1f,

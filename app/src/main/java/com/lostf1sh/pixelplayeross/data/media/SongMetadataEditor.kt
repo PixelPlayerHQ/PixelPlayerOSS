@@ -1337,9 +1337,13 @@ private fun Tag.applyCustomMetadataChanges(
     }
 }
 
-private fun Tag.applyCustomMetadataField(update: CustomMetadataFieldUpdate) {
+internal fun Tag.applyCustomMetadataField(update: CustomMetadataFieldUpdate) {
     val standardFieldKey = runCatching {
-        FieldKey.valueOf(update.key.replace(Regex("[ .-]+"), "_"))
+        // TagLib exposes native release dates as DATE; JAudioTagger names that field YEAR.
+        when (update.key) {
+            "DATE" -> FieldKey.YEAR
+            else -> FieldKey.valueOf(update.key.replace(Regex("[ .-]+"), "_"))
+        }
     }.getOrNull()
 
     if (standardFieldKey != null) {

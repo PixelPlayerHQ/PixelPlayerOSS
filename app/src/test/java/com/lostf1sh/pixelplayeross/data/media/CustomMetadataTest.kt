@@ -5,8 +5,33 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.jaudiotagger.tag.FieldKey
+import org.jaudiotagger.tag.id3.ID3v24Tag
+import org.jaudiotagger.tag.mp4.Mp4Tag
 
 class CustomMetadataTest {
+
+    @Test
+    fun `editing the displayed DATE updates the native release date`() {
+        listOf(ID3v24Tag(), Mp4Tag()).forEach { tag ->
+            tag.setField(FieldKey.YEAR, "2020")
+
+            tag.applyCustomMetadataField(CustomMetadataFieldUpdate("DATE", "2024"))
+
+            assertEquals("2024", tag.getFirst(FieldKey.YEAR), tag.javaClass.simpleName)
+        }
+    }
+
+    @Test
+    fun `removing the displayed DATE removes the native release date`() {
+        listOf(ID3v24Tag(), Mp4Tag()).forEach { tag ->
+            tag.setField(FieldKey.YEAR, "2020")
+
+            tag.applyCustomMetadataField(CustomMetadataFieldUpdate("DATE", null))
+
+            assertEquals("", tag.getFirst(FieldKey.YEAR), tag.javaClass.simpleName)
+        }
+    }
 
     @Test
     fun `rating uses the native scale of each supported tag family`() {

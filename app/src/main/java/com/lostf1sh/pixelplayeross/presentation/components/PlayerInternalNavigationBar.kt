@@ -30,6 +30,7 @@ import com.lostf1sh.pixelplayeross.BottomNavItem
 import com.lostf1sh.pixelplayeross.data.preferences.NavBarStyle
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.CustomNavigationBarItem
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
+import com.lostf1sh.pixelplayeross.ui.theme.liquidGlass
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -114,7 +115,12 @@ private fun PlayerInternalNavigationItemsRow(
             .fillMaxWidth()
     }
     Row(
-        modifier = rowModifier,
+        modifier = rowModifier.liquidGlass(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+            borderWidth = 1.dp,
+            tintColor = MaterialTheme.colorScheme.surfaceContainer,
+            tintAlpha = if (compactMode) 0.58f else 0.50f
+        ),
         horizontalArrangement = Arrangement.SpaceAround,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -124,7 +130,7 @@ private fun PlayerInternalNavigationItemsRow(
             val isSelected = currentRoute != null && currentRoute == item.screen.route
             val selectedColor = MaterialTheme.colorScheme.primary
             val unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
-            val indicatorColorFromTheme = MaterialTheme.colorScheme.secondaryContainer
+            val indicatorColorFromTheme = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f)
 
             val iconPainterResId = if (isSelected && item.selectedIconResId != null && item.selectedIconResId != 0) {
                 item.selectedIconResId

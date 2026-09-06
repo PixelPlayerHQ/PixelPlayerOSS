@@ -41,6 +41,7 @@ import com.lostf1sh.pixelplayeross.BuildConfig
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerStatusBarStyle
+import com.lostf1sh.pixelplayeross.ui.theme.liquidGlass
 import androidx.compose.ui.res.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,16 +74,22 @@ fun GenreGradientTopBar(
         modifier = Modifier.background(brush = gradientBrush),
         navigationIcon = {
             IconButton(
-                modifier = Modifier.padding(start = 10.dp),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .liquidGlass(
+                        shape = CircleShape,
+                        tintColor = contentColor,
+                        tintAlpha = 0.22f
+                    ),
                 onClick = onNavigationIconClick,
                 colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = contentColor
+                    containerColor = Color.Transparent
                 )
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                     contentDescription = stringResource(R.string.auth_cd_back),
-                    tint = startColor
+                    tint = contentColor
                 )
             }
         },
@@ -94,7 +101,6 @@ fun GenreGradientTopBar(
         )
     )
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,11 +132,17 @@ fun HomeGradientTopBar(
                 modifier = Modifier.padding(start = 12.dp)
             ) {
                 FilledTonalButton(
-                    modifier = Modifier.padding(start = 4.dp),
+                    modifier = Modifier
+                        .padding(start = 4.dp)
+                        .liquidGlass(
+                            shape = CircleShape,
+                            tintColor = surfaceContainerHigh,
+                            tintAlpha = 0.52f
+                        ),
                     shape = CircleShape,
                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp),
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     onClick = onBetaClick
@@ -153,20 +165,22 @@ fun HomeGradientTopBar(
                 modifier = Modifier.padding(end = 14.dp)
             ) {
                 FilledIconButton(
+                    modifier = Modifier.liquidGlass(shape = CircleShape, tintAlpha = 0.50f),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     onClick = onStreamingClick
                 ) {
                     Icon(
-                          imageVector = Icons.Rounded.Cloud,
-                          contentDescription = stringResource(R.string.presentation_batch_g_streaming_title)
+                        imageVector = Icons.Rounded.Cloud,
+                        contentDescription = stringResource(R.string.presentation_batch_g_streaming_title)
                     )
                 }
                 FilledIconButton(
+                    modifier = Modifier.liquidGlass(shape = CircleShape, tintAlpha = 0.50f),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     onClick = onMoreOptionsClick
@@ -177,8 +191,9 @@ fun HomeGradientTopBar(
                     )
                 }
                 FilledIconButton(
+                    modifier = Modifier.liquidGlass(shape = CircleShape, tintAlpha = 0.50f),
                     colors = IconButtonDefaults.filledIconButtonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     onClick = onNavigationIconClick

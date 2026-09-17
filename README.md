@@ -1,6 +1,6 @@
 
 <p align="center">
-  <img src="assets/pixelplayeross_header.png" alt="PixelPlayerOSS — open-source music player for Android"/>
+  <img src="assets/PixelPlayerOSS.svg" alt="App Icon" height="250"/>
 </p>
 
 <p align="center">
@@ -230,4 +230,7 @@ Distributed APKs include third-party components under their own licenses. In par
 
 <p align="center">
   Maintained by <a href="https://github.com/lostf1sh">lostf1sh</a>
+</p>
+<p align="center">
+  Logo designed by <a href="https://github.com/NPSummers">Aureal</a>.
 </p>

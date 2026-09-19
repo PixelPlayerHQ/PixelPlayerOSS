@@ -52,6 +52,10 @@
     <string name="toast_full_rescan_started">开始完整重新扫描…</string>
     <string name="setcat_auto_scan_lrc_title">自动扫描.lrc歌词文件</string>
     <string name="setcat_auto_scan_lrc_subtitle">曲库同步时自动扫描同目录下的lrc歌词并绑定歌曲</string>
+    <string name="setcat_folder_album_art_title">使用文件夹中的封面图片</string>
+    <string name="setcat_folder_album_art_subtitle">优先使用歌曲所在文件夹中的 cover.jpg、folder.jpg 等图片作为专辑封面，而非内嵌封面。Music、Downloads、DCIM 和 Pictures 等共用文件夹会被忽略。 也会在艺术家文件夹中查找 artist.jpg、band.jpg 及其 PNG 版本。手动选择的艺术家照片优先。</string>
+    <string name="setcat_folder_album_art_permission_required">读取音乐文件夹中的专辑和艺术家图片需要完整的照片访问权限。</string>
+    <string name="setcat_folder_album_art_refreshing">正在刷新图片…</string>
     <string name="setcat_online_services">可选在线服务</string>
     <string name="setcat_external_lyrics_title">来自 LRCLIB 的在线歌词</string>
     <string name="setcat_external_lyrics_subtitle">本地无歌词时允许从 lrclib.net 搜索、手动获取歌词</string>

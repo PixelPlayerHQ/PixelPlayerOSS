@@ -83,6 +83,10 @@
     <string name="setcat_auto_rotate_patterns_subtitle">Cicla tra i pattern collage ogni volta che visiti Home.</string>
     <string name="setcat_auto_rotate_patterns_title">Rotazione automatica pattern</string>
     <string name="setcat_auto_scan_lrc_subtitle">Scansiona e assegna automaticamente file .lrc nella stessa cartella durante la sincronizzazione libreria.</string>
+    <string name="setcat_folder_album_art_title">Usa le copertine della cartella</string>
+    <string name="setcat_folder_album_art_subtitle">Usa cover.jpg, folder.jpg o un\'immagine simile dalla cartella del brano come copertina dell\'album, con precedenza sulla copertina incorporata. Le cartelle condivise come Music, Downloads, DCIM e Pictures vengono ignorate. Nelle cartelle degli artisti vengono cercati anche artist.jpg, band.jpg e le varianti PNG. Le foto scelte manualmente hanno la precedenza.</string>
+    <string name="setcat_folder_album_art_permission_required">È necessario l\'accesso completo alle foto per leggere le immagini degli album e degli artisti dalle cartelle musicali.</string>
+    <string name="setcat_folder_album_art_refreshing">Aggiornamento immagini…</string>
     <string name="setcat_auto_scan_lrc_title">Scansione automatica file .lrc</string>
     <string name="setcat_background_playback">Riproduzione in background</string>
     <string name="setcat_carousel_no_peek">Nessuna anteprima</string>

@@ -17,4 +17,11 @@ interface AlbumArtThemeDao {
 
     @Query("DELETE FROM album_art_themes WHERE albumArtUriString IN (:uriStrings)")
     suspend fun deleteThemesByUris(uriStrings: List<String>)
+
+    @Query("""
+        DELETE FROM album_art_themes
+        WHERE albumArtUriString GLOB 'pixelplayer_local_art://*'
+           OR albumArtUriString GLOB 'pixelplay_local_art://*'
+    """)
+    suspend fun deleteLocalArtworkThemes()
 }

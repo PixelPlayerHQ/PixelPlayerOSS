@@ -37,6 +37,7 @@ import coil.size.Size
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 
 val SmartImageCompactListTargetSize = Size(96, 96)
 val SmartImageListTargetSize = Size(128, 128)
@@ -91,24 +92,31 @@ fun SmartImage(
         return
     }
 
+    val artworkModel = rememberArtworkModelWithCacheVersion(model)
     val request = remember(
         context,
-        model,
+        artworkModel,
         crossfadeDurationMillis,
         useDiskCache,
         useMemoryCache,
         allowHardware,
         requestTargetSize
     ) {
-        if (model is ImageRequest) {
-            model.newBuilder(context)
+        if (artworkModel is ImageRequest) {
+            artworkModel.newBuilder(context)
                 .size(requestTargetSize)
                 .build()
         } else {
             ImageRequest.Builder(context)
-                .data(model)
+                .data(artworkModel)
                 .crossfade(crossfadeDurationMillis)
-                .diskCachePolicy(if (useDiskCache) CachePolicy.ENABLED else CachePolicy.DISABLED)
+                .diskCachePolicy(
+                    if (useDiskCache && !LocalArtworkUri.isLocalArtworkUri(artworkModel as? String)) {
+                        CachePolicy.ENABLED
+                    } else {
+                        CachePolicy.DISABLED
+                    }
+                )
                 .memoryCachePolicy(if (useMemoryCache) CachePolicy.ENABLED else CachePolicy.DISABLED)
                 .allowHardware(allowHardware)
                 .size(requestTargetSize)

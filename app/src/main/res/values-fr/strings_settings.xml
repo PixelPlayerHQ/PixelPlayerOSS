@@ -83,6 +83,10 @@
     <string name="setcat_auto_rotate_patterns_subtitle">Changer de motif de pêle-mêle à chaque visite de l\'Accueil.</string>
     <string name="setcat_auto_rotate_patterns_title">Rotation auto des motifs</string>
     <string name="setcat_auto_scan_lrc_subtitle">Analyser et assigner automatiquement les fichiers .lrc du même dossier lors de la synchro.</string>
+    <string name="setcat_folder_album_art_title">Utiliser les pochettes du dossier</string>
+    <string name="setcat_folder_album_art_subtitle">Utiliser cover.jpg, folder.jpg ou une image similaire du dossier d\'un morceau comme pochette, de préférence à la pochette intégrée. Les dossiers partagés comme Music, Downloads, DCIM et Pictures sont ignorés. Les dossiers des artistes sont aussi parcourus pour trouver artist.jpg, band.jpg et leurs variantes PNG. Les photos choisies manuellement sont prioritaires.</string>
+    <string name="setcat_folder_album_art_permission_required">L\'accès complet aux photos est nécessaire pour lire les images des albums et des artistes dans vos dossiers de musique.</string>
+    <string name="setcat_folder_album_art_refreshing">Actualisation des images…</string>
     <string name="setcat_auto_scan_lrc_title">Analyse auto des fichiers .lrc</string>
     <string name="setcat_background_playback">Lecture en arrière-plan</string>
     <string name="setcat_carousel_no_peek">Sans aperçu</string>

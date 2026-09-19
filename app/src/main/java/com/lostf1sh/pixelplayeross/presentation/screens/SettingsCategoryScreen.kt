@@ -16,6 +16,9 @@ import android.os.Environment
 import android.os.SystemClock
 import android.text.format.Formatter
 import android.widget.Toast
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -63,6 +66,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.LightMode
@@ -185,7 +189,11 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 
 @androidx.annotation.OptIn(UnstableApi::class)
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun SettingsCategoryScreen(
     categoryId: String,
@@ -240,6 +248,45 @@ fun SettingsCategoryScreen(
     }
     var albumArtCacheLimitDraft by remember(uiState.albumArtCacheLimitMb) {
         mutableStateOf(uiState.albumArtCacheLimitMb.toFloat())
+    }
+
+    val useFolderAlbumArt by settingsViewModel.useFolderAlbumArt.collectAsStateWithLifecycle()
+
+    // Reading a cover image next to an audio file needs READ_MEDIA_IMAGES on API 33+;
+    // READ_MEDIA_AUDIO covers audio files only. Older Android versions use the storage
+    // permission also requested during setup; it may have been revoked since then.
+    //
+    // Request selected-photo access alongside full access on Android 14+. Without it Android's
+    // compatibility mode reports a temporary full grant even when only selected photos are
+    // readable. Folder discovery needs full access, so a partial grant leaves the setting off.
+    val folderArtRefreshingMessage = stringResource(R.string.setcat_folder_album_art_refreshing)
+    val folderArtPermissionMessage =
+        stringResource(R.string.setcat_folder_album_art_permission_required)
+    val enableFolderAlbumArt: () -> Unit = {
+        settingsViewModel.setUseFolderAlbumArt(true)
+        Toast.makeText(context, folderArtRefreshingMessage, Toast.LENGTH_SHORT).show()
+    }
+    val folderArtPermissions = remember {
+        com.lostf1sh.pixelplayeross.utils.folderArtworkPermissions(Build.VERSION.SDK_INT)
+    }
+    val imagesPermissionState = rememberMultiplePermissionsState(folderArtPermissions) { grants ->
+        if (grants[folderArtPermissions.first()] == true) {
+            enableFolderAlbumArt()
+        } else {
+            Toast.makeText(context, folderArtPermissionMessage, Toast.LENGTH_LONG).show()
+        }
+    }
+    // Shown as off when the permission is gone even though the preference is still true: the
+    // feature genuinely is not working in that state, and tapping it re-requests access.
+    val hasImagesPermission = imagesPermissionState.permissions.any {
+        it.permission == folderArtPermissions.first() && it.status.isGranted
+    }
+    val onFolderAlbumArtToggled: (Boolean) -> Unit = { enabled ->
+        when {
+            !enabled -> settingsViewModel.setUseFolderAlbumArt(false)
+            hasImagesPermission -> enableFolderAlbumArt()
+            else -> imagesPermissionState.launchMultiplePermissionRequest()
+        }
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -509,6 +556,14 @@ fun SettingsCategoryScreen(
                                     onCheckedChange = { settingsViewModel.setAutoScanLrcFiles(it) },
                                     leadingIcon = { Icon(Icons.Outlined.Folder, null, tint = MaterialTheme.colorScheme.secondary) },
                                     modifier = Modifier.settingHighlight("item_library_auto_scan_lrc", highlightKey)
+                                )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_folder_album_art_title),
+                                    subtitle = stringResource(R.string.setcat_folder_album_art_subtitle),
+                                    checked = useFolderAlbumArt && hasImagesPermission,
+                                    onCheckedChange = onFolderAlbumArtToggled,
+                                    leadingIcon = { Icon(Icons.Outlined.Image, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_library_folder_album_art", highlightKey)
                                 )
                                 SettingsItem(
                                     title = stringResource(R.string.setcat_find_duplicates_title),

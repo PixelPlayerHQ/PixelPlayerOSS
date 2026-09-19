@@ -11,7 +11,6 @@ import androidx.compose.ui.draw.rotate
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
-import android.Manifest
 import android.os.Build
 import android.os.Environment
 import android.os.SystemClock
@@ -19,7 +18,7 @@ import android.text.format.Formatter
 import android.widget.Toast
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
@@ -254,13 +253,12 @@ fun SettingsCategoryScreen(
     val useFolderAlbumArt by settingsViewModel.useFolderAlbumArt.collectAsStateWithLifecycle()
 
     // Reading a cover image next to an audio file needs READ_MEDIA_IMAGES on API 33+;
-    // READ_MEDIA_AUDIO covers audio files only. Below that, READ_EXTERNAL_STORAGE (already
-    // granted during setup) is enough, so there is nothing to request.
+    // READ_MEDIA_AUDIO covers audio files only. Older Android versions use the storage
+    // permission also requested during setup; it may have been revoked since then.
     //
-    // The result is taken from the request callback rather than by observing the granted state,
-    // because a denial leaves that state unchanged and would report nothing back to the user. A
-    // partial "Select photos" grant on API 34+ also arrives here as "not granted", which is
-    // correct: it gives no access to arbitrary music folders, so the setting must stay off.
+    // Request selected-photo access alongside full access on Android 14+. Without it Android's
+    // compatibility mode reports a temporary full grant even when only selected photos are
+    // readable. Folder discovery needs full access, so a partial grant leaves the setting off.
     val folderArtRefreshingMessage = stringResource(R.string.setcat_folder_album_art_refreshing)
     val folderArtPermissionMessage =
         stringResource(R.string.setcat_folder_album_art_permission_required)
@@ -268,28 +266,26 @@ fun SettingsCategoryScreen(
         settingsViewModel.setUseFolderAlbumArt(true)
         Toast.makeText(context, folderArtRefreshingMessage, Toast.LENGTH_SHORT).show()
     }
-    val imagesPermissionState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        rememberPermissionState(Manifest.permission.READ_MEDIA_IMAGES) { granted ->
-            if (granted) {
-                enableFolderAlbumArt()
-            } else {
-                Toast.makeText(context, folderArtPermissionMessage, Toast.LENGTH_LONG).show()
-            }
+    val folderArtPermissions = remember {
+        com.lostf1sh.pixelplayeross.utils.folderArtworkPermissions(Build.VERSION.SDK_INT)
+    }
+    val imagesPermissionState = rememberMultiplePermissionsState(folderArtPermissions) { grants ->
+        if (grants[folderArtPermissions.first()] == true) {
+            enableFolderAlbumArt()
+        } else {
+            Toast.makeText(context, folderArtPermissionMessage, Toast.LENGTH_LONG).show()
         }
-    } else {
-        null
     }
     // Shown as off when the permission is gone even though the preference is still true: the
     // feature genuinely is not working in that state, and tapping it re-requests access.
-    val hasImagesPermission =
-        imagesPermissionState == null || imagesPermissionState.status.isGranted
+    val hasImagesPermission = imagesPermissionState.permissions.any {
+        it.permission == folderArtPermissions.first() && it.status.isGranted
+    }
     val onFolderAlbumArtToggled: (Boolean) -> Unit = { enabled ->
         when {
             !enabled -> settingsViewModel.setUseFolderAlbumArt(false)
-            // Null below API 33, where no image permission exists to request.
-            imagesPermissionState == null || imagesPermissionState.status.isGranted ->
-                enableFolderAlbumArt()
-            else -> imagesPermissionState.launchPermissionRequest()
+            hasImagesPermission -> enableFolderAlbumArt()
+            else -> imagesPermissionState.launchMultiplePermissionRequest()
         }
     }
 

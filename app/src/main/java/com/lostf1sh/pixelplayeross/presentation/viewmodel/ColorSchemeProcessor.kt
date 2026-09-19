@@ -25,6 +25,7 @@ import com.lostf1sh.pixelplayeross.ui.theme.extractSeedColor
 import com.lostf1sh.pixelplayeross.ui.theme.generateColorSchemeFromSeed
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -51,6 +52,9 @@ class ColorSchemeProcessor @Inject constructor(
     private val memoryCache = LruCache<String, ColorSchemePair>(20)
     private val processingMutex = Mutex()
     private val inProgressUris = mutableSetOf<String>()
+    private val localArtworkCacheMutex = Mutex()
+    @Volatile
+    private var localArtworkGeneration = 0L
 
     /**
      * Channel for queuing color scheme requests.
@@ -77,11 +81,13 @@ class ColorSchemeProcessor @Inject constructor(
         forceRefresh: Boolean = false
     ): ColorSchemePair? = traceAsyncSection("ColorSchemeProcessor.getOrGenerate") {
         val resolvedAccuracyLevel = AlbumArtColorAccuracy.clamp(colorAccuracyLevel)
+        val generation = localArtworkGeneration
         if (!forceRefresh) {
             loadCachedColorScheme(
                 albumArtUri = albumArtUri,
                 paletteStyle = paletteStyle,
-                colorAccuracyLevel = resolvedAccuracyLevel
+                colorAccuracyLevel = resolvedAccuracyLevel,
+                expectedLocalGeneration = generation
             )?.let { schemePair ->
                 return@traceAsyncSection schemePair
             }
@@ -91,7 +97,8 @@ class ColorSchemeProcessor @Inject constructor(
             albumArtUri = albumArtUri,
             paletteStyle = paletteStyle,
             colorAccuracyLevel = resolvedAccuracyLevel,
-            forceRefresh = forceRefresh
+            forceRefresh = forceRefresh,
+            expectedLocalGeneration = generation
         )
     }
 
@@ -101,15 +108,18 @@ class ColorSchemeProcessor @Inject constructor(
         colorAccuracyLevel: Int = AlbumArtColorAccuracy.DEFAULT
     ): ColorSchemePair? {
         val resolvedAccuracyLevel = AlbumArtColorAccuracy.clamp(colorAccuracyLevel)
+        val generation = localArtworkGeneration
         return loadCachedColorScheme(
             albumArtUri = albumArtUri,
             paletteStyle = paletteStyle,
-            colorAccuracyLevel = resolvedAccuracyLevel
+            colorAccuracyLevel = resolvedAccuracyLevel,
+            expectedLocalGeneration = generation
         ) ?: generateAndCacheColorScheme(
             albumArtUri = albumArtUri,
             paletteStyle = paletteStyle,
             colorAccuracyLevel = resolvedAccuracyLevel,
-            persistToDatabase = false
+            persistToDatabase = false,
+            expectedLocalGeneration = generation
         )
     }
 
@@ -122,7 +132,8 @@ class ColorSchemeProcessor @Inject constructor(
         paletteStyle: AlbumArtPaletteStyle,
         colorAccuracyLevel: Int,
         persistToDatabase: Boolean = true,
-        forceRefresh: Boolean = false
+        forceRefresh: Boolean = false,
+        expectedLocalGeneration: Long
     ): ColorSchemePair? = traceAsyncSection("ColorSchemeProcessor.generate") {
         try {
             val cacheKey = buildCacheKey(albumArtUri, paletteStyle, colorAccuracyLevel)
@@ -130,36 +141,46 @@ class ColorSchemeProcessor @Inject constructor(
                 loadBitmapForColorExtraction(albumArtUri, forceRefresh)
             } ?: return@traceAsyncSection null
 
-            val schemePair = withContext(Dispatchers.Default) {
-                val seed = extractSeedColor(
-                    bitmap = bitmap,
-                    config = com.lostf1sh.pixelplayeross.ui.theme.ColorExtractionConfig(
-                        accuracyLevel = colorAccuracyLevel
-                    )
-                )
-                bitmap.recycle()
-                generateColorSchemeFromSeed(
-                    seedColor = seed,
-                    paletteStyle = paletteStyle
-                )
-            }
-
-            memoryCache.put(cacheKey, schemePair)
-
-            if (persistToDatabase) {
-                withContext(Dispatchers.IO) {
-                    albumArtThemeDao.insertTheme(
-                        mapColorSchemePairToEntity(
-                            uri = albumArtUri,
-                            paletteStyle = paletteStyle,
-                            colorAccuracyLevel = colorAccuracyLevel,
-                            pair = schemePair
+            val schemePair = try {
+                withContext(Dispatchers.Default) {
+                    val seed = extractSeedColor(
+                        bitmap = bitmap,
+                        config = com.lostf1sh.pixelplayeross.ui.theme.ColorExtractionConfig(
+                            accuracyLevel = colorAccuracyLevel
                         )
                     )
+                    generateColorSchemeFromSeed(seedColor = seed, paletteStyle = paletteStyle)
                 }
+            } finally {
+                bitmap.recycle()
             }
 
-            schemePair
+            suspend fun cacheScheme(): ColorSchemePair {
+                if (persistToDatabase) {
+                    withContext(Dispatchers.IO) {
+                        albumArtThemeDao.insertTheme(
+                            mapColorSchemePairToEntity(
+                                uri = albumArtUri,
+                                paletteStyle = paletteStyle,
+                                colorAccuracyLevel = colorAccuracyLevel,
+                                pair = schemePair
+                            )
+                        )
+                    }
+                }
+                memoryCache.put(cacheKey, schemePair)
+                return schemePair
+            }
+
+            if (LocalArtworkUri.isLocalArtworkUri(albumArtUri)) {
+                localArtworkCacheMutex.withLock {
+                    if (expectedLocalGeneration != localArtworkGeneration) null else cacheScheme()
+                }
+            } else {
+                cacheScheme()
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             null
         }
@@ -193,6 +214,8 @@ class ColorSchemeProcessor @Inject constructor(
                     drawable.draw(canvas)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             null
         }
@@ -245,6 +268,20 @@ class ColorSchemeProcessor @Inject constructor(
         removeUriFromMemoryCache(uri)
         withContext(Dispatchers.IO) {
             albumArtThemeDao.deleteThemesByUris(listOf(uri))
+        }
+    }
+
+    /** Retire only local palettes; extraction resumes lazily for visible/current artwork. */
+    suspend fun invalidateLocalArtworkSchemes() {
+        localArtworkCacheMutex.withLock {
+            localArtworkGeneration += 1
+            memoryCache.snapshot().keys
+                .filter(LocalArtworkUri::isLocalArtworkUri)
+                .forEach { memoryCache.remove(it) }
+            clearExtractedColorCache()
+            withContext(Dispatchers.IO) {
+                albumArtThemeDao.deleteLocalArtworkThemes()
+            }
         }
     }
 
@@ -405,22 +442,32 @@ class ColorSchemeProcessor @Inject constructor(
     private suspend fun loadCachedColorScheme(
         albumArtUri: String,
         paletteStyle: AlbumArtPaletteStyle,
-        colorAccuracyLevel: Int
+        colorAccuracyLevel: Int,
+        expectedLocalGeneration: Long
     ): ColorSchemePair? {
         val cacheKey = buildCacheKey(albumArtUri, paletteStyle, colorAccuracyLevel)
 
-        memoryCache.get(cacheKey)?.let { return it }
+        suspend fun loadScheme(): ColorSchemePair? {
+            memoryCache.get(cacheKey)?.let { return it }
 
-        val cachedEntity = withContext(Dispatchers.IO) {
-            albumArtThemeDao.getThemeByUriAndStyle(
-                albumArtUri,
-                paletteStyleCacheKey(paletteStyle, colorAccuracyLevel)
-            )
+            val cachedEntity = withContext(Dispatchers.IO) {
+                albumArtThemeDao.getThemeByUriAndStyle(
+                    albumArtUri,
+                    paletteStyleCacheKey(paletteStyle, colorAccuracyLevel)
+                )
+            } ?: return null
+
+            return mapEntityToColorSchemePair(cachedEntity).also { schemePair ->
+                memoryCache.put(cacheKey, schemePair)
+            }
         }
-        if (cachedEntity == null) return null
 
-        return mapEntityToColorSchemePair(cachedEntity).also { schemePair ->
-            memoryCache.put(cacheKey, schemePair)
+        return if (LocalArtworkUri.isLocalArtworkUri(albumArtUri)) {
+            localArtworkCacheMutex.withLock {
+                if (expectedLocalGeneration != localArtworkGeneration) null else loadScheme()
+            }
+        } else {
+            loadScheme()
         }
     }
 

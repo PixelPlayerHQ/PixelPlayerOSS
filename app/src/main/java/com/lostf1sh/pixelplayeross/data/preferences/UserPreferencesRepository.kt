@@ -1630,7 +1630,7 @@ constructor(
     val useFolderAlbumArtFlow: Flow<Boolean> =
         dataStore.data.map { preferences ->
             preferences[PreferencesKeys.USE_FOLDER_ALBUM_ART] ?: false
-        }
+        }.distinctUntilChanged()
 
     suspend fun setUseFolderAlbumArt(enabled: Boolean) {
         dataStore.edit { preferences ->

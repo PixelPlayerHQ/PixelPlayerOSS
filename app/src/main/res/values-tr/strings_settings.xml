@@ -94,9 +94,9 @@
     <string name="setcat_auto_rotate_patterns_title">Desenleri Otomatik Döndür</string>
     <string name="setcat_auto_scan_lrc_subtitle">Kitaplık senkronizasyonu sırasında aynı klasördeki .lrc dosyalarını otomatik olarak tara ve ata.</string>
     <string name="setcat_folder_album_art_title">Klasördeki kapak görsellerini kullan</string>
-    <string name="setcat_folder_album_art_subtitle">Parçanın kendi klasöründeki cover.jpg, folder.jpg veya benzeri bir görseli, gömülü kapak yerine albüm kapağı olarak kullan. Music, Downloads, DCIM ve Pictures gibi ortak klasörler yok sayılır.</string>
-    <string name="setcat_folder_album_art_permission_required">Müzik klasörlerinizdeki kapak görsellerini okumak için fotoğraf erişimi gerekir.</string>
-    <string name="setcat_folder_album_art_refreshing">Albüm kapakları yenileniyor…</string>
+    <string name="setcat_folder_album_art_subtitle">Parçanın kendi klasöründeki cover.jpg, folder.jpg veya benzeri bir görseli, gömülü kapak yerine albüm kapağı olarak kullan. Music, Downloads, DCIM ve Pictures gibi ortak klasörler yok sayılır. Sanatçı klasörlerinde artist.jpg, band.jpg ve PNG sürümleri de aranır. Elle seçilen sanatçı fotoğrafları önceliklidir.</string>
+    <string name="setcat_folder_album_art_permission_required">Müzik klasörlerinizdeki albüm ve sanatçı görsellerini okumak için tüm fotoğraflara erişim gerekir.</string>
+    <string name="setcat_folder_album_art_refreshing">Görseller yenileniyor…</string>
     <string name="setcat_auto_scan_lrc_title">.lrc dosyalarını otomatik tara</string>
     <string name="setcat_background_playback">Arka Planda Oynatma</string>
     <string name="setcat_carousel_no_peek">Göz Atma Yok</string>

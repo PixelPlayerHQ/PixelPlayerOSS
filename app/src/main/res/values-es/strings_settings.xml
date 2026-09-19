@@ -84,9 +84,9 @@
     <string name="setcat_auto_rotate_patterns_title">Rotar patrones automáticamente</string>
     <string name="setcat_auto_scan_lrc_subtitle">Buscar y asignar automáticamente archivos .lrc en la misma carpeta durante la sincronización de la biblioteca.</string>
     <string name="setcat_folder_album_art_title">Usar imágenes de portada de la carpeta</string>
-    <string name="setcat_folder_album_art_subtitle">Usar cover.jpg, folder.jpg o una imagen similar de la carpeta de cada canción como carátula, en lugar de la carátula incrustada. Se ignoran las carpetas compartidas como Music, Downloads, DCIM y Pictures.</string>
-    <string name="setcat_folder_album_art_permission_required">Se necesita acceso a las fotos para leer las imágenes de portada de tus carpetas de música.</string>
-    <string name="setcat_folder_album_art_refreshing">Actualizando carátulas…</string>
+    <string name="setcat_folder_album_art_subtitle">Usar cover.jpg, folder.jpg o una imagen similar de la carpeta de cada canción como carátula, en lugar de la carátula incrustada. Se ignoran las carpetas compartidas como Music, Downloads, DCIM y Pictures. También se buscan artist.jpg, band.jpg y variantes PNG en las carpetas de los artistas. Las fotos elegidas manualmente tienen prioridad.</string>
+    <string name="setcat_folder_album_art_permission_required">Se necesita acceso completo a las fotos para leer imágenes de álbumes y artistas de tus carpetas de música.</string>
+    <string name="setcat_folder_album_art_refreshing">Actualizando imágenes…</string>
     <string name="setcat_auto_scan_lrc_title">Escanear archivos .lrc automáticamente</string>
     <string name="setcat_background_playback">Reproducción en segundo plano</string>
     <string name="setcat_carousel_no_peek">Sin vista lateral</string>

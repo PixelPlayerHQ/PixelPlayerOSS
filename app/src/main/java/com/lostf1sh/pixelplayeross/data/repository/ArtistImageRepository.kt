@@ -8,8 +8,11 @@ import android.util.LruCache
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.network.deezer.DeezerApiService
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.utils.AlbumArtUtils
+import com.lostf1sh.pixelplayeross.utils.FolderArtistArtUtils
 import com.lostf1sh.pixelplayeross.utils.NetworkRetryUtils
 import com.lostf1sh.pixelplayeross.utils.isRetryableNetworkError
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -18,6 +21,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.math.max
@@ -30,18 +37,23 @@ import timber.log.Timber
 import androidx.core.graphics.scale
 
 /**
- * Repository for fetching and caching artist images from Deezer API.
+ * Resolves local artist portraits before fetching and caching Deezer images.
  * Uses both in-memory LRU cache and Room database for persistent storage.
  */
 @Singleton
 class ArtistImageRepository @Inject constructor(
     private val deezerApiService: DeezerApiService,
     private val musicDao: MusicDao,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         private const val TAG = "ArtistImageRepository"
         private const val CACHE_SIZE = 100
+        // Path/miss records are tiny; keep large artist lists from repeating disk discovery
+        // whenever a single Deezer URL update causes the library to emit again.
+        private const val FOLDER_IMAGE_CACHE_SIZE = 4_096
+        private const val MAX_ARTIST_DIRECTORIES = 64
         private const val PREFETCH_CONCURRENCY = 3
         private val deezerSizeRegex = Regex("/\\d{2,4}x\\d{2,4}([\\-.])")
         private const val NETWORK_RETRY_ATTEMPTS = 3
@@ -66,6 +78,11 @@ class ArtistImageRepository @Inject constructor(
     }
 
     private val memoryCache = LruCache<String, String>(CACHE_SIZE)
+    private data class FolderImageResult(val path: String?, val revision: Long)
+    private val folderImageCache = LruCache<Long, FolderImageResult>(FOLDER_IMAGE_CACHE_SIZE)
+    private val folderLookupMutex = Mutex()
+    private val _folderArtworkRevision = MutableStateFlow(0L)
+    val folderArtworkRevision: StateFlow<Long> = _folderArtworkRevision.asStateFlow()
     
     private val fetchMutex = Mutex()
     private val pendingFetches = mutableSetOf<String>()
@@ -82,6 +99,7 @@ class ArtistImageRepository @Inject constructor(
      */
     suspend fun getArtistImageUrl(artistName: String, artistId: Long): String? {
         if (artistName.isBlank()) return null
+        getFolderArtistImageUrl(artistId, artistName)?.let { return it }
         if (!userPreferencesRepository.externalArtistImagesEnabledFlow.first()) return null
 
         val normalizedName = artistName.trim().lowercase()
@@ -226,11 +244,48 @@ class ArtistImageRepository @Inject constructor(
     fun clearCache() {
         memoryCache.evictAll()
         failedFetches.clear()
+        folderImageCache.evictAll()
+        _folderArtworkRevision.update { it + 1 }
+    }
+
+    /**
+     * Folder images are kept separate from persisted third-party URLs and user overrides so
+     * disabling the option (or losing image access) immediately restores the existing image.
+     */
+    suspend fun getFolderArtistImageUrl(artistId: Long, artistName: String): String? {
+        if (artistName.isBlank() || !isFolderArtworkEnabled()) return null
+        return withContext(Dispatchers.IO) {
+            folderLookupMutex.withLock {
+                if (!isFolderArtworkEnabled()) return@withLock null
+                val revision = _folderArtworkRevision.value
+                folderImageCache.get(artistId)?.takeIf { it.revision == revision }?.let { cached ->
+                    if (cached.path == null || File(cached.path).let { it.isFile && it.canRead() }) {
+                        return@withLock cached.path
+                    }
+                }
+                val directories = musicDao.getLocalArtistDirectories(
+                    artistId,
+                    MAX_ARTIST_DIRECTORIES
+                )
+                val imagePath = FolderArtistArtUtils.findArtistImage(directories, artistName)?.absolutePath
+                if (revision != _folderArtworkRevision.value || !isFolderArtworkEnabled()) {
+                    return@withLock null
+                }
+                folderImageCache.put(artistId, FolderImageResult(imagePath, revision))
+                imagePath
+            }
+        }
+    }
+
+    private suspend fun isFolderArtworkEnabled(): Boolean {
+        return userPreferencesRepository.useFolderAlbumArtFlow.first() &&
+            AlbumArtUtils.canReadImageFiles(context)
     }
 
     /**
      * Returns the effective image URL for an artist:
      * - If a custom (user-set) image exists in DB → returns that path
+     * - Otherwise prefers an opted-in folder portrait when available
      * - Otherwise falls back to the Deezer URL (fetching from API if needed)
      */
     suspend fun getEffectiveArtistImageUrl(artistId: Long, artistName: String): String? {

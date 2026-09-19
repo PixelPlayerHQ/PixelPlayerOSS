@@ -84,9 +84,9 @@
     <string name="setcat_auto_rotate_patterns_title">Muster automatisch wechseln</string>
     <string name="setcat_auto_scan_lrc_subtitle">.lrc-Dateien im selben Ordner werden beim Sync automatisch erkannt und zugewiesen.</string>
     <string name="setcat_folder_album_art_title">Ordner-Coverbilder verwenden</string>
-    <string name="setcat_folder_album_art_subtitle">cover.jpg, folder.jpg oder ein ähnliches Bild aus dem Ordner eines Titels wird als Albumcover verwendet, bevorzugt gegenüber eingebetteten Covern. Gemeinsam genutzte Ordner wie Music, Downloads, DCIM und Pictures werden ignoriert.</string>
-    <string name="setcat_folder_album_art_permission_required">Für das Lesen von Coverbildern aus deinen Musikordnern wird die Berechtigung für Fotos benötigt.</string>
-    <string name="setcat_folder_album_art_refreshing">Albumcover werden aktualisiert…</string>
+    <string name="setcat_folder_album_art_subtitle">cover.jpg, folder.jpg oder ein ähnliches Bild aus dem Ordner eines Titels wird als Albumcover verwendet, bevorzugt gegenüber eingebetteten Covern. Gemeinsam genutzte Ordner wie Music, Downloads, DCIM und Pictures werden ignoriert. In Künstlerordnern wird auch nach artist.jpg, band.jpg und PNG-Varianten gesucht. Manuell gewählte Künstlerfotos haben Vorrang.</string>
+    <string name="setcat_folder_album_art_permission_required">Voller Fotozugriff ist erforderlich, um Album- und Künstlerbilder aus deinen Musikordnern zu lesen.</string>
+    <string name="setcat_folder_album_art_refreshing">Bilder werden aktualisiert…</string>
     <string name="setcat_auto_scan_lrc_title">.lrc-Dateien automatisch scannen</string>
     <string name="setcat_background_playback">Hintergrundwiedergabe</string>
     <string name="setcat_carousel_no_peek">Kein Peek</string>

@@ -63,7 +63,8 @@ class SyncWorkerTest {
                     musicDao = dao,
                     userPreferencesRepository = createTestPreferencesRepository(),
                     lyricsRepository = mockk(relaxed = true),
-                    cloudSyncCoordinator = mockk(relaxed = true)
+                    cloudSyncCoordinator = mockk(relaxed = true),
+                    artistImageRepository = mockk(relaxed = true)
                 )
             } else {
                 null

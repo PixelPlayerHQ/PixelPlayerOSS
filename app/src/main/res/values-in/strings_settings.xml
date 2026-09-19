@@ -84,9 +84,9 @@
     <string name="setcat_auto_rotate_patterns_title">Putar Pola Otomatis</string>
     <string name="setcat_auto_scan_lrc_subtitle">Secara otomatis memindai dan menetapkan file .lrc di folder yang sama selama sinkronisasi pustaka.</string>
     <string name="setcat_folder_album_art_title">Gunakan gambar sampul dari folder</string>
-    <string name="setcat_folder_album_art_subtitle">Gunakan cover.jpg, folder.jpg, atau gambar serupa dari folder lagu sebagai sampul album, didahulukan daripada sampul yang tertanam. Folder bersama seperti Music, Downloads, DCIM, dan Pictures diabaikan.</string>
-    <string name="setcat_folder_album_art_permission_required">Akses foto diperlukan untuk membaca gambar sampul dari folder musik Anda.</string>
-    <string name="setcat_folder_album_art_refreshing">Memperbarui sampul album…</string>
+    <string name="setcat_folder_album_art_subtitle">Gunakan cover.jpg, folder.jpg, atau gambar serupa dari folder lagu sebagai sampul album, didahulukan daripada sampul yang tertanam. Folder bersama seperti Music, Downloads, DCIM, dan Pictures diabaikan. Folder artis juga diperiksa untuk artist.jpg, band.jpg, dan varian PNG. Foto artis yang dipilih secara manual diutamakan.</string>
+    <string name="setcat_folder_album_art_permission_required">Akses foto penuh diperlukan untuk membaca gambar album dan artis dari folder musik Anda.</string>
+    <string name="setcat_folder_album_art_refreshing">Memperbarui gambar…</string>
     <string name="setcat_auto_scan_lrc_title">Pindai otomatis file .lrc</string>
     <string name="setcat_background_playback">Pemutaran Latar Belakang</string>
     <string name="setcat_carousel_no_peek">Tanpa Intip</string>

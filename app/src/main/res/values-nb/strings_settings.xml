@@ -84,9 +84,9 @@
     <string name="setcat_auto_rotate_patterns_title">Roter mønstre automatisk</string>
     <string name="setcat_auto_scan_lrc_subtitle">Skann og tildel .lrc-filer i samme mappe automatisk under synkronisering.</string>
     <string name="setcat_folder_album_art_title">Bruk omslagsbilder fra mappen</string>
-    <string name="setcat_folder_album_art_subtitle">Bruk cover.jpg, folder.jpg eller et lignende bilde fra sangens egen mappe som albumbilde, foran innebygd omslag. Delte mapper som Music, Downloads, DCIM og Pictures ignoreres.</string>
-    <string name="setcat_folder_album_art_permission_required">Tilgang til bilder kreves for å lese omslagsbilder fra musikkmappene dine.</string>
-    <string name="setcat_folder_album_art_refreshing">Oppdaterer albumbilder…</string>
+    <string name="setcat_folder_album_art_subtitle">Bruk cover.jpg, folder.jpg eller et lignende bilde fra sangens egen mappe som albumbilde, foran innebygd omslag. Delte mapper som Music, Downloads, DCIM og Pictures ignoreres. Artistmapper sjekkes også for artist.jpg, band.jpg og PNG-varianter. Manuelt valgte artistbilder prioriteres.</string>
+    <string name="setcat_folder_album_art_permission_required">Full tilgang til bilder kreves for å lese album- og artistbilder fra musikkmappene dine.</string>
+    <string name="setcat_folder_album_art_refreshing">Oppdaterer bilder…</string>
     <string name="setcat_auto_scan_lrc_title">Skann .lrc-filer automatisk</string>
     <string name="setcat_background_playback">Bakgrunnsavspilling</string>
     <string name="setcat_carousel_no_peek">Ingen kikk</string>

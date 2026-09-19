@@ -21,7 +21,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
-import com.lostf1sh.pixelplayeross.data.media.ImageCacheManager
+import com.lostf1sh.pixelplayeross.utils.FolderArtworkSettingsCoordinator
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtQuality
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtPaletteStyle
@@ -182,7 +182,7 @@ class SettingsViewModel @Inject constructor(
     private val lyricsRepository: LyricsRepository,
     private val musicRepository: MusicRepository,
     private val backupManager: BackupManager,
-    private val imageCacheManager: ImageCacheManager,
+    private val folderArtworkSettingsCoordinator: FolderArtworkSettingsCoordinator,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -927,21 +927,7 @@ class SettingsViewModel @Inject constructor(
      */
     fun setUseFolderAlbumArt(enabled: Boolean) {
         viewModelScope.launch {
-            // Deliberately not skipped when the stored value already matches: re-enabling after
-            // the image permission was granted back leaves the preference unchanged but still
-            // needs the caches rebuilt, because everything was resolved without folder access.
-            // Mirrored before the write so the app-wide observer sees its own value and does not
-            // invalidate a second time.
-            com.lostf1sh.pixelplayeross.utils.AlbumArtUtils.setFolderAlbumArtPreference(enabled)
-            userPreferencesRepository.setUseFolderAlbumArt(enabled)
-            com.lostf1sh.pixelplayeross.utils.AlbumArtCacheManager.clearAllCache(context)
-            imageCacheManager.clearAllCoverArtCaches()
-            // Record what the cache is being rebuilt under so the app-wide reconciler recognises
-            // its own state and does not clear it again.
-            userPreferencesRepository.setFolderAlbumArtCacheState(
-                com.lostf1sh.pixelplayeross.utils.AlbumArtUtils.isFolderAlbumArtEnabled(context)
-            )
-            syncManager.fullSync()
+            folderArtworkSettingsCoordinator.setEnabled(enabled)
         }
     }
 

@@ -109,7 +109,8 @@ object SettingsRegistry {
                 // prompt, which only the settings screen can launch.
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf(
-                    "cover", "cover.jpg", "folder.jpg", "album art", "artwork", "image", "folder"
+                    "cover", "cover.jpg", "folder.jpg", "album art", "artwork", "image", "folder",
+                    "artist", "artist.jpg", "artist.png", "band.jpg", "band.png", "artist photo"
                 )
             ),
             SettingSpec(

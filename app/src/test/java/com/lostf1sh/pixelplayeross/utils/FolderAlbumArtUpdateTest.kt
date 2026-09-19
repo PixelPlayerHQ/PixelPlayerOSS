@@ -11,11 +11,11 @@ import org.junit.jupiter.api.Test
 class FolderAlbumArtUpdateTest {
 
     @Test
-    fun firstRecordedState_onlyStoresIt() {
+    fun missingRecordedState_invalidatesPreexistingArtwork() {
         assertThat(resolveFolderAlbumArtUpdate(previous = null, observed = true))
-            .isEqualTo(FolderAlbumArtUpdate.MIRROR_ONLY)
+            .isEqualTo(FolderAlbumArtUpdate.MIRROR_AND_INVALIDATE)
         assertThat(resolveFolderAlbumArtUpdate(previous = null, observed = false))
-            .isEqualTo(FolderAlbumArtUpdate.MIRROR_ONLY)
+            .isEqualTo(FolderAlbumArtUpdate.MIRROR_AND_INVALIDATE)
     }
 
     @Test

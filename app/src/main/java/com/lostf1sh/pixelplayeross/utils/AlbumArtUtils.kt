@@ -18,12 +18,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.math.roundToInt
 
 object AlbumArtUtils {
@@ -66,6 +70,22 @@ object AlbumArtUtils {
     fun folderAlbumArtPreferenceOrNull(): Boolean? = folderAlbumArtPreference
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val artworkCacheWriteLock = Any()
+    private val artworkCacheGeneration = AtomicLong()
+    private val _artworkCacheVersion = MutableStateFlow(0L)
+    val artworkCacheVersion = _artworkCacheVersion.asStateFlow()
+
+    /** Publish only after file and Coil caches are cleared, so mounted images can reload safely. */
+    internal fun notifyArtworkCacheInvalidated() {
+        _artworkCacheVersion.update { it + 1L }
+    }
+
+    /** Prevent in-flight reads from restoring covers or miss markers after settings invalidate them. */
+    internal fun bumpArtworkCacheGeneration() {
+        synchronized(artworkCacheWriteLock) {
+            artworkCacheGeneration.incrementAndGet()
+        }
+    }
     // Tracks cache files currently being shrunk so rapid repeated loads of the same oversized
     // cover don't read the large blob into memory more than once concurrently.
     private val artworkShrinkInFlight = ConcurrentHashMap.newKeySet<String>()
@@ -189,6 +209,7 @@ object AlbumArtUtils {
         filePath: String? = null,
         forceRefresh: Boolean = false
     ): File? {
+        val generation = artworkCacheGeneration.get()
         val cachedFile = getCachedAlbumArtFile(appContext, songId)
         val noArtFile = noArtMarkerFile(appContext, songId)
 
@@ -214,17 +235,19 @@ object AlbumArtUtils {
         // Folder covers outrank embedded pictures when the user has opted in: a cover.jpg is
         // usually the full-resolution original, while embedded art is often a downscaled copy.
         readExternalAlbumArtBytes(resolvedPath, isFolderAlbumArtEnabled(appContext))?.let { bytes ->
-            cacheAlbumArtBytes(appContext, bytes, songId)
-            return cachedFile.takeIf { it.exists() && it.length() > 0 }
+            return cacheAlbumArtBytesIfCurrent(appContext, bytes, songId, generation)
         }
 
         extractEmbeddedAlbumArtBytes(resolvedPath)?.let { bytes ->
-            cacheAlbumArtBytes(appContext, bytes, songId)
-            return cachedFile.takeIf { it.exists() && it.length() > 0 }
+            return cacheAlbumArtBytesIfCurrent(appContext, bytes, songId, generation)
         }
 
-        cachedFile.delete()
-        noArtFile.createNewFile()
+        synchronized(artworkCacheWriteLock) {
+            if (generation == artworkCacheGeneration.get()) {
+                cachedFile.delete()
+                noArtFile.createNewFile()
+            }
+        }
         return null
     }
 
@@ -254,6 +277,7 @@ object AlbumArtUtils {
         songId: Long,
         deepScan: Boolean
     ): Boolean {
+        val generation = artworkCacheGeneration.get()
         val audioFile = File(filePath)
         if (!audioFile.exists() || !audioFile.canRead()) {
             return false
@@ -288,8 +312,12 @@ object AlbumArtUtils {
             return true
         }
 
-        cachedFile.delete()
-        noArtFile.createNewFile()
+        synchronized(artworkCacheWriteLock) {
+            if (generation == artworkCacheGeneration.get()) {
+                cachedFile.delete()
+                noArtFile.createNewFile()
+            }
+        }
         return false
     }
 
@@ -321,13 +349,18 @@ object AlbumArtUtils {
         return preferred && canReadImageFiles(appContext)
     }
 
-    /** Below API 33 the already-granted READ_EXTERNAL_STORAGE covers sibling image files. */
-    internal fun canReadImageFiles(appContext: Context): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return true
-        return ContextCompat.checkSelfPermission(
-            appContext,
+    /** Both image access and legacy shared-storage access can be revoked in system settings. */
+    @android.annotation.SuppressLint("InlinedApi") // Guarded by the SDK argument, injectable for tests.
+    internal fun canReadImageFiles(
+        appContext: Context,
+        sdkInt: Int = Build.VERSION.SDK_INT
+    ): Boolean {
+        val permission = if (sdkInt >= Build.VERSION_CODES.TIRAMISU) {
             Manifest.permission.READ_MEDIA_IMAGES
-        ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+        return ContextCompat.checkSelfPermission(appContext, permission) == PackageManager.PERMISSION_GRANTED
     }
 
     /**
@@ -340,23 +373,66 @@ object AlbumArtUtils {
         maxBytes: Long = MAX_EXTERNAL_ART_BYTES
     ): ByteArray? {
         if (!enabled) return null
-        val artFile = findExternalAlbumArtFile(filePath) ?: return null
-        if (artFile.length() > maxBytes) return null
-        return runCatching { artFile.readBytes() }.getOrNull()?.takeIf { it.isNotEmpty() }
+        return externalAlbumArtCandidates(filePath).firstNotNullOfOrNull { artFile ->
+            readExternalArtworkFileBytes(artFile, maxBytes)
+        }
     }
 
-    internal fun findExternalAlbumArtFile(filePath: String): File? {
-        val audioFile = File(filePath)
-        val directory = audioFile.parentFile ?: return null
-        if (!directory.exists() || !directory.isDirectory) return null
-        if (!shouldTrustDirectoryArtwork(directory.name)) return null
+    internal fun findExternalAlbumArtFile(filePath: String): File? =
+        externalAlbumArtCandidates(filePath).firstOrNull()
 
-        return commonArtworkFileNames
-            .asSequence()
-            .map { name -> File(directory, name) }
-            .firstOrNull { artFile ->
-                artFile.exists() && artFile.isFile && artFile.length() > 1024
+    private fun externalAlbumArtCandidates(filePath: String): List<File> {
+        val directory = File(filePath).parentFile ?: return emptyList()
+        if (!directory.isDirectory || !shouldTrustDirectoryArtwork(directory.name)) return emptyList()
+
+        // Android file systems are case-sensitive, but cover names frequently use .JPG or Cover.jpg.
+        val files = directory.listFiles()?.filter { it.isFile && it.length() > 0 } ?: return emptyList()
+        return commonArtworkFileNames.flatMap { name ->
+            files.filter { it.name.equals(name, ignoreCase = true) }.sortedBy { it.name }
+        }
+    }
+
+    /** Shared validation for folder album covers and artist portraits. */
+    internal fun isUsableExternalArtwork(file: File): Boolean =
+        readExternalArtworkFileBytes(file) != null
+
+    internal fun readExternalArtworkFileBytes(
+        file: File,
+        maxBytes: Long = MAX_EXTERNAL_ART_BYTES
+    ): ByteArray? = runCatching {
+        if (!file.isFile || !file.canRead() || file.length() > maxBytes) return null
+        val bytes = file.inputStream().use { readArtworkBytesWithinLimit(it, maxBytes) } ?: return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        // Bounds alone also succeed for some truncated images. Check a small decoded thumbnail
+        // before allowing an arbitrary sibling file to override embedded artwork.
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = calculateArtworkInSampleSize(bounds.outWidth, bounds.outHeight, 64)
+        }
+        val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options) ?: return null
+        decoded.recycle()
+        bytes
+    }.getOrNull()
+
+    internal fun readArtworkBytesWithinLimit(input: InputStream, maxBytes: Long): ByteArray? {
+        if (maxBytes <= 0) return null
+        return ByteArrayOutputStream().use { output ->
+            val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+            var total = 0L
+            while (true) {
+                // Read at most one byte beyond the limit, even if the file grows after stat().
+                val remaining = maxBytes - total
+                val readLength = if (remaining >= buffer.size) buffer.size else remaining.toInt() + 1
+                val count = input.read(buffer, 0, readLength)
+                if (count == -1) break
+                total += count
+                if (total > maxBytes) return null
+                output.write(buffer, 0, count)
             }
+            output.toByteArray().takeIf { it.isNotEmpty() }
+        }
     }
 
     internal fun shouldTrustDirectoryArtwork(directoryName: String): Boolean {
@@ -456,6 +532,28 @@ object AlbumArtUtils {
         val file = getCachedAlbumArtFile(appContext, songId)
 
         val boundedBytes = boundArtworkForCache(bytes)
+        return writeAlbumArtBytes(appContext, file, boundedBytes, songId)
+    }
+
+    private fun cacheAlbumArtBytesIfCurrent(
+        appContext: Context,
+        bytes: ByteArray,
+        songId: Long,
+        generation: Long
+    ): File? {
+        val boundedBytes = boundArtworkForCache(bytes)
+        return synchronized(artworkCacheWriteLock) {
+            if (generation != artworkCacheGeneration.get()) return@synchronized null
+            writeAlbumArtBytes(appContext, getCachedAlbumArtFile(appContext, songId), boundedBytes, songId)
+        }
+    }
+
+    private fun writeAlbumArtBytes(
+        appContext: Context,
+        file: File,
+        boundedBytes: ByteArray,
+        songId: Long
+    ): File {
         file.outputStream().use { outputStream ->
             outputStream.write(boundedBytes)
         }
@@ -477,6 +575,7 @@ object AlbumArtUtils {
         if (file.length() <= OVERSIZED_CACHED_ART_BYTES) return
         val key = file.absolutePath
         if (!artworkShrinkInFlight.add(key)) return
+        val generation = artworkCacheGeneration.get()
         appScope.launch {
             try {
                 if (file.length() <= OVERSIZED_CACHED_ART_BYTES) return@launch
@@ -486,8 +585,12 @@ object AlbumArtUtils {
                 val tmp = File(file.parentFile, "${file.name}.shrink.tmp")
                 runCatching {
                     tmp.outputStream().use { it.write(bounded) }
-                    if (!tmp.renameTo(file)) {
-                        file.outputStream().use { it.write(bounded) }
+                    synchronized(artworkCacheWriteLock) {
+                        if (generation == artworkCacheGeneration.get() && file.exists()) {
+                            if (!tmp.renameTo(file)) {
+                                file.outputStream().use { it.write(bounded) }
+                            }
+                        }
                         tmp.delete()
                     }
                 }
@@ -660,25 +763,4 @@ internal fun resolveAlbumArtUriForLibraryScan(
         return null
     }
     return LocalArtworkUri.buildSongUri(songId)
-}
-
-/** What the app-wide preference observer should do with a value it just observed. */
-internal enum class FolderAlbumArtUpdate {
-    /** Already mirrored — whoever set it handled any invalidation. */
-    IGNORE,
-
-    /** First value seen this process; nothing was cached under a different setting yet. */
-    MIRROR_ONLY,
-
-    /** Changed out-of-band (a backup restore), so cached artwork is now stale. */
-    MIRROR_AND_INVALIDATE
-}
-
-internal fun resolveFolderAlbumArtUpdate(
-    previous: Boolean?,
-    observed: Boolean
-): FolderAlbumArtUpdate = when {
-    previous == observed -> FolderAlbumArtUpdate.IGNORE
-    previous == null -> FolderAlbumArtUpdate.MIRROR_ONLY
-    else -> FolderAlbumArtUpdate.MIRROR_AND_INVALIDATE
 }

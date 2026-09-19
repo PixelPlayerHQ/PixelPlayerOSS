@@ -1572,6 +1572,25 @@ interface MusicDao {
     @Query("SELECT custom_image_uri FROM artists WHERE id = :artistId")
     suspend fun getArtistCustomImage(artistId: Long): String?
 
+    /**
+     * Resolve indexed artist IDs first, then look up their paths by primary key. CROSS JOIN
+     * keeps SQLite from scanning every local song via source_type for each artist in a list.
+     */
+    @Query("""
+        SELECT DISTINCT songs.parent_directory_path FROM (
+            SELECT id AS song_id FROM songs WHERE artist_id = :artistId
+            UNION
+            SELECT id AS song_id FROM songs WHERE album_artist_id = :artistId
+            UNION
+            SELECT song_id FROM song_artist_cross_ref WHERE artist_id = :artistId
+        ) AS artist_songs
+        CROSS JOIN songs ON songs.id = artist_songs.song_id
+        WHERE songs.source_type = 0 AND songs.parent_directory_path != ''
+        ORDER BY songs.parent_directory_path
+        LIMIT :limit
+    """)
+    suspend fun getLocalArtistDirectories(artistId: Long, limit: Int): List<String>
+
     @Query("""
         SELECT * FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))

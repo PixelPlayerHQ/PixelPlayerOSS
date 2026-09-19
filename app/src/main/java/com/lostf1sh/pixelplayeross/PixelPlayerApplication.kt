@@ -20,9 +20,7 @@ import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LibraryStateHolder
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ThemeStateHolder
 import com.lostf1sh.pixelplayeross.utils.AlbumArtCacheManager
-import com.lostf1sh.pixelplayeross.utils.FolderAlbumArtUpdate
-import com.lostf1sh.pixelplayeross.utils.resolveFolderAlbumArtUpdate
-import com.lostf1sh.pixelplayeross.utils.AlbumArtUtils
+import com.lostf1sh.pixelplayeross.utils.FolderArtworkSettingsCoordinator
 import com.lostf1sh.pixelplayeross.utils.AppLocaleManager
 import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.MediaMetadataRetrieverPool
@@ -66,7 +64,7 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     lateinit var userPreferencesRepository: dagger.Lazy<UserPreferencesRepository>
 
     @Inject
-    lateinit var imageCacheManager: dagger.Lazy<com.lostf1sh.pixelplayeross.data.media.ImageCacheManager>
+    lateinit var folderArtworkSettingsCoordinator: dagger.Lazy<FolderArtworkSettingsCoordinator>
 
     @Inject
     lateinit var syncManager: dagger.Lazy<com.lostf1sh.pixelplayeross.data.worker.SyncManager>
@@ -86,11 +84,13 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     private val appLifecycleObserver = object : DefaultLifecycleObserver {
         override fun onStart(owner: LifecycleOwner) {
             libraryStateHolder.get().restoreAfterTrimIfNeeded()
-            // Returning from system settings is the moment a revoked image permission can come
-            // back; granting one does not restart the process the way revoking it does.
-            startupScope.launch { reconcileFolderAlbumArtCache() }
             m3uSyncCoordinator.get().onAppForeground()
             advancedPerformanceDiagnosticsController.get().onAppForeground()
+        }
+
+        override fun onResume(owner: LifecycleOwner) {
+            // Image access can change while system settings is open, without restarting us.
+            startupScope.launch { folderArtworkSettingsCoordinator.get().reconcile() }
         }
 
         override fun onStop(owner: LifecycleOwner) {
@@ -134,7 +134,6 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
         advancedPerformanceDiagnosticsController.get().start(startupScope)
 
         startupScope.launch {
-            AlbumArtUtils.migrateLegacyCacheLocation(this@PixelPlayerApplication)
             val savedLimit = runCatching {
                 userPreferencesRepository.get().albumArtCacheLimitMbFlow.first()
             }.getOrNull()
@@ -147,37 +146,10 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
         // notably when a backup restore writes it straight into DataStore. A stale mirror would
         // leave the toggle reporting one thing while artwork resolution did another.
         startupScope.launch {
-            userPreferencesRepository.get().useFolderAlbumArtFlow.collect { enabled ->
-                AlbumArtUtils.setFolderAlbumArtPreference(enabled)
-                reconcileFolderAlbumArtCache()
+            userPreferencesRepository.get().useFolderAlbumArtFlow.collect {
+                folderArtworkSettingsCoordinator.get().reconcile()
             }
         }
-    }
-
-    /**
-     * Drops cached artwork when the effective folder-cover state no longer matches the state the
-     * cache was built under.
-     *
-     * Effective state is the preference *and* the image permission, because a cover that cannot
-     * be read is indistinguishable from one that is switched off — both cache embedded art and
-     * "no art" markers that then suppress folder covers. The permission can come back without the
-     * preference ever changing (granted again in system settings), and cached artwork lives in
-     * `filesDir`, so nothing short of this reconciliation would notice.
-     */
-    private suspend fun reconcileFolderAlbumArtCache() {
-        val preferences = userPreferencesRepository.get()
-        val effective = AlbumArtUtils.isFolderAlbumArtEnabled(this)
-        val recorded = runCatching { preferences.folderAlbumArtCacheStateFlow.first() }.getOrNull()
-
-        when (resolveFolderAlbumArtUpdate(previous = recorded, observed = effective)) {
-            FolderAlbumArtUpdate.IGNORE -> return
-            FolderAlbumArtUpdate.MIRROR_ONLY -> Unit
-            FolderAlbumArtUpdate.MIRROR_AND_INVALIDATE -> {
-                AlbumArtCacheManager.clearAllCache(this)
-                imageCacheManager.get().clearAllCoverArtCaches()
-            }
-        }
-        runCatching { preferences.setFolderAlbumArtCacheState(effective) }
     }
 
     override fun newImageLoader(): ImageLoader {

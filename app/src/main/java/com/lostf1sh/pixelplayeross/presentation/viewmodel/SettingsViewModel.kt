@@ -21,6 +21,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.utils.FolderArtworkSettingsCoordinator
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtQuality
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtPaletteStyle
@@ -181,6 +182,7 @@ class SettingsViewModel @Inject constructor(
     private val lyricsRepository: LyricsRepository,
     private val musicRepository: MusicRepository,
     private val backupManager: BackupManager,
+    private val folderArtworkSettingsCoordinator: FolderArtworkSettingsCoordinator,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -902,6 +904,9 @@ class SettingsViewModel @Inject constructor(
     val tapBackgroundClosesPlayer: StateFlow<Boolean> = userPreferencesRepository.tapBackgroundClosesPlayerFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val useFolderAlbumArt: StateFlow<Boolean> = userPreferencesRepository.useFolderAlbumArtFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     fun setAlbumArtQuality(quality: AlbumArtQuality) {
         viewModelScope.launch {
             userPreferencesRepository.setAlbumArtQuality(quality)
@@ -912,6 +917,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.setAlbumArtCacheLimitMb(limitMb)
             com.lostf1sh.pixelplayeross.utils.AlbumArtCacheManager.configuredCacheLimitMb = limitMb.toLong()
+        }
+    }
+
+    /**
+     * Folder covers outrank embedded artwork, so flipping this in either direction invalidates
+     * every cached cover and every "no art" marker: they were all resolved under the old
+     * precedence. The rescan then rebuilds each song's stored artwork URI.
+     */
+    fun setUseFolderAlbumArt(enabled: Boolean) {
+        viewModelScope.launch {
+            folderArtworkSettingsCoordinator.setEnabled(enabled)
         }
     }
 

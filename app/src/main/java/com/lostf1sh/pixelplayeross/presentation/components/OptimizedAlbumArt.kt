@@ -48,16 +48,17 @@ fun OptimizedAlbumArt(
     targetSize: Size = SafeOriginalAlbumArtSize,
     placeholderModel: Any? = null
 ) {
+    val artworkModel = rememberArtworkModelWithCacheVersion(uri)
     val context = LocalContext.current
     val requestTargetSize = remember(targetSize) {
         safeAlbumArtTargetSize(targetSize)
     }
-    val isStableLocalArtwork = remember(uri) {
-        when (uri) {
-            is String -> LocalArtworkUri.isLocalArtworkUri(uri)
-            is Uri -> LocalArtworkUri.isLocalArtworkUri(uri)
+    val isStableLocalArtwork = remember(artworkModel) {
+        when (artworkModel) {
+            is String -> LocalArtworkUri.isLocalArtworkUri(artworkModel)
+            is Uri -> LocalArtworkUri.isLocalArtworkUri(artworkModel)
             is ImageRequest -> {
-                val data = uri.data
+                val data = artworkModel.data
                 (data as? String)?.let(LocalArtworkUri::isLocalArtworkUri) == true ||
                     LocalArtworkUri.isLocalArtworkUri(data as? Uri)
             }
@@ -66,7 +67,7 @@ fun OptimizedAlbumArt(
     }
 
     if (renderDirectAlbumArt(
-            model = uri,
+            model = artworkModel,
             title = title,
             modifier = modifier
         )
@@ -74,28 +75,28 @@ fun OptimizedAlbumArt(
         return
     }
 
-    val memoryCacheKey = remember(uri, requestTargetSize) {
-        albumArtMemoryCacheKey(uri, requestTargetSize)
+    val memoryCacheKey = remember(artworkModel, requestTargetSize) {
+        albumArtMemoryCacheKey(artworkModel, requestTargetSize)
     }
-    val placeholderMemoryCacheKey = remember(memoryCacheKey, uri) {
-        when (uri) {
-            is ImageRequest -> uri.placeholderMemoryCacheKey
-                ?: uri.memoryCacheKey
+    val placeholderMemoryCacheKey = remember(memoryCacheKey, artworkModel) {
+        when (artworkModel) {
+            is ImageRequest -> artworkModel.placeholderMemoryCacheKey
+                ?: artworkModel.memoryCacheKey
                 ?: memoryCacheKey?.let { MemoryCache.Key(it) }
             else -> memoryCacheKey?.let { MemoryCache.Key(it) }
         }
     }
-    val requestModel = remember(context, uri, requestTargetSize) {
-        when (uri) {
-            is ImageRequest -> uri.newBuilder(context).apply {
+    val requestModel = remember(context, artworkModel, requestTargetSize) {
+        when (artworkModel) {
+            is ImageRequest -> artworkModel.newBuilder(context).apply {
                 size(requestTargetSize)
-                if (uri.memoryCacheKey == null) {
+                if (artworkModel.memoryCacheKey == null) {
                     memoryCacheKey(memoryCacheKey)
                 }
                 placeholderMemoryCacheKey(placeholderMemoryCacheKey)
             }.build()
             else -> ImageRequest.Builder(context)
-                .data(uri)
+                .data(artworkModel)
                 .crossfade(350)
                 .error(R.drawable.ic_music_placeholder)
                 .size(requestTargetSize)

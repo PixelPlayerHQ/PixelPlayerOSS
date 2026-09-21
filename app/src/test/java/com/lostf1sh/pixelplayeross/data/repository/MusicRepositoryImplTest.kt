@@ -15,6 +15,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.MutableStateFlow
+import app.cash.turbine.test
 import kotlinx.coroutines.test.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -44,6 +46,8 @@ class MusicRepositoryImplTest {
     @BeforeEach
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
+        every { mockArtistImageRepository.folderArtworkRevision } returns MutableStateFlow(0L)
+        coEvery { mockArtistImageRepository.getFolderArtistImageUrl(any(), any()) } returns null
         coEvery { mockUserPreferencesRepository.allowedDirectoriesFlow } returns flowOf(emptySet())
         coEvery { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/dummy"))
         coEvery { mockUserPreferencesRepository.initialSetupDoneFlow } returns flowOf(true)
@@ -104,6 +108,46 @@ class MusicRepositoryImplTest {
     @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun `artist lists prefer folder art and restore remote art after invalidation`() = runTest(testDispatcher) {
+        val revision = MutableStateFlow(0L)
+        every { mockArtistImageRepository.folderArtworkRevision } returns revision
+        every { mockMusicDao.getArtistsWithSongCountsFiltered(any(), any(), any()) } returns flowOf(
+            listOf(ArtistEntity(101L, "Artist", 1, imageUrl = "https://example.com/remote.jpg"))
+        )
+        coEvery { mockArtistImageRepository.getFolderArtistImageUrl(101L, "Artist") } returns
+            "/Music/Artist/artist.jpg"
+
+        musicRepository.getArtists().test {
+            assertEquals("/Music/Artist/artist.jpg", awaitItem().single().effectiveImageUrl)
+            coEvery { mockArtistImageRepository.getFolderArtistImageUrl(101L, "Artist") } returns null
+            revision.value++
+            assertEquals("https://example.com/remote.jpg", awaitItem().single().effectiveImageUrl)
+            cancelAndIgnoreRemainingEvents()
+        }
+        coVerify(exactly = 0) { mockMusicDao.updateArtistImageUrl(any(), any()) }
+    }
+
+    @Test
+    fun `artist search keeps manually chosen photos ahead of folder art`() = runTest(testDispatcher) {
+        every { mockMusicDao.searchArtists("Artist", any(), any()) } returns flowOf(
+            listOf(ArtistEntity(101L, "Artist", 1, imageUrl = "https://example.com/remote.jpg", customImageUri = "/custom.jpg"))
+        )
+        assertEquals("/custom.jpg", musicRepository.searchArtists("Artist").first().single().effectiveImageUrl)
+        coVerify(exactly = 0) { mockArtistImageRepository.getFolderArtistImageUrl(any(), any()) }
+    }
+
+    @Test
+    fun `artist detail and song artists resolve folder images`() = runTest(testDispatcher) {
+        val entity = ArtistEntity(101L, "Artist", 1, imageUrl = "https://example.com/remote.jpg")
+        every { mockMusicDao.getArtistById(101L) } returns flowOf(entity)
+        every { mockMusicDao.getArtistsForSong(5L) } returns flowOf(listOf(entity))
+        coEvery { mockArtistImageRepository.getFolderArtistImageUrl(101L, "Artist") } returns "/Music/Artist/band.png"
+
+        assertEquals("/Music/Artist/band.png", musicRepository.getArtistById(101L).first()?.effectiveImageUrl)
+        assertEquals("/Music/Artist/band.png", musicRepository.getArtistsForSong(5L).first().single().effectiveImageUrl)
     }
 
     @Test

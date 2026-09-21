@@ -99,6 +99,21 @@ object SettingsRegistry {
                 onToggle = { viewModel, checked -> viewModel.setAutoScanLrcFiles(checked) }
             ),
             SettingSpec(
+                id = "library_folder_album_art",
+                itemKey = "item_library_folder_album_art",
+                titleRes = R.string.setcat_folder_album_art_title,
+                subtitleRes = R.string.setcat_folder_album_art_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                // Navigates instead of toggling in place: enabling needs a READ_MEDIA_IMAGES
+                // prompt, which only the settings screen can launch.
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf(
+                    "cover", "cover.jpg", "folder.jpg", "album art", "artwork", "image", "folder",
+                    "artist", "artist.jpg", "artist.png", "band.jpg", "band.png", "artist photo"
+                )
+            ),
+            SettingSpec(
                 id = "library_find_duplicates",
                 itemKey = "item_library_find_duplicates",
                 titleRes = R.string.setcat_find_duplicates_title,

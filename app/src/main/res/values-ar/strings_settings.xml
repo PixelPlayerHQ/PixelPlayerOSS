@@ -83,6 +83,10 @@
     <string name="setcat_auto_rotate_patterns_subtitle">تغيير أنماط التجميعة بشكل دوري في كل مرة تزور فيها الصفحة الرئيسية.</string>
     <string name="setcat_auto_rotate_patterns_title">تدوير الأنماط تلقائياً</string>
     <string name="setcat_auto_scan_lrc_subtitle">فحص وتعيين ملفات الكلمات المزامنة (.lrc) المتواجدة في نفس المجلد تلقائياً أثناء المزامنة.</string>
+    <string name="setcat_folder_album_art_title">استخدام صور الغلاف من المجلد</string>
+    <string name="setcat_folder_album_art_subtitle">استخدام cover.jpg أو folder.jpg أو صورة مشابهة من مجلد الأغنية كغلاف للألبوم، مع تفضيلها على الغلاف المضمّن. يتم تجاهل المجلدات المشتركة مثل Music و Downloads و DCIM و Pictures. يتم أيضًا البحث في مجلدات الفنانين عن artist.jpg وband.jpg ونسخ PNG. تُعطى الأولوية لصور الفنانين المختارة يدويًا.</string>
+    <string name="setcat_folder_album_art_permission_required">يلزم الوصول الكامل إلى الصور لقراءة صور الألبومات والفنانين من مجلدات الموسيقى.</string>
+    <string name="setcat_folder_album_art_refreshing">جارٍ تحديث الصور…</string>
     <string name="setcat_auto_scan_lrc_title">فحص تلقائي لملفات .lrc</string>
     <string name="setcat_background_playback">التشغيل في الخلفية</string>
     <string name="setcat_carousel_no_peek">بدون إلقاء نظرة خاطفة</string>

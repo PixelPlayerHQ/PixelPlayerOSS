@@ -83,6 +83,10 @@
     <string name="setcat_auto_rotate_patterns_subtitle">홈을 방문할 때마다 콜라주 패턴을 순환합니다.</string>
     <string name="setcat_auto_rotate_patterns_title">패턴 자동 회전</string>
     <string name="setcat_auto_scan_lrc_subtitle">라이브러리 동기화 중 같은 폴더에 있는 .lrc 파일을 자동으로 스캔하여 할당합니다.</string>
+    <string name="setcat_folder_album_art_title">폴더의 커버 이미지 사용</string>
+    <string name="setcat_folder_album_art_subtitle">곡이 있는 폴더의 cover.jpg, folder.jpg 등의 이미지를 내장 아트워크보다 우선해 앨범 아트로 사용합니다. Music, Downloads, DCIM, Pictures 같은 공용 폴더는 무시됩니다. 아티스트 폴더에서도 artist.jpg, band.jpg 및 PNG 파일을 찾습니다. 직접 선택한 아티스트 사진이 우선합니다.</string>
+    <string name="setcat_folder_album_art_permission_required">음악 폴더에서 앨범 및 아티스트 이미지를 읽으려면 모든 사진에 대한 접근 권한이 필요합니다.</string>
+    <string name="setcat_folder_album_art_refreshing">이미지를 새로 고치는 중…</string>
     <string name="setcat_auto_scan_lrc_title">.lrc 파일 자동 스캔</string>
     <string name="setcat_background_playback">백그라운드 재생</string>
     <string name="setcat_carousel_no_peek">미리보기 없음</string>

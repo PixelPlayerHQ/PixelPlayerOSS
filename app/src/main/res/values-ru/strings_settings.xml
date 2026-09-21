@@ -83,6 +83,10 @@
     <string name="setcat_auto_rotate_patterns_subtitle">Менять шаблон коллажа при каждом открытии главной страницы.</string>
     <string name="setcat_auto_rotate_patterns_title">Автосмена шаблонов</string>
     <string name="setcat_auto_scan_lrc_subtitle">Автоматически искать и привязывать .lrc-файлы из той же папки во время синхронизации.</string>
+    <string name="setcat_folder_album_art_title">Использовать обложки из папки</string>
+    <string name="setcat_folder_album_art_subtitle">Использовать cover.jpg, folder.jpg или похожее изображение из папки трека в качестве обложки вместо встроенной. Общие папки вроде Music, Downloads, DCIM и Pictures игнорируются. В папках исполнителей также ищутся artist.jpg, band.jpg и варианты PNG. Фотографии, выбранные вручную, имеют приоритет.</string>
+    <string name="setcat_folder_album_art_permission_required">Для чтения изображений альбомов и исполнителей из музыкальных папок нужен полный доступ к фото.</string>
+    <string name="setcat_folder_album_art_refreshing">Обновление изображений…</string>
     <string name="setcat_auto_scan_lrc_title">Автосканирование .lrc-файлов</string>
     <string name="setcat_background_playback">Фоновое воспроизведение</string>
     <string name="setcat_carousel_no_peek">Без предпросмотра</string>

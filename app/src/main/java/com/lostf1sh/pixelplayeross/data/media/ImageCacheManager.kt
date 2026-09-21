@@ -12,6 +12,20 @@ import javax.inject.Singleton
 class ImageCacheManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
+    /**
+     * Drops every decoded and on-disk image Coil holds.
+     *
+     * Needed when artwork changes for the whole library at once and there is no list of affected
+     * URIs to hand to [invalidateCoverArtCaches] — the per-URI path can only guess at Coil's
+     * size-suffixed memory keys, so it cannot be trusted for a library-wide change.
+     */
+    @OptIn(ExperimentalCoilApi::class)
+    fun clearAllCoverArtCaches() {
+        val imageLoader = context.imageLoader
+        imageLoader.memoryCache?.clear()
+        imageLoader.diskCache?.clear()
+    }
+
     @OptIn(ExperimentalCoilApi::class)
     fun invalidateCoverArtCaches(vararg uriStrings: String?) {
         val imageLoader = context.imageLoader

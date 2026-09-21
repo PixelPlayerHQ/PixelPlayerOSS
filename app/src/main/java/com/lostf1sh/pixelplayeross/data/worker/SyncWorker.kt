@@ -28,6 +28,7 @@ import com.lostf1sh.pixelplayeross.data.media.normalizeArtistMetadataValues
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.LyricsRepository
+import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.data.service.PlaybackActivityTracker
 import com.lostf1sh.pixelplayeross.utils.AlbumArtCacheManager
 import com.lostf1sh.pixelplayeross.utils.AlbumArtUtils
@@ -104,7 +105,8 @@ constructor(
         private val musicDao: MusicDao,
         private val userPreferencesRepository: UserPreferencesRepository,
         private val lyricsRepository: LyricsRepository,
-        private val cloudSyncCoordinator: CloudSyncCoordinator
+        private val cloudSyncCoordinator: CloudSyncCoordinator,
+        private val artistImageRepository: ArtistImageRepository
 ) : CoroutineWorker(appContext, workerParams) {
 
     private val contentResolver: ContentResolver = appContext.contentResolver
@@ -379,6 +381,7 @@ constructor(
                                 "totalSongs" to totalSongs.toString()
                             )
                         }
+                        artistImageRepository.clearCache()
                         return@withContext Result.success(
                             workDataOf(OUTPUT_TOTAL_SONGS to totalSongs)
                         )
@@ -472,6 +475,7 @@ constructor(
                             "totalSongs" to finalTotalSongs.toString()
                         )
                     }
+                    artistImageRepository.clearCache()
                     Result.success(workDataOf(OUTPUT_TOTAL_SONGS to finalTotalSongs))
                 } catch (e: Exception) {
                     Timber.tag(TAG).e(e, "Error during MediaStore synchronization")

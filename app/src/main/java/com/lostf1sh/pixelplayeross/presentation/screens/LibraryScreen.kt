@@ -2235,13 +2235,13 @@ private fun LibraryNavigationCompactTitle(
             }
         }
 
-        val primaryColor = MaterialTheme.colorScheme.primary
+        val titleColor = MaterialTheme.colorScheme.onPrimaryContainer
         val finalTextStyle = remember(
             animatedWidthAxis,
             targetFontSize,
             targetLetterSpacing,
             targetWeight,
-            primaryColor
+            titleColor
         ) {
             TextStyle(
                 fontFamily = FontFamily(
@@ -2261,7 +2261,7 @@ private fun LibraryNavigationCompactTitle(
                 fontSize = targetFontSize,
                 lineHeight = targetFontSize,
                 letterSpacing = targetLetterSpacing,
-                color = primaryColor,
+                color = titleColor,
                 platformStyle = PlatformTextStyle(includeFontPadding = false),
                 lineHeightStyle = LineHeightStyle(
                     alignment = LineHeightStyle.Alignment.Center,
@@ -2271,7 +2271,7 @@ private fun LibraryNavigationCompactTitle(
         }
 
         Surface(
-            color = MaterialTheme.colorScheme.surfaceContainerLowest,
+            color = MaterialTheme.colorScheme.primaryContainer,
             shape = CircleShape,
             modifier = Modifier
                 .align(Alignment.CenterStart)

@@ -1052,7 +1052,7 @@ fun NavidromeSong.toSong(): Song {
         sampleRate = null,
         year = year,
         trackNumber = trackNumber,
-        dateAdded = System.currentTimeMillis(),
+        dateAdded = dateAddedOr(System.currentTimeMillis()),
         isFavorite = false,
         navidromeId = id
     )

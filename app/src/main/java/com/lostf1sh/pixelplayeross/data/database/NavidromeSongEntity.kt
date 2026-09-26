@@ -28,7 +28,8 @@ import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeSong
  * @property mimeType The MIME type
  * @property suffix The file suffix (mp3, flac, etc.)
  * @property path The file path on the server
- * @property dateAdded The timestamp when this record was added
+ * @property dateAdded When the song was added to the server library (epoch millis), falling back
+ * to the time it was cached when the server does not report it
  */
 @Entity(
     tableName = "navidrome_songs",
@@ -91,7 +92,10 @@ fun NavidromeSongEntity.toSong(): Song {
 /**
  * Convert a [NavidromeSong] to a [NavidromeSongEntity] for database storage.
  */
-fun NavidromeSong.toEntity(playlistId: String): NavidromeSongEntity {
+fun NavidromeSong.toEntity(
+    playlistId: String,
+    nowMs: Long = System.currentTimeMillis()
+): NavidromeSongEntity {
     return NavidromeSongEntity(
         id = "${playlistId}_$id",
         navidromeId = id,
@@ -112,6 +116,6 @@ fun NavidromeSong.toEntity(playlistId: String): NavidromeSongEntity {
         mimeType = resolvedMimeType,
         suffix = suffix,
         path = path,
-        dateAdded = System.currentTimeMillis()
+        dateAdded = dateAddedOr(nowMs)
     )
 }

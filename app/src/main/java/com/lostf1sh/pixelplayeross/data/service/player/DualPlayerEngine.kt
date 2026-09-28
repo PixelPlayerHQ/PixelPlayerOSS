@@ -347,6 +347,9 @@ class DualPlayerEngine @Inject constructor(
      */
     var incomingTrackReplayGainVolume: Float? = null
 
+    /** Master volume (ReplayGain or user) captured when a crossfade starts; null otherwise. */
+    private var volumeBeforeTransition: Float? = null
+
     private val focusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         when (focusChange) {
             AudioManager.AUDIOFOCUS_LOSS -> {
@@ -892,7 +895,7 @@ class DualPlayerEngine @Inject constructor(
         val transitionWasRunning = transitionRunning
         val stableVolume = when {
             useAuxiliaryPlayer -> incomingTrackReplayGainVolume ?: 1f
-            transitionWasRunning -> 1f
+            transitionWasRunning -> volumeBeforeTransition ?: sourcePlayer.volume
             else -> sourcePlayer.volume
         }
 
@@ -922,7 +925,7 @@ class DualPlayerEngine @Inject constructor(
         resetPreparedWindowState()
         incomingTrackReplayGainVolume = null
         if (::playerA.isInitialized) {
-            playerA.volume = 1f
+            restoreVolumeBeforeTransition()
             playerA.pauseAtEndOfMediaItems = false
         }
         Timber.tag("TransitionDebug").d("Cancelled active transition before rebuilding players.")
@@ -1342,7 +1345,7 @@ class DualPlayerEngine @Inject constructor(
             } catch (e: Exception) { }
         }
         if (::playerA.isInitialized) {
-            playerA.volume = 1f
+            restoreVolumeBeforeTransition()
             if (shouldPublishMasterPlayer) {
                 onPlayerSwappedListeners.forEach { it(playerA) }
             }
@@ -1351,8 +1354,19 @@ class DualPlayerEngine @Inject constructor(
         setPauseAtEndOfMediaItems(false)
     }
 
+    /**
+     * Puts the master player back at the volume it had before a crossfade started fading it.
+     * Leaves it untouched when no crossfade ran, so ReplayGain or user volume survives queue
+     * edits and other cancellations.
+     */
+    private fun restoreVolumeBeforeTransition() {
+        volumeBeforeTransition?.let { playerA.volume = it }
+        volumeBeforeTransition = null
+    }
+
     fun performTransition(settings: TransitionSettings) {
         transitionJob?.cancel()
+        if (volumeBeforeTransition == null) volumeBeforeTransition = playerA.volume
         val transitionRunId = transitionRunTracker.start()
         transitionRunning = true
         auxiliaryPlayerPresented = false
@@ -1364,7 +1378,7 @@ class DualPlayerEngine @Inject constructor(
             } catch (e: Exception) {
                 if (transitionRunTracker.isCurrent(transitionRunId)) {
                     Timber.tag("TransitionDebug").e(e, "Error performing transition")
-                    playerA.volume = 1f
+                    restoreVolumeBeforeTransition()
                     setPauseAtEndOfMediaItems(false)
                     playerB?.stop()
                 }
@@ -1383,7 +1397,7 @@ class DualPlayerEngine @Inject constructor(
     private suspend fun performOverlapTransition(settings: TransitionSettings) {
         val auxiliaryPlayer = playerB
         if (auxiliaryPlayer == null || auxiliaryPlayer.mediaItemCount == 0) {
-            playerA.volume = 1f
+            restoreVolumeBeforeTransition()
             setPauseAtEndOfMediaItems(false)
             return
         }
@@ -1391,13 +1405,13 @@ class DualPlayerEngine @Inject constructor(
         if (auxiliaryPlayer.playbackState == Player.STATE_IDLE) auxiliaryPlayer.prepare()
         if (auxiliaryPlayer.playbackState == Player.STATE_BUFFERING) {
             if (!awaitPlayerReady(auxiliaryPlayer, 3000L)) {
-                playerA.volume = 1f
+                restoreVolumeBeforeTransition()
                 setPauseAtEndOfMediaItems(false)
                 return
             }
         }
 
-        val outgoingStartVolume = playerA.volume.coerceIn(0f, 1f)
+        val outgoingStartVolume = (volumeBeforeTransition ?: playerA.volume).coerceIn(0f, 1f)
         auxiliaryPlayer.volume = 0f
         if (!playerA.isPlaying && playerA.playbackState == Player.STATE_READY) playerA.play()
         auxiliaryPlayer.playWhenReady = true
@@ -1433,6 +1447,7 @@ class DualPlayerEngine @Inject constructor(
         outgoingPlayer.volume = 0f
         incomingPlayer.volume = incomingTrackReplayGainVolume ?: 1f
         incomingTrackReplayGainVolume = null
+        volumeBeforeTransition = null
 
         removeMasterPlayerListeners(outgoingPlayer)
 

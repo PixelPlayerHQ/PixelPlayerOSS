@@ -27,6 +27,7 @@ import kotlinx.parcelize.Parcelize
  * @property path The file path on the server
  * @property size The file size in bytes (optional)
  * @property playCount The play count (optional)
+ * @property created When the song was added to the server library, in epoch milliseconds (0 if unknown)
  */
 @Immutable
 @Parcelize
@@ -49,7 +50,8 @@ data class NavidromeSong(
     val suffix: String? = null,
     val path: String = "",
     val size: Long? = null,
-    val playCount: Int = 0
+    val playCount: Int = 0,
+    val created: Long = 0L
 ) : Parcelable {
     companion object {
         fun empty() = NavidromeSong(
@@ -71,9 +73,16 @@ data class NavidromeSong(
             suffix = null,
             path = "",
             size = null,
-            playCount = 0
+            playCount = 0,
+            created = 0L
         )
     }
+
+    /**
+     * The date-added timestamp to store locally: the server's `created` time, or [fallbackMs]
+     * when the server did not report one.
+     */
+    fun dateAddedOr(fallbackMs: Long): Long = created.takeIf { it > 0L } ?: fallbackMs
 
     /**
      * Returns the MIME type, with fallback based on file suffix.

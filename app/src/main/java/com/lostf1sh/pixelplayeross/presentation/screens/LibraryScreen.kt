@@ -171,7 +171,6 @@ import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCreationTypeD
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionActionRow
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionCountPill
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair
-import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerSheetState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerUiState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
@@ -642,12 +641,11 @@ fun LibraryScreen(
     }
 
     // Registration order decides which BackHandler wins, and this one can register after the
-    // player sheet's handlers. Stand down while the player (and its queue) is expanded so back
-    // collapses the player instead of leaving the folder or clearing the selection underneath it.
-    val playerSheetState by playerViewModel.sheetState.collectAsStateWithLifecycle()
-    val isPlayerSheetCollapsed = playerSheetState == PlayerSheetState.COLLAPSED
+    // player sheet's handlers. Stand down only while the player or its queue will actually
+    // consume back; during a sheet drag or with no current song, keep folder/selection back.
+    val isPlayerSheetHandlingBack by playerViewModel.isPlayerSheetHandlingBack.collectAsStateWithLifecycle()
 
-    BackHandler(enabled = isPlayerSheetCollapsed && (hasSelectionInCurrentTab || canHandleFolderBack)) {
+    BackHandler(enabled = !isPlayerSheetHandlingBack && (hasSelectionInCurrentTab || canHandleFolderBack)) {
         when {
             hasSelectionInCurrentTab -> {
                 when (currentTabId) {

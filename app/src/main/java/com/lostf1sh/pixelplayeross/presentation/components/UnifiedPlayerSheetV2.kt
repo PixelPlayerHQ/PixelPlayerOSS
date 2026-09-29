@@ -463,9 +463,16 @@ fun UnifiedPlayerSheetV2(
     LaunchedEffect(showQueueSheet) {
         playerViewModel.updateQueueSheetVisibility(showQueueSheet)
     }
+    // Mirrors the enabled state of the player and queue back handlers so screens underneath can
+    // defer to them without depending on BackHandler registration order.
+    val isPlayerSheetHandlingBack = canHandlePlayerBack || (isQueueVisible && !internalIsKeyboardVisible)
+    LaunchedEffect(isPlayerSheetHandlingBack) {
+        playerViewModel.updatePlayerSheetHandlingBack(isPlayerSheetHandlingBack)
+    }
     DisposableEffect(Unit) {
         onDispose {
             playerViewModel.updateQueueSheetVisibility(false)
+            playerViewModel.updatePlayerSheetHandlingBack(false)
         }
     }
 

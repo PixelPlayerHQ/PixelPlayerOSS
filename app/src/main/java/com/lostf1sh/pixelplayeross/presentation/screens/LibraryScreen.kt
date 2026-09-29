@@ -171,6 +171,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCreationTypeD
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionActionRow
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionCountPill
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ColorSchemePair
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerSheetState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerUiState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
@@ -640,7 +641,13 @@ fun LibraryScreen(
         }
     }
 
-    BackHandler(enabled = hasSelectionInCurrentTab || canHandleFolderBack) {
+    // Registration order decides which BackHandler wins, and this one can register after the
+    // player sheet's handlers. Stand down while the player (and its queue) is expanded so back
+    // collapses the player instead of leaving the folder or clearing the selection underneath it.
+    val playerSheetState by playerViewModel.sheetState.collectAsStateWithLifecycle()
+    val isPlayerSheetCollapsed = playerSheetState == PlayerSheetState.COLLAPSED
+
+    BackHandler(enabled = isPlayerSheetCollapsed && (hasSelectionInCurrentTab || canHandleFolderBack)) {
         when {
             hasSelectionInCurrentTab -> {
                 when (currentTabId) {

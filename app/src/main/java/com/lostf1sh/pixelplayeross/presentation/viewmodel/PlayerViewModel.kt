@@ -77,6 +77,7 @@ import com.lostf1sh.pixelplayeross.utils.StorageUtils
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import com.lostf1sh.pixelplayeross.utils.ZipShareHelper
 import com.lostf1sh.pixelplayeross.presentation.selection.flattenDistinctGroups
+import com.lostf1sh.pixelplayeross.presentation.navigation.PlayerSheetBackCoordinator
 import com.lostf1sh.pixelplayeross.presentation.selection.effectiveLibraryStorageFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -390,8 +391,7 @@ class PlayerViewModel @Inject constructor(
     val predictiveBackSwipeEdge: StateFlow<Int?> = _predictiveBackSwipeEdge.asStateFlow()
     private val _isQueueSheetVisible = MutableStateFlow(false)
     val isQueueSheetVisible: StateFlow<Boolean> = _isQueueSheetVisible.asStateFlow()
-    private val _isPlayerSheetHandlingBack = MutableStateFlow(false)
-    val isPlayerSheetHandlingBack: StateFlow<Boolean> = _isPlayerSheetHandlingBack.asStateFlow()
+    internal val playerSheetBackCoordinator = PlayerSheetBackCoordinator()
 
     val playerContentExpansionFraction = Animatable(0f)
 
@@ -1403,10 +1403,6 @@ class PlayerViewModel @Inject constructor(
 
     fun updateQueueSheetVisibility(visible: Boolean) {
         _isQueueSheetVisible.value = visible
-    }
-
-    fun updatePlayerSheetHandlingBack(handling: Boolean) {
-        _isPlayerSheetHandlingBack.value = handling
     }
 
     private fun resolveSortOption(

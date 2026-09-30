@@ -25,6 +25,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -463,16 +464,16 @@ fun UnifiedPlayerSheetV2(
     LaunchedEffect(showQueueSheet) {
         playerViewModel.updateQueueSheetVisibility(showQueueSheet)
     }
-    // Mirrors the enabled state of the player and queue back handlers so screens underneath can
-    // defer to them without depending on BackHandler registration order.
+    // Update underlying callbacks in the same composition commit as the sheet handlers. A Flow
+    // handoff would leave folder back disabled until LibraryScreen's next recomposition.
     val isPlayerSheetHandlingBack = canHandlePlayerBack || (isQueueVisible && !internalIsKeyboardVisible)
-    LaunchedEffect(isPlayerSheetHandlingBack) {
-        playerViewModel.updatePlayerSheetHandlingBack(isPlayerSheetHandlingBack)
+    SideEffect {
+        playerViewModel.playerSheetBackCoordinator.updatePlayerSheetHandlingBack(isPlayerSheetHandlingBack)
     }
-    DisposableEffect(Unit) {
+    DisposableEffect(playerViewModel) {
         onDispose {
             playerViewModel.updateQueueSheetVisibility(false)
-            playerViewModel.updatePlayerSheetHandlingBack(false)
+            playerViewModel.playerSheetBackCoordinator.updatePlayerSheetHandlingBack(false)
         }
     }
 

@@ -6,6 +6,7 @@ All notable changes to PixelPlayerOSS will be documented in this file.
 
 ### Fixed
 - Jellyfin playlists no longer go missing on Jellyfin 10.10 and newer, where playlists can hold mixed content and audio playlists are often reported without a media type.
+- Pressing back with the Now Playing screen or the Next up queue open inside a folder in the Folders tab now closes the player instead of leaving the folder ([#136](https://github.com/PixelPlayerHQ/PixelPlayerOSS/issues/136)).
 
 ## [0.3.0] - 2026-08-15
 

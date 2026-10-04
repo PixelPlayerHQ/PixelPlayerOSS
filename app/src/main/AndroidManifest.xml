@@ -256,6 +256,11 @@
             android:name=".data.update.UpdateInstallReceiver"
             android:exported="false" />
 
+        <service
+            android:name=".data.update.UpdateDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
     </application>
 
 </manifest>

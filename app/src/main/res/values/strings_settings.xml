@@ -318,7 +318,7 @@
     <string name="updates_status_up_to_date">You\'re on the latest %1$s build.</string>
     <string name="updates_status_available">Version %1$s is available.</string>
     <string name="updates_status_reinstall">Version %1$s is on the %2$s channel. Switching channels requires reinstalling the app.</string>
-    <string name="updates_status_reinstall_signature">Version %1$s is signed with a different key than this installation, so it can\'t be installed over it.</string>
+    <string name="updates_status_reinstall_signature">Version %1$s can\'t be installed over this build: it is signed with a different key or uses a different package name (for example, a debug build).</string>
     <string name="updates_status_downloading">Downloading %1$s…</string>
     <string name="updates_status_downloading_progress">Downloading %1$s… %2$d%%</string>
     <string name="updates_status_permission">Allow PixelPlayerOSS to install apps to finish updating to %1$s.</string>
@@ -353,4 +353,6 @@
     <string name="updates_notification_channel">App updates</string>
     <string name="updates_notification_title">Update available</string>
     <string name="updates_notification_text">PixelPlayerOSS %1$s is ready to install.</string>
+    <string name="updates_notification_confirm_title">Finish updating PixelPlayerOSS</string>
+    <string name="updates_notification_confirm_text">Tap to confirm the installation.</string>
 </resources>

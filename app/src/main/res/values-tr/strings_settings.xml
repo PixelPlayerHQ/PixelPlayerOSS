@@ -289,7 +289,7 @@
     <string name="updates_status_up_to_date">En son %1$s derlemesini kullanıyorsun.</string>
     <string name="updates_status_available">%1$s sürümü hazır.</string>
     <string name="updates_status_reinstall">%1$s sürümü %2$s kanalında. Kanal değiştirmek için uygulamayı yeniden yüklemen gerekir.</string>
-    <string name="updates_status_reinstall_signature">%1$s sürümü bu kurulumdan farklı bir anahtarla imzalanmış, bu yüzden üzerine yüklenemez.</string>
+    <string name="updates_status_reinstall_signature">%1$s sürümü bu derlemenin üzerine yüklenemez: farklı bir anahtarla imzalanmış ya da paket adı farklı (örneğin bir debug derlemesi).</string>
     <string name="updates_status_downloading">%1$s indiriliyor…</string>
     <string name="updates_status_downloading_progress">%1$s indiriliyor… %%%2$d</string>
     <string name="updates_status_permission">%1$s güncellemesini bitirmek için PixelPlayerOSS\'in uygulama yüklemesine izin ver.</string>
@@ -324,4 +324,6 @@
     <string name="updates_notification_channel">Uygulama güncellemeleri</string>
     <string name="updates_notification_title">Güncelleme var</string>
     <string name="updates_notification_text">PixelPlayerOSS %1$s yüklenmeye hazır.</string>
+    <string name="updates_notification_confirm_title">PixelPlayerOSS güncellemesini tamamla</string>
+    <string name="updates_notification_confirm_text">Kurulumu onaylamak için dokun.</string>
 </resources>

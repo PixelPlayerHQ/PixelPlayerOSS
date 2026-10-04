@@ -257,10 +257,9 @@ private fun UpdateStatusCard(
                     PrimaryAction(stringResource(R.string.updates_action_allow_installs), onAllowInstalls)
                     SecondaryAction(stringResource(R.string.updates_action_cancel), onCancel)
                 }
-                is UpdateStatus.AwaitingConfirmation -> {
+                // The committed session is decided in the system prompt (its Cancel aborts it).
+                is UpdateStatus.AwaitingConfirmation ->
                     PrimaryAction(stringResource(R.string.updates_action_open_prompt)) { onOpenPrompt(status.confirmIntent) }
-                    SecondaryAction(stringResource(R.string.updates_action_cancel), onCancel)
-                }
                 is UpdateStatus.Installing -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 is UpdateStatus.Failed -> {
                     PrimaryAction(stringResource(R.string.updates_action_check_again), onCheck)

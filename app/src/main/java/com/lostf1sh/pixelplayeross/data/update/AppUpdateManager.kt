@@ -24,8 +24,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import okhttp3.Call
 import okhttp3.Request
 import timber.log.Timber
 import java.io.File
@@ -92,6 +94,10 @@ class AppUpdateManager @Inject constructor(
 
     private var job: Job? = null
 
+    /** The in-flight APK download; cancelled directly because OkHttp reads ignore coroutine cancellation. */
+    @Volatile
+    private var activeDownload: Call? = null
+
     /** A fresh process has no install in flight; drop the APK a finished or abandoned update left behind. */
     private val staleApkCleanup: Job = scope.launch { updatesDir().deleteRecursively() }
 
@@ -130,8 +136,11 @@ class AppUpdateManager @Inject constructor(
             ?: return UpdateStatus.Failed(UpdateError.NOTHING_PUBLISHED, release = null)
         return when {
             channel != installedChannel -> UpdateStatus.Available(release, requiresReinstall = true)
-            release.isNewerThan(installedVersionName, installedVersionCode()) ->
-                UpdateStatus.Available(release, requiresReinstall = false)
+            release.isNewerThan(installedVersionName, installedVersionCode()) -> UpdateStatus.Available(
+                release,
+                // Debug builds carry an applicationId suffix; the published APK installs beside them.
+                requiresReinstall = context.packageName != AppReleaseSource.PUBLISHED_PACKAGE,
+            )
             else -> UpdateStatus.UpToDate(channel)
         }
     }
@@ -141,17 +150,22 @@ class AppUpdateManager @Inject constructor(
         if (available.requiresReinstall) return
         val release = available.release
         job?.cancel()
+        _status.value = UpdateStatus.Downloading(release, progress = null)
+        UpdateDownloadService.start(context)
         job = scope.launch {
-            _status.value = UpdateStatus.Downloading(release, progress = null)
             val apk = try {
                 download(release)
             } catch (error: Exception) {
                 if (error is CancellationException) throw error
+                // cancel() aborts the call, which surfaces here as an IOException; Idle stands.
+                ensureActive()
                 Timber.w(error, "Update download failed")
                 _status.value = UpdateStatus.Failed(UpdateError.DOWNLOAD_FAILED, release)
                 return@launch
             }
-            when (verify(apk)) {
+            val check = verify(apk)
+            ensureActive()
+            when (check) {
                 ApkCheck.OK -> install(release, apk)
                 ApkCheck.SIGNER_MISMATCH -> {
                     apk.delete()
@@ -169,8 +183,15 @@ class AppUpdateManager @Inject constructor(
         }
     }
 
+    /**
+     * Stops a download or an install still waiting for the "install unknown apps" grant. Once a
+     * session is committed, the system prompt owns the decision and reports back on its own.
+     */
     fun cancel() {
+        val current = _status.value
+        if (current !is UpdateStatus.Downloading && current !is UpdateStatus.AwaitingInstallPermission) return
         job?.cancel()
+        activeDownload?.cancel()
         _status.value = UpdateStatus.Idle
         job = scope.launch(Dispatchers.IO) { updatesDir().deleteRecursively() }
     }
@@ -226,31 +247,39 @@ class AppUpdateManager @Inject constructor(
         val partial = File(dir, target.name + ".part")
 
         val request = Request.Builder().url(release.apkUrl).get().build()
-        downloadClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
-            val body = response.body
-            val total = body.contentLength().takeIf { it > 0 } ?: release.apkSizeBytes
-            body.byteStream().use { input ->
-                partial.outputStream().use { output ->
-                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE * 8)
-                    var written = 0L
-                    var lastReported = -1
-                    while (true) {
-                        ensureActive()
-                        val count = input.read(buffer)
-                        if (count < 0) break
-                        output.write(buffer, 0, count)
-                        written += count
-                        if (total != null) {
-                            val percent = (written * 100 / total).toInt()
-                            if (percent != lastReported) {
-                                lastReported = percent
-                                _status.value = UpdateStatus.Downloading(release, (written.toFloat() / total).coerceIn(0f, 1f))
+        val call = downloadClient.newCall(request).also { activeDownload = it }
+        try {
+            call.execute().use { response ->
+                if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                val body = response.body
+                val total = body.contentLength().takeIf { it > 0 } ?: release.apkSizeBytes
+                body.byteStream().use { input ->
+                    partial.outputStream().use { output ->
+                        val buffer = ByteArray(DEFAULT_BUFFER_SIZE * 8)
+                        var written = 0L
+                        var lastReported = -1
+                        while (true) {
+                            ensureActive()
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            output.write(buffer, 0, count)
+                            written += count
+                            if (total != null) {
+                                val percent = (written * 100 / total).toInt()
+                                if (percent != lastReported && isActive) {
+                                    lastReported = percent
+                                    _status.value = UpdateStatus.Downloading(
+                                        release,
+                                        (written.toFloat() / total).coerceIn(0f, 1f)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+        } finally {
+            activeDownload = null
         }
         if (!partial.renameTo(target)) throw IOException("Could not finalize $target")
         target

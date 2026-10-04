@@ -9,6 +9,8 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ProcessLifecycleOwner
 import timber.log.Timber
 
 /** Receives [PackageInstaller] session results for self-updates. */
@@ -32,10 +34,15 @@ class UpdateInstallReceiver : BroadcastReceiver() {
         }
 
         if (status == PackageInstaller.STATUS_PENDING_USER_ACTION && confirmIntent != null) {
-            // Succeeds while the app is in the foreground; otherwise the Updates screen keeps
-            // the intent and offers to reopen the system prompt.
-            runCatching { context.startActivity(Intent(confirmIntent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                .onFailure { Timber.w(it, "Could not open the install confirmation") }
+            // Background activity starts are blocked, and a recreated process no longer knows
+            // which release this is, so outside the foreground the prompt goes to a notification.
+            val inForeground = ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
+            val opened = inForeground && runCatching {
+                context.startActivity(Intent(confirmIntent).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+            }.onFailure { Timber.w(it, "Could not open the install confirmation") }.isSuccess
+            if (!opened) UpdateNotifications.showInstallConfirmation(context, confirmIntent)
+        } else {
+            UpdateNotifications.dismissInstallConfirmation(context)
         }
 
         EntryPointAccessors.fromApplication(context, UpdateInstallReceiverEntryPoint::class.java)

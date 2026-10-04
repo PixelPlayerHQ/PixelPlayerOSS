@@ -1,15 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.update
 
-import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -18,9 +9,6 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.lostf1sh.pixelplayeross.MainActivity
-import com.lostf1sh.pixelplayeross.MainActivityIntentContract
-import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.di.AppScope
 import dagger.assisted.Assisted
@@ -58,46 +46,10 @@ class UpdateCheckWorker @AssistedInject constructor(
 
         val versionName = available.release.versionName
         if (preferences.getLastNotifiedUpdateVersion() == versionName) return Result.success()
-        if (notify(versionName)) preferences.setLastNotifiedUpdateVersion(versionName)
-        return Result.success()
-    }
-
-    private fun notify(versionName: String): Boolean {
-        if (ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) !=
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            return false
+        if (UpdateNotifications.showUpdateAvailable(applicationContext, versionName)) {
+            preferences.setLastNotifiedUpdateVersion(versionName)
         }
-        val notificationManager = applicationContext.getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(
-            NotificationChannel(
-                CHANNEL_ID,
-                applicationContext.getString(R.string.updates_notification_channel),
-                NotificationManager.IMPORTANCE_DEFAULT
-            )
-        )
-        val openUpdates = PendingIntent.getActivity(
-            applicationContext,
-            0,
-            Intent(applicationContext, MainActivity::class.java)
-                .setAction(MainActivityIntentContract.ACTION_OPEN_UPDATES)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.monochrome_player)
-            .setContentTitle(applicationContext.getString(R.string.updates_notification_title))
-            .setContentText(applicationContext.getString(R.string.updates_notification_text, versionName))
-            .setContentIntent(openUpdates)
-            .setAutoCancel(true)
-            .build()
-        NotificationManagerCompat.from(applicationContext).notify(NOTIFICATION_ID, notification)
-        return true
-    }
-
-    private companion object {
-        const val CHANNEL_ID = "app_updates"
-        const val NOTIFICATION_ID = 0x5550
+        return Result.success()
     }
 }
 

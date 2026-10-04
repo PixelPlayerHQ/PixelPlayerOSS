@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.provider
 
+import android.Manifest
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.Context
@@ -96,22 +97,35 @@ class SharedArtworkContentProvider : ContentProvider() {
     /**
      * Some vendor System UI implementations reject URI grants before attempting to open a
      * non-exported provider. The provider is therefore exported for compatibility, while every
-     * file open still requires either our own UID or the explicit per-item grant issued by the
-     * media session.
+     * file open still requires our own UID, the explicit per-item grant issued by the media
+     * session, or a privileged media surface reading what the session currently publishes.
+     *
+     * System UI's media controls read the platform session's artwork URI without ever
+     * connecting as a Media3 controller, so they never receive a per-item grant. They hold
+     * MEDIA_CONTENT_CONTROL (signature|privileged) and already see the session's metadata;
+     * they may open only the artwork that metadata currently points at, not arbitrary songs.
      */
     private fun enforceArtworkReadAccess(uri: Uri, appContext: Context) {
         val callingUid = Binder.getCallingUid()
+        val callingPid = Binder.getCallingPid()
         val permissionResult = appContext.checkUriPermission(
             uri,
-            Binder.getCallingPid(),
+            callingPid,
             callingUid,
             Intent.FLAG_GRANT_READ_URI_PERMISSION,
+        )
+        val mediaControlResult = appContext.checkPermission(
+            Manifest.permission.MEDIA_CONTENT_CONTROL,
+            callingPid,
+            callingUid,
         )
         if (
             !hasArtworkReadAccess(
                 callingUid = callingUid,
                 providerUid = appContext.applicationInfo.uid,
                 uriPermissionResult = permissionResult,
+                mediaContentControlResult = mediaControlResult,
+                isPublishedSessionArtwork = isPublishedSessionArtwork(uri.toString(), appContext.packageName),
             )
         ) {
             // FileNotFoundException is intentionally used here: media clients commonly treat a
@@ -268,9 +282,46 @@ class SharedArtworkContentProvider : ContentProvider() {
             callingUid: Int,
             providerUid: Int,
             uriPermissionResult: Int,
+            mediaContentControlResult: Int,
+            isPublishedSessionArtwork: Boolean,
         ): Boolean {
             return callingUid == providerUid ||
-                uriPermissionResult == PackageManager.PERMISSION_GRANTED
+                uriPermissionResult == PackageManager.PERMISSION_GRANTED ||
+                (mediaContentControlResult == PackageManager.PERMISSION_GRANTED && isPublishedSessionArtwork)
         }
+
+        /*
+         * Artwork the media session currently publishes to platform surfaces, keyed by what the
+         * URI points at (song id or raw cloud URI) so cache-bust tokens don't matter. A few recent
+         * entries are kept because System UI may load a cover just after the track changes.
+         */
+        private const val MAX_PUBLISHED_SESSION_ARTWORK = 3
+        private val publishedSessionArtwork = ArrayDeque<String>(MAX_PUBLISHED_SESSION_ARTWORK)
+
+        /** Records artwork exposed through the session's current metadata. */
+        fun publishSessionArtwork(packageName: String, artworkUri: String) {
+            val key = artworkKey(artworkUri, packageName) ?: return
+            synchronized(publishedSessionArtwork) {
+                if (publishedSessionArtwork.lastOrNull() == key) return
+                publishedSessionArtwork.remove(key)
+                publishedSessionArtwork.addLast(key)
+                while (publishedSessionArtwork.size > MAX_PUBLISHED_SESSION_ARTWORK) {
+                    publishedSessionArtwork.removeFirst()
+                }
+            }
+        }
+
+        internal fun isPublishedSessionArtwork(uriString: String, packageName: String): Boolean {
+            val key = artworkKey(uriString, packageName) ?: return false
+            return synchronized(publishedSessionArtwork) { key in publishedSessionArtwork }
+        }
+
+        internal fun clearPublishedSessionArtwork() {
+            synchronized(publishedSessionArtwork) { publishedSessionArtwork.clear() }
+        }
+
+        private fun artworkKey(uriString: String, packageName: String): String? =
+            parseSongId(uriString, packageName)?.let { "song:$it" }
+                ?: parseCloudArtworkUri(uriString, packageName)?.let { "cloud:$it" }
     }
 }

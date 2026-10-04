@@ -1,6 +1,7 @@
 package com.lostf1sh.pixelplayeross.data.service.player
 
 import android.content.Context
+import android.net.Uri
 import androidx.annotation.OptIn
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
@@ -8,6 +9,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
+import com.lostf1sh.pixelplayeross.data.provider.SharedArtworkContentProvider
 import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
 
 /**
@@ -21,13 +23,14 @@ class MappingPlayer(
     private val context: Context
 ) : ForwardingPlayer(innerPlayer) {
 
-    private fun mapMediaItem(mediaItem: MediaItem?): MediaItem? {
+    private fun mapMediaItem(mediaItem: MediaItem?, publishesToSession: Boolean = false): MediaItem? {
         if (mediaItem == null) return null
         val artworkUri = mediaItem.mediaMetadata.artworkUri ?: return mediaItem
         val exposedArtworkUri = MediaItemBuilder.externalControllerArtworkUri(
             context = context,
             rawArtworkUri = artworkUri.toString()
         ) ?: return mediaItem
+        if (publishesToSession) publish(exposedArtworkUri)
         if (exposedArtworkUri == artworkUri) return mediaItem
 
         val mappedMetadata = mediaItem.mediaMetadata.buildUpon()
@@ -38,8 +41,13 @@ class MappingPlayer(
             .build()
     }
 
+    /** The current item's artwork reaches System UI through the platform session metadata. */
+    private fun publish(exposedArtworkUri: Uri) {
+        SharedArtworkContentProvider.publishSessionArtwork(context.packageName, exposedArtworkUri.toString())
+    }
+
     override fun getCurrentMediaItem(): MediaItem? {
-        return mapMediaItem(super.getCurrentMediaItem())
+        return mapMediaItem(super.getCurrentMediaItem(), publishesToSession = true)
     }
 
     override fun getMediaItemAt(index: Int): MediaItem {
@@ -53,6 +61,7 @@ class MappingPlayer(
             context = context,
             rawArtworkUri = artworkUri.toString()
         ) ?: return metadata
+        publish(exposedArtworkUri)
         if (exposedArtworkUri == artworkUri) return metadata
 
         return metadata.buildUpon()

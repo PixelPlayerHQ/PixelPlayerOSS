@@ -98,8 +98,24 @@ class AppUpdateManager @Inject constructor(
     @Volatile
     private var activeDownload: Call? = null
 
-    /** A fresh process has no install in flight; drop the APK a finished or abandoned update left behind. */
-    private val staleApkCleanup: Job = scope.launch { updatesDir().deleteRecursively() }
+    private var downloadJob: Job? = null
+
+    /**
+     * The latest deletion of the updates directory. Cleanups chain onto each other and every
+     * download waits for the last one, so a cleanup from an earlier cancel can't delete the files
+     * of a retry. A fresh process starts with one: no install is in flight, so whatever a finished
+     * or abandoned update left behind can go.
+     */
+    @Volatile
+    private var apkCleanup: Job = scope.launch { updatesDir().deleteRecursively() }
+
+    private fun scheduleApkCleanup() {
+        val previous = apkCleanup
+        apkCleanup = scope.launch(Dispatchers.IO) {
+            previous.join()
+            updatesDir().deleteRecursively()
+        }
+    }
 
     fun setChannel(channel: UpdateChannel) {
         job?.cancel()
@@ -149,10 +165,14 @@ class AppUpdateManager @Inject constructor(
         val available = _status.value as? UpdateStatus.Available ?: return
         if (available.requiresReinstall) return
         val release = available.release
+        // A cancelled download may still be unwinding (even if a check ran since); let it
+        // finish before this one reuses its files.
+        val previousDownload = downloadJob
         job?.cancel()
         _status.value = UpdateStatus.Downloading(release, progress = null)
         UpdateDownloadService.start(context)
         job = scope.launch {
+            previousDownload?.join()
             val apk = try {
                 download(release)
             } catch (error: Exception) {
@@ -181,6 +201,7 @@ class AppUpdateManager @Inject constructor(
                 }
             }
         }
+        downloadJob = job
     }
 
     /**
@@ -193,7 +214,7 @@ class AppUpdateManager @Inject constructor(
         job?.cancel()
         activeDownload?.cancel()
         _status.value = UpdateStatus.Idle
-        job = scope.launch(Dispatchers.IO) { updatesDir().deleteRecursively() }
+        scheduleApkCleanup()
     }
 
     /** Resumes an install that waited for the "install unknown apps" grant. */
@@ -239,7 +260,7 @@ class AppUpdateManager @Inject constructor(
     }
 
     private suspend fun download(release: AppRelease): File = withContext(Dispatchers.IO) {
-        staleApkCleanup.join()
+        apkCleanup.join()
         val dir = updatesDir()
         dir.deleteRecursively()
         if (!dir.mkdirs()) throw IOException("Could not create $dir")

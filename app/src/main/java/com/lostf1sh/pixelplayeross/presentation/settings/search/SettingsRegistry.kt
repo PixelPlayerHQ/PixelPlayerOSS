@@ -662,6 +662,16 @@ object SettingsRegistry {
                 subscreenRoute = Screen.SettingsCategory.createRoute("about"),
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("version", "credits", "about", "info", "app")
+            ),
+            SettingSpec(
+                id = "updates",
+                itemKey = "item_updates",
+                titleRes = R.string.updates_title,
+                subtitleRes = R.string.updates_settings_subtitle,
+                category = SettingsCategory.ABOUT,
+                subscreenRoute = Screen.Updates.route,
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("update", "upgrade", "version", "alpha", "stable", "f-droid", "github", "channel")
             )
         )
     }

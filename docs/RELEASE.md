@@ -64,6 +64,15 @@ Install the release candidate and verify:
 6. Navidrome and Jellyfin login screens open.
 7. Backup export flow creates a file.
 
+## In-App Updates
+
+The Updates screen (`data/update/`) reads two sources, so keep their formats stable:
+
+- **Stable:** `https://f-droid.org/api/v1/packages/<applicationId>` (`suggestedVersionCode`) and the F-Droid APK at `https://f-droid.org/repo/<applicationId>_<versionCode>.apk`. The app treats any version name without a `-` suffix as an F-Droid install.
+- **Alpha:** GitHub prereleases tagged `v<X.Y.Z>-alpha.<N>` with assets named `PixelPlayerOSS-<X.Y.Z>-alpha.<N>-<abi>.apk`, as produced by `.github/workflows/alpha-release.yml`. Renaming tags or assets there breaks alpha update discovery.
+
+F-Droid and alpha builds are signed with different keys. The updater installs only same-channel releases whose signer matches the installed app, and walks users through uninstalling to switch channels.
+
 ## Publishing
 
 1. Ensure `main` is clean and pushed.

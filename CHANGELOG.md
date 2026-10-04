@@ -4,6 +4,9 @@ All notable changes to PixelPlayerOSS will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- An Updates screen (Settings → Updates, also linked from Settings → About) that checks for new versions on a chosen channel: Stable pulls from F-Droid, Alpha from the GitHub prereleases built for every merged change. Same-channel updates download and install in the app; switching channels walks through backing up, downloading the other build, and uninstalling, since F-Droid and GitHub builds are signed with different keys. An optional daily check notifies when an update is available (on by default for alpha builds, off for F-Droid builds).
+
 ### Fixed
 - Jellyfin playlists no longer go missing on Jellyfin 10.10 and newer, where playlists can hold mixed content and audio playlists are often reported without a media type.
 - Pressing back with the Now Playing screen or the Next up queue open inside a folder in the Folders tab now closes the player instead of leaving the folder ([#136](https://github.com/PixelPlayerHQ/PixelPlayerOSS/issues/136)).

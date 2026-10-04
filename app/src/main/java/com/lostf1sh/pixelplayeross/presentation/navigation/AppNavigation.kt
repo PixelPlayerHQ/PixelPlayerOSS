@@ -37,6 +37,8 @@ import com.lostf1sh.pixelplayeross.presentation.screens.AlbumDetailScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarkFolderScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.AudioBookmarksScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.CloudDownloadsScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.UpdatesScreen
+import com.lostf1sh.pixelplayeross.presentation.model.SettingsCategory
 import com.lostf1sh.pixelplayeross.presentation.screens.AccountsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ArtistDetailScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ArtistSettingsScreen
@@ -602,6 +604,27 @@ fun AppNavigation(
             ) {
                 ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
                     CloudDownloadsScreen(onBack = { navController.popBackStack() })
+                }
+            }
+            composable(
+                Screen.Updates.route,
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    UpdatesScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenBackup = {
+                            navController.navigateSafely(
+                                Screen.SettingsCategory.createRoute(
+                                    SettingsCategory.BACKUP_RESTORE.id,
+                                    highlightKey = "item_backup_export"
+                                )
+                            )
+                        }
+                    )
                 }
             }
             composable(

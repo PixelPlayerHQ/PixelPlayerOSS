@@ -47,6 +47,7 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
@@ -287,7 +288,7 @@ fun SettingsScreen(
                         it != SettingsCategory.DEVICE_CAPABILITIES
                     }
 
-                    val totalItems = mainCategories.size + 4
+                    val totalItems = mainCategories.size + 5
                     fun shapeFor(index: Int) =
                         when {
                             totalItems == 1 -> RoundedCornerShape(24.dp)
@@ -349,6 +350,19 @@ fun SettingsScreen(
                         icon = Icons.Rounded.AccountCircle,
                         colors = getAccountsColors(isDark),
                         onClick = { navController.navigateSafely(Screen.Accounts.createRoute()) },
+                        shape = shapeFor(itemIndex)
+                    )
+                    if (itemIndex < totalItems - 1) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                    }
+                    itemIndex++
+
+                    ExpressiveNavigationItem(
+                        title = stringResource(R.string.updates_title),
+                        subtitle = stringResource(R.string.updates_settings_subtitle),
+                        icon = Icons.Rounded.SystemUpdate,
+                        colors = getUpdatesColors(isDark),
+                        onClick = { navController.navigateSafely(Screen.Updates.route) },
                         shape = shapeFor(itemIndex)
                     )
                     if (itemIndex < totalItems - 1) {
@@ -621,6 +635,12 @@ private fun getDownloadsColors(isDark: Boolean): Pair<Color, Color> = if (isDark
     Color(0xFF174A5A) to Color(0xFFB6EAFB)
 } else {
     Color(0xFFC2E7FF) to Color(0xFF004A77)
+}
+
+private fun getUpdatesColors(isDark: Boolean): Pair<Color, Color> = if (isDark) {
+    Color(0xFF2E4A2F) to Color(0xFFB9F0B4)
+} else {
+    Color(0xFFCDEFC8) to Color(0xFF14421A)
 }
 
 @Composable

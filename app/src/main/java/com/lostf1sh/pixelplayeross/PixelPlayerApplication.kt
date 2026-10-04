@@ -155,6 +155,8 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     override fun newImageLoader(): ImageLoader {
         return imageLoader.get().newBuilder()
             .components {
+                add(com.lostf1sh.pixelplayeross.data.image.SharedCloudArtworkStringMapper(packageName))
+                add(com.lostf1sh.pixelplayeross.data.image.SharedCloudArtworkUriMapper(packageName))
                 add(localArtworkCoilFetcherFactory.get())
                 add(navidromeCoilFetcherFactory.get())
                 add(jellyfinCoilFetcherFactory.get())

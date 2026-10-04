@@ -75,6 +75,9 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
     @Inject
     lateinit var m3uSyncCoordinator: dagger.Lazy<M3uSyncCoordinator>
 
+    @Inject
+    lateinit var updateCheckScheduler: dagger.Lazy<com.lostf1sh.pixelplayeross.data.update.UpdateCheckScheduler>
+
     private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
@@ -130,6 +133,8 @@ class PixelPlayerApplication : Application(), ImageLoaderFactory, Configuration.
         syncManager.get().start()
 
         m3uSyncCoordinator.get().start()
+
+        updateCheckScheduler.get().start()
 
         advancedPerformanceDiagnosticsController.get().start(startupScope)
 

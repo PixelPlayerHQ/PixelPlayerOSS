@@ -186,6 +186,7 @@ class MainActivity : ComponentActivity() {
     lateinit var syncManager: SyncManager
     private val _pendingPlaylistNavigation = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
     private val _pendingShuffleAll = kotlinx.coroutines.flow.MutableStateFlow(false)
+    private val _pendingUpdatesNavigation = kotlinx.coroutines.flow.MutableStateFlow(false)
 
     private val requestAllFilesAccessLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { _ ->
     }
@@ -420,6 +421,11 @@ class MainActivity : ComponentActivity() {
                 intent.action = null
             }
 
+            intent.action == MainActivityIntentContract.ACTION_OPEN_UPDATES -> {
+                _pendingUpdatesNavigation.value = true
+                intent.action = null
+            }
+
             intent.getBooleanExtra("ACTION_SHOW_PLAYER", false) -> {
                 playerViewModel.showPlayer()
             }
@@ -573,6 +579,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val pendingUpdatesNav by _pendingUpdatesNavigation.collectAsStateWithLifecycle()
+        LaunchedEffect(pendingUpdatesNav) {
+            if (!pendingUpdatesNav) return@LaunchedEffect
+            // The NavHost may not be attached yet when the activity is cold-started from the notification.
+            repeat(50) {
+                if (navController.navigateSafely(Screen.Updates.route)) {
+                    _pendingUpdatesNavigation.value = false
+                    return@LaunchedEffect
+                }
+                delay(100)
+            }
+            _pendingUpdatesNavigation.value = false
+        }
+
         var canShowLoadingIndicator by remember { mutableStateOf(false) }
         var loadingShownTimestamp by remember { mutableStateOf(0L) }
         val minimumDisplayDuration = 1500L
@@ -654,7 +674,8 @@ class MainActivity : ComponentActivity() {
                 Screen.EasterEgg.route,
                 Screen.WordDelimiterConfig.route,
                 Screen.AudioBookmarks.route,
-                Screen.AudioBookmarkFolder.route
+                Screen.AudioBookmarkFolder.route,
+                Screen.Updates.route
             )
         }
         val shouldHideNavigationBar by remember(currentRoute, isSearchBarActive) {

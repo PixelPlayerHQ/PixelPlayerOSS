@@ -77,6 +77,7 @@ import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.ExpandMore
@@ -1234,6 +1235,14 @@ fun SettingsCategoryScreen(
                                     trailingIcon = { Icon(Icons.Rounded.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                     modifier = Modifier.settingHighlight("item_about_app", highlightKey),
                                     onClick = { navController.navigateSafely("about") }
+                                )
+                                SettingsItem(
+                                    title = stringResource(R.string.updates_check_row_title),
+                                    subtitle = stringResource(R.string.updates_settings_subtitle),
+                                    leadingIcon = { Icon(Icons.Rounded.SystemUpdate, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    trailingIcon = { Icon(Icons.Rounded.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant) },
+                                    modifier = Modifier.settingHighlight("item_updates", highlightKey),
+                                    onClick = { navController.navigateSafely(Screen.Updates.route) }
                                 )
                             }
                         }

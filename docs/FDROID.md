@@ -69,6 +69,10 @@ These properties got the app accepted and must be maintained:
    until the user connects their own ListenBrainz token, and disconnecting deletes queued
    listens. Last.fm remains unsupported. The data sent while opted in is documented in
    `PRIVACY.md`.
+8. The in-app updater never runs in the background on F-Droid builds unless the user turns
+   on automatic checks, and on the Stable channel it only downloads APKs from
+   `f-droid.org/repo`. GitHub alpha APKs are never installed over an F-Droid build; switching
+   channels sends the user through backup, download, and uninstall instead.
 
 ## Asset Licenses
 

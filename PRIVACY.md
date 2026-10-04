@@ -15,6 +15,7 @@ Network features are optional and user-controlled:
 - LRCLIB lyric lookup is used only when online lyrics are enabled.
 - Deezer artist artwork lookup is used only when online artist images are enabled.
 - ListenBrainz scrobbling is optional and disabled by default. It activates only after the user connects a ListenBrainz account with their own user token. While connected, the app submits listening activity (track title, artist, album, duration, listen timestamps, and MusicBrainz identifiers when available) to the configured ListenBrainz server for the playback sources the user has enabled — listenbrainz.org by default, or a user-supplied custom URL for self-hosted ListenBrainz-compatible servers such as Maloja; per-source toggles cover local files, Navidrome/Subsonic, and Jellyfin playback. Disconnecting stops submissions and deletes any queued listens. Last.fm is not supported.
+- Update checks contact the F-Droid package API (Stable channel) or the GitHub Releases API (Alpha channel) when the user opens the Updates screen or taps Check, and once a day if automatic checks are enabled (off by default on F-Droid builds). Installing an update downloads the APK from f-droid.org or GitHub. These requests carry no account or library data, only the standard request headers including the app version.
 
 Server credentials and preferences are stored locally. The app does not sell or share user data.
 

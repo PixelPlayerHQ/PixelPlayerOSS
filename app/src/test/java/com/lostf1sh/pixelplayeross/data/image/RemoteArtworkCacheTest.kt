@@ -47,11 +47,13 @@ class RemoteArtworkCacheTest {
     }
 
     @Test
-    fun `previously cached error body is evicted instead of served`() {
+    fun `previously cached error body is not served and the next download replaces it`() {
         val poisoned = File(cacheDir, "navidrome_cover_al-1_500.jpg").apply { writeText(subsonicError) }
 
         assertThat(RemoteArtworkCache.cachedResult(poisoned)).isNull()
-        assertThat(poisoned.exists()).isFalse()
+
+        RemoteArtworkCache.download(clientReturning(jpegBytes, "image/jpeg"), request(), poisoned)
+        assertThat(RemoteArtworkCache.cachedResult(poisoned)).isNotNull()
     }
 
     @Test

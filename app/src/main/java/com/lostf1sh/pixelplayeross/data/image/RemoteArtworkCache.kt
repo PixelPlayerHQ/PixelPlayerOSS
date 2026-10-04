@@ -24,10 +24,10 @@ internal object RemoteArtworkCache {
 
     fun cachedResult(file: File): SourceResult? {
         if (!file.isFile || file.length() == 0L) return null
-        if (!hasImageSignature(readSignature(file))) {
-            file.delete()
-            return null
-        }
+        // A body cached before this check existed is skipped, not deleted: the next successful
+        // download renames over it, and deleting here could remove a fresh file another
+        // request renamed into place after the signature was read.
+        if (!hasImageSignature(readSignature(file))) return null
         return SourceResult(
             source = ImageSource(file = file.absolutePath.toPath(), fileSystem = FileSystem.SYSTEM),
             mimeType = "image/jpeg",

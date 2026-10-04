@@ -936,6 +936,7 @@ class MusicService : MediaSessionService() {
 
     override fun onDestroy() {
         PlaybackActivityTracker.setPlaybackActive(false)
+        com.lostf1sh.pixelplayeross.data.provider.SharedArtworkContentProvider.clearPublishedSessionArtwork()
         listeningStatsTracker.finalizeCurrentSession(forceSynchronousPersistence = true)
         reportNavidromePlayback("stopped")
         stopNavidromePlaybackReporting()

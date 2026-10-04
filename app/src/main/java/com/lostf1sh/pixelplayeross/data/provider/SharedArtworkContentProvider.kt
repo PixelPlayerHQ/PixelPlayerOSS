@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.provider
 
+import android.Manifest
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.Context
@@ -96,22 +97,34 @@ class SharedArtworkContentProvider : ContentProvider() {
     /**
      * Some vendor System UI implementations reject URI grants before attempting to open a
      * non-exported provider. The provider is therefore exported for compatibility, while every
-     * file open still requires either our own UID or the explicit per-item grant issued by the
-     * media session.
+     * file open still requires our own UID, the explicit per-item grant issued by the media
+     * session, or a privileged media surface.
+     *
+     * System UI's media controls and notification read the platform session's artwork URI
+     * without ever connecting as a Media3 controller, so they never receive a per-item grant.
+     * They hold MEDIA_CONTENT_CONTROL (signature|privileged), which already lets them read and
+     * control every media session, so the artwork exposes nothing new to them.
      */
     private fun enforceArtworkReadAccess(uri: Uri, appContext: Context) {
         val callingUid = Binder.getCallingUid()
+        val callingPid = Binder.getCallingPid()
         val permissionResult = appContext.checkUriPermission(
             uri,
-            Binder.getCallingPid(),
+            callingPid,
             callingUid,
             Intent.FLAG_GRANT_READ_URI_PERMISSION,
+        )
+        val mediaControlResult = appContext.checkPermission(
+            Manifest.permission.MEDIA_CONTENT_CONTROL,
+            callingPid,
+            callingUid,
         )
         if (
             !hasArtworkReadAccess(
                 callingUid = callingUid,
                 providerUid = appContext.applicationInfo.uid,
                 uriPermissionResult = permissionResult,
+                mediaContentControlResult = mediaControlResult,
             )
         ) {
             // FileNotFoundException is intentionally used here: media clients commonly treat a
@@ -268,9 +281,11 @@ class SharedArtworkContentProvider : ContentProvider() {
             callingUid: Int,
             providerUid: Int,
             uriPermissionResult: Int,
+            mediaContentControlResult: Int,
         ): Boolean {
             return callingUid == providerUid ||
-                uriPermissionResult == PackageManager.PERMISSION_GRANTED
+                uriPermissionResult == PackageManager.PERMISSION_GRANTED ||
+                mediaContentControlResult == PackageManager.PERMISSION_GRANTED
         }
     }
 }

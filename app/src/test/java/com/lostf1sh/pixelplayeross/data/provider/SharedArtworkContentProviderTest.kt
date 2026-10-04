@@ -12,6 +12,7 @@ class SharedArtworkContentProviderTest {
                 callingUid = 1001,
                 providerUid = 1001,
                 uriPermissionResult = android.content.pm.PackageManager.PERMISSION_DENIED,
+                mediaContentControlResult = android.content.pm.PackageManager.PERMISSION_DENIED,
             )
         ).isTrue()
     }
@@ -23,6 +24,7 @@ class SharedArtworkContentProviderTest {
                 callingUid = 2001,
                 providerUid = 1001,
                 uriPermissionResult = android.content.pm.PackageManager.PERMISSION_GRANTED,
+                mediaContentControlResult = android.content.pm.PackageManager.PERMISSION_DENIED,
             )
         ).isTrue()
     }
@@ -34,8 +36,23 @@ class SharedArtworkContentProviderTest {
                 callingUid = 2001,
                 providerUid = 1001,
                 uriPermissionResult = android.content.pm.PackageManager.PERMISSION_DENIED,
+                mediaContentControlResult = android.content.pm.PackageManager.PERMISSION_DENIED,
             )
         ).isFalse()
+    }
+
+    @Test
+    fun artworkReadAccess_allowsSystemMediaSurfaceWithoutGrant() {
+        // System UI reads the platform session's artwork URI without connecting as a
+        // Media3 controller, so it never receives a per-item grant.
+        assertThat(
+            SharedArtworkContentProvider.hasArtworkReadAccess(
+                callingUid = 10_100,
+                providerUid = 1001,
+                uriPermissionResult = android.content.pm.PackageManager.PERMISSION_DENIED,
+                mediaContentControlResult = android.content.pm.PackageManager.PERMISSION_GRANTED,
+            )
+        ).isTrue()
     }
 
     @Test

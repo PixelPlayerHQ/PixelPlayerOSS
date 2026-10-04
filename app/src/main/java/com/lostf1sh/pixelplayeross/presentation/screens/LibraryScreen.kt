@@ -8,7 +8,6 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplaci
 import android.os.Trace
 import com.lostf1sh.pixelplayeross.utils.traceSection
 import android.text.format.Formatter
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -160,6 +159,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistArtCollage
 import com.lostf1sh.pixelplayeross.presentation.components.ReorderTabsSheet
+import com.lostf1sh.pixelplayeross.presentation.components.PlayerSheetAwareBackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.EditMultipleSongsSheet
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.LibraryActionRow
@@ -640,7 +640,12 @@ fun LibraryScreen(
         }
     }
 
-    BackHandler(enabled = hasSelectionInCurrentTab || canHandleFolderBack) {
+    // The coordinator restores this callback as soon as the sheet stops handling back, even if
+    // LibraryScreen has not recomposed yet. It also preserves player priority after late registration.
+    PlayerSheetAwareBackHandler(
+        coordinator = playerViewModel.playerSheetBackCoordinator,
+        enabled = hasSelectionInCurrentTab || canHandleFolderBack
+    ) {
         when {
             hasSelectionInCurrentTab -> {
                 when (currentTabId) {

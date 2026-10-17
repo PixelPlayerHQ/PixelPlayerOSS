@@ -133,6 +133,7 @@ fun ToggleSegmentButton(
             style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
             maxLines = maxLines,
+            softWrap = maxLines > 1,
             overflow = overflow,
             textAlign = textAlign
         )

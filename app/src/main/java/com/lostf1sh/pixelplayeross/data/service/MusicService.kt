@@ -136,7 +136,7 @@ internal fun requiresTemporaryForegroundForStart(
             !serviceAlreadyForeground)
 }
 
-suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? {
+suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? = withContext(Dispatchers.IO) {
     val appContext = context.applicationContext
     val request = ImageRequest.Builder(appContext)
         .data(uri)
@@ -150,7 +150,7 @@ suspend fun loadArtworkBytesViaCoil(context: Context, uri: Uri): ByteArray? {
         .networkCachePolicy(CachePolicy.ENABLED)
         .build()
 
-    return runCatching {
+    runCatching {
         val drawable = appContext.imageLoader.execute(request).drawable ?: return@runCatching null
         val fallbackSizePx = ArtworkTransportSanitizer.WIDGET_CONFIG.maxDimensionPx
         val bitmap = drawable.toBitmap(
@@ -684,15 +684,17 @@ class MusicService : MediaSessionService() {
                 mediaItems: MutableList<MediaItem>
             ): ListenableFuture<MutableList<MediaItem>> {
                 return serviceScope.future {
-                    resolveMediaItemsByIds(
+                    val resolvedItems = resolveMediaItemsByIds(
                         requestedItems = mediaItems,
                         exposeInternalArtwork = controller.packageName == packageName
-                    ).also { resolvedItems ->
+                    )
+                    serviceScope.launch(Dispatchers.IO) {
                         grantArtworkUriPermissions(
                             controller.packageName,
                             resolvedItems.trustedArtworkGrantItems
                         )
-                    }.mediaItems
+                    }
+                    resolvedItems.mediaItems
                 }
             }
 
@@ -708,10 +710,12 @@ class MusicService : MediaSessionService() {
                         requestedItems = mediaItems,
                         exposeInternalArtwork = controller.packageName == packageName
                     )
-                    grantArtworkUriPermissions(
-                        controller.packageName,
-                        resolvedItems.trustedArtworkGrantItems
-                    )
+                    serviceScope.launch(Dispatchers.IO) {
+                        grantArtworkUriPermissions(
+                            controller.packageName,
+                            resolvedItems.trustedArtworkGrantItems
+                        )
+                    }
                     val safeStartIndex = startIndex.coerceIn(
                         0,
                         (resolvedItems.mediaItems.size - 1).coerceAtLeast(0)
@@ -2038,11 +2042,11 @@ class MusicService : MediaSessionService() {
                 }
     }
 
-    public suspend fun loadArtworkBytesForWidget(uri: Uri): ByteArray? {
+    public suspend fun loadArtworkBytesForWidget(uri: Uri): ByteArray? = withContext(Dispatchers.IO) {
         val uriString = uri.toString()
         val scheme = uri.scheme?.lowercase()
         val isLocalArtworkUri = com.lostf1sh.pixelplayeross.utils.LocalArtworkUri.isLocalArtworkUri(uriString)
-        return when {
+        when {
             isLocalArtworkUri || scheme == "content" || scheme == "file" || scheme == "android.resource" -> {
                 runCatching {
                     AlbumArtUtils.openArtworkInputStream(applicationContext, uri)?.use { input ->
@@ -2063,7 +2067,7 @@ class MusicService : MediaSessionService() {
                 var connection: HttpURLConnection? = null
                 try {
                     connection = (URL(uriString).openConnection() as? HttpURLConnection)
-                        ?: return null
+                        ?: return@withContext null
                     connection.connectTimeout = 4_000
                     connection.readTimeout = 6_000
                     connection.instanceFollowRedirects = true

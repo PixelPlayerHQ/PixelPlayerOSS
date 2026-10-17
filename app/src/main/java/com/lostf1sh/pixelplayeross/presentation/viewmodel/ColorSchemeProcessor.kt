@@ -49,7 +49,7 @@ class ColorSchemeProcessor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val albumArtThemeDao: AlbumArtThemeDao
 ) {
-    private val memoryCache = LruCache<String, ColorSchemePair>(20)
+    private val memoryCache = LruCache<String, ColorSchemePair>(100)
     private val processingMutex = Mutex()
     private val inProgressUris = mutableSetOf<String>()
     private val localArtworkCacheMutex = Mutex()
@@ -193,22 +193,28 @@ class ColorSchemeProcessor @Inject constructor(
         return try {
             val cachePolicy = if (skipCache) CachePolicy.DISABLED else CachePolicy.ENABLED
             val diskCachePolicy = if (LocalArtworkUri.isLocalArtworkUri(uri)) CachePolicy.DISABLED else cachePolicy
-            
+
             val request = ImageRequest.Builder(context)
                 .data(uri)
                 .allowHardware(false)
-                .size(Size(128, 128))
+                .size(Size(96, 96))
                 .bitmapConfig(Bitmap.Config.ARGB_8888)
                 .memoryCachePolicy(cachePolicy)
                 .diskCachePolicy(diskCachePolicy)
                 .build()
-            
+
             val drawable = context.imageLoader.execute(request).drawable ?: return null
-            
-            createBitmap(
-                drawable.intrinsicWidth.coerceAtLeast(1),
-                drawable.intrinsicHeight.coerceAtLeast(1)
-            ).also { bmp ->
+
+            if (drawable is android.graphics.drawable.BitmapDrawable && !drawable.bitmap.isRecycled) {
+                val bmp = drawable.bitmap
+                if (bmp.config != Bitmap.Config.HARDWARE) {
+                    return bmp.copy(Bitmap.Config.ARGB_8888, false)
+                }
+            }
+
+            val width = drawable.intrinsicWidth.coerceIn(1, 96)
+            val height = drawable.intrinsicHeight.coerceIn(1, 96)
+            createBitmap(width, height).also { bmp ->
                 Canvas(bmp).let { canvas ->
                     drawable.setBounds(0, 0, canvas.width, canvas.height)
                     drawable.draw(canvas)

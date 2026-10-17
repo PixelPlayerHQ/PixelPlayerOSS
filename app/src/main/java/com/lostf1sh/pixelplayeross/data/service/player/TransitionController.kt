@@ -265,7 +265,12 @@ class TransitionController @Inject constructor(
                 engine.prepareNext(transitionTarget)
 
                 var duration = player.duration
+                var durationWaitAttempts = 0
                 while ((duration == C.TIME_UNSET || duration <= 0) && isActive) {
+                    if (++durationWaitAttempts > 10) {
+                        Timber.tag("TransitionDebug").w("Timed out waiting for duration (%d). Transition scheduling aborted.", duration)
+                        return@collectLatest
+                    }
                     delay(500)
                     duration = player.duration
                     Timber.tag("TransitionDebug").v("Waiting for duration... (%d)", duration)
@@ -304,14 +309,9 @@ class TransitionController @Inject constructor(
 
                 val transitionPoint = smartPlan?.transitionPointMs ?: (duration - effectiveDuration)
 
-                Timber.tag("TransitionDebug").d(
-                    "Scheduled %s at %d ms (SongDur: %d). Fade duration: %d ms (smart=%s)",
-                    effectiveSettings.mode, transitionPoint, duration, effectiveDuration,
-                    smartPlan?.compatibility
-                )
-
-                engine.setPauseAtEndOfMediaItems(shouldPause = true)
-                Timber.tag("TransitionDebug").d("Enabled pauseAtEndOfMediaItems to prevent auto-skip.")
+                // Keep pauseAtEndOfMediaItems = false so native MediaItem queue management
+                // can execute seamless gapless transitions without stalling at 00:00.
+                engine.setPauseAtEndOfMediaItems(shouldPause = false)
 
                 if (transitionPoint <= player.currentPosition) {
                     val remaining = (duration - player.currentPosition).coerceAtLeast(0L)
@@ -320,7 +320,7 @@ class TransitionController @Inject constructor(
                         Timber.tag("TransitionDebug").w("Already past transition point! Triggering immediately.")
                         engine.performTransition(effectiveSettings.copy(durationMs = adjustedDuration.toInt()))
                     } else {
-                        Timber.tag("TransitionDebug").w("Too close to end (%d ms left). Skipping to avoid glitch.", remaining)
+                        Timber.tag("TransitionDebug").w("Too close to end (%d ms left). Letting native queue transition handle it.", remaining)
                         engine.cancelNext()
                         engine.setPauseAtEndOfMediaItems(shouldPause = false)
                     }
@@ -347,7 +347,7 @@ class TransitionController @Inject constructor(
                         Timber.tag("TransitionDebug").d("FIRING TRANSITION NOW!")
                         engine.performTransition(effectiveSettings.copy(durationMs = adjustedDuration.toInt()))
                     } else {
-                        Timber.tag("TransitionDebug").w("Too close to end (%d ms left). Skipping to avoid glitch.", remaining)
+                        Timber.tag("TransitionDebug").w("Too close to end (%d ms left). Letting native queue transition handle it.", remaining)
                         engine.cancelNext()
                         engine.setPauseAtEndOfMediaItems(shouldPause = false)
                     }

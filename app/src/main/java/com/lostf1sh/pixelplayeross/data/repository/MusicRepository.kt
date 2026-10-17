@@ -321,6 +321,14 @@ interface MusicRepository {
 
     suspend fun resetAllLyrics()
 
+    suspend fun enrichLyricsWithGemini(song: Song, lyrics: Lyrics): Lyrics
+
+    suspend fun enrichLyricsWithGeminiResult(
+        song: Song,
+        lyrics: Lyrics,
+        targetLanguage: String = "English"
+    ): Result<Lyrics>
+
     fun getMusicFolders(
         storageFilter: com.lostf1sh.pixelplayeross.data.model.StorageFilter = com.lostf1sh.pixelplayeross.data.model.StorageFilter.ALL
     ): Flow<List<com.lostf1sh.pixelplayeross.data.model.MusicFolder>>

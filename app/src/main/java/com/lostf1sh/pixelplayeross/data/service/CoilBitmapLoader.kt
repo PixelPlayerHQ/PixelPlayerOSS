@@ -15,6 +15,7 @@ import coil.size.Size
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
@@ -35,7 +36,7 @@ class CoilBitmapLoader(private val context: Context, private val scope: Coroutin
     private fun loadBitmapInternal(data: Any): ListenableFuture<Bitmap> {
         val future = SettableFuture.create<Bitmap>()
 
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             try {
                 val request = ImageRequest.Builder(context)
                     .data(data)

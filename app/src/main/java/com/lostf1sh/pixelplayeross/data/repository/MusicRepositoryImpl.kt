@@ -925,6 +925,18 @@ class MusicRepositoryImpl @Inject constructor(
         lyricsRepository.resetAllLyrics()
     }
 
+    override suspend fun enrichLyricsWithGemini(song: Song, lyrics: Lyrics): Lyrics {
+        return lyricsRepository.enrichLyricsWithGemini(song, lyrics)
+    }
+
+    override suspend fun enrichLyricsWithGeminiResult(
+        song: Song,
+        lyrics: Lyrics,
+        targetLanguage: String
+    ): Result<Lyrics> {
+        return lyricsRepository.enrichLyricsWithGeminiResult(song, lyrics, targetLanguage)
+    }
+
     override fun getMusicFolders(storageFilter: StorageFilter): Flow<List<MusicFolder>> {
         return combine(
             userPreferencesRepository.allowedDirectoriesFlow,

@@ -186,21 +186,12 @@ class ThemeStateHolder @Inject constructor(
         colorAccuracyLevel: Int,
         forceRefresh: Boolean = false
     ): ColorSchemePair? {
-        while (true) {
-            currentCoroutineContext().ensureActive()
-            val artworkVersion = AlbumArtUtils.artworkCacheVersion.value
-            val scheme = colorSchemeProcessor.getOrGenerateColorScheme(
-                albumArtUri = albumArtUri,
-                paletteStyle = paletteStyle,
-                colorAccuracyLevel = colorAccuracyLevel,
-                forceRefresh = forceRefresh
-            )
-            if (!LocalArtworkUri.isLocalArtworkUri(albumArtUri) ||
-                artworkVersion == AlbumArtUtils.artworkCacheVersion.value
-            ) {
-                return scheme
-            }
-        }
+        return colorSchemeProcessor.getOrGenerateColorScheme(
+            albumArtUri = albumArtUri,
+            paletteStyle = paletteStyle,
+            colorAccuracyLevel = colorAccuracyLevel,
+            forceRefresh = forceRefresh
+        )
     }
 
     private val individualAlbumColorSchemes = object : LinkedHashMap<String, MutableStateFlow<ColorSchemePair?>>(

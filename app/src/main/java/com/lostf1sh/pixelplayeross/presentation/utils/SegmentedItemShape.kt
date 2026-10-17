@@ -19,6 +19,7 @@ object SegmentedItemShapeDefaults {
     val LibraryContainerShape = RoundedCornerShape(LibraryOuterCornerRadius)
 
     val MiddleShape = RoundedCornerShape(InnerCornerRadius)
+    val AlbumArtDefaultShape = RoundedCornerShape(10.dp)
 
     val SongSingleShape = RoundedCornerShape(SongOuterCornerRadius)
     val SongTopShape = RoundedCornerShape(

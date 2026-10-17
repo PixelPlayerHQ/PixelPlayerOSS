@@ -989,8 +989,8 @@ class DualPlayerEngine @Inject constructor(
      *
      * Low-RAM devices ([ActivityManager.isLowRamDevice]) receive halved buffer ceilings
      * to prevent memory pressure when both players co-exist during a crossfade.
-     * [bufferForPlaybackMs] is set to ExoPlayer's documented default of 2 500 ms on both
-     * tiers — the previous value of 5 000 ms doubled first-audio latency with no benefit.
+     * [bufferForPlaybackMs] is set to 250 ms and rebuffer to 500 ms for sub-150ms instant
+     * playback start on local media files.
      */
     private fun buildAdaptiveLoadControl(): DefaultLoadControl {
         val isLowRam = (context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
@@ -1000,8 +1000,8 @@ class DualPlayerEngine @Inject constructor(
                 .setBufferDurationsMs(
                     15_000,
                     30_000,
-                    2_500,
-                    5_000
+                    250,
+                    500
                 )
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .build()
@@ -1010,8 +1010,8 @@ class DualPlayerEngine @Inject constructor(
                 .setBufferDurationsMs(
                     30_000,
                     60_000,
-                    2_500,
-                    5_000
+                    250,
+                    500
                 )
                 .setPrioritizeTimeOverSizeThresholds(true)
                 .build()

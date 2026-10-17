@@ -121,7 +121,10 @@ data class SettingsUiState(
     val minSongDuration: Int = 10000,
     val minTracksPerAlbum: Int = 1,
     val replayGainEnabled: Boolean = false,
-    val replayGainUseAlbumGain: Boolean = false
+    val replayGainUseAlbumGain: Boolean = false,
+    val geminiApiKey: String? = null,
+    val geminiLyricsEnabled: Boolean = false,
+    val geminiModel: String = com.lostf1sh.pixelplayeross.data.network.gemini.GeminiLyricsClient.DEFAULT_MODEL
 )
 
 data class FailedSongInfo(
@@ -256,6 +259,24 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             themePreferencesRepository.themePresetFlow.collect { preset ->
                 _uiState.update { it.copy(themePreset = preset) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.geminiApiKeyFlow.collect { key ->
+                _uiState.update { it.copy(geminiApiKey = key) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.geminiLyricsEnabledFlow.collect { enabled ->
+                _uiState.update { it.copy(geminiLyricsEnabled = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.geminiModelFlow.collect { model ->
+                _uiState.update { it.copy(geminiModel = model) }
             }
         }
     }
@@ -782,6 +803,26 @@ class SettingsViewModel @Inject constructor(
     fun setExternalLyricsEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setExternalLyricsEnabled(enabled)
+        }
+    }
+
+    fun setGeminiApiKey(apiKey: String?) {
+        viewModelScope.launch {
+            userPreferencesRepository.setGeminiApiKey(apiKey)
+            lyricsRepository.clearCache()
+        }
+    }
+
+    fun setGeminiLyricsEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setGeminiLyricsEnabled(enabled)
+            lyricsRepository.clearCache()
+        }
+    }
+
+    fun setGeminiModel(model: String) {
+        viewModelScope.launch {
+            userPreferencesRepository.setGeminiModel(model)
         }
     }
 

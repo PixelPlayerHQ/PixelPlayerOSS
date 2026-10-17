@@ -173,6 +173,12 @@
     <string name="playlist_share_failed">Ошибка отправки: %1$s</string>
     <string name="previous_track">Предыдущий трек</string>
     <string name="reset_imported_lyrics">Сбросить импортированный текст</string>
+    <string name="lyrics_translate_via_ai">Перевести через ИИ</string>
+    <string name="lyrics_translate_already_translated">Для этого текста уже есть перевод</string>
+    <string name="lyrics_translate_progress">Перевод текста песни...</string>
+    <string name="lyrics_translate_success">Текст песни успешно переведён!</string>
+    <string name="lyrics_translate_error">Не удалось перевести текст песни</string>
+    <string name="lyrics_translate_api_not_configured">API-ключ Gemini не настроен. Укажите его в настройках текста песни.</string>
     <string name="restore_completed_partial_issues">Восстановление завершено с некоторыми нерешёнными проблемами.</string>
     <string name="restore_completed_success">Резервная копия успешно восстановлена</string>
     <string name="restore_could_not_complete">Не удалось завершить восстановление: %1$s</string>
@@ -264,4 +270,18 @@
     <string name="musicbrainz_match_score">Степень совпадения: %1$d%%</string>
     <string name="musicbrainz_applied">Идентификаторы MusicBrainz сохранены. Отсутствующий год и названия-заглушки были дополнены.</string>
     <string name="cloud_playlist_download">Скачать плейлист</string>
+    <string name="setcat_gemini_ai_lyrics_title">Текст через Gemini AI</string>
+    <string name="setcat_gemini_lyrics_toggle_title">Перевод и романизация с Gemini</string>
+    <string name="setcat_gemini_lyrics_toggle_subtitle">ИИ-перевод и транслитерация текста песен</string>
+    <string name="setcat_gemini_lyrics_toggle_subtitle_requires_key">Требуется настроить API-ключ Gemini</string>
+    <string name="setcat_gemini_api_key_title">API-ключ Gemini</string>
+    <string name="setcat_gemini_api_key_configured">Настроен (••••••••%s)</string>
+    <string name="setcat_gemini_api_key_not_configured">Не настроен — нажмите для ввода ключа</string>
+    <string name="dialog_gemini_api_key_title">API-ключ Gemini</string>
+    <string name="dialog_gemini_api_key_message">Введите ваш ключ Google Gemini API. Он хранится локально на устройстве и используется только для перевода и романизации текста песен.</string>
+    <string name="dialog_gemini_api_key_hint">AIzaSy…</string>
+    <string name="setcat_gemini_model_title">Модель Gemini</string>
+    <string name="setcat_gemini_model_subtitle">Выбор модели ИИ для перевода и романизации</string>
+    <string name="dialog_gemini_model_title">Выбор модели Gemini</string>
+    <string name="dialog_gemini_model_custom_hint">Или введите название модели…</string>
 </resources>

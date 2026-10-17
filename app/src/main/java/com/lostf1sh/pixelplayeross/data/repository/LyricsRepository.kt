@@ -70,4 +70,19 @@ interface LyricsRepository {
         songs: List<Song>,
         onProgress: suspend (current: Int, total: Int) -> Unit
     ): Int
+
+    /**
+     * Enriches lyrics with Gemini-powered translation and romanization, utilizing local Room cache.
+     */
+    suspend fun enrichLyricsWithGemini(song: Song, lyrics: Lyrics): Lyrics
+
+    /**
+     * Enriches lyrics with Gemini-powered translation and romanization, utilizing local Room cache.
+     * Returns a [Result] propagating failures (such as missing API key or network error) for explicit reporting.
+     */
+    suspend fun enrichLyricsWithGeminiResult(
+        song: Song,
+        lyrics: Lyrics,
+        targetLanguage: String = "English"
+    ): Result<Lyrics>
 }

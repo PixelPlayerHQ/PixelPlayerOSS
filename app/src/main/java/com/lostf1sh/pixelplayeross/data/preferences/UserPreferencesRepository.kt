@@ -244,6 +244,9 @@ constructor(
         val USE_ANIMATED_LYRICS = booleanPreferencesKey("use_animated_lyrics")
         val ANIMATED_LYRICS_BLUR_ENABLED = booleanPreferencesKey("animated_lyrics_blur_enabled")
         val ANIMATED_LYRICS_BLUR_STRENGTH = androidx.datastore.preferences.core.floatPreferencesKey("animated_lyrics_blur_strength")
+        val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
+        val GEMINI_LYRICS_ENABLED = booleanPreferencesKey("gemini_lyrics_enabled")
+        val GEMINI_MODEL = stringPreferencesKey("gemini_model")
 
         val IS_GENRE_GRID_VIEW = booleanPreferencesKey("is_genre_grid_view")
 
@@ -724,6 +727,45 @@ constructor(
     suspend fun setImmersiveLyricsTimeout(timeout: Long) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.IMMERSIVE_LYRICS_TIMEOUT] = timeout
+        }
+    }
+
+    val geminiApiKeyFlow: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GEMINI_API_KEY]
+    }
+
+    suspend fun setGeminiApiKey(apiKey: String?) {
+        dataStore.edit { preferences ->
+            if (apiKey.isNullOrBlank()) {
+                preferences.remove(PreferencesKeys.GEMINI_API_KEY)
+            } else {
+                preferences[PreferencesKeys.GEMINI_API_KEY] = apiKey.trim()
+            }
+        }
+    }
+
+    val geminiLyricsEnabledFlow: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GEMINI_LYRICS_ENABLED] ?: false
+    }
+
+    suspend fun setGeminiLyricsEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GEMINI_LYRICS_ENABLED] = enabled
+        }
+    }
+
+    val geminiModelFlow: Flow<String> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.GEMINI_MODEL]?.ifBlank { null } ?: com.lostf1sh.pixelplayeross.data.network.gemini.GeminiLyricsClient.DEFAULT_MODEL
+    }
+
+    suspend fun setGeminiModel(model: String) {
+        dataStore.edit { preferences ->
+            val trimmed = model.trim()
+            if (trimmed.isEmpty()) {
+                preferences.remove(PreferencesKeys.GEMINI_MODEL)
+            } else {
+                preferences[PreferencesKeys.GEMINI_MODEL] = trimmed
+            }
         }
     }
 

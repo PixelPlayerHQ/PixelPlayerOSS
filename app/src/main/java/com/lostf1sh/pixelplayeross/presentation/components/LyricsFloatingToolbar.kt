@@ -128,7 +128,7 @@ fun LyricsFloatingToolbar(
                 activeCornerRadius = 50.dp,
                 onClick = { onShowSyncedLyricsChange(true) },
                 text = stringResource(R.string.presentation_batch_g_lyrics_mode_synced),
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
@@ -143,7 +143,7 @@ fun LyricsFloatingToolbar(
                 activeCornerRadius = 50.dp,
                 onClick = { onShowSyncedLyricsChange(false) },
                 text = stringResource(R.string.presentation_batch_g_lyrics_mode_static),
-                maxLines = 2,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }

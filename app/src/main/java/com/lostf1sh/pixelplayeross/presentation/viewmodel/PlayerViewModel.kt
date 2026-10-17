@@ -137,7 +137,7 @@ private val LOCAL_PLAYBACK_SCHEMES = setOf("content", "file", "android.resource"
 // stay intact.
 private const val SHUFFLE_ALL_SONG_LIMIT = 10_000
 // How long the current queue index has to hold still before the neighbours' palettes are preloaded.
-internal const val PALETTE_NEIGHBOR_PRELOAD_DEBOUNCE_MS = 220L
+internal const val PALETTE_NEIGHBOR_PRELOAD_DEBOUNCE_MS = 50L
 
 private fun List<Song>.toPlaybackQueue(): ImmutableList<Song> = when (this) {
     is PersistentList<Song> -> this
@@ -1676,6 +1676,7 @@ class PlayerViewModel @Inject constructor(
 
                     if (oldSyncingLibraryState && !isSyncing) {
                         Timber.tag("PlayerViewModel").i("Sync completed. Calling resetAndLoadInitialData from isSyncingStateFlow observer.")
+                        _isInitialDataLoaded.value = false
                         resetAndLoadInitialData("isSyncingStateFlow observer")
                     }
                 }
@@ -1852,13 +1853,23 @@ class PlayerViewModel @Inject constructor(
         libraryStateHolder.loadFoldersFromRepository()
     }
 
+    @Volatile
+    private var isResetAndLoadRunning = false
+
     private fun resetAndLoadInitialData(caller: String = "Unknown") {
+        if (isResetAndLoadRunning || _isInitialDataLoaded.value) {
+            Timber.tag("PlayerViewModel").d("resetAndLoadInitialData skipped (running or already loaded), caller: $caller")
+            return
+        }
+        isResetAndLoadRunning = true
         Trace.beginSection("PlayerViewModel.resetAndLoadInitialData")
         try {
             Timber.tag("PlayerViewModel").d("resetAndLoadInitialData called by $caller")
             loadInitialLibraryDataParallel()
-            updateDailyMix()
+            checkAndUpdateDailyMixIfNeeded()
+            _isInitialDataLoaded.value = true
         } finally {
+            isResetAndLoadRunning = false
             Trace.endSection()
         }
     }
@@ -2535,7 +2546,7 @@ class PlayerViewModel @Inject constructor(
         song?.let { currentSongValue ->
             viewModelScope.launch {
                 val uri = currentSongValue.albumArtUriString?.toUri()
-                val currentUri = playbackStateHolder.stablePlayerState.value.currentSong?.albumArtUriString
+                val currentUri = currentSongValue.albumArtUriString
                 themeStateHolder.extractAndGenerateColorScheme(uri, currentUri)
             }
             loadLyricsForCurrentSong()
@@ -2575,11 +2586,6 @@ class PlayerViewModel @Inject constructor(
                     )
                 }
                 syncPlaybackPositionFromPlayer(mediaItem.mediaId, initialPosition)
-                viewModelScope.launch {
-                    val uri = song.albumArtUriString?.toUri()
-                    val currentUri = playbackStateHolder.stablePlayerState.value.currentSong?.albumArtUriString
-                    themeStateHolder.extractAndGenerateColorScheme(uri, currentUri)
-                }
                 loadLyricsForCurrentSong()
                 if (playerCtrl.isPlaying) {
                     _isSheetVisible.value = true
@@ -2680,11 +2686,6 @@ class PlayerViewModel @Inject constructor(
                         )
 
                         song?.let { currentSongValue ->
-                            launch {
-                                val uri = currentSongValue.albumArtUriString?.toUri()
-                                val currentUri = playbackStateHolder.stablePlayerState.value.currentSong?.albumArtUriString
-                                themeStateHolder.extractAndGenerateColorScheme(uri, currentUri)
-                            }
                             loadLyricsForCurrentSong()
                         }
                     } ?: run {
@@ -4886,6 +4887,71 @@ class PlayerViewModel @Inject constructor(
      */
     fun resetLyricsSearchState() {
         lyricsStateHolder.resetSearchState()
+    }
+
+    fun translateLyricsViaAi() {
+        val currentSong = stablePlayerState.value.currentSong ?: run {
+            android.util.Log.w("PlayerViewModel", "Gemini translate: currentSong is null")
+            return
+        }
+        val currentLyrics = stablePlayerState.value.lyrics ?: run {
+            android.util.Log.w("PlayerViewModel", "Gemini translate: lyrics are null")
+            viewModelScope.launch {
+                _toastEvents.emit(context.getString(R.string.no_lyrics_to_save))
+            }
+            return
+        }
+        val hasExistingTranslation = currentLyrics.synced?.any { !it.translation.isNullOrBlank() } == true
+        if (hasExistingTranslation) {
+            viewModelScope.launch {
+                _toastEvents.emit(context.getString(R.string.lyrics_translate_already_translated))
+            }
+            return
+        }
+        viewModelScope.launch {
+            val apiKey = userPreferencesRepository.geminiApiKeyFlow.first()
+            if (apiKey.isNullOrBlank()) {
+                android.util.Log.w("PlayerViewModel", "Gemini API key is not configured in Settings -> Lyrics")
+                Timber.tag("PlayerViewModel").w("Gemini API key is not configured in Settings -> Lyrics")
+                _toastEvents.emit(context.getString(R.string.lyrics_translate_api_not_configured))
+                return@launch
+            }
+
+            android.util.Log.i("PlayerViewModel", "Starting Gemini lyrics translation for: ${currentSong.title}")
+            _toastEvents.emit(context.getString(R.string.lyrics_translate_progress))
+            try {
+                val locale = context.resources.configuration.locales.get(0) ?: java.util.Locale.getDefault()
+                val targetLang = locale.displayLanguage.takeIf { it.isNotBlank() } ?: "English"
+
+                val result = musicRepository.enrichLyricsWithGeminiResult(
+                    song = currentSong,
+                    lyrics = currentLyrics,
+                    targetLanguage = targetLang
+                )
+
+                if (result.isSuccess) {
+                    val enriched = result.getOrThrow()
+                    val hasTranslationOrRomanization = enriched.synced?.any { !it.translation.isNullOrBlank() || !it.romanization.isNullOrBlank() } == true ||
+                        enriched.plain?.any { it.contains("\n") } == true
+                    if (hasTranslationOrRomanization) {
+                        playbackStateHolder.updateStablePlayerState { it.copy(lyrics = enriched) }
+                        _toastEvents.emit(context.getString(R.string.lyrics_translate_success))
+                    } else {
+                        _toastEvents.emit(context.getString(R.string.lyrics_translate_error))
+                    }
+                } else {
+                    val error = result.exceptionOrNull()
+                    val errorMsg = error?.message ?: "Unknown error"
+                    android.util.Log.e("PlayerViewModel", "Gemini lyrics translation failed: $errorMsg", error)
+                    Timber.tag("PlayerViewModel").e(error, "Gemini lyrics translation failed")
+                    _toastEvents.emit("${context.getString(R.string.lyrics_translate_error)}: $errorMsg")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PlayerViewModel", "Error translating lyrics via Gemini: ${e.message}", e)
+                Timber.tag("PlayerViewModel").e(e, "Error translating lyrics via Gemini")
+                _toastEvents.emit("${context.getString(R.string.lyrics_translate_error)}: ${e.message ?: "Unknown error"}")
+            }
+        }
     }
 
     private fun onBlockedDirectoriesChanged() {

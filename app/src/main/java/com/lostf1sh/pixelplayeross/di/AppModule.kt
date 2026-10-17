@@ -29,6 +29,9 @@ import com.lostf1sh.pixelplayeross.data.database.MIGRATION_2_3
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_3_4
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_4_5
 import com.lostf1sh.pixelplayeross.data.database.MIGRATION_5_6
+import com.lostf1sh.pixelplayeross.data.database.MIGRATION_6_7
+import com.lostf1sh.pixelplayeross.data.database.GeminiLyricsDao
+import com.lostf1sh.pixelplayeross.data.network.gemini.GeminiLyricsClient
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
@@ -139,6 +142,7 @@ object AppModule {
                 MIGRATION_3_4,
                 MIGRATION_4_5,
                 MIGRATION_5_6,
+                MIGRATION_6_7,
             )
             .setJournalMode(RoomDatabase.JournalMode.WRITE_AHEAD_LOGGING)
 
@@ -227,6 +231,12 @@ object AppModule {
         return database.offlineTrackDao()
     }
 
+    @Singleton
+    @Provides
+    fun provideGeminiLyricsDao(database: PixelPlayerDatabase): GeminiLyricsDao {
+        return database.geminiLyricsDao()
+    }
+
     @Provides
     @Singleton
     fun provideImageLoader(
@@ -259,14 +269,18 @@ object AppModule {
         lrcLibApiService: LrcLibApiService,
         lyricsDao: LyricsDao,
         okHttpClient: OkHttpClient,
-        userPreferencesRepository: UserPreferencesRepository
+        userPreferencesRepository: UserPreferencesRepository,
+        geminiLyricsClient: GeminiLyricsClient,
+        geminiLyricsDao: GeminiLyricsDao
     ): LyricsRepository {
         return LyricsRepositoryImpl(
             context = context,
             lrcLibApiService = lrcLibApiService,
             lyricsDao = lyricsDao,
             okHttpClient = okHttpClient,
-            userPreferencesRepository = userPreferencesRepository
+            userPreferencesRepository = userPreferencesRepository,
+            geminiLyricsClient = geminiLyricsClient,
+            geminiLyricsDao = geminiLyricsDao
         )
     }
 

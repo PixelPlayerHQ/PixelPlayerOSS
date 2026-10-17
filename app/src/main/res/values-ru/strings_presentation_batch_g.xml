@@ -246,8 +246,8 @@
     <string name="presentation_batch_g_list_cd_selected">Выбрано</string>
     <string name="presentation_batch_g_list_song_artist_album">%1$s • %2$s</string>
     <string name="presentation_batch_g_lyrics_cd_options">Параметры текста песни</string>
-    <string name="presentation_batch_g_lyrics_mode_static">Статический</string>
-    <string name="presentation_batch_g_lyrics_mode_synced">Синхронизированный</string>
+    <string name="presentation_batch_g_lyrics_mode_static">Текст</string>
+    <string name="presentation_batch_g_lyrics_mode_synced">Синхронно</string>
     <string name="presentation_batch_g_lyrics_offset_minus_half">−.5</string>
     <string name="presentation_batch_g_lyrics_offset_minus_point_one">−.1</string>
     <string name="presentation_batch_g_lyrics_offset_plus_half">+.5</string>

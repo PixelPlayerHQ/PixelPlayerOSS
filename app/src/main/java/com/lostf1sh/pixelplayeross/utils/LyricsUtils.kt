@@ -1,14 +1,24 @@
 package com.lostf1sh.pixelplayeross.utils
 
 import android.os.Build
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,12 +33,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Matrix
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.PathNode
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.platform.LocalDensity
@@ -1133,73 +1146,101 @@ fun BubblesLine(
     color: Color,
     nextTime: Int,
     modifier: Modifier = Modifier,
+    distanceFromCurrent: Int = 100,
+    useAnimatedLyrics: Boolean = false,
+    accentColor: Color = color,
+    onClick: (() -> Unit)? = null
 ) {
-    val position by positionFlow.collectAsStateWithLifecycle(initialValue = 0L)
-    val isCurrent = position in time until nextTime
-    val transition = rememberInfiniteTransition(label = "bubbles_transition")
+    val isCurrent = distanceFromCurrent == 0
 
-    val animatedValue by transition.animateFloat(
+    val targetScale = if (useAnimatedLyrics) when (distanceFromCurrent) {
+        0 -> 1.05f; 1 -> 0.95f; else -> 0.85f
+    } else 1f
+    val targetAlpha = if (useAnimatedLyrics) when (distanceFromCurrent) {
+        0 -> 1.0f; 1 -> 0.6f; else -> 0.35f
+    } else 1f
+
+    val scale by animateFloatAsState(
+        targetValue = targetScale,
+        animationSpec = if (useAnimatedLyrics) spring(
+            stiffness = Spring.StiffnessVeryLow,
+            dampingRatio = Spring.DampingRatioMediumBouncy
+        ) else tween(durationMillis = 200),
+        label = "bubbleScale"
+    )
+    val alpha by animateFloatAsState(
+        targetValue = targetAlpha,
+        animationSpec = if (useAnimatedLyrics) spring(
+            stiffness = Spring.StiffnessLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ) else tween(durationMillis = 200),
+        label = "bubbleAlpha"
+    )
+    val dotColor by animateColorAsState(
+        targetValue = if (isCurrent) accentColor else color.copy(alpha = 0.45f),
+        animationSpec = if (useAnimatedLyrics) spring(
+            stiffness = Spring.StiffnessVeryLow,
+            dampingRatio = Spring.DampingRatioMediumBouncy
+        ) else tween(durationMillis = 250),
+        label = "bubbleColor"
+    )
+
+    val transition = rememberInfiniteTransition(label = "bubbles_wave")
+    val waveProgress by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3500, easing = LinearEasing),
+            animation = tween(durationMillis = 1400, easing = LinearEasing),
             repeatMode = RepeatMode.Restart
-        ), label = "bubble_animation_progress"
+        ),
+        label = "wave"
     )
 
-    var show by remember { mutableStateOf(false) }
-    LaunchedEffect(isCurrent) {
-        show = isCurrent
-    }
+    val waveWeight by animateFloatAsState(
+        targetValue = if (isCurrent && useAnimatedLyrics) 1f else 0f,
+        animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing),
+        label = "bubbleWaveWeight"
+    )
 
-    if (show) {
-        val density = LocalDensity.current
-        val bubbleRadius = remember(density) { with(density) { 4.dp.toPx() } }
+    val density = LocalDensity.current
+    val dotRadius = remember(density) { with(density) { 5.dp.toPx() } }
+    val dotSpacing = remember(density) { with(density) { 18.dp.toPx() } }
 
-        val (morphableCircle, morphableNote) = remember(bubbleRadius) {
-            val circleNodes = createCirclePathNodes(radius = bubbleRadius)
-            val noteNodes = createVectorNotePathNodes(targetSize = bubbleRadius * 2.5f)
+    val clickableModifier = if (onClick != null) {
+        Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+    } else Modifier
 
-            makePathsCompatible(circleNodes, noteNodes)
-            circleNodes to noteNodes
-        }
+    Box(
+        modifier = modifier
+            .then(clickableModifier)
+            .height(48.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+                this.alpha = alpha
+                transformOrigin = TransformOrigin(0.5f, 0.5f)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(90.dp, 36.dp)) {
+            val count = 3
+            val startX = (size.width - (count - 1) * dotSpacing) / 2f
+            val centerY = size.height / 2f
 
-        Canvas(modifier = modifier.size(64.dp, 48.dp)) {
-            val bubbleCount = 3
-            val bubbleColor = color.copy(alpha = 0.7f)
-
-            for (i in 0 until bubbleCount) {
-                val progress = (animatedValue + i * (1f / bubbleCount)) % 1f
-                val yOffset = sin(progress * 2 * PI).toFloat() * 8.dp.toPx()
-
-                val morphProgress = when {
-                    progress in 0f..0.25f -> progress / 0.25f
-                    progress in 0.25f..0.5f -> 1.0f - (progress - 0.25f) / 0.25f
-                    else -> 0f
-                }.coerceIn(0f, 1f)
-
-                val scale = lerpFloat(1.0f, 1.4f, morphProgress)
-
-                val xOffsetCorrection = lerpFloat(0f, bubbleRadius * 1.8f, morphProgress)
-
-                val morphedPath = lerpPath(
-                    start = morphableCircle,
-                    stop = morphableNote,
-                    fraction = morphProgress
-                ).toPath()
-
-                translate(left = (size.width / (bubbleCount + 1)) * (i + 1)) {
-                    val drawOffset = Offset(x = xOffsetCorrection, y = size.height / 2 + yOffset)
-
-                    translate(left = drawOffset.x, top = drawOffset.y) {
-                        scale(scale = scale, pivot = Offset.Zero) {
-                            drawPath(
-                                path = morphedPath,
-                                color = bubbleColor
-                            )
-                        }
-                    }
-                }
+            for (i in 0 until count) {
+                val dotX = startX + i * dotSpacing
+                val phase = (waveProgress + i * 0.22f) % 1f
+                val rawWave = kotlin.math.sin(phase * 2 * Math.PI.toFloat()).coerceAtLeast(0f)
+                val wave = rawWave * waveWeight
+                val bounceY = wave * 6.dp.toPx()
+                val pulseScale = 1f + wave * 0.3f
+                drawCircle(
+                    color = dotColor,
+                    radius = dotRadius * pulseScale,
+                    center = Offset(dotX, centerY - bounceY)
+                )
             }
         }
     }

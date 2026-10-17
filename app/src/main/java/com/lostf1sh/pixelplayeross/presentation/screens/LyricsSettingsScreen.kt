@@ -26,18 +26,30 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.ClearAll
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.LinearScale
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.BlurOn
 import androidx.compose.material.icons.rounded.FormatSize
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.RadioButton
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -92,6 +104,8 @@ fun LyricsSettingsScreen(
         mutableFloatStateOf(uiState.animatedLyricsBlurStrength)
     }
     var showClearLyricsDialog by remember { mutableStateOf(false) }
+    var showGeminiApiKeyDialog by remember { mutableStateOf(false) }
+    var showGeminiModelDialog by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val coroutineScope = rememberCoroutineScope()
@@ -153,7 +167,8 @@ fun LyricsSettingsScreen(
         if (highlightPending && !highlightKey.isNullOrBlank()) {
             delay(200)
             val targetIndex = when (highlightKey) {
-                "item_lyrics_source_priority", "item_lyrics_reset_imported" -> 1
+                "item_gemini_lyrics_toggle", "item_gemini_api_key" -> 1
+                "item_lyrics_source_priority", "item_lyrics_reset_imported" -> 2
                 else -> 0
             }
             lazyListState.animateScrollToItem(targetIndex)
@@ -230,6 +245,66 @@ fun LyricsSettingsScreen(
                 }
             }
 
+            item(key = "gemini_ai_lyrics") {
+                LyricsSettingsSubsection(
+                    title = stringResource(R.string.setcat_gemini_ai_lyrics_title)
+                ) {
+                    val hasApiKey = !uiState.geminiApiKey.isNullOrBlank()
+                    SwitchSettingItem(
+                        title = stringResource(R.string.setcat_gemini_lyrics_toggle_title),
+                        subtitle = if (hasApiKey) {
+                            stringResource(R.string.setcat_gemini_lyrics_toggle_subtitle)
+                        } else {
+                            stringResource(R.string.setcat_gemini_lyrics_toggle_subtitle_requires_key)
+                        },
+                        checked = uiState.geminiLyricsEnabled,
+                        onCheckedChange = { enabled ->
+                            if (enabled && !hasApiKey) {
+                                showGeminiApiKeyDialog = true
+                            } else {
+                                settingsViewModel.setGeminiLyricsEnabled(enabled)
+                            }
+                        },
+                        leadingIcon = {
+                            Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.secondary)
+                        },
+                        modifier = Modifier.settingHighlight("item_gemini_lyrics_toggle", highlightKey)
+                    )
+
+                    val keySubtitle = if (hasApiKey) {
+                        val key = uiState.geminiApiKey.orEmpty()
+                        val last4 = if (key.length > 4) key.takeLast(4) else key
+                        stringResource(R.string.setcat_gemini_api_key_configured, last4)
+                    } else {
+                        stringResource(R.string.setcat_gemini_api_key_not_configured)
+                    }
+
+                    SettingsItem(
+                        title = stringResource(R.string.setcat_gemini_api_key_title),
+                        subtitle = keySubtitle,
+                        leadingIcon = {
+                            Icon(Icons.Outlined.Key, null, tint = MaterialTheme.colorScheme.secondary)
+                        },
+                        modifier = Modifier.settingHighlight("item_gemini_api_key", highlightKey),
+                        onClick = {
+                            showGeminiApiKeyDialog = true
+                        }
+                    )
+
+                    SettingsItem(
+                        title = stringResource(R.string.setcat_gemini_model_title),
+                        subtitle = uiState.geminiModel,
+                        leadingIcon = {
+                            Icon(Icons.Outlined.AutoAwesome, null, tint = MaterialTheme.colorScheme.secondary)
+                        },
+                        modifier = Modifier.settingHighlight("item_gemini_model", highlightKey),
+                        onClick = {
+                            showGeminiModelDialog = true
+                        }
+                    )
+                }
+            }
+
             item(key = "lyrics_management") {
                 LyricsSettingsSubsection(
                     title = stringResource(R.string.setcat_lyrics_management),
@@ -295,6 +370,151 @@ fun LyricsSettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showClearLyricsDialog = false }) {
+                    Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        )
+    }
+
+    if (showGeminiApiKeyDialog) {
+        var apiKeyText by remember { mutableStateOf(uiState.geminiApiKey.orEmpty()) }
+        var isPasswordVisible by remember { mutableStateOf(false) }
+
+        AlertDialog(
+            icon = { Icon(Icons.Outlined.Key, null) },
+            title = { Text(stringResource(R.string.dialog_gemini_api_key_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.dialog_gemini_api_key_message),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    OutlinedTextField(
+                        value = apiKeyText,
+                        onValueChange = { apiKeyText = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        placeholder = { Text(stringResource(R.string.dialog_gemini_api_key_hint)) },
+                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (isPasswordVisible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    )
+                }
+            },
+            onDismissRequest = { showGeminiApiKeyDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val trimmed = apiKeyText.trim()
+                        settingsViewModel.setGeminiApiKey(trimmed.ifEmpty { null })
+                        if (trimmed.isEmpty()) {
+                            settingsViewModel.setGeminiLyricsEnabled(false)
+                        } else {
+                            settingsViewModel.setGeminiLyricsEnabled(true)
+                        }
+                        showGeminiApiKeyDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGeminiApiKeyDialog = false }) {
+                    Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        )
+    }
+
+    if (showGeminiModelDialog) {
+        val presetModels = remember {
+            listOf(
+                "gemini-3.5-flash-lite" to "Gemini 3.5 Flash Lite (Fastest)",
+                "gemini-3.5-flash" to "Gemini 3.5 Flash (Balanced)",
+                "gemini-flash-lite-latest" to "Gemini Flash Lite Latest",
+                "gemini-flash-latest" to "Gemini Flash Latest",
+                "gemini-2.5-flash" to "Gemini 2.5 Flash",
+                "gemini-2.5-pro" to "Gemini 2.5 Pro"
+            )
+        }
+        var customModelText by remember {
+            mutableStateOf(if (presetModels.none { it.first == uiState.geminiModel }) uiState.geminiModel else "")
+        }
+        var selectedModel by remember { mutableStateOf(uiState.geminiModel) }
+
+        AlertDialog(
+            icon = { Icon(Icons.Outlined.AutoAwesome, null) },
+            title = { Text(stringResource(R.string.dialog_gemini_model_title)) },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    presetModels.forEach { (modelId, displayName) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    selectedModel = modelId
+                                    customModelText = ""
+                                }
+                                .padding(vertical = 4.dp, horizontal = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedModel == modelId && customModelText.isEmpty(),
+                                onClick = {
+                                    selectedModel = modelId
+                                    customModelText = ""
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = displayName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (selectedModel == modelId && customModelText.isEmpty()) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    OutlinedTextField(
+                        value = customModelText,
+                        onValueChange = {
+                            customModelText = it
+                            if (it.isNotBlank()) selectedModel = it.trim()
+                        },
+                        label = { Text(stringResource(R.string.dialog_gemini_model_custom_hint)) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            onDismissRequest = { showGeminiModelDialog = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val finalModel = customModelText.trim().ifEmpty { selectedModel }
+                        if (finalModel.isNotBlank()) {
+                            settingsViewModel.setGeminiModel(finalModel)
+                        }
+                        showGeminiModelDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.confirm), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showGeminiModelDialog = false }) {
                     Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }

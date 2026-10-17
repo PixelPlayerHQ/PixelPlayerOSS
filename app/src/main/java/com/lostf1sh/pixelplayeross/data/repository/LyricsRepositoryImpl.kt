@@ -44,6 +44,11 @@ import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.lostf1sh.pixelplayeross.data.database.GeminiLyricsCacheEntity
+import com.lostf1sh.pixelplayeross.data.database.GeminiLyricsDao
+import com.lostf1sh.pixelplayeross.data.model.GeminiLyricItem
+import com.lostf1sh.pixelplayeross.data.network.gemini.GeminiLyricsClient
+import java.security.MessageDigest
 import kotlin.math.abs
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -119,7 +124,9 @@ class LyricsRepositoryImpl @Inject constructor(
     private val lrcLibApiService: LrcLibApiService,
     private val lyricsDao: com.lostf1sh.pixelplayeross.data.database.LyricsDao,
     private val okHttpClient: OkHttpClient,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val geminiLyricsClient: GeminiLyricsClient,
+    private val geminiLyricsDao: GeminiLyricsDao
 ) : LyricsRepository {
 
 
@@ -351,9 +358,10 @@ class LyricsRepositoryImpl @Inject constructor(
 
         if (!forceRefresh) {
             loadStoredLyrics(song, cacheKey, includeMemoryCache = false)?.let { stored ->
-                lyricsCache.put(cacheKey, stored.first)
+                val enriched = enrichLyricsWithGemini(song, stored.first)
+                lyricsCache.put(cacheKey, enriched)
                 Timber.tag(TAG).d("===== RETURNING STORED LYRICS WITHOUT REMOTE FETCH =====")
-                return@withContext stored.first
+                return@withContext enriched
             }
         }
 
@@ -386,13 +394,14 @@ class LyricsRepositoryImpl @Inject constructor(
                 if (lyrics != null && lyrics.isValid()) {
                     Timber.tag(TAG).d("Found lyrics from $sourceName for: ${song.displayArtist} - ${song.title}")
                     
-                    lyricsCache.put(cacheKey, lyrics)
-                    
                     if (sourceName == "API") {
                         saveLocalLyricsJson(song, lyrics)
                     }
+
+                    val enriched = enrichLyricsWithGemini(song, lyrics)
+                    lyricsCache.put(cacheKey, enriched)
                     
-                    return@withContext lyrics
+                    return@withContext enriched
                 }
             } catch (e: Exception) {
                 Timber.tag(TAG).w("Error fetching from source $sourceName: ${e.message}")
@@ -405,8 +414,10 @@ class LyricsRepositoryImpl @Inject constructor(
 
     override suspend fun getStoredLyrics(song: Song): Pair<Lyrics, String>? = withContext(Dispatchers.IO) {
         val cacheKey = generateCacheKey(song.id)
-        loadStoredLyrics(song, cacheKey, includeMemoryCache = true)?.also { stored ->
-            lyricsCache.put(cacheKey, stored.first)
+        loadStoredLyrics(song, cacheKey, includeMemoryCache = true)?.let { stored ->
+            val enriched = enrichLyricsWithGemini(song, stored.first)
+            lyricsCache.put(cacheKey, enriched)
+            enriched to stored.second
         }
     }
 
@@ -1382,6 +1393,7 @@ class LyricsRepositoryImpl @Inject constructor(
         lyricsCache.remove(cacheKey)
         try {
             lyricsDao.deleteLyrics(songId)
+            geminiLyricsDao.deleteCache(getGeminiTrackKey(songId.toString()))
         } catch (e: Exception) {
             Timber.tag(TAG).w(e, "Error removing lyrics from DB for ID: $songId")
         }
@@ -1398,6 +1410,11 @@ class LyricsRepositoryImpl @Inject constructor(
         LogUtils.d(this, "Resetting all lyrics")
         lyricsCache.evictAll()
         lyricsDao.deleteAll()
+        try {
+            geminiLyricsDao.clearAll()
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "Error clearing Gemini lyrics cache")
+        }
         
         try {
             val lyricsDir = File(context.filesDir, "lyrics")
@@ -1507,6 +1524,156 @@ class LyricsRepositoryImpl @Inject constructor(
         
         LogUtils.d(this@LyricsRepositoryImpl, "Bulk scan complete. Updated ${updatedCount.get()} songs.")
         return@withContext updatedCount.get()
+    }
+
+    override suspend fun enrichLyricsWithGemini(song: Song, lyrics: Lyrics): Lyrics = withContext(Dispatchers.IO) {
+        val enabled = userPreferencesRepository.geminiLyricsEnabledFlow.first()
+        if (!enabled) return@withContext lyrics
+        enrichLyricsWithGeminiResult(song, lyrics).getOrDefault(lyrics)
+    }
+
+    override suspend fun enrichLyricsWithGeminiResult(
+        song: Song,
+        lyrics: Lyrics,
+        targetLanguage: String
+    ): Result<Lyrics> = withContext(Dispatchers.IO) {
+        try {
+            val apiKey = userPreferencesRepository.geminiApiKeyFlow.first()
+            if (apiKey.isNullOrBlank()) {
+                return@withContext Result.failure(IllegalStateException("API key is not configured"))
+            }
+
+            val trackKey = getGeminiTrackKey(song)
+
+            if (!lyrics.synced.isNullOrEmpty()) {
+                val lines = lyrics.synced.map { it.line }
+                if (lines.all { it.isBlank() }) return@withContext Result.success(lyrics)
+
+                val textHash = hashLyricsText(lines)
+                val cached = geminiLyricsDao.getCache(trackKey)
+
+                val preferredModel = userPreferencesRepository.geminiModelFlow.first()
+                val items: List<GeminiLyricItem> = if (cached != null && cached.originalTextHash == textHash) {
+                    deserializeGeminiItems(cached.structuredJson) ?: return@withContext Result.failure(
+                        IOException("Failed to deserialize cached lyrics")
+                    )
+                } else {
+                    val result = geminiLyricsClient.translateAndRomanize(lines, apiKey, targetLanguage, preferredModel)
+                    if (result.isSuccess) {
+                        val fetchedItems = result.getOrThrow()
+                        geminiLyricsDao.insertCache(
+                            GeminiLyricsCacheEntity(
+                                trackKey = trackKey,
+                                originalTextHash = textHash,
+                                structuredJson = gson.toJson(fetchedItems)
+                            )
+                        )
+                        fetchedItems
+                    } else {
+                        val ex = result.exceptionOrNull() ?: IOException("Gemini translation failed")
+                        android.util.Log.e(TAG, "Gemini lyrics enrichment failed: ${ex.message}", ex)
+                        Timber.tag(TAG).e(ex, "Gemini lyrics enrichment failed: %s", ex.message)
+                        return@withContext Result.failure(ex)
+                    }
+                }
+
+                val enrichedSynced = lyrics.synced.mapIndexed { index, line ->
+                    val item = items.getOrNull(index)
+                    if (item != null) {
+                        val rom = item.romanized?.takeIf { it.isNotBlank() && it != item.original }
+                        val trans = item.translated?.takeIf { it.isNotBlank() && it != item.original }
+                        line.copy(
+                            translation = trans ?: line.translation,
+                            romanization = rom ?: line.romanization
+                        )
+                    } else {
+                        line
+                    }
+                }
+                return@withContext Result.success(lyrics.copy(synced = enrichedSynced))
+            } else if (!lyrics.plain.isNullOrEmpty()) {
+                val lines = lyrics.plain
+                if (lines.all { it.isBlank() }) return@withContext Result.success(lyrics)
+
+                val textHash = hashLyricsText(lines)
+                val cached = geminiLyricsDao.getCache(trackKey)
+
+                val items: List<GeminiLyricItem> = if (cached != null && cached.originalTextHash == textHash) {
+                    deserializeGeminiItems(cached.structuredJson) ?: return@withContext Result.failure(
+                        IOException("Failed to deserialize cached plain lyrics")
+                    )
+                } else {
+                    val preferredModel = userPreferencesRepository.geminiModelFlow.first()
+                    val result = geminiLyricsClient.translateAndRomanize(lines, apiKey, targetLanguage, preferredModel)
+                    if (result.isSuccess) {
+                        val fetchedItems = result.getOrThrow()
+                        geminiLyricsDao.insertCache(
+                            GeminiLyricsCacheEntity(
+                                trackKey = trackKey,
+                                originalTextHash = textHash,
+                                structuredJson = gson.toJson(fetchedItems)
+                            )
+                        )
+                        fetchedItems
+                    } else {
+                        val ex = result.exceptionOrNull() ?: IOException("Gemini translation failed")
+                        android.util.Log.e(TAG, "Gemini plain lyrics enrichment failed: ${ex.message}", ex)
+                        Timber.tag(TAG).e(ex, "Gemini plain lyrics enrichment failed: %s", ex.message)
+                        return@withContext Result.failure(ex)
+                    }
+                }
+
+                val enrichedPlain = lyrics.plain.mapIndexed { index, orig ->
+                    val item = items.getOrNull(index)
+                    if (item != null) {
+                        val parts = mutableListOf(orig)
+                        val rom = item.romanized?.takeIf { it.isNotBlank() && it != orig }
+                        val trans = item.translated?.takeIf { it.isNotBlank() && it != orig }
+                        if (rom != null) parts.add(rom)
+                        if (trans != null) parts.add(trans)
+                        parts.joinToString("\n")
+                    } else {
+                        orig
+                    }
+                }
+                return@withContext Result.success(lyrics.copy(plain = enrichedPlain))
+            }
+
+            Result.success(lyrics)
+        } catch (e: Exception) {
+            android.util.Log.e(TAG, "Unexpected error in enrichLyricsWithGeminiResult: ${e.message}", e)
+            Timber.tag(TAG).e(e, "Unexpected error in enrichLyricsWithGeminiResult: %s", e.message)
+            Result.failure(e)
+        }
+    }
+
+    private fun getGeminiTrackKey(song: Song): String {
+        val identifier = song.contentUriString.ifBlank { song.path.ifBlank { song.id } }
+        return getGeminiTrackKey(identifier)
+    }
+
+    private fun getGeminiTrackKey(identifier: String): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(identifier.toByteArray(Charsets.UTF_8))
+        val hash = digest.joinToString("") { "%02x".format(it) }
+        return "gemini_$hash"
+    }
+
+    private fun hashLyricsText(lines: List<String>): String {
+        val text = lines.joinToString("\n")
+        val md = MessageDigest.getInstance("SHA-256")
+        val digest = md.digest(text.toByteArray(Charsets.UTF_8))
+        return digest.joinToString("") { "%02x".format(it) }
+    }
+
+    private fun deserializeGeminiItems(json: String): List<GeminiLyricItem>? {
+        return try {
+            val listType = object : com.google.gson.reflect.TypeToken<List<GeminiLyricItem>>() {}.type
+            gson.fromJson<List<GeminiLyricItem>>(json, listType)
+        } catch (e: Exception) {
+            Timber.tag(TAG).w(e, "Failed to deserialize cached GeminiLyricItem list")
+            null
+        }
     }
 
     override fun clearCache() {

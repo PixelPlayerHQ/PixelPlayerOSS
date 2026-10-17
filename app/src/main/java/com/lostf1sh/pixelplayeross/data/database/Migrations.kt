@@ -199,3 +199,23 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         )
     }
 }
+
+/**
+ * v6 -> v7: Add gemini_lyrics_cache table for caching Gemini translations and romanizations.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            """
+                CREATE TABLE IF NOT EXISTS `gemini_lyrics_cache` (
+                    `trackKey` TEXT NOT NULL,
+                    `originalTextHash` TEXT NOT NULL,
+                    `structuredJson` TEXT NOT NULL,
+                    `createdAtEpochMs` INTEGER NOT NULL,
+                    PRIMARY KEY(`trackKey`)
+                )
+            """.trimIndent()
+        )
+    }
+}
+

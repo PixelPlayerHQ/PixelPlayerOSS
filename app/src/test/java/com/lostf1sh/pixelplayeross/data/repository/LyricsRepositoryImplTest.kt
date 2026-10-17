@@ -4,6 +4,12 @@ import android.content.Context
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.database.LyricsEntity
 import com.lostf1sh.pixelplayeross.data.database.LyricsDao
+import com.lostf1sh.pixelplayeross.data.database.GeminiLyricsDao
+import com.lostf1sh.pixelplayeross.data.database.GeminiLyricsCacheEntity
+import com.lostf1sh.pixelplayeross.data.model.GeminiLyricItem
+import com.lostf1sh.pixelplayeross.data.model.Lyrics
+import com.lostf1sh.pixelplayeross.data.model.SyncedLine
+import com.lostf1sh.pixelplayeross.data.network.gemini.GeminiLyricsClient
 import com.lostf1sh.pixelplayeross.data.model.LyricsSourcePreference
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.network.lyrics.LrcLibApiService
@@ -24,7 +30,7 @@ class LyricsRepositoryImplTest {
 
     @Test
     fun getLyrics_returnsSongLyricsBeforeNeedingStorageRead() = runTest {
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = mockk<LrcLibApiService>(relaxed = true),
             lyricsDao = mockk<LyricsDao>(relaxed = true),
@@ -59,7 +65,7 @@ class LyricsRepositoryImplTest {
     @Test
     fun getLyrics_apiFirst_usesStoredLyricsBeforeCallingLrcLib() = runTest {
         val apiService = mockk<LrcLibApiService>(relaxed = true)
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = apiService,
             lyricsDao = mockk<LyricsDao>(relaxed = true),
@@ -102,7 +108,7 @@ class LyricsRepositoryImplTest {
             isSynced = true,
             source = "manual"
         )
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = mockk<Context>(relaxed = true),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -142,7 +148,7 @@ class LyricsRepositoryImplTest {
         val apiService = mockk<LrcLibApiService>(relaxed = true)
         val lyricsDao = mockk<LyricsDao>(relaxed = true)
         coEvery { lyricsDao.getLyrics(105L) } returns null
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -178,7 +184,7 @@ class LyricsRepositoryImplTest {
         )
         coEvery { apiService.getLyrics(any(), any(), any(), any()) } returns null
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -211,7 +217,7 @@ class LyricsRepositoryImplTest {
         coEvery { apiService.searchLyrics(any(), any(), any(), any()) } returns arrayOf(originalSongLyrics)
         coEvery { apiService.getLyrics(any(), any(), any(), any()) } returns originalSongLyrics
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -244,7 +250,7 @@ class LyricsRepositoryImplTest {
         coEvery { lyricsDao.getLyrics(103L) } returns null
         coEvery { apiService.searchLyrics(any(), any(), any(), any()) } returns arrayOf(remixLyrics)
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -278,7 +284,7 @@ class LyricsRepositoryImplTest {
         coEvery { lyricsDao.getLyrics(107L) } returns null
         coEvery { apiService.searchLyrics(any(), any(), any(), any()) } returns arrayOf(romanizedLyrics)
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -324,7 +330,7 @@ class LyricsRepositoryImplTest {
         coEvery { lyricsDao.getLyrics(106L) } returns null
         coEvery { apiService.searchLyrics(any(), any(), any(), any()) } returns arrayOf(wordSynced)
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -363,7 +369,7 @@ class LyricsRepositoryImplTest {
         coEvery { lyricsDao.getLyrics(104L) } returns null
         coEvery { apiService.searchLyrics(any(), any(), any(), any()) } returns arrayOf(lyrics)
 
-        val repository = LyricsRepositoryImpl(
+        val repository = createRepository(
             context = testContext(),
             lrcLibApiService = apiService,
             lyricsDao = lyricsDao,
@@ -384,16 +390,160 @@ class LyricsRepositoryImplTest {
         coVerify(exactly = 1) { lyricsDao.insert(any()) }
     }
 
+    @Test
+    fun enrichLyricsWithGemini_whenDisabled_returnsOriginalWithoutNetworkCall() = runTest {
+        val geminiClient = mockk<GeminiLyricsClient>(relaxed = true)
+        val geminiDao = mockk<GeminiLyricsDao>(relaxed = true)
+        val userPrefs = userPreferencesRepository(
+            geminiLyricsEnabled = false,
+            geminiApiKey = "test-key"
+        )
+        val repository = createRepository(
+            userPreferencesRepository = userPrefs,
+            geminiLyricsClient = geminiClient,
+            geminiLyricsDao = geminiDao
+        )
+        val song = testSong("1", "Song", "Artist", duration = 180_000L)
+        val lyrics = Lyrics(synced = listOf(SyncedLine(1000, "Line 1")))
+
+        val enriched = repository.enrichLyricsWithGemini(song, lyrics)
+
+        assertThat(enriched).isEqualTo(lyrics)
+        coVerify(exactly = 0) { geminiClient.translateAndRomanize(any(), any(), any()) }
+        coVerify(exactly = 0) { geminiDao.getCache(any()) }
+    }
+
+    @Test
+    fun enrichLyricsWithGemini_whenEnabled_translatesAndCachesInDao() = runTest {
+        val geminiClient = mockk<GeminiLyricsClient>(relaxed = true)
+        val geminiDao = mockk<GeminiLyricsDao>(relaxed = true)
+        coEvery { geminiDao.getCache(any()) } returns null
+        coEvery { geminiClient.translateAndRomanize(any(), "test-key", any(), any()) } returns Result.success(
+            listOf(
+                GeminiLyricItem(
+                    original = "日本語",
+                    romanized = "Nihongo",
+                    translated = "Japanese language"
+                )
+            )
+        )
+        val userPrefs = userPreferencesRepository(
+            geminiLyricsEnabled = true,
+            geminiApiKey = "test-key"
+        )
+        val repository = createRepository(
+            userPreferencesRepository = userPrefs,
+            geminiLyricsClient = geminiClient,
+            geminiLyricsDao = geminiDao
+        )
+        val song = testSong("2", "Song", "Artist", duration = 180_000L)
+        val lyrics = Lyrics(synced = listOf(SyncedLine(1000, "日本語")))
+
+        val enriched = repository.enrichLyricsWithGemini(song, lyrics)
+
+        assertThat(enriched.synced?.first()?.romanization).isEqualTo("Nihongo")
+        assertThat(enriched.synced?.first()?.translation).isEqualTo("Japanese language")
+        coVerify(exactly = 1) { geminiClient.translateAndRomanize(listOf("日本語"), "test-key", any(), any()) }
+        coVerify(exactly = 1) { geminiDao.insertCache(any()) }
+    }
+
+    @Test
+    fun enrichLyricsWithGemini_whenCached_returnsFromDaoWithoutNetworkCall() = runTest {
+        val geminiClient = mockk<GeminiLyricsClient>(relaxed = true)
+        val geminiDao = mockk<GeminiLyricsDao>(relaxed = true)
+        val cachedJson = """[{"original":"Hello","romanized":"Hello","translated":"Bonjour"}]"""
+        val md = java.security.MessageDigest.getInstance("SHA-256")
+        val textHash = md.digest("Hello".toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+
+        coEvery { geminiDao.getCache(any()) } returns GeminiLyricsCacheEntity(
+            trackKey = "gemini_mock",
+            originalTextHash = textHash,
+            structuredJson = cachedJson
+        )
+
+        val userPrefs = userPreferencesRepository(
+            geminiLyricsEnabled = true,
+            geminiApiKey = "test-key"
+        )
+        val repository = createRepository(
+            userPreferencesRepository = userPrefs,
+            geminiLyricsClient = geminiClient,
+            geminiLyricsDao = geminiDao
+        )
+        val song = testSong("3", "Song", "Artist", duration = 180_000L)
+        val lyrics = Lyrics(synced = listOf(SyncedLine(1000, "Hello")))
+
+        val enriched = repository.enrichLyricsWithGemini(song, lyrics)
+
+        assertThat(enriched.synced?.first()?.translation).isEqualTo("Bonjour")
+        coVerify(exactly = 0) { geminiClient.translateAndRomanize(any(), any(), any()) }
+    }
+
+    @Test
+    fun enrichLyricsWithGemini_onNetworkError_returnsOriginalGracefully() = runTest {
+        val geminiClient = mockk<GeminiLyricsClient>(relaxed = true)
+        val geminiDao = mockk<GeminiLyricsDao>(relaxed = true)
+        coEvery { geminiDao.getCache(any()) } returns null
+        coEvery { geminiClient.translateAndRomanize(any(), any()) } returns Result.failure(
+            java.io.IOException("Network dropped")
+        )
+
+        val userPrefs = userPreferencesRepository(
+            geminiLyricsEnabled = true,
+            geminiApiKey = "test-key"
+        )
+        val repository = createRepository(
+            userPreferencesRepository = userPrefs,
+            geminiLyricsClient = geminiClient,
+            geminiLyricsDao = geminiDao
+        )
+        val song = testSong("4", "Song", "Artist", duration = 180_000L)
+        val lyrics = Lyrics(synced = listOf(SyncedLine(1000, "Original text")))
+
+        val enriched = repository.enrichLyricsWithGemini(song, lyrics)
+
+        assertThat(enriched).isEqualTo(lyrics)
+        coVerify(exactly = 0) { geminiDao.insertCache(any()) }
+    }
+
     private fun testContext(filesDir: File = Files.createTempDirectory("pixelplayer-lyrics-test").toFile()): Context {
         return mockk<Context>(relaxed = true) {
             every { this@mockk.filesDir } returns filesDir
         }
     }
 
-    private fun userPreferencesRepository(externalLyricsEnabled: Boolean = true): UserPreferencesRepository {
+    private fun userPreferencesRepository(
+        externalLyricsEnabled: Boolean = true,
+        geminiLyricsEnabled: Boolean = false,
+        geminiApiKey: String? = null,
+        geminiModel: String = "gemini-3.5-flash-lite"
+    ): UserPreferencesRepository {
         return mockk {
             every { this@mockk.externalLyricsEnabledFlow } returns flowOf(externalLyricsEnabled)
+            every { this@mockk.geminiLyricsEnabledFlow } returns flowOf(geminiLyricsEnabled)
+            every { this@mockk.geminiApiKeyFlow } returns flowOf(geminiApiKey)
+            every { this@mockk.geminiModelFlow } returns flowOf(geminiModel)
         }
+    }
+
+    private fun createRepository(
+        context: Context = mockk<Context>(relaxed = true),
+        lrcLibApiService: LrcLibApiService = mockk<LrcLibApiService>(relaxed = true),
+        lyricsDao: LyricsDao = mockk<LyricsDao>(relaxed = true),
+        okHttpClient: OkHttpClient = mockk<OkHttpClient>(relaxed = true),
+        userPreferencesRepository: UserPreferencesRepository = userPreferencesRepository(),
+        geminiLyricsClient: GeminiLyricsClient = mockk<GeminiLyricsClient>(relaxed = true),
+        geminiLyricsDao: GeminiLyricsDao = mockk<GeminiLyricsDao>(relaxed = true)
+    ): LyricsRepositoryImpl {
+        return LyricsRepositoryImpl(
+            context = context,
+            lrcLibApiService = lrcLibApiService,
+            lyricsDao = lyricsDao,
+            okHttpClient = okHttpClient,
+            userPreferencesRepository = userPreferencesRepository,
+            geminiLyricsClient = geminiLyricsClient,
+            geminiLyricsDao = geminiLyricsDao
+        )
     }
 
     private fun testSong(

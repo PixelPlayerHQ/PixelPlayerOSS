@@ -65,6 +65,12 @@
     <string name="lyrics_save_failed">Failed to save lyrics</string>
     <string name="no_lyrics_to_save">No lyrics available to save</string>
     <string name="reset_imported_lyrics">Reset imported lyrics</string>
+    <string name="lyrics_translate_via_ai">Translate via AI</string>
+    <string name="lyrics_translate_already_translated">These lyrics already have a translation</string>
+    <string name="lyrics_translate_progress">Translating lyrics...</string>
+    <string name="lyrics_translate_success">Lyrics translated successfully!</string>
+    <string name="lyrics_translate_error">Failed to translate lyrics</string>
+    <string name="lyrics_translate_api_not_configured">Gemini API key is not configured. Enter it in Lyrics Settings.</string>
 
     <string name="sync_scanning">Scanning music files…</string>
     <string name="sync_processing">Processing files…</string>
@@ -287,5 +293,21 @@
     <string name="musicbrainz_no_results">No suitable recordings were found.</string>
     <string name="musicbrainz_match_score">Match confidence: %1$d%%</string>
     <string name="musicbrainz_applied">MusicBrainz identifiers saved. Missing year and placeholder names were enriched.</string>
+
+    <string name="setcat_gemini_ai_lyrics_title">Gemini AI Lyrics</string>
+    <string name="setcat_gemini_lyrics_toggle_title">Translate &amp; Romanize with Gemini</string>
+    <string name="setcat_gemini_lyrics_toggle_subtitle">AI-powered translation and phonetic romanization for mixed-script lyrics</string>
+    <string name="setcat_gemini_lyrics_toggle_subtitle_requires_key">Requires Gemini API key to be configured</string>
+    <string name="setcat_gemini_api_key_title">Gemini API Key</string>
+    <string name="setcat_gemini_api_key_configured">Configured (••••••••%s)</string>
+    <string name="setcat_gemini_api_key_not_configured">Not configured — tap to enter key</string>
+    <string name="dialog_gemini_api_key_title">Gemini API Key</string>
+    <string name="dialog_gemini_api_key_message">Enter your Google Gemini API key. It is stored securely on your device and only used to translate and romanize lyrics.</string>
+    <string name="dialog_gemini_api_key_hint">AIzaSy…</string>
+    <string name="save">Save</string>
+    <string name="setcat_gemini_model_title">Gemini Model</string>
+    <string name="setcat_gemini_model_subtitle">Choose AI model for lyrics translation and romanization</string>
+    <string name="dialog_gemini_model_title">Select Gemini Model</string>
+    <string name="dialog_gemini_model_custom_hint">Or enter custom model name…</string>
 
 </resources>

@@ -168,12 +168,12 @@ fun LibrarySongsTab(
         }
 
         snapshotFlow {
-            val layoutInfo = listState.layoutInfo
-            val visibleItems = layoutInfo.visibleItemsInfo
-            if (visibleItems.isEmpty()) {
+            val first = listState.firstVisibleItemIndex
+            val count = listState.layoutInfo.visibleItemsInfo.size
+            if (count == 0) {
                 false
             } else {
-                currentSongListIndex in visibleItems.first().index..visibleItems.last().index
+                currentSongListIndex in first until (first + count)
             }
         }
             .distinctUntilChanged()

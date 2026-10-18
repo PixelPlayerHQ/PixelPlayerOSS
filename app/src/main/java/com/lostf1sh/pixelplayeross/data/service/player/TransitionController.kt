@@ -265,7 +265,12 @@ class TransitionController @Inject constructor(
                 engine.prepareNext(transitionTarget)
 
                 var duration = player.duration
+                var durationWaitAttempts = 0
                 while ((duration == C.TIME_UNSET || duration <= 0) && isActive) {
+                    if (++durationWaitAttempts > 10) {
+                        Timber.tag("TransitionDebug").w("Timed out waiting for duration (%d). Transition scheduling aborted.", duration)
+                        return@collectLatest
+                    }
                     delay(500)
                     duration = player.duration
                     Timber.tag("TransitionDebug").v("Waiting for duration... (%d)", duration)

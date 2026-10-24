@@ -245,6 +245,7 @@ class TransitionController @Inject constructor(
                 )
             }.distinctUntilChanged()
             .collectLatest { snapshot ->
+                needsDurationReschedule = false
                 val resolution = snapshot.resolution
                 val isEnabled = snapshot.isCrossfadeEnabled
 
@@ -291,6 +292,7 @@ class TransitionController @Inject constructor(
                 while ((duration == C.TIME_UNSET || duration <= 0) && isActive) {
                     if (++durationWaitAttempts > 10) {
                         Timber.tag("TransitionDebug").w("Timed out waiting for duration (%d). Pausing transition scheduling until duration becomes available.", duration)
+                        engine.cancelNext()
                         needsDurationReschedule = true
                         return@collectLatest
                     }
@@ -299,6 +301,7 @@ class TransitionController @Inject constructor(
                     Timber.tag("TransitionDebug").v("Waiting for duration... (%d)", duration)
                 }
 
+                needsDurationReschedule = false
                 if (!isActive) return@collectLatest
 
                 val minFade = 500L

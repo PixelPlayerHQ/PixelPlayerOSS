@@ -168,12 +168,19 @@ fun LibrarySongsTab(
         }
 
         snapshotFlow {
-            val first = listState.firstVisibleItemIndex
-            val count = listState.layoutInfo.visibleItemsInfo.size
-            if (count == 0) {
-                false
+            val layoutInfo = listState.layoutInfo
+            val itemInfo = layoutInfo.visibleItemsInfo.firstOrNull { it.index == currentSongListIndex }
+            if (itemInfo != null) {
+                isItemFullyVisibleInViewport(
+                    itemOffset = itemInfo.offset,
+                    itemSize = itemInfo.size,
+                    viewportStartOffset = layoutInfo.viewportStartOffset,
+                    viewportEndOffset = layoutInfo.viewportEndOffset,
+                    beforeContentPadding = layoutInfo.beforeContentPadding,
+                    afterContentPadding = layoutInfo.afterContentPadding
+                )
             } else {
-                currentSongListIndex in first until (first + count)
+                false
             }
         }
             .distinctUntilChanged()
@@ -340,4 +347,23 @@ fun LibrarySongsTab(
             }
         }
     }
+}
+
+/**
+ * Determines whether a list item is fully visible within the viewport, accounting for
+ * [beforeContentPadding] (e.g. top bars) and [afterContentPadding] (e.g. floating mini-player
+ * and bottom navigation bar).
+ */
+internal fun isItemFullyVisibleInViewport(
+    itemOffset: Int,
+    itemSize: Int,
+    viewportStartOffset: Int,
+    viewportEndOffset: Int,
+    beforeContentPadding: Int = 0,
+    afterContentPadding: Int = 0
+): Boolean {
+    val visibleStart = viewportStartOffset + beforeContentPadding
+    val visibleEnd = viewportEndOffset - afterContentPadding
+    if (visibleEnd <= visibleStart || itemSize <= 0) return false
+    return itemOffset >= visibleStart && (itemOffset + itemSize) <= visibleEnd
 }

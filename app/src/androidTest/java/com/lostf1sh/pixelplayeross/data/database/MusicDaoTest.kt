@@ -5,6 +5,7 @@ import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -337,5 +338,66 @@ class MusicDaoTest {
             ascending.take(8),
             musicDao.getSongsByAlbumId(201L).first().map(SongEntity::id)
         )
+    }
+
+    @Test
+    fun genreQueries_findGenresListedAfterNulAndValuesBlankWithAnyWhitespace() = runTest {
+        val taggedGenres = mapOf(
+            1L to "Rock\u0000Pop",
+            2L to "Pop",
+            3L to "Rock",
+            4L to "Unknown Pleasures; Post-Punk"
+        )
+        // Every character the Unknown query trims, alone, plus values SQLite cannot read past a NUL in.
+        val blankValues = listOf(";\t|", "\u0000", "\u0000Unknown", "<unknown>") +
+            GenreParser.noGenreCharacters.map(Char::toString)
+        val blankGenres = blankValues.mapIndexed { index, genre -> 100L + index to genre }.toMap()
+        insertSongsWithParents(
+            (taggedGenres + blankGenres).map { (id, genre) ->
+                createSongEntity(id, "Song $id", "Artist", "Album", "/music/$id.mp3", genre = genre)
+            }
+        )
+
+        val popIds = musicDao.getSongsWithGenreLike(GenreParser.likePattern("Pop"), emptyList(), false)
+            .first()
+            .filter { song -> GenreParser.matches(song.genre, "Pop") }
+            .map(SongEntity::id)
+        val unknownIds = musicDao.getUnknownGenreSongCandidates(GenreParser.noGenreCharacters, emptyList(), false)
+            .first()
+            .filter { song -> GenreParser.split(song.genre).isEmpty() }
+            .map(SongEntity::id)
+
+        assertEquals(listOf(1L, 2L), popIds.sorted())
+        assertEquals(blankGenres.keys.sorted(), unknownIds.sorted())
+    }
+
+    @Test
+    fun genreQueries_findEverySpellingThatNormalizesToTheSameGenre() = runTest {
+        val composed = "\u00C9lectro"
+        val decomposed = "E\u0301lectro"
+        // KELVIN SIGN, which NFC turns into a plain 'K'.
+        val kelvinKPop = "\u212A-Pop"
+        insertSongsWithParents(
+            listOf(
+                createSongEntity(1L, "Song 1", "Artist", "Album", "/music/1.mp3", genre = composed),
+                createSongEntity(2L, "Song 2", "Artist", "Album", "/music/2.mp3", genre = "House; $decomposed"),
+                createSongEntity(3L, "Song 3", "Artist", "Album", "/music/3.mp3", genre = "Electro"),
+                createSongEntity(4L, "Song 4", "Artist", "Album", "/music/4.mp3", genre = "K-Pop"),
+                createSongEntity(5L, "Song 5", "Artist", "Album", "/music/5.mp3", genre = kelvinKPop)
+            )
+        )
+
+        suspend fun songIdsInGenre(genre: String): List<Long> =
+            musicDao.getSongsWithGenreLike(GenreParser.likePattern(genre), emptyList(), false)
+                .first()
+                .filter { song -> GenreParser.matches(song.genre, genre) }
+                .map(SongEntity::id)
+                .sorted()
+
+        assertEquals(listOf(1L, 2L), songIdsInGenre(composed))
+        assertEquals(listOf(1L, 2L), songIdsInGenre(decomposed))
+        assertEquals(listOf(3L), songIdsInGenre("Electro"))
+        assertEquals(listOf(4L, 5L), songIdsInGenre("K-Pop"))
+        assertEquals(listOf(4L, 5L), songIdsInGenre(kelvinKPop))
     }
 }

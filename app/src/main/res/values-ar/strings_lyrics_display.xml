@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">إبراز الكلمات</string>
+    <string name="lyrics_highlight_style_subtitle">طريقة إضاءة الكلمات المتزامنة كلمةً بكلمة أثناء غنائها</string>
+    <string name="lyrics_highlight_style_wipe">تدرّج منساب</string>
+    <string name="lyrics_highlight_style_wipe_desc">حافة ناعمة تنساب عبر كل كلمة أثناء غنائها</string>
+    <string name="lyrics_highlight_style_fade">تلاشٍ تدريجي</string>
+    <string name="lyrics_highlight_style_fade_desc">يظهر كل مقطع تدريجياً أثناء غنائه</string>
+    <string name="lyrics_highlight_style_classic">فوري</string>
+    <string name="lyrics_highlight_style_classic_desc">يضيء كل مقطع لحظة بدايته</string>
+    <string name="lyrics_duet_layout_title">تخطيط الدويتو</string>
+    <string name="lyrics_duet_layout_subtitle">ضع كل مغنٍّ في جانب مستقل عندما تميّز الكلمات الأصوات (v1: و v2:)</string>
+    <string name="lyrics_background_vocals_title">الغناء الخلفي</string>
+    <string name="lyrics_background_vocals_subtitle">اعرض الغناء الخلفي بخط أصغر أسفل السطر الرئيسي</string>
+</resources>

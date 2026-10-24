@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Pulsante precedente</string>
+    <string name="setcat_previous_button_description">Scegli se il pulsante precedente riavvia il brano attuale o passa direttamente a quello precedente.</string>
+    <string name="setcat_previous_button_restart_track">Riavvia traccia</string>
+    <string name="setcat_previous_button_restart_track_description">Dopo i primi secondi, il pulsante precedente fa ripartire il brano dall\'inizio. Premilo di nuovo per tornare indietro.</string>
+    <string name="setcat_previous_button_previous_track">Traccia precedente</string>
+    <string name="setcat_previous_button_previous_track_description">Il pulsante precedente torna sempre al brano precedente, in qualunque punto del brano attuale ti trovi.</string>
+</resources>

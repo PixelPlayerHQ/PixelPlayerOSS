@@ -109,6 +109,7 @@ constructor(
 
     private object PreferencesKeys {
         val APP_REBRAND_DIALOG_SHOWN = booleanPreferencesKey("app_rebrand_dialog_shown")
+        val RECAP_HOME_CARD_DISMISSED_YEAR = intPreferencesKey("recap_home_card_dismissed_year")
         val ALLOWED_DIRECTORIES = stringSetPreferencesKey("allowed_directories")
         val BLOCKED_DIRECTORIES = stringSetPreferencesKey("blocked_directories")
         val INITIAL_SETUP_DONE = booleanPreferencesKey("initial_setup_done")
@@ -125,6 +126,8 @@ constructor(
         val ARTISTS_SORT_OPTION = stringPreferencesKey("artists_sort_option")
         val PLAYLISTS_SORT_OPTION = stringPreferencesKey("playlists_sort_option")
         val FOLDERS_SORT_OPTION = stringPreferencesKey("folders_sort_option")
+        val FOLDER_SONGS_SORT_OPTION = stringPreferencesKey("folder_songs_sort_option")
+        val GENRES_SORT_OPTION = stringPreferencesKey("genres_sort_option")
         val LIKED_SONGS_SORT_OPTION = stringPreferencesKey("liked_songs_sort_option")
 
         val LAST_LIBRARY_TAB_INDEX =
@@ -144,6 +147,7 @@ constructor(
         val GLOBAL_TRANSITION_SETTINGS = stringPreferencesKey("global_transition_settings_json")
         val LIBRARY_TABS_ORDER = stringPreferencesKey("library_tabs_order")
         val LIBRARY_TABS_FOLDERS_MIGRATED = booleanPreferencesKey("library_tabs_folders_migrated")
+        val LIBRARY_TABS_GENRES_MIGRATED = booleanPreferencesKey("library_tabs_genres_migrated")
         val IS_FOLDER_FILTER_ACTIVE = booleanPreferencesKey("is_folder_filter_active")
         val IS_FOLDERS_PLAYLIST_VIEW = booleanPreferencesKey("is_folders_playlist_view")
         val HIDE_LOCAL_MEDIA = booleanPreferencesKey("hide_local_media")
@@ -189,6 +193,8 @@ constructor(
         val ARTIST_WORD_DELIMITERS = stringPreferencesKey("artist_word_delimiters")
         val EXTRACT_ARTISTS_FROM_TITLE = booleanPreferencesKey("extract_artists_from_title")
         val GROUP_BY_ALBUM_ARTIST = booleanPreferencesKey("group_by_album_artist")
+        val ARTIST_ALBUMS_COLLAPSED_BY_DEFAULT =
+                booleanPreferencesKey("artist_albums_collapsed_by_default")
         val ARTIST_SETTINGS_RESCAN_REQUIRED =
                 booleanPreferencesKey("artist_settings_rescan_required")
 
@@ -232,6 +238,7 @@ constructor(
         val TAP_BACKGROUND_CLOSES_PLAYER = booleanPreferencesKey("tap_background_closes_player")
         val MINI_PLAYER_SWIPE_TO_SKIP = booleanPreferencesKey("mini_player_swipe_to_skip")
         val AUTOPLAY_ON_SKIP = booleanPreferencesKey("autoplay_on_skip")
+        val PREVIOUS_BUTTON_BEHAVIOR = stringPreferencesKey("previous_button_behavior")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
             booleanPreferencesKey("advanced_performance_diagnostics_enabled")
@@ -303,6 +310,18 @@ constructor(
     suspend fun setAppRebrandDialogShown(wasShown: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.APP_REBRAND_DIALOG_SHOWN] = wasShown
+        }
+    }
+
+    /** The year whose seasonal Home recap card the user dismissed, or 0 when none was. */
+    val recapHomeCardDismissedYearFlow: Flow<Int> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.RECAP_HOME_CARD_DISMISSED_YEAR] ?: 0
+            }.distinctUntilChanged()
+
+    suspend fun setRecapHomeCardDismissedYear(year: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.RECAP_HOME_CARD_DISMISSED_YEAR] = year
         }
     }
 
@@ -548,6 +567,18 @@ constructor(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.GROUP_BY_ALBUM_ARTIST] = enabled
             preferences[PreferencesKeys.ARTIST_SETTINGS_RESCAN_REQUIRED] = true
+        }
+    }
+
+    /** Display-only: the artist page reads it when it opens, so no rescan is needed. */
+    val artistAlbumsCollapsedByDefaultFlow: Flow<Boolean> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.ARTIST_ALBUMS_COLLAPSED_BY_DEFAULT] ?: false
+            }.distinctUntilChanged()
+
+    suspend fun setArtistAlbumsCollapsedByDefault(collapsed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ARTIST_ALBUMS_COLLAPSED_BY_DEFAULT] = collapsed
         }
     }
 
@@ -876,7 +907,7 @@ constructor(
     val minTracksPerAlbumFlow: Flow<Int> =
         dataStore.data.map { preferences ->
             preferences[PreferencesKeys.MIN_TRACKS_PER_ALBUM] ?: 1
-        }
+        }.distinctUntilChanged()
 
     suspend fun setMinTracksPerAlbum(minTracks: Int) {
         dataStore.edit { preferences ->
@@ -1171,6 +1202,46 @@ constructor(
                         .storageKey
             }
 
+    val folderSongsSortOptionFlow: Flow<String> =
+            dataStore.data.map { preferences ->
+                resolveFolderSongsSortOption(preferences).storageKey
+            }
+
+    /**
+     * Folder songs used to follow the folder sort: Name (Z-A) listed them Z-A too. Until a folder
+     * songs sort is stored, that order is derived from the folder sort so updating keeps it.
+     */
+    private fun resolveFolderSongsSortOption(preferences: Preferences): SortOption {
+        val stored = preferences[PreferencesKeys.FOLDER_SONGS_SORT_OPTION]
+        if (stored != null) {
+            return SortOption.fromStorageKey(
+                    stored,
+                    SortOption.FOLDER_SONGS,
+                    SortOption.FolderSongTitleAZ
+            )
+        }
+        val folderSort = SortOption.fromStorageKey(
+                preferences[PreferencesKeys.FOLDERS_SORT_OPTION],
+                SortOption.FOLDERS,
+                SortOption.FolderNameAZ
+        )
+        return if (folderSort == SortOption.FolderNameZA) {
+            SortOption.FolderSongTitleZA
+        } else {
+            SortOption.FolderSongTitleAZ
+        }
+    }
+
+    val genresSortOptionFlow: Flow<String> =
+            dataStore.data.map { preferences ->
+                SortOption.fromStorageKey(
+                                preferences[PreferencesKeys.GENRES_SORT_OPTION],
+                                SortOption.GENRES,
+                                SortOption.GenreNameAZ
+                        )
+                        .storageKey
+            }
+
     val likedSongsSortOptionFlow: Flow<String> =
             dataStore.data.map { preferences ->
                 SortOption.fromStorageKey(
@@ -1209,6 +1280,18 @@ constructor(
     suspend fun setFoldersSortOption(optionKey: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.FOLDERS_SORT_OPTION] = optionKey
+        }
+    }
+
+    suspend fun setFolderSongsSortOption(optionKey: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.FOLDER_SONGS_SORT_OPTION] = optionKey
+        }
+    }
+
+    suspend fun setGenresSortOption(optionKey: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.GENRES_SORT_OPTION] = optionKey
         }
     }
 
@@ -1270,11 +1353,22 @@ constructor(
                     SortOption.FOLDERS,
                     SortOption.FolderNameAZ
             )
+            // Stored once, so the folder songs sort stops following a later folder sort change.
+            val folderSongsSort = resolveFolderSongsSortOption(preferences).storageKey
+            if (preferences[PreferencesKeys.FOLDER_SONGS_SORT_OPTION] != folderSongsSort) {
+                preferences[PreferencesKeys.FOLDER_SONGS_SORT_OPTION] = folderSongsSort
+            }
             migrateSortPreference(
                     preferences,
                     PreferencesKeys.LIKED_SONGS_SORT_OPTION,
                     SortOption.LIKED,
                     SortOption.LikedSongDateLiked
+            )
+            migrateSortPreference(
+                    preferences,
+                    PreferencesKeys.GENRES_SORT_OPTION,
+                    SortOption.GENRES,
+                    SortOption.GenreNameAZ
             )
         }
     }
@@ -1555,6 +1649,42 @@ constructor(
         }
     }
 
+    val lyricsWordHighlightStyleFlow: Flow<LyricsWordHighlightStyle> = dataStore.data
+        .map { preferences ->
+            LyricsWordHighlightStyle.fromStorage(preferences[LYRICS_WORD_HIGHLIGHT_STYLE_KEY])
+        }
+        .distinctUntilChanged()
+
+    suspend fun setLyricsWordHighlightStyle(style: LyricsWordHighlightStyle) {
+        dataStore.edit { preferences ->
+            preferences[LYRICS_WORD_HIGHLIGHT_STYLE_KEY] = style.storageValue
+        }
+    }
+
+    val lyricsDuetLayoutEnabledFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[LYRICS_DUET_LAYOUT_KEY] ?: DEFAULT_LYRICS_DUET_LAYOUT_ENABLED
+        }
+        .distinctUntilChanged()
+
+    suspend fun setLyricsDuetLayoutEnabled(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[LYRICS_DUET_LAYOUT_KEY] = enabled
+        }
+    }
+
+    val showLyricsBackgroundVocalsFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[SHOW_LYRICS_BACKGROUND_VOCALS_KEY] ?: DEFAULT_SHOW_LYRICS_BACKGROUND_VOCALS
+        }
+        .distinctUntilChanged()
+
+    suspend fun setShowLyricsBackgroundVocals(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[SHOW_LYRICS_BACKGROUND_VOCALS_KEY] = enabled
+        }
+    }
+
     val libraryTabsOrderFlow: Flow<String?> = dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.LIBRARY_TABS_ORDER]
@@ -1588,6 +1718,29 @@ constructor(
             if ("FOLDERS" !in order) {
                 val insertAfter = order.indexOf("LIKED").takeIf { it != -1 } ?: order.lastIndex
                 order.add(insertAfter + 1, "FOLDERS")
+                preferences[PreferencesKeys.LIBRARY_TABS_ORDER] = json.encodeToString(order)
+            }
+        }
+    }
+
+    /**
+     * One-shot backfill of the Genres tab, appended last, for orders saved before it existed.
+     *
+     * Like [migrateTabOrder] it runs once, so a user who later hides Genres keeps it hidden.
+     * Appending keeps every existing tab at its index, which the remembered last tab relies on.
+     */
+    suspend fun migrateGenresTab() {
+        dataStore.edit { preferences ->
+            if (preferences[PreferencesKeys.LIBRARY_TABS_GENRES_MIGRATED] == true) return@edit
+            preferences[PreferencesKeys.LIBRARY_TABS_GENRES_MIGRATED] = true
+
+            val orderJson = preferences[PreferencesKeys.LIBRARY_TABS_ORDER] ?: return@edit
+            val order = runCatching {
+                json.decodeFromString<MutableList<String>>(orderJson)
+            }.getOrNull() ?: return@edit // Abort on malformed data; don't overwrite user data.
+
+            if (order.isNotEmpty() && "GENRES" !in order) {
+                order.add("GENRES")
                 preferences[PreferencesKeys.LIBRARY_TABS_ORDER] = json.encodeToString(order)
             }
         }
@@ -1814,6 +1967,21 @@ constructor(
     suspend fun setAutoplayOnSkip(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.AUTOPLAY_ON_SKIP] = enabled
+        }
+    }
+
+    /**
+     * What previous does partway through a song. Applies to the app's own controls and to the
+     * session (notification, lock screen, headset keys, Android Auto, widget). Restarts by default.
+     */
+    val previousButtonBehaviorFlow: Flow<PreviousButtonBehavior> =
+        dataStore.data.map { preferences ->
+            PreviousButtonBehavior.fromStorageKey(preferences[PreferencesKeys.PREVIOUS_BUTTON_BEHAVIOR])
+        }.distinctUntilChanged()
+
+    suspend fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PREVIOUS_BUTTON_BEHAVIOR] = behavior.storageKey
         }
     }
 

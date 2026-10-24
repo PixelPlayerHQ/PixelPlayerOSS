@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Sjangere</string>
+    <string name="lib_empty_genres_title">Ingen sjangere funnet</string>
+    <string name="lib_empty_genres_subtitle">Sjangere fra taggene på sangene dine vises her.</string>
+</resources>

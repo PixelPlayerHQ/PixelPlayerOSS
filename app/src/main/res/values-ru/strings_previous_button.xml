@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Кнопка «Предыдущий трек»</string>
+    <string name="setcat_previous_button_description">Выберите, будет ли кнопка «Предыдущий трек» перезапускать текущий трек или сразу переключать на предыдущий.</string>
+    <string name="setcat_previous_button_restart_track">Перезапуск трека</string>
+    <string name="setcat_previous_button_restart_track_description">Через несколько секунд после начала трека кнопка запускает его сначала. Нажмите ещё раз, чтобы перейти к предыдущему.</string>
+    <string name="setcat_previous_button_previous_track">Предыдущий трек</string>
+    <string name="setcat_previous_button_previous_track_description">Кнопка всегда переключает на предыдущий трек, в каком бы месте текущего вы ни находились.</string>
+</resources>

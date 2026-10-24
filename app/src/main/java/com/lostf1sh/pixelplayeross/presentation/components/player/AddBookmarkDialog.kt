@@ -56,7 +56,7 @@ fun AddBookmarkDialog(
         String.format(Locale.US, "%02d:%02d", minutes, seconds)
     }
 
-    val defaultTitle = remember(formattedTime) { "Bookmark @ $formattedTime" }
+    val defaultTitle = stringResource(R.string.add_bookmark_default_name, formattedTime)
     val availableLyricTitle = remember(lyricTitle) { lyricTitle?.trim()?.takeIf { it.isNotBlank() } }
     var customTitle by remember(defaultTitle) { mutableStateOf(defaultTitle) }
     var useLyricTitle by remember(availableLyricTitle) { mutableStateOf(false) }
@@ -93,7 +93,7 @@ fun AddBookmarkDialog(
         },
         title = {
             Text(
-                text = "Save bookmark",
+                text = stringResource(R.string.add_bookmark_title),
                 style = MaterialTheme.typography.titleLarge
             )
         },
@@ -125,7 +125,7 @@ fun AddBookmarkDialog(
                                 color = MaterialTheme.colorScheme.onSecondaryContainer
                             )
                             Text(
-                                text = "Saved playback point",
+                                text = stringResource(R.string.add_bookmark_saved_point),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.72f)
                             )
@@ -155,7 +155,7 @@ fun AddBookmarkDialog(
                                 verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Text(
-                                    text = "Use lyric line",
+                                    text = stringResource(R.string.add_bookmark_use_lyric_line),
                                     style = MaterialTheme.typography.labelLarge,
                                     color = if (useLyricTitle) {
                                         MaterialTheme.colorScheme.onPrimaryContainer

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">上一曲按钮</string>
+    <string name="setcat_previous_button_description">选择按上一曲时是从头重新播放当前歌曲，还是直接切换到上一首。</string>
+    <string name="setcat_previous_button_restart_track">重新播放当前曲目</string>
+    <string name="setcat_previous_button_restart_track_description">播放几秒后，按上一曲会从头播放当前歌曲。再按一次即可返回上一首。</string>
+    <string name="setcat_previous_button_previous_track">上一曲</string>
+    <string name="setcat_previous_button_previous_track_description">无论当前歌曲播放到哪里，按上一曲都会直接切换到上一首。</string>
+</resources>

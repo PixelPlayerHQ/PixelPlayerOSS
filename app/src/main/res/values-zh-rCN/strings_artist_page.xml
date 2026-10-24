@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">歌手页面</string>
+    <string name="artist_page_albums_collapsed_by_default">默认收起专辑</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">歌手有多张专辑时，起初仅显示专辑标题。点按专辑即可查看其中的歌曲。</string>
+    <string name="artist_page_collapse_all_albums">全部收起</string>
+    <string name="artist_page_expand_all_albums">全部展开</string>
+</resources>

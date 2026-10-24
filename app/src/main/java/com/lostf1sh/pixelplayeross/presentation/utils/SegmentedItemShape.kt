@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.utils
 
+import android.os.Build
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -137,12 +138,18 @@ fun getSegmentedItemShape(
 }
 
 /**
- * Clips content to [shape] by clipping the canvas with its path, ensuring every corner
- * (including non-uniform corners) is clipped correctly without relying on RenderNode outline clipping.
+ * For a card that already clips to [shape]: clips its non-uniform corners (segmented first/last
+ * rows) where the card's own clip can't.
+ *
+ * Before API 33 a RenderNode can't clip to a non-uniform rounded outline, so the canvas is
+ * clipped with the shape's path. From API 33 the card's outline clip handles every corner, and
+ * any second clip around it (canvas path or layer) leaves the card's end side unclipped, which
+ * squared the end corners of the first and last library rows, so nothing is added there.
  */
-fun Modifier.clipToShapePath(shape: Shape): Modifier = drawWithCache {
-    val path = Path().apply {
-        addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache))
+fun Modifier.clipCardCornersFallback(shape: Shape): Modifier =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) this else drawWithCache {
+        val path = Path().apply {
+            addOutline(shape.createOutline(size, layoutDirection, this@drawWithCache))
+        }
+        onDrawWithContent { clipPath(path) { this@onDrawWithContent.drawContent() } }
     }
-    onDrawWithContent { clipPath(path) { this@onDrawWithContent.drawContent() } }
-}

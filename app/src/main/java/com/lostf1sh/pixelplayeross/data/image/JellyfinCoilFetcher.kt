@@ -6,6 +6,7 @@ import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.request.Options
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
+import kotlinx.coroutines.CancellationException
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import timber.log.Timber
@@ -54,9 +55,13 @@ class JellyfinCoilFetcher(
             return null
         }
 
-        val sizeParam = uri.getQueryParameter("size")?.toIntOrNull() ?: 500
+        val sizeParam = uri.getQueryParameter("size")?.toIntOrNull()
+            ?: RemoteArtworkCache.DEFAULT_COVER_SIZE_PX
 
-        val cachedFile = File(cacheDir, "jellyfin_cover_${itemId}_$sizeParam.jpg")
+        val cachedFile = File(
+            cacheDir,
+            RemoteArtworkCache.cacheFileName("jellyfin_cover", itemId, sizeParam)
+        )
         RemoteArtworkCache.cachedResult(cachedFile)?.let { return it }
 
         val imageUrl = repository.getImageUrl(itemId, sizeParam)
@@ -77,6 +82,8 @@ class JellyfinCoilFetcher(
                 .build()
             RemoteArtworkCache.download(okHttpClient, request, cachedFile)
         } catch (e: Exception) {
+            // A cancelled fetch (its list item scrolled away) is not a failed download.
+            if (e is CancellationException) throw e
             if (shouldLogFailure("download_$itemId")) {
                 Timber.w(e, "$TAG: Failed to download cover art for $itemId")
             }

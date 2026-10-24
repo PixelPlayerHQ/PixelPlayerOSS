@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Жанры</string>
+    <string name="lib_empty_genres_title">Жанры не найдены</string>
+    <string name="lib_empty_genres_subtitle">Здесь появятся жанры из тегов ваших треков.</string>
+</resources>

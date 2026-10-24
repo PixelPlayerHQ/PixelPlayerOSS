@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">%1$d Özetin</string>
+    <string name="recap_card_title_so_far">Şimdiye kadar %1$d</string>
+    <string name="recap_card_subtitle">Müzik dolu yılını yeniden yaşa</string>
+    <string name="recap_card_subtitle_so_far">Müzik yılının nasıl şekillendiğine bak</string>
+    <string name="recap_home_card_title">%1$d Özetin hazır</string>
+    <string name="recap_home_card_subtitle">Yılına damga vuran şarkıları, sanatçıları ve anları yeniden yaşa.</string>
+    <string name="recap_home_card_open">Özeti aç</string>
+    <string name="recap_home_card_dismiss">Gizle</string>
+    <string name="recap_cd_close">Özeti kapat</string>
+    <string name="recap_cd_pause">Duraklat</string>
+    <string name="recap_cd_resume">Devam et</string>
+    <string name="recap_cd_slide_progress">Slayt %1$d / %2$d</string>
+    <string name="recap_action_next_slide">Sonraki slayt</string>
+    <string name="recap_action_previous_slide">Önceki slayt</string>
+    <string name="recap_close">Kapat</string>
+    <string name="recap_not_enough_title">Henüz yeterince dinleme yok</string>
+    <string name="recap_not_enough_subtitle">Müzik dinlemeye devam et, %1$d özetin dolacak.</string>
+    <string name="recap_intro_kicker">PixelPlayerOSS Özeti</string>
+    <string name="recap_intro_title">Müzikle geçen yılın</string>
+    <string name="recap_intro_title_so_far">Şimdiye kadarki yılın</string>
+    <string name="recap_intro_subtitle">Yılına eşlik eden şarkılara, sanatçılara ve anlara bir bakış.</string>
+    <string name="recap_tap_hint">Devam etmek için dokun</string>
+    <string name="recap_minutes_kicker">%1$d yılında müzik dinlediğin süre</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="one">dakika</item>
+        <item quantity="other">dakika</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="one">Bu, aralıksız yaklaşık %d günlük müzik demek.</item>
+        <item quantity="other">Bu, aralıksız yaklaşık %d günlük müzik demek.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="one">Bu, aralıksız yaklaşık %d saatlik müzik demek.</item>
+        <item quantity="other">Bu, aralıksız yaklaşık %d saatlik müzik demek.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">Günlük ortalama</string>
+    <string name="recap_minutes_active_days">Müzikli günler</string>
+    <string name="recap_months_kicker">En yoğun ayın</string>
+    <string name="recap_months_detail">%1$s dinleme</string>
+    <string name="recap_clock_kicker">Dinleme saatin</string>
+    <string name="recap_personality_early_bird">Erkenci</string>
+    <string name="recap_personality_early_bird_desc">Güne müzikle başladın. Sabahlar senin zamanındı.</string>
+    <string name="recap_personality_daytime">Gündüz dinleyicisi</string>
+    <string name="recap_personality_daytime_desc">Müzik, geç sabahtan öğleden sonraya kadar gün boyu sana eşlik etti.</string>
+    <string name="recap_personality_evening">Akşam keyifçisi</string>
+    <string name="recap_personality_evening_desc">Gün sakinleştikçe müziğin sesi yükseldi.</string>
+    <string name="recap_personality_night_owl">Gece kuşu</string>
+    <string name="recap_personality_night_owl_desc">Saat ilerledikçe daha çok dinledin.</string>
+    <string name="recap_clock_favorite_day">En sevdiğin gün: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">Aylara göre dinleme: %1$s</string>
+    <string name="recap_cd_clock_chart">Saatlere göre dinleme: %1$s</string>
+    <string name="recap_dedication_kicker">En uzun serin</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="one">gün üst üste</item>
+        <item quantity="other">gün üst üste</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">En uzun oturum</string>
+    <string name="recap_dedication_biggest_day">En yoğun gün</string>
+    <string name="recap_dedication_first_song">Yılın ilk şarkısı</string>
+    <string name="recap_genres_kicker">En çok dinlediğin türler</string>
+    <string name="recap_genres_share">Dinlediklerinin %1$s kadarı</string>
+    <string name="recap_decade_kicker">Senin dönemin</string>
+    <string name="recap_decade_value">%1$d yılları</string>
+    <string name="recap_decade_detail">Dinlediklerinin %1$s kadarı bu on yılda çıkan müziklerdi.</string>
+    <string name="recap_albums_kicker">En çok dinlediğin albümler</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="one">Rotasyonunda %d albüm vardı</item>
+        <item quantity="other">Rotasyonunda %d albüm vardı</item>
+    </plurals>
+    <string name="recap_artists_kicker">En çok dinlediğin sanatçı</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="one">%d sanatçı dinledin</item>
+        <item quantity="other">%d farklı sanatçı dinledin</item>
+    </plurals>
+    <string name="recap_songs_kicker">En çok dinlediğin şarkı</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="one">%d şarkı çaldın</item>
+        <item quantity="other">%d farklı şarkı çaldın</item>
+    </plurals>
+    <string name="recap_summary_kicker">Bir bakışta yılın</string>
+    <string name="recap_summary_title">%1$d Müzik Özetim</string>
+    <string name="recap_summary_title_so_far">%1$d Özetim: şimdiye kadar</string>
+    <string name="recap_summary_minutes">Dinlenen dakika</string>
+    <string name="recap_summary_top_artist">Bir numaralı sanatçı</string>
+    <string name="recap_summary_top_song">Bir numaralı şarkı</string>
+    <string name="recap_summary_top_genre">Bir numaralı tür</string>
+    <string name="recap_summary_top_album">Bir numaralı albüm</string>
+    <string name="recap_summary_listening_style">Dinleme tarzı</string>
+    <string name="recap_share">Paylaş</string>
+    <string name="recap_share_chooser_title">Özetini paylaş</string>
+    <string name="recap_share_text">%1$d müzik özetim, PixelPlayerOSS ile oluşturuldu</string>
+    <string name="recap_share_failed">Özet görseli oluşturulamadı</string>
+    <string name="recap_play_top_songs">En iyileri çal</string>
+    <string name="recap_top_songs_queue_name">%1$d en iyileri</string>
+    <string name="recap_replay">Tekrar izle</string>
+</resources>

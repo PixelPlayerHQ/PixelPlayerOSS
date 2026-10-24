@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Kelime vurgusu</string>
+    <string name="lyrics_highlight_style_subtitle">Kelime kelime senkronize şarkı sözlerinin söylenirken nasıl parladığı</string>
+    <string name="lyrics_highlight_style_wipe">Degrade süpürme</string>
+    <string name="lyrics_highlight_style_wipe_desc">Yumuşak bir kenar, söylenen her kelimenin üzerinden kayar</string>
+    <string name="lyrics_highlight_style_fade">Belirme</string>
+    <string name="lyrics_highlight_style_fade_desc">Her hece söylenirken yavaşça belirir</string>
+    <string name="lyrics_highlight_style_classic">Anında</string>
+    <string name="lyrics_highlight_style_classic_desc">Her hece başladığı anda parlar</string>
+    <string name="lyrics_duet_layout_title">Düet düzeni</string>
+    <string name="lyrics_duet_layout_subtitle">Şarkı sözleri sesleri işaretlediğinde (v1:, v2:) her şarkıcıyı kendi tarafına yerleştir</string>
+    <string name="lyrics_background_vocals_title">Arka vokaller</string>
+    <string name="lyrics_background_vocals_subtitle">Arka vokalleri ana satırın altında daha küçük yazıyla göster</string>
+</resources>

@@ -45,8 +45,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTag
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -605,12 +608,14 @@ fun UnifiedPlayerSheetV2(
 
     if (!actuallyShowSheetContent) return
 
+    val sheetResources = LocalResources.current
+    val currentSongTitle = infrequentPlayerState.currentSong?.title
     val playerSheetSemanticsDescription = remember(
+        sheetResources,
         currentSheetContentState,
-        infrequentPlayerState.currentSong?.title
+        currentSongTitle
     ) {
-        "PixelPlayer player sheet ${currentSheetContentState.name.lowercase()} " +
-            (infrequentPlayerState.currentSong?.title ?: "")
+        playerSheetContentDescription(sheetResources, currentSheetContentState, currentSongTitle)
     }
 
     Surface(
@@ -692,6 +697,10 @@ fun UnifiedPlayerSheetV2(
                             }
                             .semantics {
                                 contentDescription = playerSheetSemanticsDescription
+                                // Language-independent marker the baseline profile benchmarks
+                                // find through UiAutomator's resource id.
+                                testTagsAsResourceId = true
+                                testTag = playerSheetTestTag(currentSheetContentState)
                             }
                     ) {
                         // Measures the player content at the full container height and, while

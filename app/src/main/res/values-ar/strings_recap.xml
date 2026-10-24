@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">ملخّص %1$d الخاص بك</string>
+    <string name="recap_card_title_so_far">عامك %1$d حتى الآن</string>
+    <string name="recap_card_subtitle">استعد عامك الموسيقي</string>
+    <string name="recap_card_subtitle_so_far">اطّلع على ملامح عامك الموسيقي حتى الآن</string>
+    <string name="recap_home_card_title">ملخّص %1$d الخاص بك جاهز</string>
+    <string name="recap_home_card_subtitle">استعد الأغاني والفنانين واللحظات التي ميّزت عامك.</string>
+    <string name="recap_home_card_open">افتح الملخّص</string>
+    <string name="recap_home_card_dismiss">إخفاء</string>
+    <string name="recap_cd_close">إغلاق الملخّص</string>
+    <string name="recap_cd_pause">إيقاف مؤقت</string>
+    <string name="recap_cd_resume">استئناف</string>
+    <string name="recap_cd_slide_progress">الشريحة %1$d من %2$d</string>
+    <string name="recap_action_next_slide">الشريحة التالية</string>
+    <string name="recap_action_previous_slide">الشريحة السابقة</string>
+    <string name="recap_close">إغلاق</string>
+    <string name="recap_not_enough_title">لا يوجد استماع كافٍ بعد</string>
+    <string name="recap_not_enough_subtitle">واصل الاستماع إلى الموسيقى وسيمتلئ ملخّص %1$d الخاص بك.</string>
+    <string name="recap_intro_kicker">ملخّص PixelPlayerOSS</string>
+    <string name="recap_intro_title">عامك في الموسيقى</string>
+    <string name="recap_intro_title_so_far">عامك حتى الآن</string>
+    <string name="recap_intro_subtitle">نظرة إلى الأغاني والفنانين واللحظات التي رافقت عامك.</string>
+    <string name="recap_tap_hint">انقر للمتابعة</string>
+    <string name="recap_minutes_kicker">استمعت في عام %1$d لمدة</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="zero">دقيقة</item>
+        <item quantity="one">دقيقة</item>
+        <item quantity="two">دقيقتين</item>
+        <item quantity="few">دقائق</item>
+        <item quantity="many">دقيقة</item>
+        <item quantity="other">دقيقة</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="zero">أي ما يعادل %d يوم من الموسيقى المتواصلة.</item>
+        <item quantity="one">أي ما يعادل %d يوم من الموسيقى المتواصلة.</item>
+        <item quantity="two">أي ما يعادل %d يوم من الموسيقى المتواصلة.</item>
+        <item quantity="few">أي ما يعادل %d أيام من الموسيقى المتواصلة.</item>
+        <item quantity="many">أي ما يعادل %d يومًا من الموسيقى المتواصلة.</item>
+        <item quantity="other">أي ما يعادل %d يوم من الموسيقى المتواصلة.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="zero">أي ما يعادل %d ساعة من الموسيقى المتواصلة.</item>
+        <item quantity="one">أي ما يعادل %d ساعة من الموسيقى المتواصلة.</item>
+        <item quantity="two">أي ما يعادل %d ساعة من الموسيقى المتواصلة.</item>
+        <item quantity="few">أي ما يعادل %d ساعات من الموسيقى المتواصلة.</item>
+        <item quantity="many">أي ما يعادل %d ساعة من الموسيقى المتواصلة.</item>
+        <item quantity="other">أي ما يعادل %d ساعة من الموسيقى المتواصلة.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">المتوسط اليومي</string>
+    <string name="recap_minutes_active_days">أيام مع الموسيقى</string>
+    <string name="recap_months_kicker">أكثر شهر استمعت فيه</string>
+    <string name="recap_months_detail">%1$s من الاستماع</string>
+    <string name="recap_clock_kicker">ساعة استماعك</string>
+    <string name="recap_personality_early_bird">من محبي الصباح</string>
+    <string name="recap_personality_early_bird_desc">بدأت يومك بالموسيقى. كان الصباح وقتك المفضّل.</string>
+    <string name="recap_personality_daytime">مستمع النهار</string>
+    <string name="recap_personality_daytime_desc">رافقتك الموسيقى طوال اليوم، من أواخر الصباح حتى العصر.</string>
+    <string name="recap_personality_evening">مستمع المساء</string>
+    <string name="recap_personality_evening_desc">حين يهدأ اليوم، يعلو صوت الموسيقى.</string>
+    <string name="recap_personality_night_owl">بومة الليل</string>
+    <string name="recap_personality_night_owl_desc">كلما تأخر الوقت، زاد استماعك.</string>
+    <string name="recap_clock_favorite_day">يومك المفضّل: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">الاستماع حسب الشهر: %1$s</string>
+    <string name="recap_cd_clock_chart">الاستماع حسب الساعة: %1$s</string>
+    <string name="recap_dedication_kicker">أطول سلسلة استماع</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="zero">يوم متتالٍ</item>
+        <item quantity="one">يوم متتالٍ</item>
+        <item quantity="two">يومان متتاليان</item>
+        <item quantity="few">أيام متتالية</item>
+        <item quantity="many">يومًا متتاليًا</item>
+        <item quantity="other">يوم متتالٍ</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">أطول جلسة</string>
+    <string name="recap_dedication_biggest_day">أكثر يوم استماعًا</string>
+    <string name="recap_dedication_first_song">أول أغنية في العام</string>
+    <string name="recap_genres_kicker">أنواعك المفضّلة</string>
+    <string name="recap_genres_share">%1$s من استماعك</string>
+    <string name="recap_decade_kicker">حقبتك</string>
+    <string name="recap_decade_value">عقد %1$d</string>
+    <string name="recap_decade_detail">جاء %1$s من استماعك من موسيقى صدرت في هذا العقد.</string>
+    <string name="recap_albums_kicker">ألبوماتك المفضّلة</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="zero">%d ألبوم في قائمتك</item>
+        <item quantity="one">%d ألبوم في قائمتك</item>
+        <item quantity="two">%d ألبوم في قائمتك</item>
+        <item quantity="few">%d ألبومات في قائمتك</item>
+        <item quantity="many">%d ألبومًا في قائمتك</item>
+        <item quantity="other">%d ألبوم في قائمتك</item>
+    </plurals>
+    <string name="recap_artists_kicker">فنانك المفضّل</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="zero">استمعت إلى %d فنان</item>
+        <item quantity="one">استمعت إلى %d فنان</item>
+        <item quantity="two">استمعت إلى %d فنان</item>
+        <item quantity="few">استمعت إلى %d فنانين</item>
+        <item quantity="many">استمعت إلى %d فنانًا</item>
+        <item quantity="other">استمعت إلى %d فنان</item>
+    </plurals>
+    <string name="recap_songs_kicker">أغنيتك المفضّلة</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="zero">شغّلت %d أغنية</item>
+        <item quantity="one">شغّلت %d أغنية</item>
+        <item quantity="two">شغّلت %d أغنية</item>
+        <item quantity="few">شغّلت %d أغانٍ</item>
+        <item quantity="many">شغّلت %d أغنية</item>
+        <item quantity="other">شغّلت %d أغنية</item>
+    </plurals>
+    <string name="recap_summary_kicker">عامك في لمحة</string>
+    <string name="recap_summary_title">عامي %1$d في الموسيقى</string>
+    <string name="recap_summary_title_so_far">عامي %1$d حتى الآن</string>
+    <string name="recap_summary_minutes">دقائق الاستماع</string>
+    <string name="recap_summary_top_artist">الفنان الأول</string>
+    <string name="recap_summary_top_song">الأغنية الأولى</string>
+    <string name="recap_summary_top_genre">النوع الأول</string>
+    <string name="recap_summary_top_album">الألبوم الأول</string>
+    <string name="recap_summary_listening_style">أسلوب الاستماع</string>
+    <string name="recap_share">مشاركة</string>
+    <string name="recap_share_chooser_title">شارك ملخّصك</string>
+    <string name="recap_share_text">عامي %1$d في الموسيقى، من إنشاء PixelPlayerOSS</string>
+    <string name="recap_share_failed">تعذّر إنشاء صورة الملخّص</string>
+    <string name="recap_play_top_songs">تشغيل الأفضل</string>
+    <string name="recap_top_songs_queue_name">أفضل أغاني %1$d</string>
+    <string name="recap_replay">شاهد مجددًا</string>
+</resources>

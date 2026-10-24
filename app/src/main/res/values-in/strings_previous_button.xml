@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Tombol sebelumnya</string>
+    <string name="setcat_previous_button_description">Pilih apakah tombol sebelumnya memulai ulang lagu saat ini atau langsung kembali ke lagu sebelumnya.</string>
+    <string name="setcat_previous_button_restart_track">Mulai ulang trek</string>
+    <string name="setcat_previous_button_restart_track_description">Setelah beberapa detik pertama, tombol sebelumnya memutar lagu dari awal. Tekan lagi untuk kembali ke lagu sebelumnya.</string>
+    <string name="setcat_previous_button_previous_track">Trek sebelumnya</string>
+    <string name="setcat_previous_button_previous_track_description">Tombol sebelumnya selalu kembali ke lagu sebelumnya, di bagian mana pun lagu yang sedang diputar.</string>
+</resources>

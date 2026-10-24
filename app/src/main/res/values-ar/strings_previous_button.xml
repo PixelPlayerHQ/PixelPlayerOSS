@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">زر السابق</string>
+    <string name="setcat_previous_button_description">اختر ما إذا كان زر السابق يعيد تشغيل الأغنية الحالية أو ينتقل مباشرةً إلى الأغنية السابقة.</string>
+    <string name="setcat_previous_button_restart_track">إعادة تشغيل المسار</string>
+    <string name="setcat_previous_button_restart_track_description">بعد الثواني الأولى، يعيد زر السابق تشغيل الأغنية من البداية. اضغط عليه مرة أخرى للرجوع.</string>
+    <string name="setcat_previous_button_previous_track">المسار السابق</string>
+    <string name="setcat_previous_button_previous_track_description">ينتقل زر السابق دائمًا إلى الأغنية السابقة، أيًّا كان موضعك في الأغنية الحالية.</string>
+</resources>

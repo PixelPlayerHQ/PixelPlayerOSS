@@ -8,13 +8,13 @@ import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.stats.PlaybackStatsRepository
 import com.lostf1sh.pixelplayeross.data.stats.PlaybackStatsRepository.PlaybackStatsSummary
 import com.lostf1sh.pixelplayeross.data.stats.StatsTimeRange
+import com.lostf1sh.pixelplayeross.di.DispatcherProvider
+import com.lostf1sh.pixelplayeross.presentation.stats.resolveStatsArtistImages
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +31,8 @@ import kotlinx.collections.immutable.toImmutableList
 class StatsViewModel @Inject constructor(
     private val playbackStatsRepository: PlaybackStatsRepository,
     private val musicRepository: MusicRepository,
-    private val artistImageRepository: ArtistImageRepository
+    private val artistImageRepository: ArtistImageRepository,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     data class StatsUiState(
@@ -82,7 +83,7 @@ class StatsViewModel @Inject constructor(
     fun refreshWeeklyOverview() {
         viewModelScope.launch {
             runCatching {
-                withContext(Dispatchers.IO) {
+                withContext(dispatchers.io) {
                     val songs = loadSongs()
                     playbackStatsRepository.loadSummary(StatsTimeRange.WEEK, songs)
                 }
@@ -99,7 +100,7 @@ class StatsViewModel @Inject constructor(
         homeOverviewJob?.cancel()
         homeOverviewJob = viewModelScope.launch {
             val summary = try {
-                withContext(Dispatchers.IO) {
+                withContext(dispatchers.io) {
                     val songs = loadSongs()
                     firstSummaryWithActivity(HomeOverviewRanges) { range ->
                         playbackStatsRepository.loadSummary(range, songs)
@@ -134,7 +135,7 @@ class StatsViewModel @Inject constructor(
                 _uiState.update { it.copy(isRefreshing = true, selectedRange = range) }
             }
             val summary = runCatching {
-                withContext(Dispatchers.IO) {
+                withContext(dispatchers.io) {
                     val songs = loadSongs()
                     playbackStatsRepository.loadSummary(range, songs)
                 }
@@ -194,7 +195,7 @@ class StatsViewModel @Inject constructor(
     }
 
     /** Library songs for [songIds], in the given order; ids no longer in the library are dropped. */
-    suspend fun resolveSongs(songIds: List<String>): List<Song> = withContext(Dispatchers.IO) {
+    suspend fun resolveSongs(songIds: List<String>): List<Song> = withContext(dispatchers.io) {
         val byId = loadSongs().associateBy { it.id }
         songIds.mapNotNull { byId[it] }
     }
@@ -203,7 +204,7 @@ class StatsViewModel @Inject constructor(
      * Stats group artists by display name, so the id has to be looked up. Falls back to the
      * library songs for names the artists table does not know (e.g. multi-artist display names).
      */
-    suspend fun resolveArtistId(name: String): Long? = withContext(Dispatchers.IO) {
+    suspend fun resolveArtistId(name: String): Long? = withContext(dispatchers.io) {
         musicRepository.getArtistIdByName(name)
             ?: loadSongs().firstOrNull { it.displayArtist == name || it.artist == name }?.artistId
     }
@@ -214,17 +215,8 @@ class StatsViewModel @Inject constructor(
      * Names with no picture are absent.
      */
     suspend fun resolveArtistImages(names: Collection<String>): Map<String, String> =
-        withContext(Dispatchers.IO) {
-            names.distinct().map { name ->
-                async {
-                    val artistId = musicRepository.getArtistIdByName(name) ?: UNKNOWN_ARTIST_ID
-                    val url = runCatching {
-                        artistImageRepository.getEffectiveArtistImageUrl(artistId, name)
-                    }.onFailure { Timber.w(it, "Failed to resolve artist image for %s", name) }
-                        .getOrNull()
-                    url?.takeIf { it.isNotBlank() }?.let { name to it }
-                }
-            }.awaitAll().filterNotNull().toMap()
+        withContext(dispatchers.io) {
+            resolveStatsArtistImages(names, musicRepository, artistImageRepository)
         }
 
     /**
@@ -232,21 +224,18 @@ class StatsViewModel @Inject constructor(
      * one of [preferredSongIds] (the tracks actually played in range) before any namesake.
      */
     suspend fun resolveAlbumId(name: String, preferredSongIds: Collection<String>): Long? =
-        withContext(Dispatchers.IO) {
+        withContext(dispatchers.io) {
             val preferred = preferredSongIds.toSet()
             val candidates = loadSongs().filter { it.album == name }
             (candidates.firstOrNull { it.id in preferred } ?: candidates.firstOrNull())?.albumId
         }
 
     /** False for the synthetic "unknown" bucket stats create for songs without a genre tag. */
-    suspend fun isLibraryGenre(name: String): Boolean = withContext(Dispatchers.IO) {
-        loadSongs().any { it.genre == name }
+    suspend fun isLibraryGenre(name: String): Boolean = withContext(dispatchers.io) {
+        loadSongs().any { GenreParser.matches(it.genre, name) }
     }
 
     private companion object {
-        /** Matches no artists row, so lookups fall through to the by-name queries. */
-        const val UNKNOWN_ARTIST_ID = -1L
-
         val HomeOverviewRanges = listOf(
             StatsTimeRange.WEEK,
             StatsTimeRange.MONTH,

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Подсветка слов</string>
+    <string name="lyrics_highlight_style_subtitle">Как подсвечивается текст с пословной синхронизацией во время пения</string>
+    <string name="lyrics_highlight_style_wipe">Градиентная волна</string>
+    <string name="lyrics_highlight_style_wipe_desc">Мягкая граница плавно проходит по каждому слову, пока оно звучит</string>
+    <string name="lyrics_highlight_style_fade">Проявление</string>
+    <string name="lyrics_highlight_style_fade_desc">Каждый слог плавно проявляется, пока он звучит</string>
+    <string name="lyrics_highlight_style_classic">Мгновенно</string>
+    <string name="lyrics_highlight_style_classic_desc">Каждый слог загорается сразу, как только начинается</string>
+    <string name="lyrics_duet_layout_title">Режим дуэта</string>
+    <string name="lyrics_duet_layout_subtitle">Размещать исполнителей по разные стороны, если в тексте отмечены голоса (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Бэк-вокал</string>
+    <string name="lyrics_background_vocals_subtitle">Показывать бэк-вокал мелким шрифтом под основной строкой</string>
+</resources>

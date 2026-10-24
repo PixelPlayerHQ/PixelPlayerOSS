@@ -65,6 +65,39 @@ fun mapRecentlyPlayedSongs(
     return deduped
 }
 
+/**
+ * Drops [songId] from a recently played list, keeping the order of the other songs. Home uses
+ * this after a song is deleted, because its pill row is a snapshot that stays frozen while Home
+ * is visible.
+ */
+fun List<RecentlyPlayedSongUiModel>.withoutSong(songId: String): List<RecentlyPlayedSongUiModel> {
+    if (none { it.song.id == songId }) return this
+    return filterNot { it.song.id == songId }
+}
+
+/**
+ * Swaps in the newest data for each song that is also in [latest], keeping this list's order,
+ * entries and timestamps. Home's snapshot then reflects edits such as a new title without
+ * reordering pills while they are on screen. Songs missing from [latest] are kept as they are.
+ */
+fun List<RecentlyPlayedSongUiModel>.withUpdatedSongs(
+    latest: List<RecentlyPlayedSongUiModel>
+): List<RecentlyPlayedSongUiModel> {
+    if (isEmpty() || latest.isEmpty()) return this
+    val latestSongById = latest.associate { it.song.id to it.song }
+    var changed = false
+    val updated = map { item ->
+        val latestSong = latestSongById[item.song.id]
+        if (latestSong == null || latestSong == item.song) {
+            item
+        } else {
+            changed = true
+            item.copy(song = latestSong)
+        }
+    }
+    return if (changed) updated else this
+}
+
 fun collectRecentlyPlayedSongIds(
     playbackHistory: List<PlaybackStatsRepository.PlaybackHistoryEntry>,
     range: StatsTimeRange? = null,

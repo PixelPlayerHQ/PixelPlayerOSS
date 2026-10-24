@@ -9,6 +9,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.provider.MediaStore
 import android.provider.Settings
+import androidx.annotation.StringRes
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -49,7 +50,7 @@ class SongInfoBottomSheetViewModel @Inject constructor(
 ) : ViewModel() {
 
     data class SongLocationInfo(
-        val label: String,
+        @StringRes val labelRes: Int,
         val value: String,
         val isCloud: Boolean,
     )
@@ -187,13 +188,13 @@ class SongInfoBottomSheetViewModel @Inject constructor(
         val provider = getCloudProviderLabel(song.contentUriString)
         return if (provider != null) {
             SongLocationInfo(
-                label = "Provider",
+                labelRes = R.string.song_info_label_provider,
                 value = provider,
                 isCloud = true,
             )
         } else {
             SongLocationInfo(
-                label = "Path",
+                labelRes = R.string.song_info_label_path,
                 value = song.path,
                 isCloud = false,
             )

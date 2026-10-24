@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">Ваши итоги %1$d</string>
+    <string name="recap_card_title_so_far">Ваш %1$d: промежуточные итоги</string>
+    <string name="recap_card_subtitle">Вспомните свой музыкальный год</string>
+    <string name="recap_card_subtitle_so_far">Посмотрите, каким получается ваш музыкальный год</string>
+    <string name="recap_home_card_title">Ваши итоги %1$d уже готовы</string>
+    <string name="recap_home_card_subtitle">Вспомните песни, исполнителей и моменты, которыми запомнился ваш год.</string>
+    <string name="recap_home_card_open">Открыть итоги</string>
+    <string name="recap_home_card_dismiss">Скрыть</string>
+    <string name="recap_cd_close">Закрыть итоги</string>
+    <string name="recap_cd_pause">Пауза</string>
+    <string name="recap_cd_resume">Продолжить</string>
+    <string name="recap_cd_slide_progress">Слайд %1$d из %2$d</string>
+    <string name="recap_action_next_slide">Следующий слайд</string>
+    <string name="recap_action_previous_slide">Предыдущий слайд</string>
+    <string name="recap_close">Закрыть</string>
+    <string name="recap_not_enough_title">Пока недостаточно прослушиваний</string>
+    <string name="recap_not_enough_subtitle">Продолжайте слушать музыку, и ваши итоги %1$d года наполнятся.</string>
+    <string name="recap_intro_kicker">Итоги PixelPlayerOSS</string>
+    <string name="recap_intro_title">Ваш год в музыке</string>
+    <string name="recap_intro_title_so_far">Ваш год на данный момент</string>
+    <string name="recap_intro_subtitle">Оглянемся на песни, исполнителей и моменты, которые звучали в вашем году.</string>
+    <string name="recap_tap_hint">Нажмите, чтобы продолжить</string>
+    <string name="recap_minutes_kicker">В %1$d году вы слушали музыку</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="one">минуту</item>
+        <item quantity="few">минуты</item>
+        <item quantity="many">минут</item>
+        <item quantity="other">минуты</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="one">Это примерно %d день музыки без перерыва.</item>
+        <item quantity="few">Это примерно %d дня музыки без перерыва.</item>
+        <item quantity="many">Это примерно %d дней музыки без перерыва.</item>
+        <item quantity="other">Это примерно %d дня музыки без перерыва.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="one">Это примерно %d час музыки без перерыва.</item>
+        <item quantity="few">Это примерно %d часа музыки без перерыва.</item>
+        <item quantity="many">Это примерно %d часов музыки без перерыва.</item>
+        <item quantity="other">Это примерно %d часа музыки без перерыва.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">В среднем за день</string>
+    <string name="recap_minutes_active_days">Дней с музыкой</string>
+    <string name="recap_months_kicker">Ваш самый музыкальный месяц</string>
+    <string name="recap_months_detail">%1$s прослушивания</string>
+    <string name="recap_clock_kicker">Ваши часы прослушивания</string>
+    <string name="recap_personality_early_bird">Жаворонок</string>
+    <string name="recap_personality_early_bird_desc">Ваш день начинался с музыки. Утро было вашим временем.</string>
+    <string name="recap_personality_daytime">Дневной слушатель</string>
+    <string name="recap_personality_daytime_desc">Музыка сопровождала вас весь день — с позднего утра до середины дня.</string>
+    <string name="recap_personality_evening">Вечерний слушатель</string>
+    <string name="recap_personality_evening_desc">Когда день затихал, музыка звучала громче.</string>
+    <string name="recap_personality_night_owl">Сова</string>
+    <string name="recap_personality_night_owl_desc">Чем позже, тем больше вы слушали.</string>
+    <string name="recap_clock_favorite_day">Любимый день: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">Прослушивание по месяцам: %1$s</string>
+    <string name="recap_cd_clock_chart">Прослушивание по часам: %1$s</string>
+    <string name="recap_dedication_kicker">Ваша самая длинная серия</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="one">день подряд</item>
+        <item quantity="few">дня подряд</item>
+        <item quantity="many">дней подряд</item>
+        <item quantity="other">дня подряд</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">Самая долгая сессия</string>
+    <string name="recap_dedication_biggest_day">Самый музыкальный день</string>
+    <string name="recap_dedication_first_song">Первая песня года</string>
+    <string name="recap_genres_kicker">Ваши любимые жанры</string>
+    <string name="recap_genres_share">%1$s всего прослушивания</string>
+    <string name="recap_decade_kicker">Ваша эпоха</string>
+    <string name="recap_decade_value">%1$d-е</string>
+    <string name="recap_decade_detail">На музыку этого десятилетия пришлось %1$s прослушивания.</string>
+    <string name="recap_albums_kicker">Ваши любимые альбомы</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="one">Всего альбомов: %d</item>
+        <item quantity="few">Всего альбомов: %d</item>
+        <item quantity="many">Всего альбомов: %d</item>
+        <item quantity="other">Всего альбомов: %d</item>
+    </plurals>
+    <string name="recap_artists_kicker">Ваш главный исполнитель</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="one">Всего исполнителей: %d</item>
+        <item quantity="few">Всего исполнителей: %d</item>
+        <item quantity="many">Всего исполнителей: %d</item>
+        <item quantity="other">Всего исполнителей: %d</item>
+    </plurals>
+    <string name="recap_songs_kicker">Ваша главная песня</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="one">Всего разных песен: %d</item>
+        <item quantity="few">Всего разных песен: %d</item>
+        <item quantity="many">Всего разных песен: %d</item>
+        <item quantity="other">Всего разных песен: %d</item>
+    </plurals>
+    <string name="recap_summary_kicker">Ваш год вкратце</string>
+    <string name="recap_summary_title">Мой музыкальный %1$d</string>
+    <string name="recap_summary_title_so_far">Мой %1$d: промежуточные итоги</string>
+    <string name="recap_summary_minutes">Минут прослушано</string>
+    <string name="recap_summary_top_artist">Главный исполнитель</string>
+    <string name="recap_summary_top_song">Главная песня</string>
+    <string name="recap_summary_top_genre">Главный жанр</string>
+    <string name="recap_summary_top_album">Главный альбом</string>
+    <string name="recap_summary_listening_style">Стиль прослушивания</string>
+    <string name="recap_share">Поделиться</string>
+    <string name="recap_share_chooser_title">Поделиться итогами</string>
+    <string name="recap_share_text">Мой музыкальный %1$d — итоги из PixelPlayerOSS</string>
+    <string name="recap_share_failed">Не удалось создать изображение итогов</string>
+    <string name="recap_play_top_songs">Слушать топ</string>
+    <string name="recap_top_songs_queue_name">Лучшие песни %1$d</string>
+    <string name="recap_replay">Посмотреть снова</string>
+</resources>

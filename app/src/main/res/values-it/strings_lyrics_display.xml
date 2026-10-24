@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Evidenziazione delle parole</string>
+    <string name="lyrics_highlight_style_subtitle">Come si illuminano i testi sincronizzati parola per parola mentre vengono cantati</string>
+    <string name="lyrics_highlight_style_wipe">Scorrimento sfumato</string>
+    <string name="lyrics_highlight_style_wipe_desc">Un bordo morbido scorre su ogni parola mentre viene cantata</string>
+    <string name="lyrics_highlight_style_fade">Dissolvenza</string>
+    <string name="lyrics_highlight_style_fade_desc">Ogni sillaba appare in dissolvenza mentre viene cantata</string>
+    <string name="lyrics_highlight_style_classic">Immediata</string>
+    <string name="lyrics_highlight_style_classic_desc">Ogni sillaba si illumina appena inizia</string>
+    <string name="lyrics_duet_layout_title">Layout duetto</string>
+    <string name="lyrics_duet_layout_subtitle">Mostra ogni cantante sul proprio lato quando il testo indica le voci (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Cori</string>
+    <string name="lyrics_background_vocals_subtitle">Mostra i cori in un testo più piccolo sotto la riga principale</string>
+</resources>

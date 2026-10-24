@@ -24,4 +24,10 @@ object CloudMusicUtils {
             .distinct()
         return if (parsed.isEmpty()) listOf("Unknown Artist") else parsed
     }
+
+    /**
+     * Servers report a track without a disc tag as disc 0. Album screens treat a missing disc as
+     * disc 1, so 0 is stored as null to keep those tracks in the first disc group.
+     */
+    fun normalizeDiscNumber(rawDiscNumber: Int): Int? = rawDiscNumber.takeIf { it > 0 }
 }

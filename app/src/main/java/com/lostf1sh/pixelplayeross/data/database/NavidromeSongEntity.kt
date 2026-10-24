@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeSong
+import com.lostf1sh.pixelplayeross.data.stream.CloudMusicUtils
 
 /**
  * Represents a song cached from a Navidrome/Subsonic server.
@@ -83,6 +84,7 @@ fun NavidromeSongEntity.toSong(): Song {
         sampleRate = null,
         year = year,
         trackNumber = trackNumber,
+        discNumber = CloudMusicUtils.normalizeDiscNumber(discNumber),
         dateAdded = dateAdded,
         isFavorite = false,
         navidromeId = navidromeId

@@ -757,7 +757,7 @@ fun SongInfoBottomSheet(
                                                 }
 
                                                 SongInfoSegmentedListItem(
-                                                    headline = songLocationInfo.label,
+                                                    headline = stringResource(songLocationInfo.labelRes),
                                                     supporting = songLocationInfo.value,
                                                     icon = if (songLocationInfo.isCloud) Icons.Rounded.Cloud else Icons.Rounded.AudioFile,
                                                     iconDescription = stringResource(

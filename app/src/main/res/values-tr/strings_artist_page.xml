@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Sanatçı Sayfası</string>
+    <string name="artist_page_albums_collapsed_by_default">Albümleri Daraltılmış Göster</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Sanatçının birden fazla albümü varsa başta yalnızca albüm başlıkları gösterilir. Şarkılarını görmek için bir albüme dokunun.</string>
+    <string name="artist_page_collapse_all_albums">Tümünü daralt</string>
+    <string name="artist_page_expand_all_albums">Tümünü genişlet</string>
+</resources>

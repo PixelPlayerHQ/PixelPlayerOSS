@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Halaman Artis</string>
+    <string name="artist_page_albums_collapsed_by_default">Mulai dengan Album Tertutup</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Jika artis memiliki lebih dari satu album, awalnya hanya judul album yang ditampilkan. Ketuk album untuk melihat lagunya.</string>
+    <string name="artist_page_collapse_all_albums">Tutup semua</string>
+    <string name="artist_page_expand_all_albums">Buka semua</string>
+</resources>

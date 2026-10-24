@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Wort-Hervorhebung</string>
+    <string name="lyrics_highlight_style_subtitle">Wie wortgenau synchronisierte Lyrics beim Singen aufleuchten</string>
+    <string name="lyrics_highlight_style_wipe">Farbverlauf</string>
+    <string name="lyrics_highlight_style_wipe_desc">Eine weiche Kante gleitet beim Singen über jedes Wort</string>
+    <string name="lyrics_highlight_style_fade">Einblenden</string>
+    <string name="lyrics_highlight_style_fade_desc">Jede Silbe wird eingeblendet, während sie gesungen wird</string>
+    <string name="lyrics_highlight_style_classic">Sofort</string>
+    <string name="lyrics_highlight_style_classic_desc">Jede Silbe leuchtet auf, sobald sie beginnt</string>
+    <string name="lyrics_duet_layout_title">Duett-Layout</string>
+    <string name="lyrics_duet_layout_subtitle">Jede Stimme auf eine eigene Seite setzen, wenn die Lyrics Stimmen markieren (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Hintergrundgesang</string>
+    <string name="lyrics_background_vocals_subtitle">Backing Vocals in kleinerer Schrift unter der Hauptzeile anzeigen</string>
+</resources>

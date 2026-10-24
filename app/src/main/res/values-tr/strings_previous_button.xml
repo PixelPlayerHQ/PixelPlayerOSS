@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Önceki düğmesi</string>
+    <string name="setcat_previous_button_description">Önceki düğmesinin geçerli şarkıyı yeniden mi başlatacağını yoksa doğrudan önceki şarkıya mı geçeceğini seçin.</string>
+    <string name="setcat_previous_button_restart_track">Parçayı yeniden başlat</string>
+    <string name="setcat_previous_button_restart_track_description">İlk birkaç saniyeden sonra önceki düğmesi şarkıyı baştan başlatır. Önceki şarkıya dönmek için tekrar basın.</string>
+    <string name="setcat_previous_button_previous_track">Önceki parça</string>
+    <string name="setcat_previous_button_previous_track_description">Önceki düğmesi, geçerli şarkının neresinde olursanız olun her zaman önceki şarkıya geçer.</string>
+</resources>

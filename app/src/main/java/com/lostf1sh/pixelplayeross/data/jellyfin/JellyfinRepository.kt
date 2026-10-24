@@ -26,6 +26,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepositor
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.stream.BulkSyncResult
 import com.lostf1sh.pixelplayeross.data.stream.CloudMusicUtils
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +64,7 @@ class JellyfinRepository @Inject constructor(
         private const val JELLYFIN_ALBUM_ID_OFFSET = 13_000_000_000_000L
         private const val JELLYFIN_ARTIST_ID_OFFSET = 14_000_000_000_000L
         private const val JELLYFIN_PARENT_DIRECTORY = "/Cloud/Jellyfin"
-        private const val JELLYFIN_GENRE = "Jellyfin"
+        private const val JELLYFIN_GENRE = GenreParser.JELLYFIN_PLACEHOLDER
         private const val JELLYFIN_PLAYLIST_PREFIX = "jellyfin_playlist:"
         private const val LIBRARY_PLAYLIST_ID = "__library__"
     }
@@ -632,6 +633,7 @@ class JellyfinRepository @Inject constructor(
                     isFavorite = false,
                     lyrics = null,
                     trackNumber = jellyfinSong.trackNumber,
+                    discNumber = CloudMusicUtils.normalizeDiscNumber(jellyfinSong.discNumber),
                     year = jellyfinSong.year,
                     dateAdded = jellyfinSong.dateAdded.takeIf { it > 0 }
                         ?: System.currentTimeMillis(),
@@ -736,6 +738,7 @@ class JellyfinRepository @Inject constructor(
             sampleRate = null,
             year = year,
             trackNumber = trackNumber,
+            discNumber = CloudMusicUtils.normalizeDiscNumber(discNumber),
             dateAdded = 0,
             isFavorite = false
         )

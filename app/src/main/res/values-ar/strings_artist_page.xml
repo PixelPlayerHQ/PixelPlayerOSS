@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">صفحة الفنان</string>
+    <string name="artist_page_albums_collapsed_by_default">عرض الألبومات مطوية في البداية</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">عندما يكون للفنان أكثر من ألبوم، تظهر عناوين الألبومات فقط في البداية. انقر على ألبوم لعرض أغانيه.</string>
+    <string name="artist_page_collapse_all_albums">طي الكل</string>
+    <string name="artist_page_expand_all_albums">توسيع الكل</string>
+</resources>

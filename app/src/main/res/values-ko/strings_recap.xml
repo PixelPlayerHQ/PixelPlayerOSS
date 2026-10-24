@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">%1$d 리캡</string>
+    <string name="recap_card_title_so_far">지금까지의 %1$d</string>
+    <string name="recap_card_subtitle">올해의 음악을 다시 만나 보세요</string>
+    <string name="recap_card_subtitle_so_far">올해의 음악 기록이 어떻게 쌓이고 있는지 확인해 보세요</string>
+    <string name="recap_home_card_title">%1$d 리캡이 도착했어요</string>
+    <string name="recap_home_card_subtitle">한 해를 채운 노래, 아티스트, 순간들을 다시 만나 보세요.</string>
+    <string name="recap_home_card_open">리캡 열기</string>
+    <string name="recap_home_card_dismiss">숨기기</string>
+    <string name="recap_cd_close">리캡 닫기</string>
+    <string name="recap_cd_pause">일시정지</string>
+    <string name="recap_cd_resume">계속</string>
+    <string name="recap_cd_slide_progress">슬라이드 %1$d/%2$d</string>
+    <string name="recap_action_next_slide">다음 슬라이드</string>
+    <string name="recap_action_previous_slide">이전 슬라이드</string>
+    <string name="recap_close">닫기</string>
+    <string name="recap_not_enough_title">아직 감상 기록이 부족해요</string>
+    <string name="recap_not_enough_subtitle">음악을 계속 들으면 %1$d 리캡이 채워져요.</string>
+    <string name="recap_intro_kicker">PixelPlayerOSS 리캡</string>
+    <string name="recap_intro_title">음악으로 본 나의 한 해</string>
+    <string name="recap_intro_title_so_far">지금까지의 한 해</string>
+    <string name="recap_intro_subtitle">올해를 함께한 노래, 아티스트, 순간들을 돌아봐요.</string>
+    <string name="recap_tap_hint">탭하여 계속</string>
+    <string name="recap_minutes_kicker">%1$d년에 음악을 들은 시간</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">분</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="other">쉬지 않고 약 %d일 동안 음악을 들은 셈이에요.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="other">쉬지 않고 약 %d시간 동안 음악을 들은 셈이에요.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">하루 평균</string>
+    <string name="recap_minutes_active_days">음악을 들은 날</string>
+    <string name="recap_months_kicker">가장 많이 들은 달</string>
+    <string name="recap_months_detail">%1$s 감상</string>
+    <string name="recap_clock_kicker">나의 감상 시계</string>
+    <string name="recap_personality_early_bird">아침형 리스너</string>
+    <string name="recap_personality_early_bird_desc">하루를 음악으로 시작했어요. 아침이 당신의 황금 시간대였어요.</string>
+    <string name="recap_personality_daytime">낮 시간 리스너</string>
+    <string name="recap_personality_daytime_desc">늦은 아침부터 오후까지, 음악이 하루 종일 함께했어요.</string>
+    <string name="recap_personality_evening">저녁형 리스너</string>
+    <string name="recap_personality_evening_desc">하루가 저물수록 음악 소리는 커졌어요.</string>
+    <string name="recap_personality_night_owl">올빼미형 리스너</string>
+    <string name="recap_personality_night_owl_desc">밤이 깊어질수록 더 많이 들었어요.</string>
+    <string name="recap_clock_favorite_day">가장 좋아한 요일: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">월별 감상 시간: %1$s</string>
+    <string name="recap_cd_clock_chart">시간대별 감상 시간: %1$s</string>
+    <string name="recap_dedication_kicker">가장 긴 연속 기록</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">일 연속</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">가장 긴 세션</string>
+    <string name="recap_dedication_biggest_day">가장 많이 들은 날</string>
+    <string name="recap_dedication_first_song">올해의 첫 곡</string>
+    <string name="recap_genres_kicker">가장 많이 들은 장르</string>
+    <string name="recap_genres_share">전체 감상의 %1$s</string>
+    <string name="recap_decade_kicker">나의 시대</string>
+    <string name="recap_decade_value">%1$d년대</string>
+    <string name="recap_decade_detail">이 시대 음악의 비중: 전체 감상의 %1$s</string>
+    <string name="recap_albums_kicker">가장 많이 들은 앨범</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="other">앨범 %d개를 즐겨 들었어요</item>
+    </plurals>
+    <string name="recap_artists_kicker">가장 많이 들은 아티스트</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="other">아티스트 %d명의 음악을 들었어요</item>
+    </plurals>
+    <string name="recap_songs_kicker">가장 많이 들은 곡</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="other">서로 다른 %d곡을 재생했어요</item>
+    </plurals>
+    <string name="recap_summary_kicker">한눈에 보는 올해</string>
+    <string name="recap_summary_title">음악으로 본 나의 %1$d</string>
+    <string name="recap_summary_title_so_far">지금까지의 나의 %1$d</string>
+    <string name="recap_summary_minutes">감상한 시간(분)</string>
+    <string name="recap_summary_top_artist">최애 아티스트</string>
+    <string name="recap_summary_top_song">최애 곡</string>
+    <string name="recap_summary_top_genre">최애 장르</string>
+    <string name="recap_summary_top_album">최애 앨범</string>
+    <string name="recap_summary_listening_style">감상 스타일</string>
+    <string name="recap_share">공유</string>
+    <string name="recap_share_chooser_title">리캡 공유</string>
+    <string name="recap_share_text">음악으로 본 나의 %1$d, PixelPlayerOSS로 만들었어요</string>
+    <string name="recap_share_failed">리캡 이미지를 만들지 못했어요</string>
+    <string name="recap_play_top_songs">인기곡 재생</string>
+    <string name="recap_top_songs_queue_name">%1$d 인기곡</string>
+    <string name="recap_replay">다시 보기</string>
+</resources>

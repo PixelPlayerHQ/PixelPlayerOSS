@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">장르</string>
+    <string name="lib_empty_genres_title">장르를 찾을 수 없음</string>
+    <string name="lib_empty_genres_subtitle">노래 태그에 있는 장르가 여기에 표시됩니다.</string>
+</resources>

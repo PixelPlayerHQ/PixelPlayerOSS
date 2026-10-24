@@ -1,7 +1,11 @@
 package com.lostf1sh.pixelplayeross.data.network.jellyfin
 
+import com.google.common.truth.Truth.assertThat
+import org.json.JSONArray
 import org.json.JSONObject
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -53,5 +57,47 @@ class JellyfinResponseParserTest {
         assertFalse(JellyfinResponseParser.isAudioItem(item("Movie", "Video")))
         assertFalse(JellyfinResponseParser.isAudioItem(item("Photo", "Photo")))
         assertFalse(JellyfinResponseParser.isAudioItem(item(null, null)))
+    }
+
+    @Test
+    fun `parseSong maps ParentIndexNumber to the disc and IndexNumber to the track`() {
+        val song = JellyfinResponseParser.parseSong(
+            JSONObject(
+                """{"Id": "song-1", "Name": "What'd I Miss", "Album": "Hamilton", "IndexNumber": 1, "ParentIndexNumber": 2}"""
+            )
+        )
+
+        assertThat(song.discNumber).isEqualTo(2)
+        assertThat(song.trackNumber).isEqualTo(1)
+    }
+
+    @Test
+    fun `parseSong reports disc zero when ParentIndexNumber is missing`() {
+        val song = JellyfinResponseParser.parseSong(
+            JSONObject("""{"Id": "song-1", "Name": "Single", "IndexNumber": 4}""")
+        )
+
+        assertThat(song.discNumber).isEqualTo(0)
+        assertThat(song.trackNumber).isEqualTo(4)
+    }
+
+    private fun withGenres(vararg genres: String) = JSONObject().apply {
+        put("Id", "item-1")
+        put("Name", "Track")
+        put("Genres", JSONArray(genres.toList()))
+    }
+
+    @Test
+    fun `songs and albums keep every genre Jellyfin lists`() {
+        val json = withGenres("House", "Electronic", "house")
+
+        assertEquals("House; Electronic", JellyfinResponseParser.parseSong(json).genre)
+        assertEquals("House; Electronic", JellyfinResponseParser.parseAlbum(json).genre)
+    }
+
+    @Test
+    fun `a single genre is kept as written and no genre stays null`() {
+        assertEquals("Rap/Hip-Hop", JellyfinResponseParser.parseSong(withGenres("Rap/Hip-Hop")).genre)
+        assertNull(JellyfinResponseParser.parseSong(withGenres()).genre)
     }
 }

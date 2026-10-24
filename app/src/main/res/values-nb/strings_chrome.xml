@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Forbereder oppsett…</string>
+    <string name="song_info_label_provider">Leverandør</string>
+    <string name="song_info_label_path">Filbane</string>
+    <string name="cd_playlist_artwork">Spilleliste</string>
+    <string name="home_your_mix_subtitle">Dagens miks for deg</string>
+    <string name="home_your_mix_queue_name">Din miks</string>
+    <string name="queue_name_liked_songs">Likte sanger</string>
+    <string name="queue_name_all_songs_shuffled">Alle sanger (blandet)</string>
+    <string name="queue_name_liked_songs_shuffled">Likte sanger (blandet)</string>
+    <string name="queue_name_selected_songs">Valgte sanger</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer-spillerpanel minimert, %1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer-spillerpanel utvidet, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer-spillerpanel minimert</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer-spillerpanel utvidet</string>
+    <string name="mini_player_connecting_device">Kobler til enhet…</string>
+    <string name="mini_player_preparing_playback">Forbereder avspilling…</string>
+    <string name="mini_player_loading_audio">Laster inn lyd…</string>
+    <string name="cd_shuffle">Bland</string>
+    <string name="cd_playback_position">Avspillingsposisjon</string>
+    <string name="add_bookmark_title">Lagre bokmerke</string>
+    <string name="add_bookmark_saved_point">Lagret avspillingspunkt</string>
+    <string name="add_bookmark_use_lyric_line">Bruk sangtekstlinje</string>
+    <string name="add_bookmark_default_name">Bokmerke @ %1$s</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Copier les paroles</string>
+    <string name="lyrics_copied">Paroles copiées dans le presse-papiers</string>
+    <string name="lyrics_line_copied">Ligne copiée dans le presse-papiers</string>
+    <string name="lyrics_copy_line_action">Copier la ligne</string>
+</resources>

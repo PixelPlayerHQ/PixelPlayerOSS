@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Forrige-knapp</string>
+    <string name="setcat_previous_button_description">Velg om forrige-knappen starter gjeldende sang på nytt eller går rett til forrige sang.</string>
+    <string name="setcat_previous_button_restart_track">Start sporet på nytt</string>
+    <string name="setcat_previous_button_restart_track_description">Etter de første sekundene starter forrige-knappen sangen fra begynnelsen. Trykk igjen for å gå tilbake.</string>
+    <string name="setcat_previous_button_previous_track">Forrige spor</string>
+    <string name="setcat_previous_button_previous_track_description">Forrige-knappen går alltid til forrige sang, uansett hvor du er i gjeldende sang.</string>
+</resources>

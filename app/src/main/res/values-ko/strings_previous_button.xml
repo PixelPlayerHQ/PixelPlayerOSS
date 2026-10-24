@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">이전 버튼</string>
+    <string name="setcat_previous_button_description">이전 버튼을 눌렀을 때 현재 곡을 처음부터 다시 재생할지, 바로 이전 곡으로 이동할지 선택합니다.</string>
+    <string name="setcat_previous_button_restart_track">트랙 다시 시작</string>
+    <string name="setcat_previous_button_restart_track_description">곡이 시작되고 몇 초가 지나면 이전 버튼이 곡을 처음부터 다시 재생합니다. 한 번 더 누르면 이전 곡으로 이동합니다.</string>
+    <string name="setcat_previous_button_previous_track">이전 트랙</string>
+    <string name="setcat_previous_button_previous_track_description">현재 곡의 재생 위치와 관계없이 이전 버튼을 누르면 항상 이전 곡으로 이동합니다.</string>
+</resources>

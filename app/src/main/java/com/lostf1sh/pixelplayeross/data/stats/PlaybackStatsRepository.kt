@@ -7,6 +7,7 @@ import com.google.gson.JsonElement
 import com.google.gson.reflect.TypeToken
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.io.FileNotFoundException
@@ -222,31 +223,11 @@ class PlaybackStatsRepository @Inject constructor(
         songs: List<Song>,
         nowMillis: Long,
         allEvents: List<PlaybackEvent>,
-        zoneId: ZoneId = ZoneId.systemDefault()
+        zoneId: ZoneId = ZoneId.systemDefault(),
+        rankingLimit: Int = TOP_RANKING_LIMIT
     ): PlaybackStatsSummary {
         val (startBound, endBound) = range.resolveBounds(allEvents, nowMillis, zoneId)
-        val filteredEvents = allEvents.mapNotNull { event ->
-            val start = event.startMillis()
-            val end = event.endMillis()
-            val lowerBound = startBound ?: Long.MIN_VALUE
-            if (end < lowerBound || start > endBound) {
-                return@mapNotNull null
-            }
-
-            val clippedStart = max(start, lowerBound)
-            val clippedEnd = min(end, endBound)
-            val clippedDuration = (clippedEnd - clippedStart).coerceAtLeast(0L)
-            if (clippedDuration <= 0L) {
-                return@mapNotNull null
-            }
-
-            event.copy(
-                timestamp = clippedEnd,
-                durationMs = clippedDuration,
-                startTimestamp = clippedStart,
-                endTimestamp = clippedEnd
-            )
-        }
+        val filteredEvents = clipEvents(allEvents, lowerBound = startBound, upperBound = endBound)
 
         val songMap = songs.associateBy { it.id }
         val normalizedEvents = filteredEvents
@@ -272,7 +253,7 @@ class PlaybackStatsRepository @Inject constructor(
                 val song = songMap[songId] ?: return@mapNotNull null
                 val title = song.title.takeIf { it.isNotBlank() }
                     ?: song.path.substringAfterLast('/').ifBlank { return@mapNotNull null }
-                val artist = song.displayArtist.takeIf { it.isNotBlank() } ?: "Unknown Artist"
+                val artist = song.displayArtist.takeIf { it.isNotBlank() } ?: UNKNOWN_ARTIST
                 SongPlaybackSummary(
                     songId = songId,
                     title = title,
@@ -287,14 +268,20 @@ class PlaybackStatsRepository @Inject constructor(
                     .thenByDescending { it.playCount }
             )
             .take(MAX_SONG_STATS_COUNT)
-        val topSongs = allSongs.take(5)
+        val topSongs = allSongs.take(rankingLimit)
 
+        // A song tagged "House; Electronic" counts towards both genres.
         val topGenres = segmentsBySong.entries
-            .groupBy { (songId, _) ->
-                val genre = songMap[songId]?.genre
-                if (genre.isNullOrBlank()) "Unknown Genre" else genre
+            .flatMap { entry ->
+                GenreParser.split(songMap[entry.key]?.genre)
+                    .ifEmpty { listOf(UNKNOWN_GENRE) }
+                    .map { genre -> genre to entry }
             }
-            .map { (genre, groupedSongs) ->
+            .groupBy { (genre, _) -> GenreParser.key(genre) }
+            .map { (_, genreEntries) ->
+                // Named after the first spelling seen; "rock" and "Rock" are one genre.
+                val genre = genreEntries.first().first
+                val groupedSongs = genreEntries.map { (_, entry) -> entry }
                 val flattened = groupedSongs.flatMap { it.value }
                 val uniqueArtists = groupedSongs
                     .flatMap { (songId, _) ->
@@ -313,7 +300,7 @@ class PlaybackStatsRepository @Inject constructor(
                 compareByDescending<GenrePlaybackSummary> { it.totalDurationMs }
                     .thenByDescending { it.playCount }
             )
-            .take(5)
+            .take(rankingLimit)
 
         var daySpan = 1L
         val averageDailyDuration = if (effectiveStart != null) {
@@ -390,12 +377,12 @@ class PlaybackStatsRepository @Inject constructor(
                 compareByDescending<ArtistPlaybackSummary> { it.totalDurationMs }
                     .thenByDescending { it.playCount }
             )
-            .take(5)
+            .take(rankingLimit)
 
         val topAlbums = segmentsBySong.entries
             .groupBy { (songId, _) ->
                 val song = songMap[songId]
-                song?.album?.takeIf { it.isNotBlank() } ?: "Unknown Album"
+                song?.album?.takeIf { it.isNotBlank() } ?: UNKNOWN_ALBUM
             }
             .map { (album, groupedSongs) ->
                 val flattened = groupedSongs.flatMap { it.value }
@@ -416,7 +403,7 @@ class PlaybackStatsRepository @Inject constructor(
                 compareByDescending<AlbumPlaybackSummary> { it.totalDurationMs }
                     .thenByDescending { it.playCount }
             )
-            .take(5)
+            .take(rankingLimit)
 
         val peakTimeline = timelineEntries
             .filter { it.totalDurationMs > 0L }
@@ -465,6 +452,154 @@ class PlaybackStatsRepository @Inject constructor(
             peakDayLabel = peakDayLabel,
             peakDayDurationMs = peakDayDuration
         )
+    }
+
+    /**
+     * The recap of calendar [year] as of [nowMillis], or null when that year has not started.
+     * Its summary is aggregated exactly like the Stats year view, so both screens agree.
+     */
+    suspend fun loadRecap(
+        year: Int,
+        songs: List<Song>,
+        nowMillis: Long = System.currentTimeMillis()
+    ): ListeningRecap? {
+        val allEvents = withContext(Dispatchers.IO) { readEvents() }
+        return withContext(Dispatchers.Default) {
+            buildRecapFromEvents(
+                year = year,
+                songs = songs,
+                nowMillis = nowMillis,
+                allEvents = allEvents,
+                zoneId = ZoneId.systemDefault()
+            )
+        }
+    }
+
+    /** Listened time per local calendar year across the whole history, oldest year first. */
+    suspend fun loadRecapYearTotals(): List<RecapYearTotal> {
+        val allEvents = withContext(Dispatchers.IO) { readEvents() }
+        return withContext(Dispatchers.Default) {
+            recapYearTotals(allEvents, ZoneId.systemDefault())
+        }
+    }
+
+    internal fun buildRecapFromEvents(
+        year: Int,
+        songs: List<Song>,
+        nowMillis: Long,
+        allEvents: List<PlaybackEvent>,
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): ListeningRecap? {
+        val bounds = recapYearBounds(year, zoneId, nowMillis) ?: return null
+        // With "now" at the recap's end, the year range is exactly this calendar year,
+        // twelve month buckets included.
+        val summary = buildSummaryFromEvents(
+            range = StatsTimeRange.YEAR,
+            songs = songs,
+            nowMillis = bounds.endMillis,
+            allEvents = allEvents,
+            zoneId = zoneId,
+            rankingLimit = RECAP_RANKING_LIMIT
+        )
+
+        val songMap = songs.associateBy { it.id }
+        val segmentsBySong = clipEvents(allEvents, lowerBound = bounds.startMillis, upperBound = bounds.endMillis)
+            .groupBy { it.songId }
+            .mapValues { (_, eventsForSong) -> mergeSongEvents(eventsForSong) }
+        val spans = mergeSpans(segmentsBySong.values.flatten().map { PlaybackSpan(it.startMillis, it.endMillis) })
+
+        val uniqueArtists = segmentsBySong.keys
+            .flatMap { songId -> statsArtistNames(songMap[songId]) }
+            .filter { it != UNKNOWN_ARTIST }
+            .distinctBy { it.normalizedArtistKey() }
+            .size
+        val uniqueAlbums = segmentsBySong.keys
+            .mapNotNull { songMap[it] }
+            .filter { it.album.isNotBlank() }
+            .distinctBy { it.albumId }
+            .size
+
+        val daySlices = spans.flatMap { sliceSpanByDay(it, zoneId) }
+        // Ties go to the earliest date.
+        val biggestDay = daySlices
+            .groupBy { it.date }
+            .mapValues { (_, slices) -> slices.sumOf { it.durationMs } }
+            .maxWithOrNull(compareBy<Map.Entry<LocalDate, Long>> { it.value }.thenByDescending { it.key })
+        val favoriteDayOfWeek = daySlices
+            .groupBy { it.date.dayOfWeek }
+            .mapValues { (_, slices) -> slices.sumOf { it.durationMs } }
+            .maxByOrNull { it.value }
+            ?.key
+        val hourly = hourlyDurations(spans, zoneId)
+
+        // Segments are sorted per song, so each song's first one is its earliest play.
+        val firstSong = segmentsBySong
+            .mapNotNull { (songId, segments) ->
+                val song = songMap[songId] ?: return@mapNotNull null
+                segments.first().startMillis to song
+            }
+            .minByOrNull { it.first }
+            ?.second
+            ?.let { song ->
+                RecapSong(
+                    songId = song.id,
+                    title = song.title.ifBlank { song.path.substringAfterLast('/') },
+                    artist = song.displayArtist,
+                    albumArtUri = song.albumArtUriString
+                )
+            }
+
+        // Per-song time, so overlapping plays (crossfades) weigh the same as in the top lists.
+        val listenedMsBySong = segmentsBySong.mapValues { (_, segments) -> segments.sumOf { it.durationMs } }
+        val listenedMsByReleaseYear = listenedMsBySong.entries
+            .groupBy({ (songId, _) -> songMap[songId]?.year ?: 0 }, { it.value })
+            .mapValues { (_, durations) -> durations.sum() }
+        val decade = dominantDecade(listenedMsByReleaseYear, listenedMsBySong.values.sum())
+
+        return ListeningRecap(
+            year = year,
+            isYearComplete = bounds.isYearComplete,
+            summary = summary,
+            daysInRange = bounds.daysInRange,
+            uniqueArtists = uniqueArtists,
+            uniqueAlbums = uniqueAlbums,
+            monthlyDurationsMs = summary.timeline.map { it.totalDurationMs },
+            hourlyDurationsMs = hourly.toList(),
+            personality = classifyPersonality(hourly),
+            favoriteDayOfWeek = favoriteDayOfWeek,
+            biggestDay = biggestDay?.key,
+            biggestDayDurationMs = biggestDay?.value ?: 0L,
+            firstSong = firstSong,
+            topDecade = decade?.decade,
+            topDecadeShare = decade?.share ?: 0f
+        )
+    }
+
+    /**
+     * Listened time per local calendar year, oldest first. Overlapping events count once, and
+     * a play running past midnight on New Year's Eve is split between both years.
+     */
+    internal fun recapYearTotals(
+        allEvents: List<PlaybackEvent>,
+        zoneId: ZoneId = ZoneId.systemDefault()
+    ): List<RecapYearTotal> {
+        val spans = mergeSpans(
+            allEvents
+                .map { PlaybackSpan(it.startMillis(), it.endMillis()) }
+                .filter { it.durationMs > 0L }
+        )
+        val totals = sortedMapOf<Int, Long>()
+        spans.forEach { span ->
+            var cursor = span.startMillis
+            while (cursor < span.endMillis) {
+                val year = Instant.ofEpochMilli(cursor).atZone(zoneId).year
+                val nextYearStart = LocalDate.of(year + 1, 1, 1).atStartOfDay(zoneId).toInstant().toEpochMilli()
+                val sliceEnd = min(span.endMillis, nextYearStart)
+                totals[year] = (totals[year] ?: 0L) + (sliceEnd - cursor)
+                cursor = sliceEnd
+            }
+        }
+        return totals.map { (year, listenedMs) -> RecapYearTotal(year = year, listenedMs = listenedMs) }
     }
 
     suspend fun exportEventsForBackup(): List<PlaybackEvent> = withContext(Dispatchers.IO) {
@@ -580,6 +715,36 @@ class PlaybackStatsRepository @Inject constructor(
             startTimestamp = finalStart,
             endTimestamp = safeEnd
         )
+    }
+
+    /** [events] clipped to [lowerBound]..[upperBound]; events with nothing left inside are dropped. */
+    private fun clipEvents(
+        events: List<PlaybackEvent>,
+        lowerBound: Long?,
+        upperBound: Long
+    ): List<PlaybackEvent> {
+        val lower = lowerBound ?: Long.MIN_VALUE
+        return events.mapNotNull { event ->
+            val start = event.startMillis()
+            val end = event.endMillis()
+            if (end < lower || start > upperBound) {
+                return@mapNotNull null
+            }
+
+            val clippedStart = max(start, lower)
+            val clippedEnd = min(end, upperBound)
+            val clippedDuration = (clippedEnd - clippedStart).coerceAtLeast(0L)
+            if (clippedDuration <= 0L) {
+                return@mapNotNull null
+            }
+
+            event.copy(
+                timestamp = clippedEnd,
+                durationMs = clippedDuration,
+                startTimestamp = clippedStart,
+                endTimestamp = clippedEnd
+            )
+        }
     }
 
     private fun mergeSongEvents(events: List<PlaybackEvent>): List<PlaybackSegment> {
@@ -1109,7 +1274,25 @@ class PlaybackStatsRepository @Inject constructor(
         private const val DEFAULT_PLAYBACK_HISTORY_LIMIT = 500
         private const val MAX_PLAYBACK_HISTORY_LIMIT = 5_000
         private const val MAX_FILE_UPDATE_RETRIES = 3
-        private const val UNKNOWN_ARTIST = "Unknown Artist"
+
+        /**
+         * Buckets the summaries use for songs without an artist, album or genre, and for plays of
+         * songs no longer in the library. They are grouping keys, not display text.
+         */
+        internal const val UNKNOWN_ARTIST = "Unknown Artist"
+        internal const val UNKNOWN_ALBUM = "Unknown Album"
+        internal const val UNKNOWN_GENRE = "Unknown Genre"
+
+        /** Entries in each top list of a summary. */
+        private const val TOP_RANKING_LIMIT = 5
+
+        /**
+         * Entries in each top list of a recap: enough that its top five stay full once the
+         * entries it hides are left out. Genres hide the most: the unknown bucket and every
+         * cloud source placeholder.
+         */
+        private val RECAP_RANKING_LIMIT = TOP_RANKING_LIMIT + 1 + GenreParser.SOURCE_PLACEHOLDERS.size
+
         private val MAX_HISTORY_AGE_MS = TimeUnit.DAYS.toMillis(730)
         private const val SEGMENT_JOIN_TOLERANCE_MS = 0L
         private const val MAX_SONG_STATS_COUNT = 100

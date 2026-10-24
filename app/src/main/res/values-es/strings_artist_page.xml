@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Página del artista</string>
+    <string name="artist_page_albums_collapsed_by_default">Mostrar los álbumes contraídos</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Si un artista tiene más de un álbum, al principio solo se muestran los encabezados de los álbumes. Toca un álbum para ver sus canciones.</string>
+    <string name="artist_page_collapse_all_albums">Contraer todo</string>
+    <string name="artist_page_expand_all_albums">Expandir todo</string>
+</resources>

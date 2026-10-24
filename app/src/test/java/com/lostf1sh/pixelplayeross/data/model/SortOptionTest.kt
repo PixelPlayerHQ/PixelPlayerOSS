@@ -2,6 +2,7 @@ package com.lostf1sh.pixelplayeross.data.model
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class SortOptionTest {
@@ -91,7 +92,76 @@ class SortOptionTest {
         }
     }
 
+    @Test
+    fun `folder song options flip and resolve within their own method`() {
+        assertEquals(SortOption.FolderSongTitleZA, SortOption.FolderSongTitleAZ.flipDirection())
+        assertEquals(SortOption.FolderSongArtistDesc, SortOption.FolderSongArtist.flipDirection())
+        assertEquals(SortOption.FolderSongAlbum, SortOption.FolderSongAlbumDesc.flipDirection())
+        assertEquals(SortOption.FolderSongAlbumArtistDesc, SortOption.FolderSongAlbumArtist.flipDirection())
+        assertEquals(SortOption.FolderSongDateAddedAsc, SortOption.FolderSongDateAdded.flipDirection())
+        assertEquals(SortOption.FolderSongDuration, SortOption.FolderSongDurationAsc.flipDirection())
+        assertEquals(SortOption.FolderSongAlbumArtist, SortOption.FolderSongAlbumArtistDesc.methodOption())
+        assertEquals(
+            SortOption.FolderSongDurationAsc,
+            SortOption.FolderSongDuration.resolveForDirection(SortDirection.Ascending)
+        )
+    }
+
+    @Test
+    fun `folder song methods default to the same direction as the songs tab`() {
+        val defaultDirections = SortOption.FOLDER_SONGS
+            .map { it.methodOption() }
+            .distinct()
+            .associate { it.methodLabelRes to it.direction }
+
+        assertEquals(6, defaultDirections.size)
+        SortOption.SONGS.map { it.methodOption() }.distinct()
+            .filter { it.methodLabelRes in defaultDirections }
+            .forEach { songsTabMethod ->
+                assertEquals(
+                    songsTabMethod.direction,
+                    defaultDirections[songsTabMethod.methodLabelRes],
+                    "${songsTabMethod.storageKey} starts in a different direction for folder songs"
+                )
+            }
+    }
+
+    @Test
+    fun `folder song methods never share a method key with another list`() {
+        val folderSongMethods = SortOption.FOLDER_SONGS.map { it.methodKey }.toSet()
+        val otherMethods = (allOptions - SortOption.FOLDER_SONGS.toSet()).map { it.methodKey }.toSet()
+
+        assertTrue(folderSongMethods.intersect(otherMethods).isEmpty())
+    }
+
+    @Test
+    fun `storage keys are unique across every sort list`() {
+        val duplicates = allOptions.groupBy { it.storageKey }.filterValues { it.size > 1 }.keys
+
+        assertTrue(duplicates.isEmpty(), "Duplicate storage keys: $duplicates")
+    }
+
+    @Test
+    fun `folder song storage keys resolve only within the folder song list`() {
+        assertEquals(
+            SortOption.FolderSongAlbumArtistDesc,
+            SortOption.fromStorageKey(
+                rawValue = SortOption.FolderSongAlbumArtistDesc.storageKey,
+                allowed = SortOption.FOLDER_SONGS,
+                fallback = SortOption.FolderSongTitleAZ
+            )
+        )
+        assertEquals(
+            SortOption.FolderSongTitleAZ,
+            SortOption.fromStorageKey(
+                rawValue = SortOption.FolderNameZA.storageKey,
+                allowed = SortOption.FOLDER_SONGS,
+                fallback = SortOption.FolderSongTitleAZ
+            )
+        )
+    }
+
     private val allOptions: List<SortOption>
         get() = SortOption.SONGS + SortOption.ALBUMS + SortOption.ARTISTS +
-            SortOption.PLAYLISTS + SortOption.FOLDERS + SortOption.LIKED
+            SortOption.PLAYLISTS + SortOption.FOLDERS + SortOption.FOLDER_SONGS + SortOption.LIKED
 }

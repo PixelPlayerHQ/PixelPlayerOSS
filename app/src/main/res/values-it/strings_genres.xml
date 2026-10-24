@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Generi</string>
+    <string name="lib_empty_genres_title">Nessun genere trovato</string>
+    <string name="lib_empty_genres_subtitle">I generi presi dai tag dei tuoi brani appariranno qui.</string>
+</resources>

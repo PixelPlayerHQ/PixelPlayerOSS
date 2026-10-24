@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Lyrics kopieren</string>
+    <string name="lyrics_copied">Lyrics in die Zwischenablage kopiert</string>
+    <string name="lyrics_line_copied">Zeile in die Zwischenablage kopiert</string>
+    <string name="lyrics_copy_line_action">Zeile kopieren</string>
+</resources>

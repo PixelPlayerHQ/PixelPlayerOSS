@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Artistside</string>
+    <string name="artist_page_albums_collapsed_by_default">Start med albumene slått sammen</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Når en artist har mer enn ett album, vises bare albumoverskriftene først. Trykk på et album for å se sangene.</string>
+    <string name="artist_page_collapse_all_albums">Slå sammen alle</string>
+    <string name="artist_page_expand_all_albums">Utvid alle</string>
+</resources>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Türler</string>
+    <string name="lib_empty_genres_title">Tür bulunamadı</string>
+    <string name="lib_empty_genres_subtitle">Şarkılarınızın etiketlerindeki türler burada görünecek.</string>
+</resources>

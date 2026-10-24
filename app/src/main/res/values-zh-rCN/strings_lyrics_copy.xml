@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">复制歌词</string>
+    <string name="lyrics_copied">歌词已复制到剪贴板</string>
+    <string name="lyrics_line_copied">该行歌词已复制到剪贴板</string>
+    <string name="lyrics_copy_line_action">复制此行</string>
+</resources>

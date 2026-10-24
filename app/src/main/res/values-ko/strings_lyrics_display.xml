@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">단어 강조</string>
+    <string name="lyrics_highlight_style_subtitle">단어별 싱크 가사가 불리는 동안 밝아지는 방식</string>
+    <string name="lyrics_highlight_style_wipe">그라데이션 스윕</string>
+    <string name="lyrics_highlight_style_wipe_desc">부드러운 경계가 불리는 단어를 따라 흐릅니다</string>
+    <string name="lyrics_highlight_style_fade">페이드</string>
+    <string name="lyrics_highlight_style_fade_desc">각 음절이 불리는 동안 서서히 나타납니다</string>
+    <string name="lyrics_highlight_style_classic">즉시</string>
+    <string name="lyrics_highlight_style_classic_desc">각 음절이 시작되는 순간 바로 밝아집니다</string>
+    <string name="lyrics_duet_layout_title">듀엣 레이아웃</string>
+    <string name="lyrics_duet_layout_subtitle">가사에 파트가 표시되어 있으면(v1:, v2:) 가수마다 다른 쪽에 표시합니다</string>
+    <string name="lyrics_background_vocals_title">배경 보컬</string>
+    <string name="lyrics_background_vocals_subtitle">배경 보컬을 본 가사 아래에 작은 글씨로 표시합니다</string>
+</resources>

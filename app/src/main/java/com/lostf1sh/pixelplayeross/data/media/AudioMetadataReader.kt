@@ -6,6 +6,7 @@ import android.os.ParcelFileDescriptor
 import androidx.annotation.VisibleForTesting
 import com.kyant.taglib.TagLib
 import com.lostf1sh.pixelplayeross.data.diagnostics.PerformanceMetrics
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import org.jaudiotagger.audio.AudioFileIO
 import org.jaudiotagger.tag.FieldKey
 import org.jaudiotagger.tag.flac.FlacTag
@@ -123,7 +124,8 @@ object AudioMetadataReader {
                     ?: propertyMap["ALBUM ARTIST"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["BAND"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                 val album = propertyMap["ALBUM"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                val genre = propertyMap["GENRE"]?.firstOrNull()?.takeIf { it.isNotBlank() }
+                // GENRE is multi-valued (ID3v2.4 lists, repeated Vorbis fields); keep every value.
+                val genre = GenreParser.joinValues(propertyMap["GENRE"]?.asIterable() ?: emptyList())
                 val composer = propertyMap["COMPOSER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TCOM"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                 val lyrics = propertyMap["LYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
@@ -264,7 +266,13 @@ object AudioMetadataReader {
             val artist = artists.firstOrNull()
             val albumArtist = tag?.getFirst(FieldKey.ALBUM_ARTIST)?.takeIf { it.isNotBlank() }
             val album = tag?.getFirst(FieldKey.ALBUM)?.takeIf { it.isNotBlank() }
-            val genre = tag?.getFirst(FieldKey.GENRE)?.takeIf { it.isNotBlank() }
+            val genreValues = runCatching { tag?.getAll(FieldKey.GENRE) }.getOrNull().orEmpty()
+            // getFirst resolves ID3v1 numeric genres such as "(17)", so it reads a single value.
+            val genre = if (genreValues.size > 1) {
+                GenreParser.joinValues(genreValues)
+            } else {
+                tag?.getFirst(FieldKey.GENRE)?.takeIf { it.isNotBlank() }
+            }
             val composer = tag?.getFirst(FieldKey.COMPOSER)?.takeIf { it.isNotBlank() }
             val lyrics = tag?.getFirst(FieldKey.LYRICS)?.takeIf { it.isNotBlank() }
             val trackNumber = tag?.getFirst(FieldKey.TRACK)?.takeIf { it.isNotBlank() }

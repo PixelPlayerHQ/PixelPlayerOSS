@@ -7,6 +7,7 @@ import com.lostf1sh.pixelplayeross.MainCoroutineExtension
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
@@ -212,14 +213,19 @@ class PlaybackStateHolderTest {
         every { controller.currentMediaItem } returns null
     }
 
-    /** A holder whose "Auto-play on skip" preference is [autoplayOnSkip], driving [controller]. */
+    /**
+     * A holder whose "Auto-play on skip" and "Previous button" preferences are [autoplayOnSkip]
+     * and [previousButtonBehavior], driving [controller].
+     */
     private fun TestScope.holderFor(
         controller: MediaController,
         autoplayOnSkip: Boolean = true,
+        previousButtonBehavior: PreviousButtonBehavior = PreviousButtonBehavior.RESTART_TRACK,
         queueStateHolder: QueueStateHolder = this@PlaybackStateHolderTest.queueStateHolder
     ): PlaybackStateHolder {
         // Finite flows, so the collectors started by initialize() let runTest finish.
         every { userPreferencesRepository.autoplayOnSkipFlow } returns flowOf(autoplayOnSkip)
+        every { userPreferencesRepository.previousButtonBehaviorFlow } returns flowOf(previousButtonBehavior)
         coEvery { userPreferencesRepository.getPlaybackQueueSnapshotOnce() } returns null
         return createHolder(queueStateHolder).also { holder ->
             holder.initialize(this)
@@ -307,6 +313,70 @@ class PlaybackStateHolderTest {
     }
 
     @Test
+    fun `previous after 10 seconds moves to the previous track in previous-track mode`() = runTest {
+        val controller = connectedController(positionMs = 30_000L)
+
+        holderFor(controller, previousButtonBehavior = PreviousButtonBehavior.PREVIOUS_TRACK).previousSong()
+
+        verifyOrder {
+            controller.seekToPreviousMediaItem()
+            controller.play()
+        }
+        verify(exactly = 0) { controller.seekTo(0L) }
+        verify(exactly = 0) { controller.seekToPrevious() }
+    }
+
+    @Test
+    fun `previous early in the song still moves back in previous-track mode`() = runTest {
+        val controller = connectedController(positionMs = 1_000L)
+
+        holderFor(controller, previousButtonBehavior = PreviousButtonBehavior.PREVIOUS_TRACK).previousSong()
+
+        verify { controller.seekToPreviousMediaItem() }
+        verify(exactly = 0) { controller.seekTo(0L) }
+    }
+
+    @Test
+    fun `previous on the first item restarts it in previous-track mode`() = runTest {
+        val controller = connectedController(hasPrevious = false, positionMs = 30_000L)
+
+        holderFor(controller, previousButtonBehavior = PreviousButtonBehavior.PREVIOUS_TRACK).previousSong()
+
+        verify { controller.seekTo(0L) }
+        verify(exactly = 0) { controller.seekToPreviousMediaItem() }
+        verify(exactly = 0) { controller.play() }
+    }
+
+    @Test
+    fun `previous in previous-track mode stays paused when auto-play on skip is off`() = runTest {
+        val controller = connectedController(positionMs = 30_000L)
+
+        holderFor(
+            controller,
+            autoplayOnSkip = false,
+            previousButtonBehavior = PreviousButtonBehavior.PREVIOUS_TRACK
+        ).previousSong()
+
+        verify { controller.seekToPreviousMediaItem() }
+        verify(exactly = 0) { controller.play() }
+    }
+
+    @Test
+    fun `current previous button behavior mirrors the preference`() = runTest {
+        val controller = connectedController()
+
+        assertEquals(
+            PreviousButtonBehavior.RESTART_TRACK,
+            holderFor(controller).currentPreviousButtonBehavior()
+        )
+        assertEquals(
+            PreviousButtonBehavior.PREVIOUS_TRACK,
+            holderFor(controller, previousButtonBehavior = PreviousButtonBehavior.PREVIOUS_TRACK)
+                .currentPreviousButtonBehavior()
+        )
+    }
+
+    @Test
     fun `force previous while paused moves back and starts playback`() = runTest {
         val controller = connectedController(positionMs = 30_000L)
 
@@ -350,6 +420,8 @@ class PlaybackStateHolderTest {
         controller: MediaController
     ): PlaybackStateHolder {
         every { userPreferencesRepository.autoplayOnSkipFlow } returns flowOf(true)
+        every { userPreferencesRepository.previousButtonBehaviorFlow } returns
+            flowOf(PreviousButtonBehavior.RESTART_TRACK)
         coEvery { userPreferencesRepository.getPlaybackQueueSnapshotOnce() } returns null
         return createHolder().also { holder ->
             owners.forEach(holder::initialize)

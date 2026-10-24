@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataText
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataTextOrEmpty
@@ -115,7 +116,10 @@ private fun SongEntity.toSongInternal(artists: List<ArtistRef>): Song {
             contentUriString = this.contentUriString
         ),
         duration = this.duration,
-        genre = this.genre.normalizeMetadataText(),
+        // normalizeMetadataText drops NULs, which would glue an ID3v2.4 "Rock\u0000Pop" into one genre.
+        genre = this.genre
+            ?.let { raw -> if ('\u0000' in raw) GenreParser.joinValues(raw.split('\u0000')) else raw }
+            .normalizeMetadataText(),
         lyrics = this.lyrics?.normalizeMetadataText(),
         isFavorite = this.isFavorite,
         trackNumber = this.trackNumber,

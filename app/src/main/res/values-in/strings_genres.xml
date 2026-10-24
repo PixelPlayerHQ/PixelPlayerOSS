@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Genre</string>
+    <string name="lib_empty_genres_title">Genre tidak ditemukan</string>
+    <string name="lib_empty_genres_subtitle">Genre dari tag lagu Anda akan muncul di sini.</string>
+</resources>

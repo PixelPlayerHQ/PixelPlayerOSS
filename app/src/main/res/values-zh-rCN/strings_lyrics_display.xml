@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">逐字高亮</string>
+    <string name="lyrics_highlight_style_subtitle">逐字同步歌词在演唱时的点亮方式</string>
+    <string name="lyrics_highlight_style_wipe">渐变扫过</string>
+    <string name="lyrics_highlight_style_wipe_desc">柔和的边缘随演唱扫过每个词</string>
+    <string name="lyrics_highlight_style_fade">淡入</string>
+    <string name="lyrics_highlight_style_fade_desc">每个音节在演唱时逐渐淡入</string>
+    <string name="lyrics_highlight_style_classic">即时</string>
+    <string name="lyrics_highlight_style_classic_desc">每个音节一开始就立即点亮</string>
+    <string name="lyrics_duet_layout_title">对唱布局</string>
+    <string name="lyrics_duet_layout_subtitle">当歌词标注了声部（v1:、v2:）时，将每位歌手放在各自一侧</string>
+    <string name="lyrics_background_vocals_title">和声</string>
+    <string name="lyrics_background_vocals_subtitle">在主歌词下方以较小字号显示和声</string>
+</resources>

@@ -230,6 +230,46 @@ class PlaybackStatsRepositoryTest {
     }
 
     @Test
+    fun `loadSummary credits a multi-genre song to each of its genres`() = runTest {
+        val repository = createRepository()
+        val start = LocalDate.of(2026, 4, 10)
+            .atTime(15, 0)
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+        fun play(songId: String, offsetMs: Long, durationMs: Long) = PlaybackStatsRepository.PlaybackEvent(
+            songId = songId,
+            timestamp = start + offsetMs + durationMs,
+            durationMs = durationMs,
+            startTimestamp = start + offsetMs,
+            endTimestamp = start + offsetMs + durationMs
+        )
+
+        val summary = repository.buildSummaryFromEvents(
+            range = StatsTimeRange.DAY,
+            songs = listOf(
+                song("song-1", genre = "House; Electronic"),
+                song("song-2", genre = "house"),
+                song("song-3", genre = null)
+            ),
+            allEvents = listOf(
+                play("song-1", offsetMs = 0L, durationMs = 60_000L),
+                play("song-2", offsetMs = 120_000L, durationMs = 30_000L),
+                play("song-3", offsetMs = 240_000L, durationMs = 10_000L)
+            ),
+            nowMillis = start + 600_000L
+        )
+
+        val genres = summary.topGenres.associate { it.genre to it.totalDurationMs }
+        assertThat(genres).containsExactly(
+            "House", 90_000L,
+            "Electronic", 60_000L,
+            "Unknown Genre", 10_000L
+        )
+        assertThat(summary.topGenres.single { it.genre == "House" }.playCount).isEqualTo(2)
+    }
+
+    @Test
     fun `hasListeningActivity is false for an empty summary and true when a play falls in range`() {
         val repository = createRepository()
         val start = LocalDate.of(2026, 4, 10)

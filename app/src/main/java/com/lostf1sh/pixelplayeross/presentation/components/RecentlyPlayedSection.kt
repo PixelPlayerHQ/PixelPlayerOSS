@@ -3,7 +3,7 @@ package com.lostf1sh.pixelplayeross.presentation.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -74,6 +74,7 @@ private data class RecentlyPlayedPillRow(
 fun RecentlyPlayedSection(
     songs: ImmutableList<RecentlyPlayedSongUiModel>,
     onSongClick: (Song) -> Unit,
+    onSongLongClick: (Song) -> Unit,
     onOpenAllClick: () -> Unit,
     themeStateHolder: ThemeStateHolder,
     currentSongId: String? = null,
@@ -176,7 +177,8 @@ fun RecentlyPlayedSection(
                                         isCurrentSong = currentSongId == cell.item.song.id,
                                         themeStateHolder = themeStateHolder,
                                         modifier = Modifier.width(cell.width),
-                                        onClick = { onSongClick(cell.item.song) }
+                                        onClick = { onSongClick(cell.item.song) },
+                                        onLongClick = { onSongLongClick(cell.item.song) }
                                     )
                                 }
                             }
@@ -246,7 +248,8 @@ private fun RecentlyPlayedPill(
     isCurrentSong: Boolean,
     themeStateHolder: ThemeStateHolder,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
     val albumColorSchemeState by remember(item.song.albumArtUriString, themeStateHolder) {
@@ -291,7 +294,13 @@ private fun RecentlyPlayedPill(
         modifier = modifier
             .height(HomeRecentlyPlayedPillHeight)
             .clip(shape)
-            .clickable(onClick = onClick)
+            // Pills have no more-options button, so a long press opens the song options.
+            // combinedClickable performs the long-press haptic itself.
+            .combinedClickable(
+                onLongClickLabel = stringResource(R.string.presentation_batch_b_more_options),
+                onLongClick = onLongClick,
+                onClick = onClick
+            )
     ) {
         Row(
             modifier = Modifier

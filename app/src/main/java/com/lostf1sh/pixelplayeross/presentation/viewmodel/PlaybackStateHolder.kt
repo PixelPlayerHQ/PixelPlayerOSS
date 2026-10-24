@@ -8,7 +8,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
+import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.preferences.shouldRestartCurrentTrack
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -62,6 +64,10 @@ class PlaybackStateHolder @Inject constructor(
     /** Mirrors the "Auto-play on skip" preference; the default matches the repository's. */
     @Volatile
     private var autoplayOnSkip: Boolean = true
+
+    /** Mirrors the "Previous button" preference. */
+    @Volatile
+    private var previousButtonBehavior: PreviousButtonBehavior = PreviousButtonBehavior.DEFAULT
 
     var mediaController: MediaController? = null
         private set
@@ -137,6 +143,11 @@ class PlaybackStateHolder @Inject constructor(
         scope?.launch {
             userPreferencesRepository.autoplayOnSkipFlow.collect { enabled ->
                 autoplayOnSkip = enabled
+            }
+        }
+        scope?.launch {
+            userPreferencesRepository.previousButtonBehaviorFlow.collect { behavior ->
+                previousButtonBehavior = behavior
             }
         }
         scope?.launch {
@@ -371,9 +382,16 @@ class PlaybackStateHolder @Inject constructor(
         player.seekTo(targetPosition)
     }
 
+    /** The "Previous button" preference as last read, for event-time decisions in the UI. */
+    fun currentPreviousButtonBehavior(): PreviousButtonBehavior = previousButtonBehavior
+
     fun previousSong() {
         val controller = activeLocalPlayer()
-        if (controller.currentPosition > 10000) {
+        val behavior = previousButtonBehavior
+        val positionMs = controller.currentPosition
+        val hasPrevious = controller.hasPreviousMediaItem()
+        if (behavior.shouldRestartCurrentTrack(positionMs, hasPrevious)) {
+            Timber.tag(TAG).d("Previous restarts the track (behavior=%s, position=%d ms)", behavior, positionMs)
             // Route the restart through seekTo() so the position override, the engine seek hint and
             // the UI position are updated together; a bare controller.seekTo(0) left a stale
             // override behind and the displayed position could lag the restart.
@@ -382,12 +400,8 @@ class PlaybackStateHolder @Inject constructor(
             // Not seekToPrevious(): Media3 restarts the track past its own 3 s
             // maxSeekToPreviousPosition, which made this 10 s rule behave like 3 s.
             val wasPaused = !controller.playWhenReady
-            if (controller.hasPreviousMediaItem()) {
-                controller.seekToPreviousMediaItem()
-                resumeAfterSkip(controller, wasPaused)
-            } else {
-                seekTo(0L)
-            }
+            controller.seekToPreviousMediaItem()
+            resumeAfterSkip(controller, wasPaused)
         }
     }
 

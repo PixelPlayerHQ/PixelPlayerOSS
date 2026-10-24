@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Künstlerseite</string>
+    <string name="artist_page_albums_collapsed_by_default">Alben eingeklappt anzeigen</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Hat ein Künstler mehrere Alben, werden zunächst nur die Albumüberschriften angezeigt. Tippe auf ein Album, um seine Songs zu sehen.</string>
+    <string name="artist_page_collapse_all_albums">Alle einklappen</string>
+    <string name="artist_page_expand_all_albums">Alle ausklappen</string>
+</resources>

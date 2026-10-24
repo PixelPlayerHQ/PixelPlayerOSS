@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">Rekap %1$d Kamu</string>
+    <string name="recap_card_title_so_far">%1$d Kamu Sejauh Ini</string>
+    <string name="recap_card_subtitle">Kenang lagi tahun musikmu</string>
+    <string name="recap_card_subtitle_so_far">Lihat bagaimana tahun musikmu terbentuk</string>
+    <string name="recap_home_card_title">Rekap %1$d kamu sudah tiba</string>
+    <string name="recap_home_card_subtitle">Kenang lagi lagu, artis, dan momen yang mewarnai tahunmu.</string>
+    <string name="recap_home_card_open">Buka rekap</string>
+    <string name="recap_home_card_dismiss">Abaikan</string>
+    <string name="recap_cd_close">Tutup rekap</string>
+    <string name="recap_cd_pause">Jeda</string>
+    <string name="recap_cd_resume">Lanjutkan</string>
+    <string name="recap_cd_slide_progress">Slide %1$d dari %2$d</string>
+    <string name="recap_action_next_slide">Slide berikutnya</string>
+    <string name="recap_action_previous_slide">Slide sebelumnya</string>
+    <string name="recap_close">Tutup</string>
+    <string name="recap_not_enough_title">Belum cukup banyak mendengarkan</string>
+    <string name="recap_not_enough_subtitle">Terus putar musik dan rekap %1$d kamu akan terisi.</string>
+    <string name="recap_intro_kicker">Rekap PixelPlayerOSS</string>
+    <string name="recap_intro_title">Tahunmu dalam musik</string>
+    <string name="recap_intro_title_so_far">Tahunmu sejauh ini</string>
+    <string name="recap_intro_subtitle">Kilas balik lagu, artis, dan momen yang menjadi soundtrack tahunmu.</string>
+    <string name="recap_tap_hint">Ketuk untuk lanjut</string>
+    <string name="recap_minutes_kicker">Pada %1$d kamu mendengarkan selama</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">menit</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="other">Itu sekitar %d hari musik tanpa henti.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="other">Itu sekitar %d jam musik tanpa henti.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">Rata-rata harian</string>
+    <string name="recap_minutes_active_days">Hari bermusik</string>
+    <string name="recap_months_kicker">Bulan tersibukmu</string>
+    <string name="recap_months_detail">%1$s mendengarkan</string>
+    <string name="recap_clock_kicker">Jam dengarmu</string>
+    <string name="recap_personality_early_bird">Pendengar pagi</string>
+    <string name="recap_personality_early_bird_desc">Kamu memulai hari dengan musik. Pagi adalah waktu terbaikmu.</string>
+    <string name="recap_personality_daytime">Pendengar siang</string>
+    <string name="recap_personality_daytime_desc">Musik menemanimu sepanjang hari, dari menjelang siang hingga sore.</string>
+    <string name="recap_personality_evening">Pendengar senja</string>
+    <string name="recap_personality_evening_desc">Saat hari mulai tenang, musik justru makin keras.</string>
+    <string name="recap_personality_night_owl">Si burung hantu</string>
+    <string name="recap_personality_night_owl_desc">Makin larut, makin banyak kamu mendengarkan.</string>
+    <string name="recap_clock_favorite_day">Hari favorit: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">Waktu dengar per bulan: %1$s</string>
+    <string name="recap_cd_clock_chart">Waktu dengar per jam: %1$s</string>
+    <string name="recap_dedication_kicker">Rekor beruntunmu</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">hari berturut-turut</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">Sesi terlama</string>
+    <string name="recap_dedication_biggest_day">Hari tersibuk</string>
+    <string name="recap_dedication_first_song">Lagu pertama tahun ini</string>
+    <string name="recap_genres_kicker">Genre teratasmu</string>
+    <string name="recap_genres_share">%1$s dari waktu dengarmu</string>
+    <string name="recap_decade_kicker">Eramu</string>
+    <string name="recap_decade_value">Era %1$d-an</string>
+    <string name="recap_decade_detail">%1$s dari waktu dengarmu berasal dari musik yang rilis di dekade ini.</string>
+    <string name="recap_albums_kicker">Album teratasmu</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="other">%d album dalam rotasimu</item>
+    </plurals>
+    <string name="recap_artists_kicker">Artis teratasmu</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="other">Kamu mendengarkan %d artis berbeda</item>
+    </plurals>
+    <string name="recap_songs_kicker">Lagu teratasmu</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="other">Kamu memutar %d lagu berbeda</item>
+    </plurals>
+    <string name="recap_summary_kicker">Sekilas tahunmu</string>
+    <string name="recap_summary_title">%1$d-ku dalam musik</string>
+    <string name="recap_summary_title_so_far">%1$d-ku sejauh ini</string>
+    <string name="recap_summary_minutes">Menit didengarkan</string>
+    <string name="recap_summary_top_artist">Artis teratas</string>
+    <string name="recap_summary_top_song">Lagu teratas</string>
+    <string name="recap_summary_top_genre">Genre teratas</string>
+    <string name="recap_summary_top_album">Album teratas</string>
+    <string name="recap_summary_listening_style">Gaya mendengarkan</string>
+    <string name="recap_share">Bagikan</string>
+    <string name="recap_share_chooser_title">Bagikan rekapmu</string>
+    <string name="recap_share_text">%1$d-ku dalam musik, dibuat dengan PixelPlayerOSS</string>
+    <string name="recap_share_failed">Gagal membuat gambar rekap</string>
+    <string name="recap_play_top_songs">Putar lagu teratas</string>
+    <string name="recap_top_songs_queue_name">Lagu teratas %1$d</string>
+    <string name="recap_replay">Tonton lagi</string>
+</resources>

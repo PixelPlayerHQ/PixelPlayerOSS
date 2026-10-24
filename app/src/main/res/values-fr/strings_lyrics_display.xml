@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Surlignage des mots</string>
+    <string name="lyrics_highlight_style_subtitle">Comment les paroles synchronisées mot à mot s\'illuminent pendant le chant</string>
+    <string name="lyrics_highlight_style_wipe">Balayage en dégradé</string>
+    <string name="lyrics_highlight_style_wipe_desc">Un bord doux glisse sur chaque mot pendant qu\'il est chanté</string>
+    <string name="lyrics_highlight_style_fade">Fondu</string>
+    <string name="lyrics_highlight_style_fade_desc">Chaque syllabe apparaît en fondu pendant qu\'elle est chantée</string>
+    <string name="lyrics_highlight_style_classic">Instantané</string>
+    <string name="lyrics_highlight_style_classic_desc">Chaque syllabe s\'allume dès qu\'elle commence</string>
+    <string name="lyrics_duet_layout_title">Disposition en duo</string>
+    <string name="lyrics_duet_layout_subtitle">Place chaque chanteur de son côté quand les paroles indiquent les voix (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Chœurs</string>
+    <string name="lyrics_background_vocals_subtitle">Affiche les chœurs en plus petit sous la ligne principale</string>
+</resources>

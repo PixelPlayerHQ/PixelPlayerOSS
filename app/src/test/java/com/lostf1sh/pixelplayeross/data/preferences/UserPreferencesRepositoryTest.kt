@@ -3,8 +3,11 @@ package com.lostf1sh.pixelplayeross.data.preferences
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import app.cash.turbine.test
+import com.lostf1sh.pixelplayeross.data.model.SortOption
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -258,6 +261,74 @@ class UserPreferencesRepositoryTest {
     }
 
     @Test
+    fun `previous button restarts the track by default and persists previous track`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            assertEquals(PreviousButtonBehavior.RESTART_TRACK, repository.previousButtonBehaviorFlow.first())
+
+            repository.setPreviousButtonBehavior(PreviousButtonBehavior.PREVIOUS_TRACK)
+            assertEquals(PreviousButtonBehavior.PREVIOUS_TRACK, repository.previousButtonBehaviorFlow.first())
+
+            repository.setPreviousButtonBehavior(PreviousButtonBehavior.RESTART_TRACK)
+            assertEquals(PreviousButtonBehavior.RESTART_TRACK, repository.previousButtonBehaviorFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `artist albums collapsed by default is off by default and persists`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            assertEquals(false, repository.artistAlbumsCollapsedByDefaultFlow.first())
+
+            repository.setArtistAlbumsCollapsedByDefault(true)
+            assertTrue(repository.artistAlbumsCollapsedByDefaultFlow.first())
+
+            repository.setArtistAlbumsCollapsedByDefault(false)
+            assertEquals(false, repository.artistAlbumsCollapsedByDefaultFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `collapsing artist albums by default does not ask for a library rescan`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            repository.setArtistAlbumsCollapsedByDefault(true)
+
+            assertEquals(false, repository.artistSettingsRescanRequiredFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
     fun `migrateTabOrder backfills Folders right after Liked for a legacy order`() = runTest {
         val tempDir = Files.createTempDirectory("user-preferences-repository-test")
         try {
@@ -367,6 +438,192 @@ class UserPreferencesRepositoryTest {
             repository.migrateTabOrder()
 
             assertEquals(listOf("SONGS", "LIKED"), repository.storedLibraryTabsOrder())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `folder songs sort defaults to title ascending and persists a new choice`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            assertEquals(SortOption.FolderSongTitleAZ.storageKey, repository.folderSongsSortOptionFlow.first())
+
+            repository.setFolderSongsSortOption(SortOption.FolderSongAlbumArtistDesc.storageKey)
+
+            assertEquals(
+                SortOption.FolderSongAlbumArtistDesc.storageKey,
+                repository.folderSongsSortOptionFlow.first()
+            )
+            assertEquals(SortOption.FolderNameAZ.storageKey, repository.foldersSortOptionFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `folder songs sort keeps title descending for a legacy folder name Z-A choice`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val repository = UserPreferencesRepository(
+                dataStore = PreferenceDataStoreFactory.create(
+                    scope = backgroundScope,
+                    produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                ),
+                json = Json
+            )
+
+            repository.setFoldersSortOption(SortOption.FolderNameZA.storageKey)
+            assertEquals(SortOption.FolderSongTitleZA.storageKey, repository.folderSongsSortOptionFlow.first())
+
+            repository.setFolderSongsSortOption(SortOption.FolderSongDuration.storageKey)
+            assertEquals(SortOption.FolderSongDuration.storageKey, repository.folderSongsSortOptionFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `ensureLibrarySortDefaults stores the inherited folder songs sort so later folder sorts leave it alone`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val dataStore = PreferenceDataStoreFactory.create(
+                scope = backgroundScope,
+                produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+            )
+            val repository = UserPreferencesRepository(dataStore = dataStore, json = Json)
+            // An install from before the folder songs sort existed, still holding the old display name.
+            dataStore.edit { it[stringPreferencesKey("folders_sort_option")] = SortOption.FolderNameZA.displayName }
+
+            repository.ensureLibrarySortDefaults()
+            repository.setFoldersSortOption(SortOption.FolderSongCountDesc.storageKey)
+
+            assertEquals(
+                SortOption.FolderSongTitleZA.storageKey,
+                dataStore.data.first()[stringPreferencesKey("folder_songs_sort_option")]
+            )
+            assertEquals(SortOption.FolderSongTitleZA.storageKey, repository.folderSongsSortOptionFlow.first())
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `an unknown folder songs sort falls back to title ascending and is repaired`() = runTest {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            val dataStore = PreferenceDataStoreFactory.create(
+                scope = backgroundScope,
+                produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+            )
+            val repository = UserPreferencesRepository(dataStore = dataStore, json = Json)
+            val folderSongsKey = stringPreferencesKey("folder_songs_sort_option")
+            dataStore.edit {
+                it[stringPreferencesKey("folders_sort_option")] = SortOption.FolderNameZA.storageKey
+                it[folderSongsKey] = "song_artist"
+            }
+
+            assertEquals(SortOption.FolderSongTitleAZ.storageKey, repository.folderSongsSortOptionFlow.first())
+
+            repository.ensureLibrarySortDefaults()
+
+            assertEquals(SortOption.FolderSongTitleAZ.storageKey, dataStore.data.first()[folderSongsKey])
+        } finally {
+            tempDir.toFile().deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `migrateGenresTab appends Genres after the folders backfill of a legacy order`() = runTest {
+        withRepository { repository ->
+            repository.saveLibraryTabsOrder("""["LIKED","SONGS","ALBUMS"]""")
+            repository.migrateTabOrder()
+            repository.migrateGenresTab()
+
+            assertEquals(
+                listOf("LIKED", "FOLDERS", "SONGS", "ALBUMS", "GENRES"),
+                repository.storedLibraryTabsOrder()
+            )
+        }
+    }
+
+    @Test
+    fun `migrateGenresTab does not bring back a Genres tab the user hid`() = runTest {
+        withRepository { repository ->
+            repository.saveLibraryTabsOrder("""["SONGS","ALBUMS"]""")
+            repository.migrateGenresTab()
+            assertEquals(listOf("SONGS", "ALBUMS", "GENRES"), repository.storedLibraryTabsOrder())
+
+            // The stored order is the visible-tab list, so dropping GENRES hides it.
+            repository.saveLibraryTabsOrder("""["SONGS","ALBUMS"]""")
+            repository.migrateGenresTab()
+
+            assertEquals(listOf("SONGS", "ALBUMS"), repository.storedLibraryTabsOrder())
+        }
+    }
+
+    @Test
+    fun `migrateGenresTab keeps an order that already shows Genres`() = runTest {
+        withRepository { repository ->
+            repository.saveLibraryTabsOrder("""["GENRES","SONGS"]""")
+            repository.migrateGenresTab()
+
+            assertEquals(listOf("GENRES", "SONGS"), repository.storedLibraryTabsOrder())
+        }
+    }
+
+    @Test
+    fun `migrateGenresTab leaves malformed, empty and missing orders alone`() = runTest {
+        withRepository { repository ->
+            repository.migrateGenresTab()
+            assertNull(repository.libraryTabsOrderFlow.first())
+        }
+        withRepository { repository ->
+            repository.saveLibraryTabsOrder("not a tab list")
+            repository.migrateGenresTab()
+            assertEquals("not a tab list", repository.libraryTabsOrderFlow.first())
+        }
+        withRepository { repository ->
+            // An empty order already falls back to the default tabs, Genres included.
+            repository.saveLibraryTabsOrder("[]")
+            repository.migrateGenresTab()
+            assertEquals("[]", repository.libraryTabsOrderFlow.first())
+        }
+    }
+
+    @Test
+    fun `genres sort option defaults to name and persists a valid choice`() = runTest {
+        withRepository { repository ->
+            assertEquals(SortOption.GenreNameAZ.storageKey, repository.genresSortOptionFlow.first())
+
+            repository.setGenresSortOption(SortOption.GenreSongCountDesc.storageKey)
+            assertEquals(SortOption.GenreSongCountDesc.storageKey, repository.genresSortOptionFlow.first())
+
+            repository.setGenresSortOption(SortOption.FolderNameZA.storageKey)
+            assertEquals(SortOption.GenreNameAZ.storageKey, repository.genresSortOptionFlow.first())
+        }
+    }
+
+    private suspend fun TestScope.withRepository(block: suspend (UserPreferencesRepository) -> Unit) {
+        val tempDir = Files.createTempDirectory("user-preferences-repository-test")
+        try {
+            block(
+                UserPreferencesRepository(
+                    dataStore = PreferenceDataStoreFactory.create(
+                        scope = backgroundScope,
+                        produceFile = { tempDir.resolve("settings.preferences_pb").toFile() }
+                    ),
+                    json = Json
+                )
+            )
         } finally {
             tempDir.toFile().deleteRecursively()
         }

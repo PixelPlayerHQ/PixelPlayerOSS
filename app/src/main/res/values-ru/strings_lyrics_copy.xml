@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Копировать текст песни</string>
+    <string name="lyrics_copied">Текст песни скопирован в буфер обмена</string>
+    <string name="lyrics_line_copied">Строка скопирована в буфер обмена</string>
+    <string name="lyrics_copy_line_action">Копировать строку</string>
+</resources>

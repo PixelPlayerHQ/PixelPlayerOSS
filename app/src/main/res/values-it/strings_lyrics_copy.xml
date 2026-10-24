@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Copia testo</string>
+    <string name="lyrics_copied">Testo copiato negli appunti</string>
+    <string name="lyrics_line_copied">Riga copiata negli appunti</string>
+    <string name="lyrics_copy_line_action">Copia riga</string>
+</resources>

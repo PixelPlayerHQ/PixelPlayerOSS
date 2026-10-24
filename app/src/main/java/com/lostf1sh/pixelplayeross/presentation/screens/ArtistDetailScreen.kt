@@ -45,6 +45,8 @@ import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.SurroundSound
+import androidx.compose.material.icons.rounded.UnfoldLess
+import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -92,6 +94,9 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistDetailViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistAlbumSection
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.collapseKey
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.isAlbumSectionExpanded
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.isAnyAlbumSectionExpanded
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
 import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
@@ -126,6 +131,9 @@ fun ArtistDetailScreen(
     playlistViewModel: PlaylistViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Kept as State and read only by the album list and the expand-all button, so a header tap
+    // does not recompose the whole screen.
+    val albumExpansionOverrides = viewModel.albumExpansionOverrides.collectAsStateWithLifecycle()
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
     
     var isTransitionFinished by remember { mutableStateOf(false) }
@@ -351,23 +359,37 @@ fun ArtistDetailScreen(
                             else (lazyListState.firstVisibleItemScrollOffset / barScrimFadePx).coerceIn(0f, 1f)
                         }
                     }
-                    val albumCount = albumSections.count { it.songs.isNotEmpty() }
+                    val visibleSections = remember(albumSections) { albumSections.filter { it.songs.isNotEmpty() } }
+                    val visibleSectionKeys = remember(visibleSections) { visibleSections.map { it.collapseKey() } }
+                    val albumCount = visibleSections.size
                     val albumCountLabel = if (albumCount == 1) {
                         stringResource(R.string.detail_hero_album_count_one)
                     } else {
                         stringResource(R.string.detail_hero_album_count_many, albumCount)
                     }
-                    val expandedSections = remember { mutableStateMapOf<String, Boolean>() }
-                    LaunchedEffect(albumSections) {
-                        val currentKeys = albumSections.map { it.collapseKey() }.toSet()
-                        currentKeys.forEach { key ->
-                            if (expandedSections[key] == null) {
-                                expandedSections[key] = true
-                            }
+                    val albumsCollapsedByDefault = uiState.albumsCollapsedByDefault
+                    val isSectionExpanded: (String) -> Boolean = { sectionKey ->
+                        isAlbumSectionExpanded(
+                            key = sectionKey,
+                            overrides = albumExpansionOverrides.value,
+                            collapsedByDefault = albumsCollapsedByDefault,
+                            sectionCount = albumCount
+                        )
+                    }
+                    // Derived and read only by the summary row: this scope recomposes on every
+                    // frame of the header collapse, which should not re-check every album.
+                    val anySectionExpanded = remember(
+                        albumExpansionOverrides,
+                        visibleSectionKeys,
+                        albumsCollapsedByDefault
+                    ) {
+                        derivedStateOf {
+                            isAnyAlbumSectionExpanded(
+                                sectionKeys = visibleSectionKeys,
+                                overrides = albumExpansionOverrides.value,
+                                collapsedByDefault = albumsCollapsedByDefault
+                            )
                         }
-                        expandedSections.keys
-                            .filterNot { it in currentKeys }
-                            .forEach { staleKey -> expandedSections.remove(staleKey) }
                     }
 
                     val isScrollbarEnabled = LocalShowScrollbar.current
@@ -424,19 +446,33 @@ fun ArtistDetailScreen(
                         }
                         if (songs.isNotEmpty()) {
                             item(key = "artist_songs_summary", contentType = "detail_songs_summary") {
-                                DetailSongsSummary(
-                                    songCount = songs.size,
-                                    durationMs = artistDurationMs,
-                                    modifier = Modifier.padding(start = 8.dp, bottom = 12.dp)
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 8.dp, bottom = 12.dp)
+                                        .padding(end = scrollbarInset),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    DetailSongsSummary(
+                                        songCount = songs.size,
+                                        durationMs = artistDurationMs,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (albumCount > 1) {
+                                        val anyExpanded = anySectionExpanded.value
+                                        ArtistAlbumsExpandAllButton(
+                                            anyExpanded = anyExpanded,
+                                            onClick = { viewModel.setAllAlbumSectionsExpanded(!anyExpanded) }
+                                        )
+                                    }
+                                }
                             }
                         }
-                        val visibleSections = albumSections.filter { it.songs.isNotEmpty() }
                         visibleSections.forEachIndexed { index, section ->
-                            val sectionKey = section.collapseKey()
+                            val sectionKey = visibleSectionKeys[index]
                             val isFirstSection = index == 0
                             val isLastSection = index == visibleSections.lastIndex
-                            val isExpanded = expandedSections[sectionKey] ?: true
+                            val isExpanded = isSectionExpanded(sectionKey)
                             val sectionSongs = if (isTransitionFinished) section.songs else section.songs.take(5)
 
                             item(
@@ -450,7 +486,7 @@ fun ArtistDetailScreen(
                                     isFirstSection = isFirstSection,
                                     isLastSection = isLastSection,
                                     onToggleExpanded = {
-                                        expandedSections[sectionKey] = !isExpanded
+                                        viewModel.setAlbumSectionExpanded(sectionKey, !isExpanded)
                                     },
                                     onPlayAlbum = {
                                         section.songs.firstOrNull()?.let { firstSong ->
@@ -698,10 +734,37 @@ fun ArtistDetailScreen(
     }
 }
 
-private fun ArtistAlbumSection.collapseKey(): String = "artist_album_${albumId}_${title}"
-
 private val SectionOuterCorner = 24.dp
 private val SectionInnerCorner = 8.dp
+
+/** "Collapse all" while any album shows its songs, "Expand all" once every album is collapsed. */
+@Composable
+private fun ArtistAlbumsExpandAllButton(
+    anyExpanded: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val height = ButtonDefaults.ExtraSmallContainerHeight
+    TextButton(
+        onClick = onClick,
+        modifier = modifier.heightIn(min = height),
+        contentPadding = ButtonDefaults.contentPaddingFor(height, hasStartIcon = true)
+    ) {
+        Icon(
+            imageVector = if (anyExpanded) Icons.Rounded.UnfoldLess else Icons.Rounded.UnfoldMore,
+            contentDescription = null,
+            modifier = Modifier.size(ButtonDefaults.iconSizeFor(height))
+        )
+        Spacer(modifier = Modifier.width(ButtonDefaults.iconSpacingFor(height)))
+        Text(
+            text = stringResource(
+                if (anyExpanded) R.string.artist_page_collapse_all_albums else R.string.artist_page_expand_all_albums
+            ),
+            style = ButtonDefaults.textStyleFor(height),
+            maxLines = 1
+        )
+    }
+}
 
 @Composable
 private fun CollapsibleAlbumSectionHeader(
@@ -719,14 +782,13 @@ private fun CollapsibleAlbumSectionHeader(
         label = "ArtistAlbumExpandRotation"
     )
     val songCountText = formatSongCount(section.songs.size)
-    val subtitle = remember(section.year, songCountText) {
-        buildString {
-            section.year?.takeIf { it > 0 }?.let {
-                append(it.toString())
-                append(" • ")
-            }
-            append(songCountText)
-        }
+    val subtitle = remember(section.year, section.genre, songCountText) {
+        // The genre goes last so a long one is what gets ellipsized, not the song count.
+        listOfNotNull(
+            section.year?.takeIf { it > 0 }?.toString(),
+            songCountText,
+            section.genre
+        ).joinToString(" • ")
     }
 
     val containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.5f)

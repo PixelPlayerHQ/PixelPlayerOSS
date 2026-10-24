@@ -57,7 +57,7 @@ class PlayerSheetAnimationBenchmarks {
                 ensureSongIsReady()
                 libraryRebuiltForThisRun = true
                 openHomeTab()
-                waitForSheetState(SHEET_COLLAPSED_PATTERN, "setup after opening Home")
+                waitForSheetState(SheetState.COLLAPSED, "setup after opening Home")
                 device.waitForIdle(IDLE_WAIT_MS)
             }
         ) {
@@ -89,7 +89,7 @@ class PlayerSheetAnimationBenchmarks {
         if (isCollapsedSheetVisible()) return
         if (isExpandedSheetVisible()) {
             collapseExpandedPlayer()
-            waitForSheetState(SHEET_COLLAPSED_PATTERN, "collapsing existing player during setup")
+            waitForSheetState(SheetState.COLLAPSED, "collapsing existing player during setup")
             return
         }
 
@@ -100,7 +100,7 @@ class PlayerSheetAnimationBenchmarks {
 
         if (isExpandedSheetVisible()) {
             collapseExpandedPlayer()
-            waitForSheetState(SHEET_COLLAPSED_PATTERN, "collapsing newly selected song")
+            waitForSheetState(SheetState.COLLAPSED, "collapsing newly selected song")
         }
 
         if (!isCollapsedSheetVisible()) {
@@ -119,37 +119,37 @@ class PlayerSheetAnimationBenchmarks {
         val fullBottomY = (device.displayHeight * 0.88f).toInt()
 
         openCollapsedPlayerByTap(collapsedY)
-        waitForSheetState(SHEET_EXPANDED_PATTERN, "tap open")
+        waitForSheetState(SheetState.EXPANDED, "tap open")
         collapseExpandedPlayer()
-        waitForSheetState(SHEET_COLLAPSED_PATTERN, "tap close")
+        waitForSheetState(SheetState.COLLAPSED, "tap close")
 
         swipeOpenFromCollapsed(midX, collapsedY, fullTopY, steps = 12)
-        waitForSheetState(SHEET_EXPANDED_PATTERN, "fast swipe open")
+        waitForSheetState(SheetState.EXPANDED, "fast swipe open")
         swipe(midX, fullTopY, midX, fullBottomY, steps = 8)
-        waitForSheetState(SHEET_COLLAPSED_PATTERN, "fast swipe close")
+        waitForSheetState(SheetState.COLLAPSED, "fast swipe close")
 
         swipeOpenFromCollapsed(midX, collapsedY, fullTopY, steps = 55)
-        waitForSheetState(SHEET_EXPANDED_PATTERN, "slow swipe open")
+        waitForSheetState(SheetState.EXPANDED, "slow swipe open")
         swipe(midX, fullTopY, midX, fullBottomY, steps = 55)
-        waitForSheetState(SHEET_COLLAPSED_PATTERN, "slow swipe close")
+        waitForSheetState(SheetState.COLLAPSED, "slow swipe close")
 
         swipeOpenFromCollapsed(midX, collapsedY, fullMidY, steps = 45)
         waitForAnySheetState("partial drag and release")
         collapseIfExpandedBySwipe(midX, fullTopY, fullBottomY)
 
         swipeCancelledFromCollapsed(midX, collapsedY)
-        waitForSheetState(SHEET_COLLAPSED_PATTERN, "cancelled/undershoot drag")
+        waitForSheetState(SheetState.COLLAPSED, "cancelled/undershoot drag")
 
         repeat(3) {
             openCollapsedPlayerByTap(collapsedY)
-            waitForSheetState(SHEET_EXPANDED_PATTERN, "repeated tap open $it")
+            waitForSheetState(SheetState.EXPANDED, "repeated tap open $it")
             collapseExpandedPlayer()
-            waitForSheetState(SHEET_COLLAPSED_PATTERN, "repeated tap close $it")
+            waitForSheetState(SheetState.COLLAPSED, "repeated tap close $it")
         }
     }
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.openCollapsedPlayerByTap(fallbackY: Int) {
-        findByTextOrDescription(SHEET_COLLAPSED_PATTERN, TINY_WAIT_MS)?.let {
+        findByResourceId(SHEET_COLLAPSED_RESOURCE_ID, TINY_WAIT_MS)?.let {
             click(it)
             return
         }
@@ -162,7 +162,7 @@ class PlayerSheetAnimationBenchmarks {
         targetY: Int,
         steps: Int
     ) {
-        val center = findByTextOrDescription(SHEET_COLLAPSED_PATTERN, TINY_WAIT_MS)
+        val center = findByResourceId(SHEET_COLLAPSED_RESOURCE_ID, TINY_WAIT_MS)
             ?.let { runCatching { it.visibleCenter }.getOrNull() }
         val startX = center?.x ?: fallbackX
         val startY = center?.y ?: fallbackY
@@ -173,7 +173,7 @@ class PlayerSheetAnimationBenchmarks {
         fallbackX: Int,
         fallbackY: Int
     ) {
-        val center = findByTextOrDescription(SHEET_COLLAPSED_PATTERN, TINY_WAIT_MS)
+        val center = findByResourceId(SHEET_COLLAPSED_RESOURCE_ID, TINY_WAIT_MS)
             ?.let { runCatching { it.visibleCenter }.getOrNull() }
         val startX = center?.x ?: fallbackX
         val startY = center?.y ?: fallbackY
@@ -194,7 +194,7 @@ class PlayerSheetAnimationBenchmarks {
     ) {
         if (!isExpandedSheetVisible()) return
         swipe(midX, fullTopY, midX, fullBottomY, steps = 30)
-        waitForSheetState(SHEET_COLLAPSED_PATTERN, "closing after partial drag")
+        waitForSheetState(SheetState.COLLAPSED, "closing after partial drag")
     }
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.collapseExpandedPlayer() {
@@ -251,15 +251,14 @@ class PlayerSheetAnimationBenchmarks {
     }
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.waitForSheetState(
-        pattern: Pattern,
+        state: SheetState,
         context: String
     ) {
         val deadline = System.currentTimeMillis() + SHEET_STATE_WAIT_MS
         while (System.currentTimeMillis() < deadline) {
-            val visible = when (pattern) {
-                SHEET_EXPANDED_PATTERN -> isExpandedSheetVisible()
-                SHEET_COLLAPSED_PATTERN -> isCollapsedSheetVisible()
-                else -> hasTextOrDescription(pattern)
+            val visible = when (state) {
+                SheetState.EXPANDED -> isExpandedSheetVisible()
+                SheetState.COLLAPSED -> isCollapsedSheetVisible()
             }
             if (visible) return
             Thread.sleep(100L)
@@ -308,11 +307,28 @@ class PlayerSheetAnimationBenchmarks {
             device.findObjects(By.text(pattern)).any { belongsToTargetPackage(it) }
     }
 
+    private fun androidx.benchmark.macro.MacrobenchmarkScope.findByResourceId(
+        resourceId: String,
+        timeoutMs: Long
+    ): UiObject2? {
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            device.findObjects(By.res(resourceId))
+                .firstOrNull { belongsToTargetPackage(it) }
+                ?.let { return it }
+            Thread.sleep(100L)
+        }
+        return null
+    }
+
+    private fun androidx.benchmark.macro.MacrobenchmarkScope.hasResourceId(resourceId: String): Boolean =
+        device.findObjects(By.res(resourceId)).any { belongsToTargetPackage(it) }
+
     private fun androidx.benchmark.macro.MacrobenchmarkScope.isExpandedSheetVisible(): Boolean =
-        hasTextOrDescription(SHEET_EXPANDED_PATTERN)
+        hasResourceId(SHEET_EXPANDED_RESOURCE_ID) || hasTextOrDescription(EXPANDED_PLAYER_ANCHOR_PATTERN)
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.isCollapsedSheetVisible(): Boolean =
-        hasTextOrDescription(SHEET_COLLAPSED_PATTERN) ||
+        hasResourceId(SHEET_COLLAPSED_RESOURCE_ID) ||
             (!isExpandedSheetVisible() && hasTextOrDescription(COLLAPSED_PLAYER_ANCHOR_PATTERN))
 
     private fun androidx.benchmark.macro.MacrobenchmarkScope.visibleUiSnapshot(): String {
@@ -366,6 +382,8 @@ class PlayerSheetAnimationBenchmarks {
         assertAppForeground("After benchmark back")
     }
 
+    private enum class SheetState { COLLAPSED, EXPANDED }
+
     private companion object {
         private const val IDLE_WAIT_MS = 2_000L
         private const val DEFAULT_WAIT_MS = 900L
@@ -378,12 +396,18 @@ class PlayerSheetAnimationBenchmarks {
         private var libraryRebuiltForThisRun = false
         private const val BENCHMARK_REBUILD_DATABASE_EXTRA = "benchmark_rebuild_database"
 
-        private val SHEET_COLLAPSED_PATTERN = pattern("PixelPlayer player sheet collapsed")
-        private val SHEET_EXPANDED_PATTERN = pattern(
-            "PixelPlayer player sheet expanded|Collapse player|Contraer reproductor|Now Playing|Reproduciendo"
+        // Test tags of the sheet card, exposed as its resource id (PLAYER_SHEET_*_TEST_TAG in the
+        // app's PlayerSheetSemantics.kt). Unlike the card's content description, they are the same
+        // in every app language.
+        private const val SHEET_COLLAPSED_RESOURCE_ID = "player_sheet_collapsed"
+        private const val SHEET_EXPANDED_RESOURCE_ID = "player_sheet_expanded"
+
+        // Fallback signals for each sheet state. They only cover English and Spanish.
+        private val EXPANDED_PLAYER_ANCHOR_PATTERN = pattern(
+            "Collapse player|Contraer reproductor|Now Playing|Reproduciendo"
         )
         private val COLLAPSED_PLAYER_ANCHOR_PATTERN = pattern(
-            "PixelPlayer player sheet collapsed|Album art of|Car[aá]tula de|Anterior|Pausar|Reproducir|Siguiente"
+            "Album art of|Car[aá]tula de|Anterior|Pausar|Reproducir|Siguiente"
         )
         private val HOME_TAB_PATTERN = pattern("Home|Inicio")
         private val BACK_PATTERN = exactPattern("Back|Atr[aá]s")

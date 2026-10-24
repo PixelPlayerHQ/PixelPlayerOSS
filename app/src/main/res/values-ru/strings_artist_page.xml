@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Страница исполнителя</string>
+    <string name="artist_page_albums_collapsed_by_default">Сворачивать альбомы при открытии</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Если у исполнителя несколько альбомов, сначала показываются только их заголовки. Нажмите на альбом, чтобы увидеть треки.</string>
+    <string name="artist_page_collapse_all_albums">Свернуть все</string>
+    <string name="artist_page_expand_all_albums">Развернуть все</string>
+</resources>

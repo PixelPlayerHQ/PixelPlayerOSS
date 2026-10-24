@@ -27,6 +27,7 @@ import androidx.media3.common.Player
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,8 +56,10 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import com.lostf1sh.pixelplayeross.MainCoroutineExtension
+import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.data.worker.SyncManager
+import com.lostf1sh.pixelplayeross.di.DispatcherProvider
 import com.lostf1sh.pixelplayeross.utils.AppShortcutManager
 import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
 import com.lostf1sh.pixelplayeross.utils.MediaStorePermissionHelper
@@ -102,12 +105,21 @@ class PlayerViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
 
+    // Keeps the view model's background hops on the test scheduler: work left on a real pool
+    // would resume through Dispatchers.Main after tearDown resets it and fail a later test.
+    private val testDispatchers = object : DispatcherProvider {
+        override val main: CoroutineDispatcher = testDispatcher
+        override val io: CoroutineDispatcher = testDispatcher
+        override val default: CoroutineDispatcher = testDispatcher
+    }
+
     private val _allSongsFlow = MutableStateFlow<ImmutableList<Song>>(persistentListOf())
     private val _searchHistoryFlow = MutableStateFlow<ImmutableList<SearchHistoryItem>>(persistentListOf())
     private val _searchResultsFlow = MutableStateFlow<ImmutableList<SearchResultItem>>(persistentListOf())
     private val _selectedSearchFilterFlow = MutableStateFlow(SearchFilterType.ALL)
     private val _repeatModeFlow = MutableStateFlow(Player.REPEAT_MODE_OFF)
     private val _favoriteIdsFlow = MutableStateFlow<Set<String>>(emptySet())
+    private val folderSongSortFlow = MutableStateFlow<SortOption>(SortOption.FolderSongTitleAZ)
     private lateinit var stablePlayerStateFlow: MutableStateFlow<StablePlayerState>
     private lateinit var mockController: MediaController
     private val controllerRepeatModeWrites = mutableListOf<Int>()
@@ -134,6 +146,7 @@ class PlayerViewModelTest {
         coEvery { mockUserPreferencesRepository.tapBackgroundClosesPlayerFlow } returns flowOf(true)
         coEvery { mockUserPreferencesRepository.hapticsEnabledFlow } returns flowOf(true)
         coEvery { mockUserPreferencesRepository.foldersSortOptionFlow } returns flowOf("FolderNameAZ")
+        coEvery { mockUserPreferencesRepository.folderSongsSortOptionFlow } returns flowOf(SortOption.FolderSongTitleAZ.storageKey)
         coEvery { mockUserPreferencesRepository.persistentShuffleEnabledFlow } returns flowOf(false)
         coEvery { mockUserPreferencesRepository.isShuffleOnFlow } returns flowOf(false)
         every { mockUserPreferencesRepository.repeatModeFlow } returns _repeatModeFlow
@@ -149,6 +162,7 @@ class PlayerViewModelTest {
         every { mockLibraryStateHolder.currentAlbumSortOption } returns MutableStateFlow<SortOption>(SortOption.AlbumTitleAZ)
         every { mockLibraryStateHolder.currentArtistSortOption } returns MutableStateFlow<SortOption>(SortOption.ArtistNameAZ)
         every { mockLibraryStateHolder.currentFolderSortOption } returns MutableStateFlow<SortOption>(SortOption.FolderNameAZ)
+        every { mockLibraryStateHolder.currentFolderSongSortOption } returns folderSongSortFlow
         every { mockLibraryStateHolder.currentFavoriteSortOption } returns MutableStateFlow<SortOption>(SortOption.LikedSongTitleAZ)
         every { mockLibraryStateHolder.currentStorageFilter } returns MutableStateFlow(StorageFilter.ALL)
 
@@ -178,7 +192,7 @@ class PlayerViewModelTest {
         every { mockMusicRepository.getHomeMixPreviewSongs(any()) } returns flowOf(emptyList())
         every { mockMusicRepository.getSongCountFlow() } returns flowOf(0)
         every { mockMusicRepository.getCloudSongCountFlow() } returns flowOf(0)
-        every { mockMusicRepository.searchSongs(any(), any()) } returns flowOf(emptyList())
+        every { mockMusicRepository.searchSongs(any()) } returns flowOf(emptyList())
         every { mockMusicRepository.getMusicByGenre(any()) } returns flowOf(emptyList())
         coEvery { mockMusicRepository.getFavoriteSongIdsOnce() } returns emptySet()
         every { mockMusicRepository.getFavoriteSongIdsFlow() } returns _favoriteIdsFlow
@@ -240,7 +254,8 @@ class PlayerViewModelTest {
             mockMultiSelectionStateHolder,
             mockPlaylistSelectionStateHolder,
             sessionToken,
-            mockMediaControllerFactory
+            mockMediaControllerFactory,
+            testDispatchers
         )
     }
 
@@ -367,6 +382,33 @@ class PlayerViewModelTest {
 
         assertTrue(controllerRepeatModeWrites.isEmpty())
         assertEquals(Player.REPEAT_MODE_OFF, controllerRepeatMode)
+    }
+
+    @Test
+    fun `startup applies the stored folder song sort without writing it back`() = runTest {
+        advanceUntilIdle()
+
+        verify { mockLibraryStateHolder.sortFolderSongs(SortOption.FolderSongTitleAZ, false) }
+        assertEquals(SortOption.FolderSongTitleAZ, playerViewModel.playerUiState.value.currentFolderSongSortOption)
+    }
+
+    @Test
+    fun `folder song sort changes reach the ui state without touching the folder sort`() = runTest {
+        advanceUntilIdle()
+
+        folderSongSortFlow.value = SortOption.FolderSongAlbumArtistDesc
+        advanceUntilIdle()
+
+        val state = playerViewModel.playerUiState.value
+        assertEquals(SortOption.FolderSongAlbumArtistDesc, state.currentFolderSongSortOption)
+        assertEquals(SortOption.FolderNameAZ, state.currentFolderSortOption)
+    }
+
+    @Test
+    fun `sorting folder songs is persisted through the library state holder`() = runTest {
+        playerViewModel.sortFolderSongs(SortOption.FolderSongDuration)
+
+        verify { mockLibraryStateHolder.sortFolderSongs(SortOption.FolderSongDuration, true) }
     }
 
     @Test
@@ -626,6 +668,79 @@ class PlayerViewModelTest {
                     true
                 )
             }
+        }
+
+        @Test
+        fun `shuffling all songs names the queue in the app language`() = runTest {
+            val randomSongs = listOf(song2, song3, song1)
+            coEvery { mockMusicRepository.getRandomSongs(10_000) } returns randomSongs
+            stubShuffledPlayback(randomSongs, startSong = song2)
+            every { mockContext.getString(R.string.queue_name_all_songs_shuffled) } returns "全部歌曲（随机）"
+            advanceUntilIdle()
+
+            playerViewModel.shuffleAllSongs()
+            advanceUntilIdle()
+
+            assertEquals("全部歌曲（随机）", playerViewModel.playerUiState.value.currentQueueSourceName)
+        }
+
+        @Test
+        fun `shuffle all tile names the queue in the app language`() = runTest {
+            val songs = listOf(song1, song2, song3)
+            coEvery { mockMusicRepository.getRandomSongs(10_000) } returns songs
+            stubShuffledPlayback(songs, startSong = song1)
+            every { mockContext.getString(R.string.queue_name_all_songs_shuffled) } returns "全部歌曲（随机）"
+            advanceUntilIdle()
+
+            playerViewModel.triggerShuffleAllFromTile()
+            advanceUntilIdle()
+
+            assertEquals("全部歌曲（随机）", playerViewModel.playerUiState.value.currentQueueSourceName)
+        }
+
+        @Test
+        fun `shuffling liked songs names the queue in the app language`() = runTest {
+            val favoriteSongs = listOf(song1, song3)
+            coEvery { mockMusicRepository.getFavoriteSongsOnce(StorageFilter.ALL) } returns favoriteSongs
+            stubShuffledPlayback(favoriteSongs, startSong = song1)
+            every { mockContext.getString(R.string.queue_name_liked_songs_shuffled) } returns "我喜欢的歌曲（随机）"
+            advanceUntilIdle()
+
+            playerViewModel.shuffleFavoriteSongs()
+            advanceUntilIdle()
+
+            assertEquals("我喜欢的歌曲（随机）", playerViewModel.playerUiState.value.currentQueueSourceName)
+        }
+
+        @Test
+        fun `playing selected songs names the queue in the app language`() = runTest {
+            val selectedSongs = listOf(song3, song1)
+            stubShuffledPlayback(selectedSongs)
+            every { mockContext.getString(R.string.queue_name_selected_songs) } returns "选中的歌曲"
+            advanceUntilIdle()
+
+            playerViewModel.playSelectedSongs(selectedSongs)
+            advanceUntilIdle()
+
+            assertEquals("选中的歌曲", playerViewModel.playerUiState.value.currentQueueSourceName)
+        }
+
+        @Test
+        fun `playing a song from the library tab names the queue in the app language`() = runTest {
+            val librarySongs = listOf(song1, song2, song3)
+            every { mockLibraryStateHolder.allSongsById } returns MutableStateFlow(librarySongs.associateBy { it.id })
+            coEvery { mockMusicRepository.getSongIdsSorted(any(), any()) } returns listOf(1L, 2L, 3L)
+            stubShuffledPlayback(librarySongs)
+            every { mockContext.getString(R.string.tab_library) } returns "音乐库"
+            advanceUntilIdle()
+
+            playerViewModel.showAndPlaySongFromLibrary(song2)
+            advanceUntilIdle()
+
+            val state = playerViewModel.playerUiState.value
+
+            assertEquals("音乐库", state.currentQueueSourceName)
+            assertEquals(librarySongs.map { it.id }, state.currentPlaybackQueue.map { it.id })
         }
     }
 

@@ -436,6 +436,7 @@ private fun LibraryTabId.iconRes(): Int = when (this) {
     LibraryTabId.Playlists -> R.drawable.rounded_playlist_play_24
     LibraryTabId.Folders -> R.drawable.rounded_folder_24
     LibraryTabId.Liked -> R.drawable.round_favorite_24
+    LibraryTabId.Genres -> R.drawable.rounded_category_24
 }
 
 @Composable

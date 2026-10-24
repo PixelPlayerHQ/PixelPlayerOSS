@@ -19,6 +19,7 @@ data class ArtistSettingsUiState(
     val wordDelimiters: List<String> = UserPreferencesRepository.DEFAULT_ARTIST_WORD_DELIMITERS,
     val extractArtistsFromTitle: Boolean = true,
     val groupByAlbumArtist: Boolean = false,
+    val albumsCollapsedByDefault: Boolean = false,
     val rescanRequired: Boolean = false,
     val isResyncing: Boolean = false
 )
@@ -65,6 +66,12 @@ class ArtistSettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            userPreferencesRepository.artistAlbumsCollapsedByDefaultFlow.collect { collapsed ->
+                _uiState.update { it.copy(albumsCollapsedByDefault = collapsed) }
+            }
+        }
+
+        viewModelScope.launch {
             userPreferencesRepository.artistSettingsRescanRequiredFlow.collect { required ->
                 _uiState.update { it.copy(rescanRequired = required) }
             }
@@ -80,6 +87,12 @@ class ArtistSettingsViewModel @Inject constructor(
     fun setGroupByAlbumArtist(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setGroupByAlbumArtist(enabled)
+        }
+    }
+
+    fun setAlbumsCollapsedByDefault(collapsed: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setArtistAlbumsCollapsedByDefault(collapsed)
         }
     }
 

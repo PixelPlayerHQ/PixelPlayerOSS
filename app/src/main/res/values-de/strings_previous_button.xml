@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Taste „Vorheriger Titel“</string>
+    <string name="setcat_previous_button_description">Lege fest, ob die Taste „Vorheriger Titel“ den aktuellen Song neu startet oder direkt zum vorherigen springt.</string>
+    <string name="setcat_previous_button_restart_track">Titel neu starten</string>
+    <string name="setcat_previous_button_restart_track_description">Nach den ersten Sekunden startet die Taste den Song von vorn. Drücke sie erneut, um zum vorherigen Song zu springen.</string>
+    <string name="setcat_previous_button_previous_track">Vorheriger Titel</string>
+    <string name="setcat_previous_button_previous_track_description">Die Taste springt immer zum vorherigen Song, egal an welcher Stelle des aktuellen du gerade bist.</string>
+</resources>

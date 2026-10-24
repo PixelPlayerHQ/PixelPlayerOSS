@@ -36,6 +36,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -74,6 +75,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.subcomps.EnhancedSong
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionActionRow
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.SelectionCountPill
 import com.lostf1sh.pixelplayeross.presentation.screens.QuickFillDialog
+import com.lostf1sh.pixelplayeross.presentation.selection.dragToSelect
+import com.lostf1sh.pixelplayeross.presentation.selection.rememberDragToSelectState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.GenreDetailListItem
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.GenreDetailViewModel
@@ -82,8 +85,10 @@ import com.lostf1sh.pixelplayeross.presentation.viewmodel.SectionData
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.AlbumData
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StablePlayerState
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.UNKNOWN_GENRE_ID
 import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 import com.lostf1sh.pixelplayeross.ui.theme.LocalShowScrollbar
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.formatDuration
 import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import kotlinx.collections.immutable.ImmutableList
@@ -156,6 +161,16 @@ fun GenreDetailScreen(
             multiSelectionState.toggleSelection(song)
         }
     }
+    val dragSelectState = rememberDragToSelectState<Song>()
+    // Read the holder directly: the collected selectedSongIds lag a frame behind the long press.
+    val currentSelectedSongIds: () -> Set<String> = remember(multiSelectionState) {
+        { multiSelectionState.selectedSongIds.value }
+    }
+    val onSongDragSelectionChange: (List<Song>, List<Song>) -> Unit = remember(multiSelectionState) {
+        { select, deselect -> multiSelectionState.applyDragSelection(select, deselect) }
+    }
+    // Height of the floating selection actions, measured from the bottom of the screen.
+    var selectionActionsOverlayHeight by remember { mutableStateOf(0.dp) }
 
     var isTransitionFinished by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -265,7 +280,9 @@ fun GenreDetailScreen(
     val contentColor = themeColor.onContainer
     
     val initialDisplayName = remember(decodedGenreId) {
-        decodedGenreId
+        // Song info passes the song's whole genre value; the view model opens its first genre, or
+        // the Unknown bucket for a placeholder such as "<unknown>".
+        (GenreParser.split(decodedGenreId).firstOrNull() ?: UNKNOWN_GENRE_ID)
             .replace("_", " ")
             .split(" ")
             .joinToString(" ") { word ->
@@ -294,7 +311,7 @@ fun GenreDetailScreen(
     var showQuickFillDialog by remember { mutableStateOf(false) }
 
     val isUnknownGenre = remember(decodedGenreId) {
-        decodedGenreId.equals("unknown", ignoreCase = true) || decodedGenreId.equals("unknown genre", ignoreCase = true)
+        GenreParser.split(decodedGenreId).isEmpty()
     }
     
     val customGenres by playerViewModel.customGenres.collectAsStateWithLifecycle()
@@ -327,6 +344,15 @@ fun GenreDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
         ) {
             val currentTopBarHeightDp = with(density) { topBarHeight.value.toDp() }
+            val displayItems = if (isTransitionFinished || uiState.flattenedItems.size < 20) {
+                uiState.flattenedItems
+            } else {
+                uiState.flattenedItems.take(20)
+            }
+            // Headers, spacers and dividers share the list with the songs but are not selectable.
+            val dragSelectSongAt: (Int) -> Song? = remember(displayItems) {
+                { index -> (displayItems.getOrNull(index) as? GenreDetailListItem.SongItem)?.song }
+            }
 
             LazyColumn(
                 state = lazyListState,
@@ -342,13 +368,22 @@ fun GenreDetailScreen(
                         val extraHeight = (topBarHeight.value - minTopBarHeightPx).roundToInt()
                         IntOffset(0, extraHeight)
                     }
+                    .dragToSelect(
+                        state = dragSelectState,
+                        listState = lazyListState,
+                        itemAt = dragSelectSongAt,
+                        itemKey = Song::id,
+                        selectedKeys = currentSelectedSongIds,
+                        onSelectionChange = onSongDragSelectionChange,
+                        // The collapsed top bar always covers this much of the list's top.
+                        topInset = minTopBarHeight,
+                        bottomInset = when {
+                            isSelectionMode -> selectionActionsOverlayHeight
+                            isMiniPlayerVisible -> systemNavBarInset + MiniPlayerHeight
+                            else -> systemNavBarInset
+                        }
+                    )
             ) {
-                val displayItems = if (isTransitionFinished || uiState.flattenedItems.size < 20) {
-                    uiState.flattenedItems
-                } else {
-                    uiState.flattenedItems.take(20)
-                }
-
                 items(
                     items = displayItems,
                     key = { it.key },
@@ -378,7 +413,10 @@ fun GenreDetailScreen(
                                 isSelectionMode = isSelectionMode,
                                 isSelected = item.song.id in selectedSongIds,
                                 selectionIndex = multiSelectionState.getSelectionIndex(item.song.id),
-                                onLongPress = { onSongLongPress(item.song) }
+                                onLongPress = {
+                                    onSongLongPress(item.song)
+                                    dragSelectState.onItemLongPressed(item.song)
+                                }
                             )
                         }
                         is GenreDetailListItem.Spacer -> {
@@ -448,6 +486,9 @@ fun GenreDetailScreen(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
+                        .onSizeChanged { size ->
+                            selectionActionsOverlayHeight = with(density) { size.height.toDp() }
+                        }
                         .padding(start = 16.dp, end = 16.dp, bottom = fabBottomPadding + 16.dp)
                         .zIndex(10f)
                 ) {

@@ -32,6 +32,26 @@ class LibraryTabIdTest {
     }
 
     @Test
+    fun `decodeLibraryTabOrder restores Genres at the end of an order saved before it existed`() {
+        val legacyKeys = listOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED")
+
+        val order = decodeLibraryTabOrder(Json.encodeToString(legacyKeys))
+
+        assertEquals(legacyKeys, order.dropLast(1).map { it.stableKey })
+        assertEquals(LibraryTabId.Genres, order.last())
+    }
+
+    @Test
+    fun `Genres tab offers name and song count sorts and keeps a stable key`() {
+        assertEquals("GENRES", LibraryTabId.Genres.stableKey)
+        assertEquals(SortOption.GENRES, LibraryTabId.Genres.sortOptions)
+        assertEquals(
+            LibraryTabId.Genres.stableKey,
+            com.lostf1sh.pixelplayeross.data.model.LibraryTabId.GENRES.storageKey
+        )
+    }
+
+    @Test
     fun `sort associations remain tied to tab ids after reordering`() {
         val persistedSorts = LibraryTabId.defaultOrder.associateWith { tab ->
             tab.sortOptions.firstOrNull() ?: SortOption.SongTitleAZ

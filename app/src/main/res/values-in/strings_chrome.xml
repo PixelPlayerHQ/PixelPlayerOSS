@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Menyiapkan pengaturan awal…</string>
+    <string name="song_info_label_provider">Penyedia</string>
+    <string name="song_info_label_path">Jalur</string>
+    <string name="cd_playlist_artwork">Daftar Putar</string>
+    <string name="home_your_mix_subtitle">Mix hari ini untuk Anda</string>
+    <string name="home_your_mix_queue_name">Mix Anda</string>
+    <string name="queue_name_liked_songs">Lagu yang Disukai</string>
+    <string name="queue_name_all_songs_shuffled">Semua Lagu (Acak)</string>
+    <string name="queue_name_liked_songs_shuffled">Lagu yang Disukai (Acak)</string>
+    <string name="queue_name_selected_songs">Lagu Terpilih</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">Panel pemutar PixelPlayer diciutkan, %1$s</string>
+    <string name="cd_player_sheet_expanded">Panel pemutar PixelPlayer diperluas, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Panel pemutar PixelPlayer diciutkan</string>
+    <string name="cd_player_sheet_expanded_no_track">Panel pemutar PixelPlayer diperluas</string>
+    <string name="mini_player_connecting_device">Menghubungkan ke perangkat…</string>
+    <string name="mini_player_preparing_playback">Menyiapkan pemutaran…</string>
+    <string name="mini_player_loading_audio">Memuat audio…</string>
+    <string name="cd_shuffle">Acak</string>
+    <string name="cd_playback_position">Posisi pemutaran</string>
+    <string name="add_bookmark_title">Simpan bookmark</string>
+    <string name="add_bookmark_saved_point">Titik pemutaran tersimpan</string>
+    <string name="add_bookmark_use_lyric_line">Gunakan baris lirik</string>
+    <string name="add_bookmark_default_name">Bookmark @ %1$s</string>
+</resources>

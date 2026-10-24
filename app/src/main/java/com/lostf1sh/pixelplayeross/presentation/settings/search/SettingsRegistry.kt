@@ -76,6 +76,16 @@ object SettingsRegistry {
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("album artist", "group albums", "collaborations", "compilation", "organize")
             ),
+            SettingSpec(
+                id = "artist_albums_collapsed_by_default",
+                itemKey = "item_artist_albums_collapsed_by_default",
+                titleRes = R.string.artist_page_albums_collapsed_by_default,
+                subtitleRes = R.string.artist_page_albums_collapsed_by_default_sub,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.ArtistSettings.createRoute(),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("collapse", "collapsed", "expand", "fold", "artist page", "album list")
+            ),
             // An action because the stats route declares no highlightKey argument to append.
             SettingSpec(
                 id = "listening_stats",
@@ -238,6 +248,40 @@ object SettingsRegistry {
                 subscreenRoute = Screen.LyricsSettings.createRoute(),
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("lyrics size", "text size", "font size", "bigger lyrics", "accessibility")
+            ),
+            SettingSpec(
+                id = "lyrics_word_highlight",
+                itemKey = "item_lyrics_word_highlight",
+                titleRes = R.string.lyrics_highlight_style_title,
+                subtitleRes = R.string.lyrics_highlight_style_subtitle,
+                category = SettingsCategory.PLAYBACK,
+                subscreenRoute = Screen.LyricsSettings.createRoute(),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("karaoke", "word highlight", "gradient", "sweep", "fade", "word by word")
+            ),
+            SettingSpec(
+                id = "lyrics_duet_layout",
+                itemKey = "item_lyrics_duet_layout",
+                titleRes = R.string.lyrics_duet_layout_title,
+                subtitleRes = R.string.lyrics_duet_layout_subtitle,
+                category = SettingsCategory.PLAYBACK,
+                subscreenRoute = Screen.LyricsSettings.createRoute(),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("duet", "singer", "voices", "v1", "v2", "alignment"),
+                getValue = { it.lyricsDuetLayoutEnabled },
+                onToggle = { viewModel, checked -> viewModel.setLyricsDuetLayoutEnabled(checked) }
+            ),
+            SettingSpec(
+                id = "lyrics_background_vocals",
+                itemKey = "item_lyrics_background_vocals",
+                titleRes = R.string.lyrics_background_vocals_title,
+                subtitleRes = R.string.lyrics_background_vocals_subtitle,
+                category = SettingsCategory.PLAYBACK,
+                subscreenRoute = Screen.LyricsSettings.createRoute(),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("background vocals", "backing vocals", "bg", "adlib", "harmony"),
+                getValue = { it.showLyricsBackgroundVocals },
+                onToggle = { viewModel, checked -> viewModel.setShowLyricsBackgroundVocals(checked) }
             ),
             SettingSpec(
                 id = "lyrics_animated_blur",
@@ -724,6 +768,19 @@ object SettingsRegistry {
                 ),
                 getValue = { it.autoplayOnSkip },
                 onToggle = { viewModel, checked -> viewModel.setAutoplayOnSkip(checked) }
+            ),
+            SettingSpec(
+                id = "behavior_previous_button",
+                itemKey = "item_behavior_previous_button",
+                titleRes = R.string.setcat_previous_button_title,
+                subtitleRes = R.string.setcat_previous_button_description,
+                category = SettingsCategory.BEHAVIOR,
+                subscreenRoute = Screen.SettingsCategory.createRoute("behavior"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf(
+                    "previous", "previous song", "previous track", "rewind", "back", "skip back",
+                    "restart", "replay", "button"
+                )
             ),
             SettingSpec(
                 id = "behavior_haptics",

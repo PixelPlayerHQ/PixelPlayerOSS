@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Genres</string>
+    <string name="lib_empty_genres_title">Aucun genre trouvé</string>
+    <string name="lib_empty_genres_subtitle">Les genres issus des tags de vos titres apparaîtront ici.</string>
+</resources>

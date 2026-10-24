@@ -44,7 +44,11 @@ class SearchStateHolder @Inject constructor(
 
     private data class SearchRequest(
         val query: String,
+        val filter: SearchFilterType,
         val requestId: Long,
+        // A filter change re-runs a query the user already finished typing, so it skips the
+        // typing debounce.
+        val immediate: Boolean = false,
     )
 
     private val _searchResults = MutableStateFlow<ImmutableList<SearchResultItem>>(persistentListOf())
@@ -83,7 +87,7 @@ class SearchStateHolder @Inject constructor(
         searchJob?.cancel()
         searchJob = scope?.launch {
             searchRequests
-                .debounce(SEARCH_DEBOUNCE_MS)
+                .debounce { request -> if (request.immediate) 0L else SEARCH_DEBOUNCE_MS }
                 .collectLatest { request ->
                     val normalizedQuery = request.query
 
@@ -95,8 +99,7 @@ class SearchStateHolder @Inject constructor(
                     }
 
                     try {
-                        val currentFilter = _selectedSearchFilter.value
-                        musicRepository.searchAll(normalizedQuery, currentFilter).collect { resultsList ->
+                        musicRepository.searchAll(normalizedQuery, request.filter).collect { resultsList ->
                             val sortedResults = resultsList.sortedWith(
                                 compareBy { result ->
                                     when (result) {
@@ -128,8 +131,19 @@ class SearchStateHolder @Inject constructor(
         }
     }
 
+    /**
+     * Selects [filterType] and re-runs the current query with it straight away, so the results
+     * switch together with the chip instead of after the screen re-issues the query and the
+     * typing debounce runs out.
+     */
     fun updateSearchFilter(filterType: SearchFilterType) {
+        if (_selectedSearchFilter.value == filterType) return
         _selectedSearchFilter.value = filterType
+
+        val currentQuery = searchRequests.replayCache.lastOrNull()?.query
+        if (!currentQuery.isNullOrBlank()) {
+            requestSearch(currentQuery, immediate = true)
+        }
     }
 
     fun loadSearchHistory(limit: Int = 15) {
@@ -161,8 +175,10 @@ class SearchStateHolder @Inject constructor(
     }
 
     fun performSearch(query: String) {
-        val normalizedQuery = query.trim()
+        requestSearch(query.trim(), immediate = false)
+    }
 
+    private fun requestSearch(normalizedQuery: String, immediate: Boolean) {
         val requestId = latestSearchRequestId.incrementAndGet()
 
         if (normalizedQuery.isBlank()) {
@@ -171,7 +187,16 @@ class SearchStateHolder @Inject constructor(
             }
         }
 
-        searchRequests.tryEmit(SearchRequest(normalizedQuery, requestId))
+        // The request carries its filter, so a request replayed for another PlayerViewModel
+        // searches with the filter it was made for.
+        searchRequests.tryEmit(
+            SearchRequest(
+                query = normalizedQuery,
+                filter = _selectedSearchFilter.value,
+                requestId = requestId,
+                immediate = immediate,
+            )
+        )
     }
 
     fun deleteSearchHistoryItem(query: String) {

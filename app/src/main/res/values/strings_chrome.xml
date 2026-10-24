@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Preparing setup…</string>
+    <string name="song_info_label_provider">Provider</string>
+    <string name="song_info_label_path">Path</string>
+    <string name="cd_playlist_artwork">Playlist</string>
+    <string name="home_your_mix_subtitle">Today\'s Mix for you</string>
+    <string name="home_your_mix_queue_name">Your Mix</string>
+    <string name="queue_name_liked_songs">Liked Songs</string>
+    <string name="queue_name_all_songs_shuffled">All Songs (Shuffled)</string>
+    <string name="queue_name_liked_songs_shuffled">Liked Songs (Shuffled)</string>
+    <string name="queue_name_selected_songs">Selected Songs</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer player sheet collapsed, %1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer player sheet expanded, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer player sheet collapsed</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer player sheet expanded</string>
+    <string name="mini_player_connecting_device">Connecting to device…</string>
+    <string name="mini_player_preparing_playback">Preparing playback…</string>
+    <string name="mini_player_loading_audio">Loading audio…</string>
+    <string name="cd_shuffle">Shuffle</string>
+    <string name="cd_playback_position">Playback position</string>
+    <string name="add_bookmark_title">Save bookmark</string>
+    <string name="add_bookmark_saved_point">Saved playback point</string>
+    <string name="add_bookmark_use_lyric_line">Use lyric line</string>
+    <string name="add_bookmark_default_name">Bookmark @ %1$s</string>
+</resources>

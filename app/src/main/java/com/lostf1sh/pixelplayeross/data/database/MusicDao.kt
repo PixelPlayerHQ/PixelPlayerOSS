@@ -15,19 +15,6 @@ import kotlinx.coroutines.flow.combine
 private val SONG_SEARCH_QUERY_TOKEN_REGEX = Regex("""[\p{L}\p{N}]+""")
 private const val EMPTY_SONG_SEARCH_MATCH_QUERY = "pixelplayeremptyquery*"
 
-private fun buildSongTitleSearchMatchQuery(query: String): String {
-    val tokens = SONG_SEARCH_QUERY_TOKEN_REGEX
-        .findAll(query)
-        .map { it.value.trim() }
-        .filter { it.isNotEmpty() }
-        .take(6)
-        .toList()
-
-    if (tokens.isEmpty()) return EMPTY_SONG_SEARCH_MATCH_QUERY
-
-    return tokens.joinToString(separator = " AND ") { "title:${it}*" }
-}
-
 private fun buildSongSearchMatchQuery(query: String): String {
     val tokens = SONG_SEARCH_QUERY_TOKEN_REGEX
         .findAll(query)
@@ -123,6 +110,12 @@ data class LibraryAudioStatsRow(
 data class MimeTypeCountRow(
     val mimeType: String?,
     val count: Int
+)
+
+/** Songs per distinct raw genre value; one value can still hold several genres. */
+data class GenreSongCountRow(
+    val genre: String?,
+    val songCount: Int
 )
 
 @Dao
@@ -993,23 +986,6 @@ interface MusicDao {
     ): Flow<List<SongEntity>>
 
     /**
-     * LIKE-based search focusing only on titles.
-     */
-    @Query("""
-        SELECT * FROM songs
-        WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND title LIKE '%' || :query || '%'
-        ORDER BY title ASC
-        LIMIT :limit
-    """)
-    fun searchSongsLimitedByTitleLike(
-        query: String,
-        allowedParentDirs: List<String>,
-        applyDirectoryFilter: Boolean,
-        limit: Int
-    ): Flow<List<SongEntity>>
-
-    /**
      * LIKE-based fallback search for songs that FTS tokenization may miss.
      */
     @Query("""
@@ -1030,30 +1006,20 @@ interface MusicDao {
         query: String,
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
-        limit: Int,
-        titleOnly: Boolean = false
+        limit: Int
     ): Flow<List<SongEntity>> {
         val ftsFlow = searchSongsLimitedMatch(
-            matchQuery = if (titleOnly) buildSongTitleSearchMatchQuery(query) else buildSongSearchMatchQuery(query),
+            matchQuery = buildSongSearchMatchQuery(query),
             allowedParentDirs = allowedParentDirs,
             applyDirectoryFilter = applyDirectoryFilter,
             limit = limit
         )
-        val likeFlow = if (titleOnly) {
-            searchSongsLimitedByTitleLike(
-                query = query.trim(),
-                allowedParentDirs = allowedParentDirs,
-                applyDirectoryFilter = applyDirectoryFilter,
-                limit = limit
-            )
-        } else {
-            searchSongsLimitedLike(
-                query = query.trim(),
-                allowedParentDirs = allowedParentDirs,
-                applyDirectoryFilter = applyDirectoryFilter,
-                limit = limit
-            )
-        }
+        val likeFlow = searchSongsLimitedLike(
+            query = query.trim(),
+            allowedParentDirs = allowedParentDirs,
+            applyDirectoryFilter = applyDirectoryFilter,
+            limit = limit
+        )
         return ftsFlow.combine(likeFlow) { ftsResults, likeResults ->
             val seen = LinkedHashMap<Long, SongEntity>(ftsResults.size + likeResults.size)
             ftsResults.forEach { seen.putIfAbsent(it.id, it) }
@@ -1061,21 +1027,6 @@ interface MusicDao {
             seen.values.toList().take(limit)
         }
     }
-
-    /**
-     * Returns a PagingSource for songs in a specific genre.
-     */
-    @Query("""
-        SELECT * FROM songs
-        WHERE (:applyDirectoryFilter = 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND genre LIKE :genreName
-        ORDER BY title ASC
-    """)
-    fun getSongsByGenrePaginated(
-        genreName: String,
-        allowedParentDirs: List<String>,
-        applyDirectoryFilter: Boolean
-    ): PagingSource<Int, SongEntity>
 
     @Query("""
         SELECT
@@ -1591,83 +1542,58 @@ interface MusicDao {
     """)
     suspend fun getLocalArtistDirectories(artistId: Long, limit: Int): List<String>
 
+    /**
+     * Songs whose genre value matches the LIKE [pattern]. This is only a prefilter for one genre:
+     * a value can list several genres, so callers keep the rows whose split genres really contain
+     * it (see GenreParser.likePattern and GenreParser.matches).
+     *
+     * Values holding a NUL, such as an ID3v2.4 "Rock<NUL>Pop" list, are always returned: SQLite's
+     * LIKE stops reading at the first NUL, so "%Pop%" alone would miss that song.
+     */
     @Query("""
         SELECT * FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND genre LIKE :genreName
+        AND (genre LIKE :pattern OR instr(genre, char(0)) > 0)
         ORDER BY title ASC
     """)
-    fun getSongsByGenre(
-        genreName: String,
+    fun getSongsWithGenreLike(
+        pattern: String,
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean
     ): Flow<List<SongEntity>>
 
-    // Multi-genre aware query: matches songs where the genre column equals the name (case-
-    // insensitively, via LIKE), or contains it as part of a comma-separated list.
-    // SQLite LIKE is case-insensitive for ASCII letters by default, which is sufficient
-    // for genre names. All six arms use LIKE so that "rock" matches "Rock", "Rock,Pop",
-    // "Rock, Pop", "Pop,Rock", "Pop, Rock", and "Pop,Rock,Jazz".
+    /**
+     * Songs that may have no genre: no value, one made only of [noGenreCharacters] (pass
+     * GenreParser.noGenreCharacters: separators, '&' and whitespace), an "unknown" placeholder,
+     * or any value holding a NUL, which SQLite can neither trim nor LIKE-match past. Callers keep
+     * the rows whose value splits into no genre at all.
+     */
     @Query("""
         SELECT * FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
         AND (
-            genre LIKE :genreName
-            OR genre LIKE :genrePrefix
-            OR genre LIKE :genreSuffixWithSpace
-            OR genre LIKE :genreSuffix
-            OR genre LIKE :genreMiddleWithSpace
-            OR genre LIKE :genreMiddle
+            genre IS NULL
+            OR TRIM(genre, :noGenreCharacters) = ''
+            OR genre LIKE '%unknown%'
+            OR instr(genre, char(0)) > 0
         )
         ORDER BY title ASC
     """)
-    fun getSongsByGenreContaining(
-        genreName: String,
-        genrePrefix: String,
-        genreSuffixWithSpace: String,
-        genreSuffix: String,
-        genreMiddleWithSpace: String,
-        genreMiddle: String,
+    fun getUnknownGenreSongCandidates(
+        noGenreCharacters: String,
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean
     ): Flow<List<SongEntity>>
 
     @Query("""
-        SELECT * FROM songs
+        SELECT genre AS genre, COUNT(*) AS songCount FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND (genre IS NULL OR genre = '')
-        ORDER BY title ASC
+        GROUP BY genre
     """)
-    fun getSongsWithNullGenre(
+    fun getGenreSongCounts(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean
-    ): Flow<List<SongEntity>>
-
-    @Query("SELECT DISTINCT genre FROM songs WHERE genre IS NOT NULL AND genre != '' ORDER BY genre ASC")
-    fun getUniqueGenres(): Flow<List<String>>
-
-    @Query("""
-        SELECT DISTINCT genre FROM songs
-        WHERE genre IS NOT NULL AND genre != ''
-        AND (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        ORDER BY genre ASC
-    """)
-    fun getUniqueGenres(
-        allowedParentDirs: List<String>,
-        applyDirectoryFilter: Boolean
-    ): Flow<List<String>>
-
-    @Query("""
-        SELECT EXISTS(
-            SELECT 1 FROM songs
-            WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-            AND (genre IS NULL OR genre = '')
-        )
-    """)
-    fun hasUnknownGenre(
-        allowedParentDirs: List<String>,
-        applyDirectoryFilter: Boolean
-    ): Flow<Boolean>
+    ): Flow<List<GenreSongCountRow>>
 
     @Query("SELECT DISTINCT album_art_uri_string FROM songs WHERE album_art_uri_string IS NOT NULL")
     fun getAllUniqueAlbumArtUrisFromSongs(): Flow<List<String>>

@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ViewList
@@ -44,6 +46,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.model.Genre
@@ -54,11 +57,19 @@ import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupied
 import com.lostf1sh.pixelplayeross.presentation.utils.GenreIconProvider
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
+import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import kotlinx.collections.immutable.ImmutableList
 
+/**
+ * The genre tiles shown by Search and by the Library's Genres tab.
+ *
+ * Search keeps the defaults. The Library tab hides the [showHeader] row (its grid/list toggle
+ * lives in the sort sheet there), shows each genre's song count, and passes its own
+ * [horizontalPadding], [contentPadding] and [gridState] to line up with the other library tabs.
+ */
 @OptIn(UnstableApi::class)
 @Composable
 fun GenreCategoriesGrid(
@@ -70,7 +81,12 @@ fun GenreCategoriesGrid(
     selectedGenreIds: Set<String> = emptySet(),
     onGenreLongPress: (Genre) -> Unit = {},
     onGenreSelectionToggle: (Genre) -> Unit = {},
-    getSelectionIndex: (String) -> Int? = { null }
+    getSelectionIndex: (String) -> Int? = { null },
+    showHeader: Boolean = true,
+    showSongCount: Boolean = false,
+    horizontalPadding: Dp = 18.dp,
+    contentPadding: PaddingValues? = null,
+    gridState: LazyGridState = rememberLazyGridState()
 ) {
     if (genres.isEmpty()) {
         Box(
@@ -93,9 +109,10 @@ fun GenreCategoriesGrid(
 
     LazyVerticalGrid(
         columns = if (isGridView) GridCells.Fixed(2) else GridCells.Fixed(1),
+        state = gridState,
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 18.dp)
+            .padding(horizontal = horizontalPadding)
             .clip(AbsoluteSmoothCornerShape(
                 cornerRadiusTR = 24.dp,
                 smoothnessAsPercentTR = 70,
@@ -106,14 +123,14 @@ fun GenreCategoriesGrid(
                 cornerRadiusBL = 0.dp,
                 smoothnessAsPercentBL = 70
             )),
-        contentPadding = PaddingValues(
+        contentPadding = contentPadding ?: PaddingValues(
             top = 8.dp,
             bottom = 28.dp + resolveNavBarOccupiedHeight(systemNavBarHeight, navBarCompactMode) + MiniPlayerHeight
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        item(span = { GridItemSpan(maxLineSpan) }) {
+        if (showHeader) item(span = { GridItemSpan(maxLineSpan) }) {
             androidx.compose.foundation.layout.Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -156,7 +173,8 @@ fun GenreCategoriesGrid(
                 isSelected = genre.id in selectedGenreIds,
                 selectionIndex = getSelectionIndex(genre.id),
                 onLongPress = { onGenreLongPress(genre) },
-                onSelectionToggle = { onGenreSelectionToggle(genre) }
+                onSelectionToggle = { onGenreSelectionToggle(genre) },
+                showSongCount = showSongCount
             )
         }
     }
@@ -172,7 +190,8 @@ private fun GenreCard(
     isSelected: Boolean,
     selectionIndex: Int?,
     onLongPress: () -> Unit,
-    onSelectionToggle: () -> Unit
+    onSelectionToggle: () -> Unit,
+    showSongCount: Boolean
 ) {
     val isDark = LocalPixelPlayerDarkTheme.current
     val themeColor = remember(genre, isDark) {
@@ -270,27 +289,26 @@ private fun GenreCard(
                     .padding(start = titleStartPadding, top = 14.dp, end = titleEndPadding),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
+                // Shrinks within bounds and wraps between words to fit the tile; ellipsizes
+                // only when the name still does not fit at the smallest size.
                 Text(
-                    text = titlePresentation.firstLine,
+                    text = titlePresentation.text,
                     style = titlePresentation.style,
                     color = onBackgroundColor,
-                    softWrap = false,
-                    minLines = 1,
-                    maxLines = 1,
+                    autoSize = titlePresentation.autoSize,
+                    maxLines = titlePresentation.maxLines,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                titlePresentation.secondLine?.let { secondLine ->
+                if (showSongCount && genre.songCount > 0) {
                     Text(
-                        text = secondLine,
-                        style = titlePresentation.style,
-                        color = onBackgroundColor,
-                        softWrap = false,
-                        minLines = 1,
+                        text = formatSongCount(genre.songCount),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = onBackgroundColor.copy(alpha = 0.8f),
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(titlePresentation.secondLineWidthFraction)
+                        modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }

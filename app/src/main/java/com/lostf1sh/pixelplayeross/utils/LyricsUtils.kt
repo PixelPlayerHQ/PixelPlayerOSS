@@ -43,12 +43,14 @@ import net.sourceforge.pinyin4j.PinyinHelper
 import net.sourceforge.pinyin4j.format.HanyuPinyinCaseType
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat
 import net.sourceforge.pinyin4j.format.HanyuPinyinToneType
+import com.lostf1sh.pixelplayeross.data.model.BackgroundVocals
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.data.model.SyncedLine
 import com.lostf1sh.pixelplayeross.data.model.SyncedWord
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 
+import java.text.Normalizer
 import java.util.Locale
 import java.util.regex.Pattern
 import kotlin.math.PI
@@ -646,6 +648,18 @@ object LyricsUtils {
     private val TRANSLATION_CREDIT_REGEX = Regex("^\\s*by\\s*[:：].+", RegexOption.IGNORE_CASE)
     private val LRC_METADATA_PATTERN = Pattern.compile("^\\[[a-zA-Z]+:.*]$")
 
+    // Enhanced-LRC backing vocals for the line above: [bg: <00:12.00>(oh <00:12.40>yeah)]
+    private val LRC_BACKGROUND_LINE_REGEX = Regex("^\\[bg:(.*)]$", RegexOption.IGNORE_CASE)
+
+    // Translation of the line above, read only for a line with no main text: [tr: (Uh uh)]
+    private val LRC_TRANSLATION_LINE_REGEX = Regex("^\\[tr:(.*)]$", RegexOption.IGNORE_CASE)
+
+    // Enhanced-LRC singer prefix, before or right after the first word tag: "v1: Hi", "<00:01.00>v2:Hi".
+    private val LRC_VOICE_PREFIX_REGEX = Regex(
+        "^(<\\d{2}:\\d{2}[.:]\\d{2,3}>)?\\s*v(\\d{1,4})\\s*:\\s*",
+        RegexOption.IGNORE_CASE
+    )
+
     private val KUGOU_LINE_REGEX = Pattern.compile("^\\[(\\d+),(\\d+)](.*)$")
     private val KUGOU_WORD_PATTERN = Pattern.compile("<(\\d+),(\\d+),(\\d+)>([^<]*)")
 
@@ -661,24 +675,72 @@ object LyricsUtils {
 
         val entireLyricsHasKana = lyricsText.any { it in '\u3040'..'\u309F' || it in '\u30A0'..'\u30FF' }
 
-        val normalizedInput = stripLeadingLyricsDocumentNoise(lyricsText)
+        // Files written on macOS and iOS often store Vietnamese and other accented text
+        // decomposed, with each tone mark as its own code point that a timed token can cut off.
+        val normalizedInput = stripLeadingLyricsDocumentNoise(lyricsText).toNfc()
         if (looksLikeTtmlDocument(normalizedInput)) {
             val converted = TtmlLyricsParser.parseToEnhancedLrc(normalizedInput)
                 ?: return Lyrics(plain = emptyList(), synced = emptyList())
             return parseLyrics(converted)
         }
 
-        if (looksLikeKugouFormat(lyricsText)) {
-            return parseKugouLyrics(lyricsText)
+        if (looksLikeKugouFormat(normalizedInput)) {
+            return parseKugouLyrics(normalizedInput)
         }
 
         val syncedLines = mutableListOf<SyncedLine>()
         val plainLines = mutableListOf<String>()
         var isSynced = false
+        // True while the only synced line is the empty one made for backing vocals before any line.
+        var holdsOpeningBackground = false
 
-        lyricsText.lines().forEach { rawLine ->
+        normalizedInput.lines().forEach { rawLine ->
             val line = sanitizeLrcLine(rawLine)
-            if (line.isEmpty() || LRC_METADATA_PATTERN.matcher(line).matches()) return@forEach
+            if (line.isEmpty()) return@forEach
+
+            // Checked before the metadata pattern, which "[bg: …]" would otherwise match.
+            val backgroundMatch = LRC_BACKGROUND_LINE_REGEX.matchEntire(line)
+            if (backgroundMatch != null) {
+                val previous = syncedLines.lastOrNull()
+                val background = parseBackgroundVocals(
+                    rawBody = backgroundMatch.groupValues[1],
+                    anchorTimeMs = previous?.time?.toLong() ?: 0L
+                ) ?: return@forEach
+                if (previous != null) {
+                    syncedLines[syncedLines.lastIndex] =
+                        previous.copy(background = previous.background.mergedWith(background))
+                } else if (!background.words.isNullOrEmpty()) {
+                    // Backing vocals before the first sung line get an empty main line of their
+                    // own, like a TTML paragraph sung only in the background, so they still hide
+                    // with the background vocals setting.
+                    isSynced = true
+                    holdsOpeningBackground = true
+                    syncedLines.add(
+                        SyncedLine(
+                            time = background.words.first().time,
+                            line = "",
+                            background = background
+                        )
+                    )
+                }
+                return@forEach
+            }
+            // Also checked before the metadata pattern. Only read under a line with no main text,
+            // the one place translationLrcLine writes it; anywhere else it is skipped like a header
+            // tag, since a line with text writes its translation at its own time and would not
+            // read a `[tr: …]` translation back the same way.
+            val translationMatch = LRC_TRANSLATION_LINE_REGEX.matchEntire(line)
+            if (translationMatch != null) {
+                val previous = syncedLines.lastOrNull()
+                val translation = stripFormatCharacters(translationMatch.groupValues[1]).trim()
+                if (previous != null && previous.line.isBlank() && translation.isNotEmpty()) {
+                    syncedLines[syncedLines.lastIndex] = previous.copy(
+                        translation = previous.translation?.let { "$it\n$translation" } ?: translation
+                    )
+                }
+                return@forEach
+            }
+            if (LRC_METADATA_PATTERN.matcher(line).matches()) return@forEach
 
             val lineMatcher = LRC_LINE_REGEX.matcher(line)
             if (lineMatcher.matches()) {
@@ -687,74 +749,36 @@ object LyricsUtils {
                 val seconds = lineMatcher.group(2)?.toLong() ?: 0
                 val fraction = lineMatcher.group(3)?.toLong() ?: 0
                 val textWithTags = stripFormatCharacters(lineMatcher.group(4)?.trim() ?: "")
-                val text = stripLrcTimestamps(textWithTags)
+                val (voice, text) = splitVoicePrefix(stripLrcTimestamps(textWithTags))
 
                 val millis = if (lineMatcher.group(3)?.length == 2) fraction * 10 else fraction
                 val lineTimestamp = minutes * 60 * 1000 + seconds * 1000 + millis
 
-                if (text.contains(LRC_WORD_TAG_REGEX)) {
-                    val words = mutableListOf<SyncedWord>()
-                    val parts = text.split(LRC_WORD_SPLIT_REGEX)
+                val syncedLine = if (text.contains(LRC_WORD_TAG_REGEX)) {
+                    val words = parseTimedWords(text, lineTimestamp)
                     val displayText = LRC_WORD_TAG_REGEX.replace(text, "")
-                    var pendingWordBoundary = false
-
-                    for (part in parts) {
-                        if (part.isEmpty()) continue
-                        val wordMatcher = LRC_WORD_REGEX.matcher(part)
-                        if (wordMatcher.find()) {
-                            val wordMinutes = wordMatcher.group(1)?.toLong() ?: 0
-                            val wordSeconds = wordMatcher.group(2)?.toLong() ?: 0
-                            val wordFraction = wordMatcher.group(3)?.toLong() ?: 0
-                            val wordText = stripFormatCharacters(wordMatcher.group(4) ?: "")
-                            val timedWordTextRaw = wordText
-                                .substringBefore('\n')
-                                .substringBefore('\r')
-                                .substringBefore("\\n")
-                                .substringBefore("\\r")
-                            val startsNewWord = words.isEmpty() ||
-                                pendingWordBoundary ||
-                                timedWordTextRaw.firstOrNull()?.isWhitespace() == true
-                            val timedWordText = timedWordTextRaw.trim()
-                            pendingWordBoundary = timedWordTextRaw.lastOrNull()?.isWhitespace() == true
-                            val wordMillis = if (wordMatcher.group(3)?.length == 2) wordFraction * 10 else wordFraction
-                            val wordTimestamp = wordMinutes * 60 * 1000 + wordSeconds * 1000 + wordMillis
-                            if (timedWordText.isNotEmpty()) {
-                                words.add(
-                                    SyncedWord(
-                                        time = wordTimestamp.toInt(),
-                                        word = timedWordText,
-                                        startsNewWord = startsNewWord
-                                    )
-                                )
-                            }
-                        } else {
-                            if (words.isEmpty()) {
-                                val leading = stripFormatCharacters(part)
-                                val startsNewWord = pendingWordBoundary || leading.firstOrNull()?.isWhitespace() == true
-                                val visibleLeading = leading.trim()
-                                pendingWordBoundary = leading.lastOrNull()?.isWhitespace() == true
-                                if (visibleLeading.isNotEmpty()) {
-                                    words.add(
-                                        SyncedWord(
-                                            time = lineTimestamp.toInt(),
-                                            word = visibleLeading,
-                                            startsNewWord = words.isEmpty() || startsNewWord
-                                        )
-                                    )
-                                }
-                            } else if (part.any { it.isWhitespace() }) {
-                                pendingWordBoundary = true
-                            }
-                        }
-                    }
-
-                    if (words.isNotEmpty()) {
-                        syncedLines.add(SyncedLine(lineTimestamp.toInt(), displayText, words))
-                    } else {
-                        syncedLines.add(SyncedLine(lineTimestamp.toInt(), displayText))
-                    }
+                    SyncedLine(
+                        time = lineTimestamp.toInt(),
+                        line = displayText,
+                        words = words.takeIf { it.isNotEmpty() },
+                        voice = voice
+                    )
                 } else {
-                    syncedLines.add(SyncedLine(lineTimestamp.toInt(), text))
+                    SyncedLine(time = lineTimestamp.toInt(), line = text, voice = voice)
+                }
+                // Backing vocals written just before a line at that line's own time are sung with
+                // it, unless a `[tr: …]` line already gave them a translation of their own.
+                val opening = syncedLines.singleOrNull()?.takeIf {
+                    holdsOpeningBackground &&
+                        it.line.isBlank() &&
+                        it.translation == null &&
+                        it.time == syncedLine.time
+                }
+                holdsOpeningBackground = false
+                if (opening != null) {
+                    syncedLines[0] = syncedLine.copy(background = opening.background)
+                } else {
+                    syncedLines.add(syncedLine)
                 }
             } else {
                 val stripped = stripLrcTimestamps(stripFormatCharacters(line))
@@ -765,13 +789,7 @@ object LyricsUtils {
                     } else {
                         last.line + "\n" + stripped
                     }
-                    val merged = if (last.words?.isNotEmpty() == true) {
-                        SyncedLine(last.time, mergedLineText, last.words)
-                    } else {
-                        SyncedLine(last.time, mergedLineText)
-                    }
-
-                    syncedLines.add(merged)
+                    syncedLines.add(last.copy(line = mergedLineText))
                 } else {
                     plainLines.add(stripped)
                 }
@@ -785,7 +803,8 @@ object LyricsUtils {
             }
             val plainVersion = pairedLines.map { line ->
                 buildString {
-                    append(line.line)
+                    // A line sung only in the background reads as its backing vocals.
+                    append(line.line.ifBlank { line.background?.text.orEmpty() })
                     if (!line.romanization.isNullOrEmpty()) append("\n").append(line.romanization)
                     if (!line.translation.isNullOrEmpty()) append("\n").append(line.translation)
                 }
@@ -794,6 +813,137 @@ object LyricsUtils {
         } else {
             Lyrics(plain = plainLines)
         }
+    }
+
+    /** Splits a leading `vN:` singer prefix off a line body, keeping a word tag that came before it. */
+    private fun splitVoicePrefix(text: String): Pair<Int?, String> {
+        val match = LRC_VOICE_PREFIX_REGEX.find(text) ?: return null to text
+        val voice = match.groupValues[2].toIntOrNull() ?: return null to text
+        return voice to match.groupValues[1] + text.substring(match.range.last + 1)
+    }
+
+    /**
+     * Splits an enhanced-LRC line body into timed syllables. A syllable starts a new visual word
+     * only when whitespace separates it from the one before, so `<00:45.73>whis<00:46.29>per`
+     * stays one word. A tag with no text after it marks when the previous syllable ends.
+     */
+    private fun parseTimedWords(text: String, lineTimestampMs: Long): List<SyncedWord> {
+        val words = mutableListOf<SyncedWord>()
+        var pendingWordBoundary = false
+
+        for (part in text.split(LRC_WORD_SPLIT_REGEX)) {
+            if (part.isEmpty()) continue
+            val wordMatcher = LRC_WORD_REGEX.matcher(part)
+            if (wordMatcher.find()) {
+                val wordMinutes = wordMatcher.group(1)?.toLong() ?: 0
+                val wordSeconds = wordMatcher.group(2)?.toLong() ?: 0
+                val wordFraction = wordMatcher.group(3)?.toLong() ?: 0
+                val wordText = stripFormatCharacters(wordMatcher.group(4) ?: "")
+                val timedWordTextRaw = wordText
+                    .substringBefore('\n')
+                    .substringBefore('\r')
+                    .substringBefore("\\n")
+                    .substringBefore("\\r")
+                val startsNewWord = words.isEmpty() ||
+                    pendingWordBoundary ||
+                    timedWordTextRaw.firstOrNull()?.isWhitespace() == true
+                val timedWordText = timedWordTextRaw.trim()
+                val endsWithWhitespace = timedWordTextRaw.lastOrNull()?.isWhitespace() == true
+                // A bare closing tag ("bones<00:12.80>") neither starts nor cancels a word break.
+                pendingWordBoundary = if (timedWordText.isEmpty()) {
+                    pendingWordBoundary || endsWithWhitespace
+                } else {
+                    endsWithWhitespace
+                }
+                val wordMillis = if (wordMatcher.group(3)?.length == 2) wordFraction * 10 else wordFraction
+                val wordTimestamp = (wordMinutes * 60 * 1000 + wordSeconds * 1000 + wordMillis).toInt()
+                if (timedWordText.isEmpty()) {
+                    words.endLastSyllableAt(wordTimestamp)
+                } else {
+                    words.addSyllable(
+                        SyncedWord(
+                            time = wordTimestamp,
+                            word = timedWordText,
+                            startsNewWord = startsNewWord
+                        )
+                    )
+                }
+            } else {
+                if (words.isEmpty()) {
+                    val leading = stripFormatCharacters(part)
+                    val startsNewWord = pendingWordBoundary || leading.firstOrNull()?.isWhitespace() == true
+                    val visibleLeading = leading.trim()
+                    pendingWordBoundary = leading.lastOrNull()?.isWhitespace() == true
+                    if (visibleLeading.isNotEmpty()) {
+                        words.add(
+                            SyncedWord(
+                                time = lineTimestampMs.toInt(),
+                                word = visibleLeading,
+                                startsNewWord = words.isEmpty() || startsNewWord
+                            )
+                        )
+                    }
+                } else if (part.any { it.isWhitespace() }) {
+                    pendingWordBoundary = true
+                }
+            }
+        }
+        return words
+    }
+
+    private fun MutableList<SyncedWord>.endLastSyllableAt(timeMs: Int) {
+        val last = lastOrNull() ?: return
+        if (last.endTime == null && timeMs > last.time) {
+            this[lastIndex] = last.copy(endTime = timeMs)
+        }
+    }
+
+    /**
+     * Adds [syllable], or folds it into the previous one when it starts with a combining mark:
+     * a tone mark cut off from its letter cannot be drawn on its own (it shows as a dotted circle).
+     */
+    private fun MutableList<SyncedWord>.addSyllable(syllable: SyncedWord) {
+        val previous = lastOrNull()
+        if (previous == null || !syllable.word.startsWithCombiningMark()) {
+            add(syllable)
+            return
+        }
+        this[lastIndex] = previous.copy(
+            word = (previous.word + syllable.word).toNfc(),
+            endTime = listOfNotNull(previous.endTime, syllable.endTime).maxOrNull()
+        )
+    }
+
+    private fun String.startsWithCombiningMark(): Boolean {
+        if (isEmpty()) return false
+        return when (Character.getType(codePointAt(0)).toByte()) {
+            Character.NON_SPACING_MARK,
+            Character.ENCLOSING_MARK,
+            Character.COMBINING_SPACING_MARK -> true
+            else -> false
+        }
+    }
+
+    private fun parseBackgroundVocals(rawBody: String, anchorTimeMs: Long): BackgroundVocals? {
+        val body = stripFormatCharacters(rawBody).trim()
+        val text = LRC_WORD_TAG_REGEX.replace(body, "").trim()
+        if (text.isEmpty()) return null
+        val words = if (body.contains(LRC_WORD_TAG_REGEX)) parseTimedWords(body, anchorTimeMs) else emptyList()
+        return BackgroundVocals(text = text, words = words.takeIf { it.isNotEmpty() })
+    }
+
+    /** Joins consecutive `[bg:]` lines for the same main line into one backing part. */
+    private fun BackgroundVocals?.mergedWith(next: BackgroundVocals): BackgroundVocals {
+        if (this == null) return next
+        val mergedWords = if (words != null && next.words != null) {
+            words + next.words.mapIndexed { index, word ->
+                if (index == 0) word.copy(startsNewWord = true) else word
+            }
+        } else {
+            // Timed and untimed parts cannot share one word list; show the joined text instead.
+            null
+        }
+        return BackgroundVocals(text = "$text ${next.text}", words = mergedWords)
     }
 
     /**
@@ -850,6 +1000,7 @@ object LyricsUtils {
 
             while (wordMatcher.find()) {
                 val wordOffsetMs = wordMatcher.group(1)?.toLongOrNull() ?: 0L
+                val wordDurationMs = wordMatcher.group(2)?.toLongOrNull() ?: 0L
                 val rawText = wordMatcher.group(4) ?: ""
 
                 val wordText = rawText.trim()
@@ -861,11 +1012,13 @@ object LyricsUtils {
 
                 if (wordText.isEmpty()) continue
 
-                words.add(
+                val wordStartMs = lineStartMs + wordOffsetMs
+                words.addSyllable(
                     SyncedWord(
-                        time = (lineStartMs + wordOffsetMs).toInt(),
+                        time = wordStartMs.toInt(),
                         word = wordText,
-                        startsNewWord = startsNew
+                        startsNewWord = startsNew,
+                        endTime = (wordStartMs + wordDurationMs).toInt().takeIf { wordDurationMs > 0L }
                     )
                 )
             }
@@ -929,6 +1082,9 @@ object LyricsUtils {
      * Pairs consecutive synced lines that share the same timestamp.
      * The second line is treated as a translation of the first.
      * Only pairs one translation per original — a third line at the same timestamp stays separate.
+     * A line marked for another singer (`v2:` after `v1:`) is a duet part, not a translation.
+     * An empty line (one sung only in the background) takes no line as its translation, since the
+     * next line may be sung at the same time; its translation is read from a `[tr: …]` line instead.
      */
     internal fun pairTranslationLines(lines: List<SyncedLine>): List<SyncedLine> {
         if (lines.size < 2) return lines
@@ -937,7 +1093,14 @@ object LyricsUtils {
         while (i < lines.size) {
             val current = lines[i]
             val next = lines.getOrNull(i + 1)
-            if (next != null && next.time == current.time && current.translation == null && current.line.isNotBlank() && next.line.isNotBlank()) {
+            if (
+                next != null &&
+                next.time == current.time &&
+                current.translation == null &&
+                current.line.isNotBlank() &&
+                next.line.isNotBlank() &&
+                (next.voice == null || next.voice == current.voice)
+            ) {
                 val translationParts = mutableListOf(next.line)
                 var consumed = 2
                 while (true) {
@@ -946,7 +1109,12 @@ object LyricsUtils {
                     translationParts.add(trailing.line)
                     consumed++
                 }
-                result.add(current.copy(translation = translationParts.joinToString("\n")))
+                result.add(
+                    current.copy(
+                        translation = translationParts.joinToString("\n"),
+                        background = current.background ?: next.background
+                    )
+                )
                 i += consumed
             } else {
                 result.add(current)
@@ -969,29 +1137,71 @@ object LyricsUtils {
 
     /**
      * Converts synced lyrics to LRC format string.
-     * Each line is formatted as [mm:ss.xx]text
+     * Each line is formatted as [mm:ss.xx]text, keeping `vN:` singer prefixes, `[bg: …]`
+     * backing vocals and translations so the file reads back the same way.
      * @param syncedLines The list of synced lines to convert.
      * @return A string in LRC format.
      */
-    fun syncedToLrcString(syncedLines: List<SyncedLine>): String {
-        return syncedLines.sortedBy { it.time }.flatMap { line ->
-            val totalMs = line.time
-            val minutes = totalMs / 60000
-            val seconds = (totalMs % 60000) / 1000
-            val hundredths = (totalMs % 1000) / 10
-            val timestamp = "[%02d:%02d.%02d]".format(minutes, seconds, hundredths)
+    fun syncedToLrcString(syncedLines: List<SyncedLine>): String =
+        toEnhancedLrc(syncedLines, includeWordTimings = false)
+
+    /**
+     * Writes synced lyrics as enhanced LRC that [parseLyrics] reads back into the same lines:
+     * a `vN:` singer prefix, `<mm:ss.xx>` syllable tags (plus a closing tag where a syllable's
+     * end is known), a `[bg: …]` line for backing vocals, then translations at the line's time
+     * (as `[tr: …]` lines under a line with no main text, see [translationLrcLine]).
+     * The backing line comes before the translations so it attaches to the sung line again.
+     */
+    fun toEnhancedLrc(lines: List<SyncedLine>, includeWordTimings: Boolean = true): String {
+        return lines.sortedBy { it.time }.flatMap { line ->
+            val timestamp = "[${formatLrcTimestamp(line.time)}]"
             buildList {
-                add("$timestamp${line.line}")
-                if (!line.translation.isNullOrBlank()) {
-                    line.translation
-                        .lines()
-                        .filter { it.isNotBlank() }
-                        .forEach { translationLine ->
-                            add("$timestamp$translationLine")
-                        }
+                val body = line.words
+                    ?.takeIf { includeWordTimings && it.isNotEmpty() }
+                    ?.let(::formatTimedWords)
+                    ?: line.line
+                add(timestamp + line.voice?.let { "v$it:" }.orEmpty() + body)
+
+                line.background?.let { background ->
+                    val backgroundBody = background.words
+                        ?.takeIf { includeWordTimings && it.isNotEmpty() }
+                        ?.let(::formatTimedWords)
+                        ?: background.text
+                    if (backgroundBody.isNotBlank()) add("[bg:$backgroundBody]")
                 }
+
+                line.translation
+                    ?.lines()
+                    ?.filter { it.isNotBlank() }
+                    ?.forEach { translationLine -> add(translationLrcLine(timestamp, line.line, translationLine)) }
             }
         }.joinToString("\n")
+    }
+
+    /**
+     * One line of [mainLine]'s translation. A line with main text takes the next line at its own
+     * time as its translation, which other players read too. An empty main line (sung only in the
+     * background) cannot: a line sung at that time would read back as its translation, so its
+     * translation is written as `[tr: …]` instead.
+     */
+    internal fun translationLrcLine(timestamp: String, mainLine: String, translationLine: String): String =
+        if (mainLine.isBlank()) "[tr:$translationLine]" else timestamp + translationLine
+
+    private fun formatTimedWords(words: List<SyncedWord>): String = buildString {
+        words.forEachIndexed { index, word ->
+            if (index > 0 && word.startsNewWord) append(' ')
+            append('<').append(formatLrcTimestamp(word.time)).append('>').append(word.word)
+            word.endTime
+                ?.takeIf { it > word.time }
+                ?.let { append('<').append(formatLrcTimestamp(it)).append('>') }
+        }
+    }
+
+    internal fun formatLrcTimestamp(timeMs: Int): String {
+        val safeTimeMs = timeMs.coerceAtLeast(0)
+        val totalSeconds = safeTimeMs / 1_000
+        val hundredths = (safeTimeMs % 1_000) / 10
+        return String.format(Locale.US, "%02d:%02d.%02d", totalSeconds / 60, totalSeconds % 60, hundredths)
     }
 
     /**
@@ -1023,6 +1233,9 @@ object LyricsUtils {
         }
     }
 }
+
+private fun String.toNfc(): String =
+    if (Normalizer.isNormalized(this, Normalizer.Form.NFC)) this else Normalizer.normalize(this, Normalizer.Form.NFC)
 
 private fun stripLeadingLyricsDocumentNoise(value: String): String {
     return value.trimStart { char ->

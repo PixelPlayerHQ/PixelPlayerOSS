@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Pagina artista</string>
+    <string name="artist_page_albums_collapsed_by_default">Mostra gli album compressi</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Se un artista ha più di un album, all\'inizio vengono mostrate solo le intestazioni degli album. Tocca un album per vederne i brani.</string>
+    <string name="artist_page_collapse_all_albums">Comprimi tutto</string>
+    <string name="artist_page_expand_all_albums">Espandi tutto</string>
+</resources>

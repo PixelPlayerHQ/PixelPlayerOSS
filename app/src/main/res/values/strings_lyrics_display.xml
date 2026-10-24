@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Word highlight</string>
+    <string name="lyrics_highlight_style_subtitle">How word-synced lyrics light up as they are sung</string>
+    <string name="lyrics_highlight_style_wipe">Gradient sweep</string>
+    <string name="lyrics_highlight_style_wipe_desc">A soft edge glides across each word as it is sung</string>
+    <string name="lyrics_highlight_style_fade">Fade</string>
+    <string name="lyrics_highlight_style_fade_desc">Each syllable fades in while it is sung</string>
+    <string name="lyrics_highlight_style_classic">Instant</string>
+    <string name="lyrics_highlight_style_classic_desc">Each syllable lights up the moment it starts</string>
+    <string name="lyrics_duet_layout_title">Duet layout</string>
+    <string name="lyrics_duet_layout_subtitle">Put each singer on their own side when the lyrics mark voices (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Background vocals</string>
+    <string name="lyrics_background_vocals_subtitle">Show backing vocals in smaller text under the main line</string>
+</resources>

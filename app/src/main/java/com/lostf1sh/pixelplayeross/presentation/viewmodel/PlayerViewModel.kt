@@ -59,12 +59,14 @@ import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtQuality
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
+import com.lostf1sh.pixelplayeross.data.preferences.restartsAtPosition
 import com.lostf1sh.pixelplayeross.data.repository.LyricsSearchResult
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.MusicNotificationProvider
 import com.lostf1sh.pixelplayeross.data.service.MusicService
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
 import com.lostf1sh.pixelplayeross.data.worker.SyncManager
+import com.lostf1sh.pixelplayeross.di.DispatcherProvider
 import com.lostf1sh.pixelplayeross.utils.AppShortcutManager
 import com.lostf1sh.pixelplayeross.utils.ValidatedLyricsImport
 import com.lostf1sh.pixelplayeross.utils.QueueUtils
@@ -296,7 +298,8 @@ class PlayerViewModel @Inject constructor(
     val multiSelectionStateHolder: MultiSelectionStateHolder,
     val playlistSelectionStateHolder: PlaylistSelectionStateHolder,
     private val sessionToken: SessionToken,
-    private val mediaControllerFactory: com.lostf1sh.pixelplayeross.data.media.MediaControllerFactory
+    private val mediaControllerFactory: com.lostf1sh.pixelplayeross.data.media.MediaControllerFactory,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _playerUiState = MutableStateFlow(PlayerUiState())
@@ -641,7 +644,7 @@ class PlayerViewModel @Inject constructor(
 
     fun showAndPlaySongFromLibrary(
         song: Song,
-        queueName: String = "Library",
+        queueName: String = context.getString(R.string.tab_library),
         isVoluntaryPlay: Boolean = true
     ) {
         launchLatestFullQueuePlayback(
@@ -658,7 +661,7 @@ class PlayerViewModel @Inject constructor(
 
     fun showAndPlaySongFromFavorites(
         song: Song,
-        queueName: String = "Liked Songs",
+        queueName: String = context.getString(R.string.queue_name_liked_songs),
         isVoluntaryPlay: Boolean = true
     ) {
         launchLatestFullQueuePlayback(
@@ -796,7 +799,7 @@ class PlayerViewModel @Inject constructor(
         val missingIds = ArrayList<String>()
         val cachedQueue = ArrayList<Song>(orderedIds.size)
 
-        withContext(Dispatchers.Default) {
+        withContext(dispatchers.default) {
             orderedIds.forEach { songId ->
                 val cachedSong = cachedSongsById[songId]
                 if (cachedSong != null) {
@@ -812,7 +815,7 @@ class PlayerViewModel @Inject constructor(
         }
 
         val missingSongsById = getSongsByIdsChunked(missingIds).associateBy { it.id }
-        return withContext(Dispatchers.Default) {
+        return withContext(dispatchers.default) {
             val finalQueue = ArrayList<Song>(orderedIds.size)
             orderedIds.forEach { songId ->
                 val resolvedSong = cachedSongsById[songId] ?: missingSongsById[songId]
@@ -830,7 +833,7 @@ class PlayerViewModel @Inject constructor(
             return musicRepository.getSongsByIds(songIds).first()
         }
 
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatchers.io) {
             buildList(songIds.size) {
                 songIds.chunked(SONG_ID_QUERY_CHUNK_SIZE).forEach { chunk ->
                     addAll(musicRepository.getSongsByIds(chunk).first())
@@ -1010,21 +1013,24 @@ class PlayerViewModel @Inject constructor(
             initialValue = 0
         )
 
+    private val defaultLibraryTabs: ImmutableList<String> =
+        LibraryTabId.entries.map { it.storageKey }.toImmutableList()
+
     val libraryTabsFlow: StateFlow<ImmutableList<String>> = userPreferencesRepository.libraryTabsOrderFlow
         .map { orderJson ->
             if (orderJson != null) {
                 try {
                     // An empty saved order (hand-edited or restored) would leave the library without pages.
                     Json.decodeFromString<List<String>>(orderJson).toImmutableList()
-                        .ifEmpty { persistentListOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED") }
+                        .ifEmpty { defaultLibraryTabs }
                 } catch (e: Exception) {
-                    persistentListOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED")
+                    defaultLibraryTabs
                 }
             } else {
-                persistentListOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED")
+                defaultLibraryTabs
             }
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), persistentListOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED"))
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), defaultLibraryTabs)
 
     private val _loadedTabs = MutableStateFlow(emptySet<String>())
     private var lastBlockedDirectories: Set<String>? = null
@@ -1046,6 +1052,7 @@ class PlayerViewModel @Inject constructor(
                     LibraryTabId.PLAYLISTS -> SortOption.PLAYLISTS
                     LibraryTabId.FOLDERS -> SortOption.FOLDERS
                     LibraryTabId.LIKED -> SortOption.LIKED
+                    LibraryTabId.GENRES -> SortOption.GENRES
                 }
             } finally {
                 Trace.endSection()
@@ -1067,12 +1074,40 @@ class PlayerViewModel @Inject constructor(
 
     val allSongsFlow: StateFlow<ImmutableList<Song>> = libraryStateHolder.allSongs
 
-    val genres: StateFlow<ImmutableList<Genre>> = libraryStateHolder.genres
+    /** Null until the first genre list arrives, so the Genres tab can tell loading from empty. */
+    private val loadedGenres: StateFlow<ImmutableList<Genre>?> = libraryStateHolder.genres
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    val genres: StateFlow<ImmutableList<Genre>> = loadedGenres
+        .map { it ?: persistentListOf() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = persistentListOf()
         )
+
+    val currentGenreSortOption: StateFlow<SortOption> = libraryStateHolder.currentGenreSortOption
+
+    /** The Library's Genres tab: [genres] in the chosen sort, or null while still loading. */
+    val libraryGenres: StateFlow<LibraryGenresState?> =
+        combine(loadedGenres, currentGenreSortOption) { genres, sortOption ->
+            genres?.let {
+                LibraryGenresState(
+                    genres = sortGenresList(it, sortOption).toImmutableList(),
+                    sortOption = sortOption
+                )
+            }
+        }
+            .flowOn(dispatchers.default)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null
+            )
 
     val paletteRegenerationTargets: StateFlow<List<Song>> = musicRepository.getDistinctAlbumArtSongs()
         .stateIn(
@@ -1330,7 +1365,7 @@ class PlayerViewModel @Inject constructor(
         )
     }
 
-    fun shuffleAllSongs(queueName: String = "All Songs (Shuffled)") {
+    fun shuffleAllSongs(queueName: String = context.getString(R.string.queue_name_all_songs_shuffled)) {
         Timber.tag("ShuffleDebug").d("shuffleAllSongs called.")
         
         viewModelScope.launch {
@@ -1376,7 +1411,11 @@ class PlayerViewModel @Inject constructor(
 
                 if (songs.isNotEmpty()) {
                     Timber.d("[TileDebug] Calling playSongsShuffled with ${songs.size} songs")
-                    playSongsShuffled(songs, "All Songs (Shuffled)", startAtZero = true)
+                    playSongsShuffled(
+                        songs,
+                        context.getString(R.string.queue_name_all_songs_shuffled),
+                        startAtZero = true
+                    )
                 } else {
                     Timber.w("[TileDebug] No songs found even after sync - library may be empty")
                     sendToast(context.getString(R.string.player_no_songs_in_library_toast))
@@ -1397,7 +1436,11 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val randomSongs = musicRepository.getRandomSongs(limit = SHUFFLE_ALL_SONG_LIMIT)
             if (randomSongs.isNotEmpty()) {
-                playSongsShuffled(randomSongs, "All Songs (Shuffled)", startAtZero = true)
+                playSongsShuffled(
+                    randomSongs,
+                    context.getString(R.string.queue_name_all_songs_shuffled),
+                    startAtZero = true
+                )
             }
         }
     }
@@ -1408,7 +1451,11 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val favSongs = musicRepository.getFavoriteSongsOnce(playerUiState.value.currentStorageFilter)
             if (favSongs.isNotEmpty()) {
-                playSongsShuffled(favSongs, "Liked Songs (Shuffled)", startAtZero = true)
+                playSongsShuffled(
+                    favSongs,
+                    context.getString(R.string.queue_name_liked_songs_shuffled),
+                    startAtZero = true
+                )
             }
         }
     }
@@ -1422,6 +1469,21 @@ class PlayerViewModel @Inject constructor(
                 if (albumSongs.isNotEmpty()) {
                     playSongsShuffled(albumSongs, randomAlbum.title, startAtZero = true)
                 }
+            }
+        }
+    }
+
+    fun shuffleRandomGenre() {
+        viewModelScope.launch {
+            val allGenres = loadedGenres.value ?: libraryStateHolder.genres.first()
+            // Unknown is the bucket of untagged songs, so it is only picked when nothing else is.
+            val randomGenre = allGenres
+                .filterNot { it.id == UNKNOWN_GENRE_ID }
+                .ifEmpty { allGenres }
+                .randomOrNull() ?: return@launch
+            val genreSongs = musicRepository.getMusicByGenre(randomGenre.name).first()
+            if (genreSongs.isNotEmpty()) {
+                playSongsShuffled(genreSongs, randomGenre.name, startAtZero = true)
             }
         }
     }
@@ -1521,6 +1583,7 @@ class PlayerViewModel @Inject constructor(
 
             viewModelScope.launch {
                 userPreferencesRepository.migrateTabOrder()
+                userPreferencesRepository.migrateGenresTab()
             }
 
             viewModelScope.launch {
@@ -1635,6 +1698,11 @@ class PlayerViewModel @Inject constructor(
                     SortOption.FOLDERS,
                     SortOption.FolderNameAZ
                 )
+                val initialFolderSongSort = resolveSortOption(
+                    userPreferencesRepository.folderSongsSortOptionFlow.first(),
+                    SortOption.FOLDER_SONGS,
+                    SortOption.FolderSongTitleAZ
+                )
                 val initialLikedSort = resolveSortOption(
                     userPreferencesRepository.likedSongsSortOptionFlow.first(),
                     SortOption.LIKED,
@@ -1647,6 +1715,7 @@ class PlayerViewModel @Inject constructor(
                         currentAlbumSortOption = initialAlbumSort,
                         currentArtistSortOption = initialArtistSort,
                         currentFolderSortOption = initialFolderSort,
+                        currentFolderSongSortOption = initialFolderSongSort,
                         currentFavoriteSortOption = initialLikedSort
                     )
                 }
@@ -1655,6 +1724,7 @@ class PlayerViewModel @Inject constructor(
                 sortAlbums(initialAlbumSort, persist = false)
                 sortArtists(initialArtistSort, persist = false)
                 sortFolders(initialFolderSort, persist = false)
+                sortFolderSongs(initialFolderSongSort, persist = false)
                 sortFavoriteSongs(initialLikedSort, persist = false)
             }
 
@@ -1775,6 +1845,11 @@ class PlayerViewModel @Inject constructor(
                             currentFavoriteSortOption = snapshot.favoriteSort,
                         )
                     }
+                }
+            }
+            viewModelScope.launch {
+                libraryStateHolder.currentFolderSongSortOption.collect { folderSongSort ->
+                    _playerUiState.update { it.copy(currentFolderSongSortOption = folderSongSort) }
                 }
             }
             viewModelScope.launch {
@@ -1944,7 +2019,7 @@ class PlayerViewModel @Inject constructor(
 
     fun showAndPlaySong(song: Song) {
         Timber.tag("ShuffleDebug").d("showAndPlaySong (single song overload) called for '${song.title}'")
-        showAndPlaySong(song, listOf(song), "Library")
+        showAndPlaySong(song, listOf(song), context.getString(R.string.tab_library))
     }
 
     fun playSongAtPosition(song: Song, startPositionMs: Long) {
@@ -2019,7 +2094,7 @@ class PlayerViewModel @Inject constructor(
         Timber.tag("ShuffleDebug").d("playAlbum called for album: ${album.title}")
         viewModelScope.launch {
             try {
-                val songsList: List<Song> = withContext(Dispatchers.IO) {
+                val songsList: List<Song> = withContext(dispatchers.io) {
                     musicRepository.getSongsForAlbum(album.id).first()
                 }
 
@@ -2045,7 +2120,7 @@ class PlayerViewModel @Inject constructor(
         Timber.tag("ShuffleDebug").d("playArtist called for artist: ${artist.name}")
         viewModelScope.launch {
             try {
-                val songsList: List<Song> = withContext(Dispatchers.IO) {
+                val songsList: List<Song> = withContext(dispatchers.io) {
                     musicRepository.getSongsForArtist(artist.id).first()
                 }
 
@@ -2320,7 +2395,7 @@ class PlayerViewModel @Inject constructor(
 
             val allSongsById = libraryStateHolder.allSongsById.value
             
-            val queue = withContext(Dispatchers.Default) {
+            val queue = withContext(dispatchers.default) {
                 mediaItems.mapNotNull { mediaItem ->
                     resolveSongFromMediaItem(mediaItem, allSongsById)
                 }
@@ -2440,7 +2515,7 @@ class PlayerViewModel @Inject constructor(
 
         metadataProbeJob?.cancel()
         metadataProbeMediaId = mediaId
-        metadataProbeJob = viewModelScope.launch(Dispatchers.IO) {
+        metadataProbeJob = viewModelScope.launch(dispatchers.io) {
             val probedMetadata = runCatching {
                 val retriever = MediaMetadataRetriever()
                 try {
@@ -2818,7 +2893,7 @@ class PlayerViewModel @Inject constructor(
             }
 
             val finalSongsToPlay = if (isPersistent && isShuffleOn) {
-                withContext(Dispatchers.Default) {
+                withContext(dispatchers.default) {
                     QueueUtils.buildAnchoredShuffleQueueSuspending(
                         validSongs,
                         validSongs.indexOfFirst { it.id == validStartSong.id }.coerceAtLeast(0)
@@ -2932,7 +3007,7 @@ class PlayerViewModel @Inject constructor(
         } else {
             setPreparingSong(null)
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.io) {
             val albumArtUri = song.albumArtUriString
             if (albumArtUri.isNullOrBlank()) {
                 themeStateHolder.extractAndGenerateColorScheme(
@@ -2966,7 +3041,7 @@ class PlayerViewModel @Inject constructor(
         songsToPlay: List<Song>,
         startSongId: String,
         playlistId: String?
-    ): PreparedPlaybackQueueSegments = withContext(Dispatchers.Default) {
+    ): PreparedPlaybackQueueSegments = withContext(dispatchers.default) {
         val currentIndex = songsToPlay
             .indexOfFirst { it.id == startSongId }
             .takeIf { it >= 0 }
@@ -3270,7 +3345,7 @@ class PlayerViewModel @Inject constructor(
      */
     fun playSelectedSongs(songs: List<Song>) {
         if (songs.isEmpty()) return
-        playSongs(songs, songs.first(), "Selected Songs")
+        playSongs(songs, songs.first(), context.getString(R.string.queue_name_selected_songs))
         multiSelectionStateHolder.clearSelection()
     }
 
@@ -3402,7 +3477,7 @@ class PlayerViewModel @Inject constructor(
 
     /** Resolves the selected genres to their songs, in selection order and without duplicates. */
     suspend fun getSongsForGenres(genres: List<Genre>): List<Song> {
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatchers.io) {
             genres.flatMap { genre ->
                 musicRepository.getMusicByGenre(genre.name).first()
             }.distinctBy { it.id }
@@ -3550,7 +3625,7 @@ class PlayerViewModel @Inject constructor(
         val albumsToProcess = albums.take(MAX_ALBUM_BATCH_SELECTION)
         val wasTrimmed = albums.size > albumsToProcess.size
 
-        val songs = withContext(Dispatchers.IO) {
+        val songs = withContext(dispatchers.io) {
             buildList {
                 albumsToProcess.forEach { album ->
                     val albumSongs = musicRepository.getSongsForAlbum(album.id).first()
@@ -3572,7 +3647,7 @@ class PlayerViewModel @Inject constructor(
     suspend fun resolveAlbumSongsForBatchActions(albums: List<Album>): List<Song> {
         if (albums.isEmpty()) return emptyList()
         val visibleSongIds = currentLibrarySelectionSongIds()
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatchers.io) {
             flattenDistinctGroups(
                 groups = albums.map { album ->
                     sortSongsForAlbumSelection(musicRepository.getSongsForAlbum(album.id).first())
@@ -3590,7 +3665,7 @@ class PlayerViewModel @Inject constructor(
     suspend fun resolveArtistSongsForBatchActions(artists: List<Artist>): List<Song> {
         if (artists.isEmpty()) return emptyList()
         val visibleSongIds = currentLibrarySelectionSongIds()
-        return withContext(Dispatchers.IO) {
+        return withContext(dispatchers.io) {
             flattenDistinctGroups(
                 groups = artists.map { artist ->
                     musicRepository.getSongsForArtist(artist.id).first()
@@ -3638,7 +3713,7 @@ class PlayerViewModel @Inject constructor(
             val skippedCount = songs.size - deletableSongs.size
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                val deleteRequests = withContext(Dispatchers.IO) {
+                val deleteRequests = withContext(dispatchers.io) {
                     deletableSongs.mapNotNull { song ->
                         com.lostf1sh.pixelplayeross.utils.MediaStorePermissionHelper
                             .resolveDeleteRequestUri(
@@ -3763,7 +3838,7 @@ class PlayerViewModel @Inject constructor(
             }
 
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                val intentSender = withContext(Dispatchers.IO) {
+                val intentSender = withContext(dispatchers.io) {
                     com.lostf1sh.pixelplayeross.utils.MediaStorePermissionHelper
                         .resolveDeleteRequestUri(
                             context = activity,
@@ -3961,6 +4036,13 @@ class PlayerViewModel @Inject constructor(
         playbackStateHolder.previousSong()
     }
 
+    /**
+     * Whether [previousSong] at [positionMs] restarts the current track under the "Previous
+     * button" preference, ignoring queue bounds. Read at event time, so it adds no UI state.
+     */
+    fun previousButtonRestartsAt(positionMs: Long): Boolean =
+        playbackStateHolder.currentPreviousButtonBehavior().restartsAtPosition(positionMs)
+
     /** Steps back to the previous track even past the restart threshold of [previousSong]. */
     fun forcePreviousSong() {
         AdvancedPerformanceDiagnostics.recordEventIfEnabled(
@@ -4010,6 +4092,14 @@ class PlayerViewModel @Inject constructor(
         libraryStateHolder.sortFolders(sortOption, persist)
     }
 
+    fun sortFolderSongs(sortOption: SortOption, persist: Boolean = true) {
+        libraryStateHolder.sortFolderSongs(sortOption, persist)
+    }
+
+    fun sortGenres(sortOption: SortOption, persist: Boolean = true) {
+        libraryStateHolder.sortGenres(sortOption, persist)
+    }
+
     fun setFoldersPlaylistView(isPlaylistView: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setFoldersPlaylistView(isPlaylistView)
@@ -4032,6 +4122,7 @@ class PlayerViewModel @Inject constructor(
             path = path,
             getUiState = { _playerUiState.value },
             updateUiState = { mutation -> _playerUiState.update(mutation) },
+            cachedSongsById = { libraryStateHolder.allSongsById.value },
             onFolderChanged = { folderPath ->
                 folderNavigationStateHolder.hydrateCurrentFolderSongsIfNeeded(
                     scope = viewModelScope,
@@ -4049,6 +4140,7 @@ class PlayerViewModel @Inject constructor(
         folderNavigationStateHolder.navigateBackFolder(
             getUiState = { _playerUiState.value },
             updateUiState = { mutation -> _playerUiState.update(mutation) },
+            cachedSongsById = { libraryStateHolder.allSongsById.value },
             onFolderChanged = { folderPath ->
                 folderNavigationStateHolder.hydrateCurrentFolderSongsIfNeeded(
                     scope = viewModelScope,
@@ -4262,7 +4354,7 @@ class PlayerViewModel @Inject constructor(
     fun selectSongForInfo(song: Song) {
         _selectedSongForInfo.value = song
         viewModelScope.launch {
-            val hydrated = withContext(Dispatchers.IO) {
+            val hydrated = withContext(dispatchers.io) {
                 musicRepository.getSong(song.id).first()
             } ?: return@launch
             if (_selectedSongForInfo.value?.id == song.id) {
@@ -4667,7 +4759,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun performLyricsSave(song: Song, lyrics: Lyrics, preferSynced: Boolean) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(dispatchers.io) {
             try {
                 val songFile = java.io.File(song.path)
                 val lrcFile = java.io.File(songFile.parentFile, "${songFile.nameWithoutExtension}.lrc")
@@ -4793,7 +4885,7 @@ class PlayerViewModel @Inject constructor(
         val uris = uriStrings.mapNotNull { it?.takeIf(String::isNotBlank) }.distinct()
         if (uris.isEmpty()) return
 
-        withContext(Dispatchers.IO) {
+        withContext(dispatchers.io) {
             albumArtThemeDao.deleteThemesByUris(uris)
         }
     }
@@ -4913,7 +5005,7 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             repeat(90) { attempt ->
                 val controllerReady = mediaController != null
-                val songs = withContext(Dispatchers.IO) {
+                val songs = withContext(dispatchers.io) {
                     musicRepository.getAllSongsOnce()
                 }
                 Timber.tag("PixelPlayerBenchmark").i(
@@ -4970,7 +5062,7 @@ class PlayerViewModel @Inject constructor(
                 val sourceSong = if (song.lyrics != null) {
                     song
                 } else {
-                    withContext(Dispatchers.IO) {
+                    withContext(dispatchers.io) {
                         musicRepository.getSong(song.id).first()
                     } ?: song
                 }
@@ -5043,6 +5135,12 @@ class PlayerViewModel @Inject constructor(
     fun toggleGenreViewMode() {
         viewModelScope.launch {
             userPreferencesRepository.setGenreGridView(!isGenreGridView.value)
+        }
+    }
+
+    fun setGenreGridView(isGrid: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setGenreGridView(isGrid)
         }
     }
 

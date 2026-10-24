@@ -94,15 +94,20 @@ import com.lostf1sh.pixelplayeross.presentation.components.HomeOptionsBottomShee
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSection
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSectionMinSongsToShow
+import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSongOptionsSheet
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.StatsOverviewCard
 import com.lostf1sh.pixelplayeross.presentation.components.resolveMainScreenBottomGradientHeight
 import com.lostf1sh.pixelplayeross.presentation.model.collectRecentlyPlayedSongIds
 import com.lostf1sh.pixelplayeross.presentation.model.mapRecentlyPlayedSongs
+import com.lostf1sh.pixelplayeross.presentation.model.withUpdatedSongs
+import com.lostf1sh.pixelplayeross.presentation.model.withoutSong
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.PlayingEqIcon
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.components.StreamingProviderSheet
+import com.lostf1sh.pixelplayeross.presentation.recap.RecapHomeCard
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.RecapEntryViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.sharedPlayerViewModel
@@ -140,6 +145,7 @@ fun HomeScreen(
         (context as? android.app.Activity)?.intent?.getBooleanExtra("is_benchmark", false) ?: false
     }
     val statsViewModel: StatsViewModel = hiltViewModel()
+    val recapEntryViewModel: RecapEntryViewModel = hiltViewModel()
     val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val dailyMixSongs by playerViewModel.dailyMixSongs.collectAsStateWithLifecycle()
     val curatedYourMixSongs by playerViewModel.yourMixSongs.collectAsStateWithLifecycle()
@@ -199,8 +205,11 @@ fun HomeScreen(
 
     LaunchedEffect(latestRecentlyPlayedSongs, lifecycleOwner) {
         val isHomeVisible = lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
-        if (recentlyPlayedSongs.isEmpty() || !isHomeVisible) {
-            recentlyPlayedSongs = latestRecentlyPlayedSongs
+        recentlyPlayedSongs = if (recentlyPlayedSongs.isEmpty() || !isHomeVisible) {
+            latestRecentlyPlayedSongs
+        } else {
+            // Keep the pills in place while Home is on screen, but show edits to their songs.
+            recentlyPlayedSongs.withUpdatedSongs(latestRecentlyPlayedSongs)
         }
     }
 
@@ -224,7 +233,9 @@ fun HomeScreen(
         yourMixSongs.isNotEmpty() || hasHomeLoadingMinimumElapsed || isBenchmarkMode
     }
 
-    val yourMixSong: String = "Today's Mix for you"
+    val yourMixSubtitle = stringResource(R.string.home_your_mix_subtitle)
+    val yourMixQueueName = stringResource(R.string.home_your_mix_queue_name)
+    val recentlyPlayedQueueName = stringResource(R.string.presentation_batch_b_queue_recently_played)
 
     // Seed with the live value: starting from null made the bottom padding grow one frame
     // after returning to Home, once the scroll position was already restored, which left the
@@ -251,12 +262,14 @@ fun HomeScreen(
     var showChangelogBottomSheet by remember { mutableStateOf(false) }
     var showBetaInfoBottomSheet by remember { mutableStateOf(false) }
     var showStreamingProviderSheet by remember { mutableStateOf(false) }
+    var recentSongForOptions by remember { mutableStateOf<Song?>(null) }
     val sheetState = rememberModalSheetState()
     val betaSheetState = rememberModalSheetState()
     val scope = rememberCoroutineScope()
     LocalContext.current
 
     val homeStatsOverviewState by statsViewModel.homeOverviewState.collectAsStateWithLifecycle()
+    val recapHomeCard by recapEntryViewModel.homeCard.collectAsStateWithLifecycle()
 
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     val density = LocalDensity.current
@@ -298,6 +311,7 @@ fun HomeScreen(
         dailyMixSongs.isNotEmpty(),
         recentlyPlayedSongs.size,
         homeStatsOverviewState,
+        recapHomeCard,
         bottomPadding
     ) {
         if (!needsScrollRestore || !isHomeResumed) return@LaunchedEffect
@@ -383,15 +397,15 @@ fun HomeScreen(
                         contentType = "your_mix_header"
                     ) {
                         YourMixHeader(
-                            song = yourMixSong,
+                            song = yourMixSubtitle,
                             isShuffleEnabled = isShuffleEnabled,
                             onPlayShuffled = {
                                 if (usesFallbackHomeMix) {
-                                    playerViewModel.shuffleAllSongs(queueName = "Your Mix")
+                                    playerViewModel.shuffleAllSongs(queueName = yourMixQueueName)
                                 } else {
                                     playerViewModel.playSongsShuffled(
                                         songsToPlay = yourMixSongs,
-                                        queueName = "Your Mix",
+                                        queueName = yourMixQueueName,
                                         startAtZero = true,
                                     )
                                 }
@@ -427,11 +441,26 @@ fun HomeScreen(
                             pattern = activePattern,
                             onSongClick = { song ->
                                 if (usesFallbackHomeMix) {
-                                    playerViewModel.showAndPlaySongFromLibrary(song, queueName = "Your Mix")
+                                    playerViewModel.showAndPlaySongFromLibrary(song, queueName = yourMixQueueName)
                                 } else {
-                                    playerViewModel.showAndPlaySong(song, yourMixSongs, "Your Mix")
+                                    playerViewModel.showAndPlaySong(song, yourMixSongs, yourMixQueueName)
                                 }
                             }
+                        )
+                    }
+                }
+
+                // Seasonal: December to mid-January, until dismissed for that year.
+                recapHomeCard?.let { entry ->
+                    item(
+                        key = "recap_home_card",
+                        contentType = "recap_home_card"
+                    ) {
+                        RecapHomeCard(
+                            entry = entry,
+                            onOpen = { navController.navigateSafely(Screen.Recap.createRoute(entry.year)) },
+                            onDismiss = { recapEntryViewModel.dismissHomeCard(entry.year) },
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
@@ -480,9 +509,12 @@ fun HomeScreen(
                                     playerViewModel.playSongs(
                                         songsToPlay = recentlyPlayedQueue,
                                         startSong = song,
-                                        queueName = "Recently Played"
+                                        queueName = recentlyPlayedQueueName
                                     )
                                 }
+                            },
+                            onSongLongClick = { song ->
+                                recentSongForOptions = song
                             },
                             onOpenAllClick = {
                                 navController.navigateSafely(Screen.RecentlyPlayed.route)
@@ -572,6 +604,35 @@ fun HomeScreen(
             isJellyfinLoggedIn = isJellyfinLoggedIn,
             onNavigateToJellyfinDashboard = {
                 navController.navigateSafely(Screen.JellyfinDashboard.route)
+            }
+        )
+    }
+    recentSongForOptions?.let { song ->
+        RecentlyPlayedSongOptionsSheet(
+            song = song,
+            queueSongs = recentlyPlayedQueue,
+            queueName = recentlyPlayedQueueName,
+            playerViewModel = playerViewModel,
+            onDismiss = { recentSongForOptions = null },
+            onSongDeleted = { deletedSong ->
+                recentlyPlayedSongs = recentlyPlayedSongs.withoutSong(deletedSong.id)
+            },
+            onNavigateToAlbum = { selectedSong ->
+                navController.navigateSafelyReplacing(
+                    route = Screen.AlbumDetail.createRoute(selectedSong.albumId),
+                    patternToPop = Screen.AlbumDetail.route
+                )
+            },
+            onNavigateToArtist = { artistId ->
+                navController.navigateSafelyReplacing(
+                    route = Screen.ArtistDetail.createRoute(artistId),
+                    patternToPop = Screen.ArtistDetail.route
+                )
+            },
+            onNavigateToGenre = { selectedSong ->
+                selectedSong.genre?.let {
+                    navController.navigateSafely(Screen.GenreDetail.createRoute(java.net.URLEncoder.encode(it, "UTF-8")))
+                }
             }
         )
     }

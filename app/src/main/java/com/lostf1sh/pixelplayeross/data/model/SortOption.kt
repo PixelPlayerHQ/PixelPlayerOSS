@@ -358,6 +358,136 @@ sealed class SortOption(
         direction = SortDirection.Descending
     )
 
+    // Songs listed inside a folder. Separate from the folder sort above, which orders the folder rows.
+    object FolderSongTitleAZ : SortOption(
+        storageKey = "folder_song_title_az",
+        displayName = "Title (A-Z)",
+        methodLabel = "Title",
+        methodLabelRes = R.string.sort_method_title,
+        methodKey = "folder_song_title",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongTitleZA : SortOption(
+        storageKey = "folder_song_title_za",
+        displayName = "Title (Z-A)",
+        methodLabel = "Title",
+        methodLabelRes = R.string.sort_method_title,
+        methodKey = "folder_song_title",
+        direction = SortDirection.Descending
+    )
+    object FolderSongArtist : SortOption(
+        storageKey = "folder_song_artist",
+        displayName = "Artist",
+        methodLabel = "Artist",
+        methodLabelRes = R.string.sort_method_artist,
+        methodKey = "folder_song_artist",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongArtistDesc : SortOption(
+        storageKey = "folder_song_artist_desc",
+        displayName = "Artist (Z-A)",
+        methodLabel = "Artist",
+        methodLabelRes = R.string.sort_method_artist,
+        methodKey = "folder_song_artist",
+        direction = SortDirection.Descending
+    )
+    object FolderSongAlbum : SortOption(
+        storageKey = "folder_song_album",
+        displayName = "Album",
+        methodLabel = "Album",
+        methodLabelRes = R.string.sort_method_album,
+        methodKey = "folder_song_album",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongAlbumDesc : SortOption(
+        storageKey = "folder_song_album_desc",
+        displayName = "Album (Z-A)",
+        methodLabel = "Album",
+        methodLabelRes = R.string.sort_method_album,
+        methodKey = "folder_song_album",
+        direction = SortDirection.Descending
+    )
+    object FolderSongAlbumArtist : SortOption(
+        storageKey = "folder_song_album_artist",
+        displayName = "Album Artist",
+        methodLabel = "Album Artist",
+        methodLabelRes = R.string.sort_method_album_artist,
+        methodKey = "folder_song_album_artist",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongAlbumArtistDesc : SortOption(
+        storageKey = "folder_song_album_artist_desc",
+        displayName = "Album Artist (Z-A)",
+        methodLabel = "Album Artist",
+        methodLabelRes = R.string.sort_method_album_artist,
+        methodKey = "folder_song_album_artist",
+        direction = SortDirection.Descending
+    )
+    object FolderSongDateAdded : SortOption(
+        storageKey = "folder_song_date_added",
+        displayName = "Date Added",
+        methodLabel = "Date Added",
+        methodLabelRes = R.string.sort_method_date_added,
+        methodKey = "folder_song_date_added",
+        direction = SortDirection.Descending
+    )
+    object FolderSongDateAddedAsc : SortOption(
+        storageKey = "folder_song_date_added_asc",
+        displayName = "Date Added (Oldest First)",
+        methodLabel = "Date Added",
+        methodLabelRes = R.string.sort_method_date_added,
+        methodKey = "folder_song_date_added",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongDuration : SortOption(
+        storageKey = "folder_song_duration",
+        displayName = "Duration",
+        methodLabel = "Duration",
+        methodLabelRes = R.string.sort_method_duration,
+        methodKey = "folder_song_duration",
+        direction = SortDirection.Descending
+    )
+    object FolderSongDurationAsc : SortOption(
+        storageKey = "folder_song_duration_asc",
+        displayName = "Duration (Shortest First)",
+        methodLabel = "Duration",
+        methodLabelRes = R.string.sort_method_duration,
+        methodKey = "folder_song_duration",
+        direction = SortDirection.Ascending
+    )
+    object GenreNameAZ : SortOption(
+        storageKey = "genre_name_az",
+        displayName = "Name (A-Z)",
+        methodLabel = "Name",
+        methodLabelRes = R.string.sort_method_name,
+        methodKey = "genre_name",
+        direction = SortDirection.Ascending
+    )
+    object GenreNameZA : SortOption(
+        storageKey = "genre_name_za",
+        displayName = "Name (Z-A)",
+        methodLabel = "Name",
+        methodLabelRes = R.string.sort_method_name,
+        methodKey = "genre_name",
+        direction = SortDirection.Descending
+    )
+    object GenreSongCountDesc : SortOption(
+        storageKey = "genre_song_count_desc",
+        displayName = "Most Songs",
+        methodLabel = "Song Count",
+        methodLabelRes = R.string.sort_method_song_count,
+        methodKey = "genre_song_count",
+        direction = SortDirection.Descending
+    )
+    object GenreSongCountAsc : SortOption(
+        storageKey = "genre_song_count_asc",
+        displayName = "Fewest Songs",
+        methodLabel = "Song Count",
+        methodLabelRes = R.string.sort_method_song_count,
+        methodKey = "genre_song_count",
+        direction = SortDirection.Ascending
+    )
+
     val canFlipDirection: Boolean
         get() = direction != null && flipDirection().storageKey != storageKey
 
@@ -440,6 +570,23 @@ sealed class SortOption(
             )
         }
 
+        val FOLDER_SONGS: List<SortOption> by lazy {
+            listOf(
+                FolderSongTitleAZ,
+                FolderSongTitleZA,
+                FolderSongArtist,
+                FolderSongArtistDesc,
+                FolderSongAlbum,
+                FolderSongAlbumDesc,
+                FolderSongAlbumArtist,
+                FolderSongAlbumArtistDesc,
+                FolderSongDateAdded,
+                FolderSongDateAddedAsc,
+                FolderSongDuration,
+                FolderSongDurationAsc
+            )
+        }
+
         val LIKED: List<SortOption> by lazy {
             listOf(
                 LikedSongTitleAZ,
@@ -453,8 +600,17 @@ sealed class SortOption(
             )
         }
 
+        val GENRES: List<SortOption> by lazy {
+            listOf(
+                GenreNameAZ,
+                GenreNameZA,
+                GenreSongCountDesc,
+                GenreSongCountAsc
+            )
+        }
+
         private val ALL: List<SortOption> by lazy {
-            SONGS + ALBUMS + ARTISTS + PLAYLISTS + FOLDERS + LIKED
+            SONGS + ALBUMS + ARTISTS + PLAYLISTS + FOLDERS + FOLDER_SONGS + LIKED + GENRES
         }
 
         private val defaultOptionByMethodKey: Map<String, SortOption> by lazy {

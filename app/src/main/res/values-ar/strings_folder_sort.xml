@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sort method labels for the songs inside a folder -->
+    <string name="sort_method_album_artist">فنان الألبوم</string>
+</resources>

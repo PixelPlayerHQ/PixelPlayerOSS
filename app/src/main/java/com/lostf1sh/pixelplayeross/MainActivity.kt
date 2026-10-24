@@ -146,6 +146,7 @@ import com.lostf1sh.pixelplayeross.utils.CrashHandler
 import com.lostf1sh.pixelplayeross.utils.LogUtils
 import com.lostf1sh.pixelplayeross.utils.shouldKeepScreenAwake
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -165,12 +166,18 @@ import kotlinx.coroutines.flow.map
 
 @Immutable
 data class BottomNavItem(
-    /** Stable, non-localized key; the UI shows [labelResId]. */
-    val label: String,
+    /** Shown as the tab label and content description, so it follows the app language. */
     @StringRes val labelResId: Int,
     @DrawableRes val iconResId: Int,
     @DrawableRes val selectedIconResId: Int? = null,
     val screen: Screen
+)
+
+/** Top-level destinations shared by the bottom navigation bar and the navigation rail. */
+internal val MainNavItems: ImmutableList<BottomNavItem> = persistentListOf(
+    BottomNavItem(R.string.tab_home, R.drawable.rounded_home_24, R.drawable.home_24_rounded_filled, Screen.Home),
+    BottomNavItem(R.string.search, R.drawable.rounded_search_24, R.drawable.rounded_search_24, Screen.Search),
+    BottomNavItem(R.string.tab_library, R.drawable.rounded_library_music_24, R.drawable.round_library_music_24, Screen.Library)
 )
 
 private data class DismissUndoBarSlice(
@@ -565,7 +572,7 @@ class MainActivity : ComponentActivity() {
                 CircularWavyProgressIndicator()
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = "Preparing setup…",
+                    text = stringResource(R.string.setup_gate_preparing),
                     style = MaterialTheme.typography.titleMedium,
                     textAlign = TextAlign.Center
                 )
@@ -680,13 +687,6 @@ class MainActivity : ComponentActivity() {
         playerViewModel: PlayerViewModel,
         navController: NavHostController
     ) = traceSection("MainActivity.MainUI") {
-        val commonNavItems = remember {
-            persistentListOf(
-                BottomNavItem("Home", R.string.tab_home, R.drawable.rounded_home_24, R.drawable.home_24_rounded_filled, Screen.Home),
-                BottomNavItem("Search", R.string.search, R.drawable.rounded_search_24, R.drawable.rounded_search_24, Screen.Search),
-                BottomNavItem("Library", R.string.tab_library, R.drawable.rounded_library_music_24, R.drawable.round_library_music_24, Screen.Library)
-            )
-        }
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         var isSearchBarActive by remember { mutableStateOf(false) }
@@ -708,6 +708,7 @@ class MainActivity : ComponentActivity() {
                 Screen.NavBarCrRad.route,
                 Screen.About.route,
                 Screen.Stats.route,
+                Screen.Recap.route,
                 Screen.EditTransition.route,
                 Screen.Experimental.route,
                 Screen.LyricsSettings.route,
@@ -870,7 +871,7 @@ class MainActivity : ComponentActivity() {
                         }
                         PlayerNavigationRail(
                             navController = navController,
-                            navItems = commonNavItems,
+                            navItems = MainNavItems,
                             currentRoute = currentRoute,
                             onSearchIconDoubleTap = onSearchIconDoubleTap
                         )
@@ -969,7 +970,7 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 PlayerInternalNavigationBar(
                                     navController = navController,
-                                    navItems = commonNavItems,
+                                    navItems = MainNavItems,
                                     currentRoute = currentRoute,
                                     navBarStyle = navBarStyle,
                                     compactMode = navBarCompactMode,
@@ -994,7 +995,11 @@ class MainActivity : ComponentActivity() {
                                 .map { it.currentSong?.id != null }
                                 .distinctUntilChanged()
                         }.collectAsStateWithLifecycle(initialValue = false)
-                        val routesWithHiddenMiniPlayer = remember { setOf(Screen.NavBarCrRad.route) }
+                        // The recap story is full screen; its own Play button closes it so the
+                        // player shows up again.
+                        val routesWithHiddenMiniPlayer = remember {
+                            setOf(Screen.NavBarCrRad.route, Screen.Recap.route)
+                        }
                         val shouldHideMiniPlayer by remember(currentRoute) {
                             derivedStateOf { currentRoute in routesWithHiddenMiniPlayer }
                         }

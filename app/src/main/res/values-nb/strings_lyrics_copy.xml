@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Kopier sangtekst</string>
+    <string name="lyrics_copied">Sangteksten er kopiert til utklippstavlen</string>
+    <string name="lyrics_line_copied">Linjen er kopiert til utklippstavlen</string>
+    <string name="lyrics_copy_line_action">Kopier linje</string>
+</resources>

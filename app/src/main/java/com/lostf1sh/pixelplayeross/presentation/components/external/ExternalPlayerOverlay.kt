@@ -294,7 +294,7 @@ fun ExternalPlayerOverlay(
                             thumbColor = progressColor,
                             wavelength = 30.dp,
                             isPlaying = stablePlayerState.isPlaying,
-                            semanticsLabel = "Playback position"
+                            semanticsLabel = stringResource(R.string.cd_playback_position)
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))

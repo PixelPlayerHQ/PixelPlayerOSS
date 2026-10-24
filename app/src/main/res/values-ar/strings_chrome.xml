@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">جاري تحضير الإعداد…</string>
+    <string name="song_info_label_provider">المزود</string>
+    <string name="song_info_label_path">المسار</string>
+    <string name="cd_playlist_artwork">قائمة التشغيل</string>
+    <string name="home_your_mix_subtitle">مزيج اليوم المختار لك</string>
+    <string name="home_your_mix_queue_name">المزيج الخاص بك</string>
+    <string name="queue_name_liked_songs">الأغاني المفضلة</string>
+    <string name="queue_name_all_songs_shuffled">جميع الأغاني (عشوائي)</string>
+    <string name="queue_name_liked_songs_shuffled">الأغاني المفضلة (عشوائي)</string>
+    <string name="queue_name_selected_songs">الأغاني المحددة</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">لوحة مشغّل PixelPlayer مطويّة، %1$s</string>
+    <string name="cd_player_sheet_expanded">لوحة مشغّل PixelPlayer موسّعة، %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">لوحة مشغّل PixelPlayer مطويّة</string>
+    <string name="cd_player_sheet_expanded_no_track">لوحة مشغّل PixelPlayer موسّعة</string>
+    <string name="mini_player_connecting_device">جاري الاتصال بالجهاز…</string>
+    <string name="mini_player_preparing_playback">جاري تجهيز التشغيل…</string>
+    <string name="mini_player_loading_audio">جاري تحميل الصوت…</string>
+    <string name="cd_shuffle">تشغيل عشوائي</string>
+    <string name="cd_playback_position">موضع التشغيل</string>
+    <string name="add_bookmark_title">حفظ إشارة مرجعية</string>
+    <string name="add_bookmark_saved_point">نقطة التشغيل المحفوظة</string>
+    <string name="add_bookmark_use_lyric_line">استخدام سطر من الكلمات</string>
+    <string name="add_bookmark_default_name">إشارة مرجعية @ %1$s</string>
+</resources>

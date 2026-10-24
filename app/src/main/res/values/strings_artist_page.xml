@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings > Library > Artists, and the album list of an artist's page -->
+    <string name="artist_page_settings_section">Artist Page</string>
+    <string name="artist_page_albums_collapsed_by_default">Start with Albums Collapsed</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">When an artist has more than one album, show only the album headers at first. Tap an album to see its songs.</string>
+    <!-- Button above the album list of an artist's page -->
+    <string name="artist_page_collapse_all_albums">Collapse all</string>
+    <string name="artist_page_expand_all_albums">Expand all</string>
+</resources>

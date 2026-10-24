@@ -19,7 +19,11 @@ import com.lostf1sh.pixelplayeross.data.preferences.AppLanguage
 import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
+import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
+import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_DUET_LAYOUT_ENABLED
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_FONT_SIZE_SP
+import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_SHOW_LYRICS_BACKGROUND_VOCALS
+import com.lostf1sh.pixelplayeross.data.preferences.LyricsWordHighlightStyle
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreset
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
@@ -100,6 +104,7 @@ data class SettingsUiState(
     val tapBackgroundClosesPlayer: Boolean = false,
     val miniPlayerSwipeToSkip: Boolean = false,
     val autoplayOnSkip: Boolean = true,
+    val previousButtonBehavior: PreviousButtonBehavior = PreviousButtonBehavior.DEFAULT,
     val hapticsEnabled: Boolean = true,
     val immersiveLyricsEnabled: Boolean = false,
     val immersiveLyricsTimeout: Long = 4000L,
@@ -107,6 +112,9 @@ data class SettingsUiState(
     val animatedLyricsBlurEnabled: Boolean = true,
     val animatedLyricsBlurStrength: Float = 2.5f,
     val lyricsFontSizeSp: Float = DEFAULT_LYRICS_FONT_SIZE_SP,
+    val lyricsWordHighlightStyle: LyricsWordHighlightStyle = LyricsWordHighlightStyle.DEFAULT,
+    val lyricsDuetLayoutEnabled: Boolean = DEFAULT_LYRICS_DUET_LAYOUT_ENABLED,
+    val showLyricsBackgroundVocals: Boolean = DEFAULT_SHOW_LYRICS_BACKGROUND_VOCALS,
     val backupInfoDismissed: Boolean = false,
     val isDataTransferInProgress: Boolean = false,
     val restorePlan: RestorePlan? = null,
@@ -426,6 +434,24 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            combine(
+                userPreferencesRepository.lyricsWordHighlightStyleFlow,
+                userPreferencesRepository.lyricsDuetLayoutEnabledFlow,
+                userPreferencesRepository.showLyricsBackgroundVocalsFlow
+            ) { highlightStyle, duetLayoutEnabled, showBackgroundVocals ->
+                Triple(highlightStyle, duetLayoutEnabled, showBackgroundVocals)
+            }.collect { (highlightStyle, duetLayoutEnabled, showBackgroundVocals) ->
+                _uiState.update {
+                    it.copy(
+                        lyricsWordHighlightStyle = highlightStyle,
+                        lyricsDuetLayoutEnabled = duetLayoutEnabled,
+                        showLyricsBackgroundVocals = showBackgroundVocals
+                    )
+                }
+            }
+        }
+
+        viewModelScope.launch {
             userPreferencesRepository.externalLyricsEnabledFlow.collect { enabled ->
                 _uiState.update { it.copy(externalLyricsEnabled = enabled) }
             }
@@ -476,6 +502,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.autoplayOnSkipFlow.collect { enabled ->
                 _uiState.update { it.copy(autoplayOnSkip = enabled) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.previousButtonBehaviorFlow.collect { behavior ->
+                _uiState.update { it.copy(previousButtonBehavior = behavior) }
             }
         }
 
@@ -884,6 +916,24 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setLyricsWordHighlightStyle(style: LyricsWordHighlightStyle) {
+        viewModelScope.launch {
+            userPreferencesRepository.setLyricsWordHighlightStyle(style)
+        }
+    }
+
+    fun setLyricsDuetLayoutEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setLyricsDuetLayoutEnabled(enabled)
+        }
+    }
+
+    fun setShowLyricsBackgroundVocals(enabled: Boolean) {
+        viewModelScope.launch {
+            userPreferencesRepository.setShowLyricsBackgroundVocals(enabled)
+        }
+    }
+
     fun refreshLibrary() {
         viewModelScope.launch {
             if (isSyncing.value) return@launch
@@ -1023,6 +1073,12 @@ class SettingsViewModel @Inject constructor(
     fun setAutoplayOnSkip(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setAutoplayOnSkip(enabled)
+        }
+    }
+
+    fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
+        viewModelScope.launch {
+            userPreferencesRepository.setPreviousButtonBehavior(behavior)
         }
     }
 

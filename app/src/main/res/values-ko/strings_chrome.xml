@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">설정 준비 중…</string>
+    <string name="song_info_label_provider">제공업체</string>
+    <string name="song_info_label_path">경로</string>
+    <string name="cd_playlist_artwork">플레이리스트</string>
+    <string name="home_your_mix_subtitle">오늘의 맞춤 믹스</string>
+    <string name="home_your_mix_queue_name">나의 믹스</string>
+    <string name="queue_name_liked_songs">좋아요 표시한 곡</string>
+    <string name="queue_name_all_songs_shuffled">전체 곡 (셔플)</string>
+    <string name="queue_name_liked_songs_shuffled">좋아요 표시한 곡 (셔플)</string>
+    <string name="queue_name_selected_songs">선택한 곡</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer 플레이어 시트 접힘, %1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer 플레이어 시트 펼쳐짐, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer 플레이어 시트 접힘</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer 플레이어 시트 펼쳐짐</string>
+    <string name="mini_player_connecting_device">기기에 연결 중…</string>
+    <string name="mini_player_preparing_playback">재생 준비 중…</string>
+    <string name="mini_player_loading_audio">오디오 로드 중…</string>
+    <string name="cd_shuffle">셔플</string>
+    <string name="cd_playback_position">재생 위치</string>
+    <string name="add_bookmark_title">북마크 저장</string>
+    <string name="add_bookmark_saved_point">저장된 재생 지점</string>
+    <string name="add_bookmark_use_lyric_line">가사 줄 사용</string>
+    <string name="add_bookmark_default_name">북마크 @ %1$s</string>
+</resources>

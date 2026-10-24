@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Kurulum hazırlanıyor…</string>
+    <string name="song_info_label_provider">Sağlayıcı</string>
+    <string name="song_info_label_path">Dosya yolu</string>
+    <string name="cd_playlist_artwork">Çalma Listesi</string>
+    <string name="home_your_mix_subtitle">Bugün sizin için hazırlanan miks</string>
+    <string name="home_your_mix_queue_name">Size Özel Miks</string>
+    <string name="queue_name_liked_songs">Beğenilen Şarkılar</string>
+    <string name="queue_name_all_songs_shuffled">Tüm Şarkılar (Karışık)</string>
+    <string name="queue_name_liked_songs_shuffled">Beğenilen Şarkılar (Karışık)</string>
+    <string name="queue_name_selected_songs">Seçilen Şarkılar</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer oynatıcı paneli daraltıldı, %1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer oynatıcı paneli genişletildi, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer oynatıcı paneli daraltıldı</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer oynatıcı paneli genişletildi</string>
+    <string name="mini_player_connecting_device">Cihaza bağlanılıyor…</string>
+    <string name="mini_player_preparing_playback">Oynatma hazırlanıyor…</string>
+    <string name="mini_player_loading_audio">Ses yükleniyor…</string>
+    <string name="cd_shuffle">Karıştır</string>
+    <string name="cd_playback_position">Oynatma konumu</string>
+    <string name="add_bookmark_title">Yer imi kaydet</string>
+    <string name="add_bookmark_saved_point">Kaydedilen oynatma noktası</string>
+    <string name="add_bookmark_use_lyric_line">Şarkı sözü satırını kullan</string>
+    <string name="add_bookmark_default_name">Yer imi @ %1$s</string>
+</resources>

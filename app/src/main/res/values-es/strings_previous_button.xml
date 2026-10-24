@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Botón anterior</string>
+    <string name="setcat_previous_button_description">Elige si el botón anterior reinicia la canción actual o salta directamente a la anterior.</string>
+    <string name="setcat_previous_button_restart_track">Reiniciar pista</string>
+    <string name="setcat_previous_button_restart_track_description">Pasados los primeros segundos, el botón anterior vuelve a empezar la canción. Púlsalo otra vez para retroceder.</string>
+    <string name="setcat_previous_button_previous_track">Pista anterior</string>
+    <string name="setcat_previous_button_previous_track_description">El botón anterior siempre vuelve a la canción anterior, sin importar en qué punto de la actual estés.</string>
+</resources>

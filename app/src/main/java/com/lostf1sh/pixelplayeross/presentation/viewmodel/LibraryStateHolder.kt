@@ -2,13 +2,14 @@ package com.lostf1sh.pixelplayeross.presentation.viewmodel
 
 import android.content.ComponentCallbacks2
 import android.os.Trace
+import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import androidx.compose.ui.graphics.toArgb
 import com.lostf1sh.pixelplayeross.data.model.Album
 import com.lostf1sh.pixelplayeross.data.model.Artist
+import com.lostf1sh.pixelplayeross.data.model.Genre
 import com.lostf1sh.pixelplayeross.data.model.LibraryTabId
 import com.lostf1sh.pixelplayeross.data.model.MusicFolder
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -29,13 +30,41 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val ENABLE_FOLDERS_STORAGE_FILTER = false
-private data class GenreSeed(
-    val id: String,
-    val name: String
+/** [com.lostf1sh.pixelplayeross.data.model.Genre.id] of the bucket for songs without a genre tag. */
+internal const val UNKNOWN_GENRE_ID = "unknown"
+
+/**
+ * Orders genres for the Library's Genres tab. The Unknown bucket (songs without a genre tag)
+ * always stays last, whatever the sort.
+ */
+internal fun sortGenresList(genres: List<Genre>, sortOption: SortOption): List<Genre> {
+    val (unknown, known) = genres.partition { it.id == UNKNOWN_GENRE_ID }
+    val byName = compareBy<Genre> { it.name.lowercase(Locale.ROOT) }.thenBy { it.id }
+    val sorted = when (sortOption) {
+        SortOption.GenreNameZA -> known.sortedWith(
+            compareByDescending<Genre> { it.name.lowercase(Locale.ROOT) }.thenBy { it.id }
+        )
+        SortOption.GenreSongCountDesc -> known.sortedWith(
+            compareByDescending<Genre> { it.songCount }.then(byName)
+        )
+        SortOption.GenreSongCountAsc -> known.sortedWith(
+            compareBy<Genre> { it.songCount }.then(byName)
+        )
+        else -> known.sortedWith(byName)
+    }
+    return sorted + unknown
+}
+
+/** The Genres tab's list together with the sort it was ordered by. */
+@Immutable
+data class LibraryGenresState(
+    val genres: ImmutableList<Genre>,
+    val sortOption: SortOption
 )
 
 /**
@@ -116,8 +145,14 @@ class LibraryStateHolder @Inject constructor(
     private val _currentFolderSortOption = MutableStateFlow<SortOption>(SortOption.FolderNameAZ)
     val currentFolderSortOption = _currentFolderSortOption.asStateFlow()
 
+    private val _currentFolderSongSortOption = MutableStateFlow<SortOption>(SortOption.FolderSongTitleAZ)
+    val currentFolderSongSortOption = _currentFolderSongSortOption.asStateFlow()
+
     private val _currentFavoriteSortOption = MutableStateFlow<SortOption>(SortOption.LikedSongDateLiked)
     val currentFavoriteSortOption = _currentFavoriteSortOption.asStateFlow()
+
+    private val _currentGenreSortOption = MutableStateFlow<SortOption>(SortOption.GenreNameAZ)
+    val currentGenreSortOption = _currentGenreSortOption.asStateFlow()
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     val albumsPagingFlow: kotlinx.coroutines.flow.Flow<androidx.paging.PagingData<Album>> =
@@ -155,34 +190,12 @@ class LibraryStateHolder @Inject constructor(
         .flatMapLatest { filter -> musicRepository.getFavoriteSongCountFlow(filter) }
         .flowOn(Dispatchers.IO)
 
-    val genres: kotlinx.coroutines.flow.Flow<ImmutableList<com.lostf1sh.pixelplayeross.data.model.Genre>> =
+    // Genre already carries its colors and song count, so equal lists can be dropped here.
+    val genres: kotlinx.coroutines.flow.Flow<ImmutableList<Genre>> =
         musicRepository.getGenres()
-        .map { genres ->
-            genres.map { genre ->
-                GenreSeed(
-                    id = genre.id,
-                    name = genre.name
-                )
-            }
-        }
-        .distinctUntilChanged()
-        .map { seeds ->
-            seeds.map { seed ->
-                val lightThemeColor = com.lostf1sh.pixelplayeross.ui.theme.GenreThemeUtils.getGenreThemeColor(seed.id, isDark = false)
-                val darkThemeColor = com.lostf1sh.pixelplayeross.ui.theme.GenreThemeUtils.getGenreThemeColor(seed.id, isDark = true)
-
-                com.lostf1sh.pixelplayeross.data.model.Genre(
-                    id = seed.id,
-                    name = seed.name,
-                    lightColorHex = lightThemeColor.container.toHexString(),
-                    onLightColorHex = lightThemeColor.onContainer.toHexString(),
-                    darkColorHex = darkThemeColor.container.toHexString(),
-                    onDarkColorHex = darkThemeColor.onContainer.toHexString()
-                )
-            }
-                .toImmutableList()
-        }
-        .flowOn(Dispatchers.Default)
+            .distinctUntilChanged()
+            .map { genres -> genres.toImmutableList() }
+            .flowOn(Dispatchers.Default)
 
 
     private var scope: CoroutineScope? = null
@@ -204,8 +217,14 @@ class LibraryStateHolder @Inject constructor(
             val folderSortKey = userPreferencesRepository.foldersSortOptionFlow.first()
             _currentFolderSortOption.value = SortOption.FOLDERS.find { it.storageKey == folderSortKey } ?: SortOption.FolderNameAZ
 
+            val folderSongSortKey = userPreferencesRepository.folderSongsSortOptionFlow.first()
+            _currentFolderSongSortOption.value = SortOption.FOLDER_SONGS.find { it.storageKey == folderSongSortKey } ?: SortOption.FolderSongTitleAZ
+
             val likedSortKey = userPreferencesRepository.likedSongsSortOptionFlow.first()
             _currentFavoriteSortOption.value = SortOption.LIKED.find { it.storageKey == likedSortKey } ?: SortOption.LikedSongDateLiked
+
+            val genreSortKey = userPreferencesRepository.genresSortOptionFlow.first()
+            _currentGenreSortOption.value = SortOption.GENRES.find { it.storageKey == genreSortKey } ?: SortOption.GenreNameAZ
 
             _currentStorageFilter.value = userPreferencesRepository.lastStorageFilterFlow.first()
         }
@@ -395,6 +414,32 @@ class LibraryStateHolder @Inject constructor(
                 sortFoldersList(_musicFolders.value, sortOption).toImmutableList()
             }
             _musicFolders.value = sorted
+        }
+    }
+
+    /** The Folders tab orders the open folder's songs itself; this only stores the choice. */
+    fun sortFolderSongs(sortOption: SortOption, persist: Boolean = true) {
+        scope?.launch {
+            if (persist && _currentFolderSongSortOption.value.storageKey == sortOption.storageKey) {
+                return@launch
+            }
+            if (persist) {
+                userPreferencesRepository.setFolderSongsSortOption(sortOption.storageKey)
+            }
+            _currentFolderSongSortOption.value = sortOption
+        }
+    }
+
+    /** The Genres tab sorts the in-memory genre list itself, so only the option changes here. */
+    fun sortGenres(sortOption: SortOption, persist: Boolean = true) {
+        scope?.launch {
+            if (persist && _currentGenreSortOption.value.storageKey == sortOption.storageKey) {
+                return@launch
+            }
+            if (persist) {
+                userPreferencesRepository.setGenresSortOption(sortOption.storageKey)
+            }
+            _currentGenreSortOption.value = sortOption
         }
     }
 
@@ -589,8 +634,4 @@ class LibraryStateHolder @Inject constructor(
         foldersJob = null
         observerScope = null
     }
-}
-
-private fun androidx.compose.ui.graphics.Color.toHexString(): String {
-    return String.format("#%08X", this.toArgb())
 }

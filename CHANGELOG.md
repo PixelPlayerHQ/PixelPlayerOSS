@@ -4,6 +4,9 @@ All notable changes to PixelPlayerOSS will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Navidrome/Subsonic (including Gonic) and Jellyfin covers no longer hold up other artwork while a slow server answers. A cover download kept one of the threads that decode every image in the app until the server replied, even after its list item had scrolled away, so a burst of slow covers left the rest of the library on placeholders. Downloads now run off those threads and stop as soon as their cover leaves the screen, and a cover shown in several places at once is downloaded once instead of once per place ([#118](https://github.com/PixelPlayerHQ/PixelPlayerOSS/issues/118)).
+
 ## [0.4.0] - 2026-10-17
 
 ### Added

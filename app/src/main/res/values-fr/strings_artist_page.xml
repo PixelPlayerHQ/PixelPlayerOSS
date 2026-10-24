@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Page de l\'artiste</string>
+    <string name="artist_page_albums_collapsed_by_default">Afficher les albums réduits</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Si un artiste a plusieurs albums, seuls les en-têtes des albums s\'affichent au départ. Appuyez sur un album pour voir ses titres.</string>
+    <string name="artist_page_collapse_all_albums">Tout réduire</string>
+    <string name="artist_page_expand_all_albums">Tout développer</string>
+</resources>

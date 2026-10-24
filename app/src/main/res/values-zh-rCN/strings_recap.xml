@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">你的 %1$d 年度回顾</string>
+    <string name="recap_card_title_so_far">你的 %1$d，至今</string>
+    <string name="recap_card_subtitle">重温你的音乐一年</string>
+    <string name="recap_card_subtitle_so_far">看看你今年的音乐之旅进展如何</string>
+    <string name="recap_home_card_title">你的 %1$d 年度回顾来了</string>
+    <string name="recap_home_card_subtitle">重温定义你这一年的歌曲、艺人和时刻。</string>
+    <string name="recap_home_card_open">打开回顾</string>
+    <string name="recap_home_card_dismiss">隐藏</string>
+    <string name="recap_cd_close">关闭回顾</string>
+    <string name="recap_cd_pause">暂停</string>
+    <string name="recap_cd_resume">继续</string>
+    <string name="recap_cd_slide_progress">第 %1$d 页，共 %2$d 页</string>
+    <string name="recap_action_next_slide">下一页</string>
+    <string name="recap_action_previous_slide">上一页</string>
+    <string name="recap_close">关闭</string>
+    <string name="recap_not_enough_title">收听记录还不够</string>
+    <string name="recap_not_enough_subtitle">继续听歌，你的 %1$d 年度回顾就会逐渐丰富起来。</string>
+    <string name="recap_intro_kicker">PixelPlayerOSS 年度回顾</string>
+    <string name="recap_intro_title">你的音乐一年</string>
+    <string name="recap_intro_title_so_far">你的一年，至今</string>
+    <string name="recap_intro_subtitle">回顾陪伴你这一年的歌曲、艺人和时刻。</string>
+    <string name="recap_tap_hint">轻触继续</string>
+    <string name="recap_minutes_kicker">%1$d 年你一共听了</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">分钟</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="other">相当于不间断地听了约 %d 天音乐。</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="other">相当于不间断地听了约 %d 小时音乐。</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">日均收听</string>
+    <string name="recap_minutes_active_days">有音乐的日子</string>
+    <string name="recap_months_kicker">你收听最多的月份</string>
+    <string name="recap_months_detail">收听 %1$s</string>
+    <string name="recap_clock_kicker">你的收听时钟</string>
+    <string name="recap_personality_early_bird">早起鸟</string>
+    <string name="recap_personality_early_bird_desc">你用音乐开启每一天，清晨是你的黄金时段。</string>
+    <string name="recap_personality_daytime">白天型听众</string>
+    <string name="recap_personality_daytime_desc">从上午到下午，音乐陪你度过了一整天。</string>
+    <string name="recap_personality_evening">傍晚型听众</string>
+    <string name="recap_personality_evening_desc">一天渐渐安静下来，音乐声却越来越大。</string>
+    <string name="recap_personality_night_owl">夜猫子</string>
+    <string name="recap_personality_night_owl_desc">夜越深，你听得越多。</string>
+    <string name="recap_clock_favorite_day">最爱的一天：%1$s</string>
+    <string name="recap_cd_chart_entry">%1$s：%2$s</string>
+    <string name="recap_cd_months_chart">每月收听时长：%1$s</string>
+    <string name="recap_cd_clock_chart">每小时收听时长：%1$s</string>
+    <string name="recap_dedication_kicker">你最长的连续收听</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">天连续收听</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">最长单次收听</string>
+    <string name="recap_dedication_biggest_day">收听最多的一天</string>
+    <string name="recap_dedication_first_song">年度第一首歌</string>
+    <string name="recap_genres_kicker">你最爱的流派</string>
+    <string name="recap_genres_share">占你收听的 %1$s</string>
+    <string name="recap_decade_kicker">你的年代</string>
+    <string name="recap_decade_value">%1$d年代</string>
+    <string name="recap_decade_detail">你收听的音乐中有 %1$s 发行于这个年代。</string>
+    <string name="recap_albums_kicker">你最爱的专辑</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="other">你常听的专辑有 %d 张</item>
+    </plurals>
+    <string name="recap_artists_kicker">你最爱的艺人</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="other">你听了 %d 位不同的艺人</item>
+    </plurals>
+    <string name="recap_songs_kicker">你最爱的歌曲</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="other">你播放了 %d 首不同的歌曲</item>
+    </plurals>
+    <string name="recap_summary_kicker">一眼看尽你的一年</string>
+    <string name="recap_summary_title">我的 %1$d 音乐回顾</string>
+    <string name="recap_summary_title_so_far">我的 %1$d，至今</string>
+    <string name="recap_summary_minutes">收听分钟数</string>
+    <string name="recap_summary_top_artist">最爱艺人</string>
+    <string name="recap_summary_top_song">最爱歌曲</string>
+    <string name="recap_summary_top_genre">最爱流派</string>
+    <string name="recap_summary_top_album">最爱专辑</string>
+    <string name="recap_summary_listening_style">收听风格</string>
+    <string name="recap_share">分享</string>
+    <string name="recap_share_chooser_title">分享你的回顾</string>
+    <string name="recap_share_text">我的 %1$d 音乐回顾，由 PixelPlayerOSS 生成</string>
+    <string name="recap_share_failed">无法生成回顾图片</string>
+    <string name="recap_play_top_songs">播放热门歌曲</string>
+    <string name="recap_top_songs_queue_name">%1$d 热门歌曲</string>
+    <string name="recap_replay">再看一遍</string>
+</resources>

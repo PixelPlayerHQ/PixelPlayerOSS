@@ -5,6 +5,7 @@ import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinArtist
 import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinLibrary
 import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinPlaylist
 import com.lostf1sh.pixelplayeross.data.jellyfin.model.JellyfinSong
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import org.json.JSONObject
 import timber.log.Timber
 
@@ -60,7 +61,7 @@ object JellyfinResponseParser {
             trackNumber = json.optInt("IndexNumber", 0),
             discNumber = json.optInt("ParentIndexNumber", 0),
             year = json.optInt("ProductionYear", 0),
-            genre = genres.firstOrNull(),
+            genre = GenreParser.joinValues(genres),
             bitRate = firstSource?.optInt("Bitrate")?.let { it / 1000 },
             contentType = firstSource?.optString("Container")?.let { containerToMimeType(it) },
             path = firstSource?.optString("Path", "") ?: json.optString("Path", ""),
@@ -97,7 +98,7 @@ object JellyfinResponseParser {
             songCount = json.optInt("ChildCount", json.optInt("SongCount", 0)),
             duration = (json.optLong("RunTimeTicks", 0L) / 10_000),
             year = json.optInt("ProductionYear", 0),
-            genre = genres.firstOrNull()
+            genre = GenreParser.joinValues(genres)
         )
     }
 

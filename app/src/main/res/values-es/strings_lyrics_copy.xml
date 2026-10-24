@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Copiar letra</string>
+    <string name="lyrics_copied">Letra copiada al portapapeles</string>
+    <string name="lyrics_line_copied">Línea copiada al portapapeles</string>
+    <string name="lyrics_copy_line_action">Copiar línea</string>
+</resources>

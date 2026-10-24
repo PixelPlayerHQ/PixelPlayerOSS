@@ -17,10 +17,18 @@ class ReorderTabsSheetLogicTest {
                 LibraryTabId.Albums,
                 LibraryTabId.Artists,
                 LibraryTabId.Playlists,
-                LibraryTabId.Folders
+                LibraryTabId.Folders,
+                LibraryTabId.Genres
             ),
             hidden
         )
+    }
+
+    @Test
+    fun `an order saved before the Genres tab existed lists Genres as hidden`() {
+        val hidden = hiddenLibraryTabs(listOf("SONGS", "ALBUMS", "ARTIST", "PLAYLISTS", "FOLDERS", "LIKED"))
+
+        assertEquals(listOf(LibraryTabId.Genres), hidden)
     }
 
     @Test

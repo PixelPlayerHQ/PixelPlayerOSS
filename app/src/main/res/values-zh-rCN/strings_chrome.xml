@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">正在准备初始配置…</string>
+    <string name="song_info_label_provider">来源</string>
+    <string name="song_info_label_path">路径</string>
+    <string name="cd_playlist_artwork">歌单</string>
+    <string name="home_your_mix_subtitle">为你准备的今日精选</string>
+    <string name="home_your_mix_queue_name">为你推荐</string>
+    <string name="queue_name_liked_songs">我喜欢的歌曲</string>
+    <string name="queue_name_all_songs_shuffled">全部歌曲（随机）</string>
+    <string name="queue_name_liked_songs_shuffled">我喜欢的歌曲（随机）</string>
+    <string name="queue_name_selected_songs">选中的歌曲</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer 播放器面板已收起，%1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer 播放器面板已展开，%1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer 播放器面板已收起</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer 播放器面板已展开</string>
+    <string name="mini_player_connecting_device">正在连接设备…</string>
+    <string name="mini_player_preparing_playback">正在准备播放…</string>
+    <string name="mini_player_loading_audio">正在加载音频…</string>
+    <string name="cd_shuffle">随机播放</string>
+    <string name="cd_playback_position">播放进度</string>
+    <string name="add_bookmark_title">保存书签</string>
+    <string name="add_bookmark_saved_point">已保存的播放位置</string>
+    <string name="add_bookmark_use_lyric_line">使用歌词行</string>
+    <string name="add_bookmark_default_name">书签 @ %1$s</string>
+</resources>

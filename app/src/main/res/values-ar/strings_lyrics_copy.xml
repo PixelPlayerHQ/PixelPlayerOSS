@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">نسخ كلمات الأغنية</string>
+    <string name="lyrics_copied">تم نسخ كلمات الأغنية إلى الحافظة</string>
+    <string name="lyrics_line_copied">تم نسخ السطر إلى الحافظة</string>
+    <string name="lyrics_copy_line_action">نسخ السطر</string>
+</resources>

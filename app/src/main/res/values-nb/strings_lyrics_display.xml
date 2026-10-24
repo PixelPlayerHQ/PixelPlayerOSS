@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Ordmarkering</string>
+    <string name="lyrics_highlight_style_subtitle">Hvordan ord-synkroniserte sangtekster lyser opp mens de synges</string>
+    <string name="lyrics_highlight_style_wipe">Glidende fargeovergang</string>
+    <string name="lyrics_highlight_style_wipe_desc">En myk kant glir over hvert ord mens det synges</string>
+    <string name="lyrics_highlight_style_fade">Ton inn</string>
+    <string name="lyrics_highlight_style_fade_desc">Hver stavelse tones inn mens den synges</string>
+    <string name="lyrics_highlight_style_classic">Umiddelbar</string>
+    <string name="lyrics_highlight_style_classic_desc">Hver stavelse lyser opp i det den begynner</string>
+    <string name="lyrics_duet_layout_title">Duettoppsett</string>
+    <string name="lyrics_duet_layout_subtitle">Plasser hver sanger på sin egen side når sangteksten markerer stemmer (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Bakgrunnsvokal</string>
+    <string name="lyrics_background_vocals_subtitle">Vis bakgrunnsvokal med mindre tekst under hovedlinjen</string>
+</resources>

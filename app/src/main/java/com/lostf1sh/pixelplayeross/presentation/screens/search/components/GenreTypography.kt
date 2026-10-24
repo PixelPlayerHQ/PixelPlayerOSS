@@ -1,104 +1,36 @@
 package com.lostf1sh.pixelplayeross.presentation.screens.search.components
 
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.LineBreak
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.lostf1sh.pixelplayeross.R
+import java.text.BreakIterator
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
 object GenreTypography {
 
+    /**
+     * A genre tile title: the name, its display style, how many lines it may take, and the
+     * bounds [autoSize] shrinks the style within so the name fits the tile.
+     */
     data class TitlePresentation(
-        val firstLine: String,
-        val secondLine: String?,
+        val text: String,
         val style: TextStyle,
-        val secondLineWidthFraction: Float
+        val maxLines: Int,
+        val autoSize: GenreTitleAutoSize
     )
 
     @OptIn(ExperimentalTextApi::class)
-    fun resolveTitlePresentation(
-        genreId: String,
-        genreName: String,
-        isGridView: Boolean,
-        cardWidthPx: Int,
-        horizontalPaddingPx: Int,
-        textMeasurer: TextMeasurer
-    ): TitlePresentation {
-        val normalizedName = genreName.trim().replace(Regex("\\s+"), " ")
-        val profile = GenreTitleProfile.from(normalizedName)
-        val hash = genreId.hashCode().toLong().absoluteValue
-        val fullLineWidthPx = (cardWidthPx - (horizontalPaddingPx * 2)).coerceAtLeast(0)
-        val secondLineWidthFraction = secondLineWidthFraction(profile, isGridView)
-        val secondLineWidthPx = (fullLineWidthPx * secondLineWidthFraction).roundToInt().coerceAtLeast(0)
-        val words = normalizedName.split(" ").filter { it.isNotBlank() }
-        val styleCandidates = buildStyleCandidates(hash = hash, profile = profile, isGridView = isGridView)
-
-        styleCandidates.forEach { style ->
-            if (fitsSingleLine(normalizedName, style, fullLineWidthPx, textMeasurer)) {
-                return TitlePresentation(
-                    firstLine = normalizedName,
-                    secondLine = null,
-                    style = style,
-                    secondLineWidthFraction = secondLineWidthFraction
-                )
-            }
-
-            if (words.size > 1) {
-                val bestBreak = findBestBreak(
-                    words = words,
-                    style = style,
-                    firstLineWidthPx = fullLineWidthPx,
-                    secondLineWidthPx = secondLineWidthPx,
-                    textMeasurer = textMeasurer,
-                    allowSecondLineOverflow = false
-                )
-
-                if (bestBreak != null) {
-                    return TitlePresentation(
-                        firstLine = bestBreak.firstLine,
-                        secondLine = bestBreak.secondLine,
-                        style = style,
-                        secondLineWidthFraction = secondLineWidthFraction
-                    )
-                }
-            }
-        }
-
-        val fallbackStyle = styleCandidates.last()
-        val fallbackBreak = if (words.size > 1) {
-            findBestBreak(
-                words = words,
-                style = fallbackStyle,
-                firstLineWidthPx = fullLineWidthPx,
-                secondLineWidthPx = secondLineWidthPx,
-                textMeasurer = textMeasurer,
-                allowSecondLineOverflow = true
-            )
-        } else {
-            null
-        }
-
-        return TitlePresentation(
-            firstLine = fallbackBreak?.firstLine ?: normalizedName,
-            secondLine = fallbackBreak?.secondLine,
-            style = fallbackStyle,
-            secondLineWidthFraction = secondLineWidthFraction
-        )
-    }
-
-    @OptIn(ExperimentalTextApi::class)
     fun getGenreStyle(genreId: String, genreName: String): TextStyle {
-        val normalizedName = genreName.trim().replace(Regex("\\s+"), " ")
+        val normalizedName = normalize(genreName)
         val profile = GenreTitleProfile.from(normalizedName)
         val hash = genreId.hashCode().toLong().absoluteValue
         return buildStyleCandidates(hash = hash, profile = profile, isGridView = true).first()
@@ -107,17 +39,19 @@ object GenreTypography {
     /**
      * Resolves the card title without synchronous text measurement.
      *
-     * The previous card path tried several variable-font styles and every possible word break
-     * through TextMeasurer during composition. A handful of visible cards was enough to block a
-     * low-end device's first Search frame. Compose still applies ellipsis, so a deterministic
-     * character-weighted break preserves the expressive layout without main-thread probing.
+     * An earlier card path tried several variable-font styles and every word break through
+     * TextMeasurer during composition, loading a typeface per style; a handful of visible cards
+     * was enough to block a low-end device's first Search frame. This picks one style from the
+     * name's shape instead, and [GenreTitleAutoSize] fits it to the tile in the layout phase by
+     * changing only the font size: grid tiles may wrap onto a second line between words, list
+     * rows keep one line, and a name that still does not fit at the smallest size ellipsizes.
      */
     fun resolveTitlePresentationFast(
         genreId: String,
         genreName: String,
         isGridView: Boolean,
     ): TitlePresentation {
-        val normalizedName = genreName.trim().replace(Regex("\\s+"), " ")
+        val normalizedName = normalize(genreName)
         val profile = GenreTitleProfile.from(normalizedName)
         val hash = genreId.hashCode().toLong().absoluteValue
         val styles = buildStyleCandidates(hash = hash, profile = profile, isGridView = isGridView)
@@ -128,136 +62,56 @@ object GenreTypography {
                 else -> 0
             }
         ]
-        val secondLineWidth = secondLineWidthFraction(profile, isGridView)
-        val words = normalizedName.split(' ').filter(String::isNotBlank)
-        val shouldSplit = isGridView && words.size > 1 && normalizedName.length > 12
-        if (!shouldSplit) {
-            return TitlePresentation(normalizedName, null, style, secondLineWidth)
+        val maxFontSizeSp = style.fontSize.value
+        // A name with nowhere to break gets one line: past the smallest size, the line breaker
+        // would split it inside the word, and one line ellipsizes instead.
+        val maxLines = if (isGridView && hasLineBreakOpportunity(normalizedName)) {
+            GRID_TITLE_MAX_LINES
+        } else {
+            SINGLE_TITLE_LINE
         }
-
-        val breakIndex = (1 until words.size).minByOrNull { index ->
-            val firstLength = words.take(index).sumOf(String::length) + index - 1
-            val secondWordCount = words.size - index
-            val secondLength = words.drop(index).sumOf(String::length) + secondWordCount - 1
-            kotlin.math.abs(firstLength * secondLineWidth - secondLength)
-        } ?: words.lastIndex
-
         return TitlePresentation(
-            firstLine = words.take(breakIndex).joinToString(" "),
-            secondLine = words.drop(breakIndex).joinToString(" "),
-            style = style,
-            secondLineWidthFraction = secondLineWidth,
+            text = normalizedName,
+            style = style.scalingWithFontSize(),
+            maxLines = maxLines,
+            autoSize = GenreTitleAutoSize(
+                maxFontSizeSp = maxFontSizeSp,
+                minFontSizeSp = (maxFontSizeSp * MIN_TITLE_SCALE)
+                    .coerceAtLeast(MIN_TITLE_FONT_SIZE_SP)
+                    .coerceAtMost(maxFontSizeSp),
+                singleLineMinFontSizeSp = maxFontSizeSp * SINGLE_LINE_MIN_TITLE_SCALE
+            )
         )
     }
 
-    @OptIn(ExperimentalTextApi::class)
-    private fun fitsSingleLine(
-        text: String,
-        style: TextStyle,
-        maxWidthPx: Int,
-        textMeasurer: TextMeasurer
-    ): Boolean {
-        val layoutResult = textMeasurer.measure(
-            text = AnnotatedString(text),
-            style = style,
-            overflow = TextOverflow.Clip,
-            softWrap = false,
-            maxLines = 1,
-            constraints = Constraints(maxWidth = maxWidthPx)
-        )
-        return !layoutResult.hasVisualOverflow && layoutResult.lineCount == 1
+    private val whitespace = Regex("\\s+")
+
+    private fun normalize(genreName: String): String = genreName.trim().replace(whitespace, " ")
+
+    private fun hasLineBreakOpportunity(text: String): Boolean {
+        if (text.isEmpty()) return false
+        val lineBreaks = BreakIterator.getLineInstance().apply { setText(text) }
+        val firstBreak = lineBreaks.following(0)
+        return firstBreak != BreakIterator.DONE && firstBreak < text.length
     }
 
-    @OptIn(ExperimentalTextApi::class)
-    private fun findBestBreak(
-        words: List<String>,
-        style: TextStyle,
-        firstLineWidthPx: Int,
-        secondLineWidthPx: Int,
-        textMeasurer: TextMeasurer,
-        allowSecondLineOverflow: Boolean
-    ): BreakCandidate? {
-        return (1 until words.size)
-            .mapNotNull { breakIndex ->
-                val firstLine = words.take(breakIndex).joinToString(" ")
-                val secondLine = words.drop(breakIndex).joinToString(" ")
+    /**
+     * Expresses the spacing in em so it follows the size auto-sizing picks, and wraps only at
+     * word boundaries with no inserted hyphens.
+     */
+    private fun TextStyle.scalingWithFontSize(): TextStyle = copy(
+        lineHeight = TITLE_LINE_HEIGHT_EM.em,
+        letterSpacing = (letterSpacing.value / fontSize.value).em,
+        lineBreak = LineBreak.Simple,
+        hyphens = Hyphens.None
+    )
 
-                val firstLayout = textMeasurer.measure(
-                    text = AnnotatedString(firstLine),
-                    style = style,
-                    overflow = TextOverflow.Clip,
-                    softWrap = false,
-                    maxLines = 1,
-                    constraints = Constraints(maxWidth = firstLineWidthPx)
-                )
-
-                if (firstLayout.hasVisualOverflow || firstLayout.lineCount != 1) {
-                    return@mapNotNull null
-                }
-
-                val secondLayout = textMeasurer.measure(
-                    text = AnnotatedString(secondLine),
-                    style = style,
-                    overflow = TextOverflow.Clip,
-                    softWrap = false,
-                    maxLines = 1,
-                    constraints = Constraints(maxWidth = secondLineWidthPx)
-                )
-
-                if (!allowSecondLineOverflow && (secondLayout.hasVisualOverflow || secondLayout.lineCount != 1)) {
-                    return@mapNotNull null
-                }
-
-                BreakCandidate(
-                    firstLine = firstLine,
-                    secondLine = secondLine,
-                    score = breakScore(
-                        firstLine = firstLine,
-                        secondLine = secondLine,
-                        firstLayout = firstLayout,
-                        secondLayout = secondLayout,
-                        firstLineWidthPx = firstLineWidthPx,
-                        secondLineWidthPx = secondLineWidthPx,
-                        secondLineOverflowAllowed = allowSecondLineOverflow
-                    )
-                )
-            }
-            .maxByOrNull(BreakCandidate::score)
-    }
-
-    private fun breakScore(
-        firstLine: String,
-        secondLine: String,
-        firstLayout: TextLayoutResult,
-        secondLayout: TextLayoutResult,
-        firstLineWidthPx: Int,
-        secondLineWidthPx: Int,
-        secondLineOverflowAllowed: Boolean
-    ): Float {
-        val firstUsage = firstLayout.size.width.toFloat() / firstLineWidthPx.coerceAtLeast(1)
-        val secondUsage = secondLayout.size.width.toFloat() / secondLineWidthPx.coerceAtLeast(1)
-        val firstLineBonus = firstUsage * 1.8f
-        val secondLineBonus = secondUsage.coerceAtMost(1f) * 0.8f
-        val orphanPenalty = listOf(firstLine, secondLine).count { it.length <= 3 } * 0.35f
-        val tinyLastWordPenalty = secondLine
-            .substringAfterLast(' ', secondLine)
-            .takeIf { it.length <= 2 }
-            ?.let { 0.25f }
-            ?: 0f
-        val overflowPenalty = if (secondLineOverflowAllowed && secondLayout.hasVisualOverflow) 0.45f else 0f
-        return firstLineBonus + secondLineBonus - orphanPenalty - tinyLastWordPenalty - overflowPenalty
-    }
-
-    private fun secondLineWidthFraction(
-        profile: GenreTitleProfile,
-        isGridView: Boolean
-    ): Float {
-        return when {
-            isGridView && profile.wordCount >= 3 -> 0.56f
-            isGridView -> 0.52f
-            else -> 1.0f
-        }
-    }
+    private const val GRID_TITLE_MAX_LINES = 2
+    private const val SINGLE_TITLE_LINE = 1
+    private const val TITLE_LINE_HEIGHT_EM = 0.92f
+    private const val SINGLE_LINE_MIN_TITLE_SCALE = 0.8f
+    private const val MIN_TITLE_SCALE = 0.6f
+    private const val MIN_TITLE_FONT_SIZE_SP = 14f
 
     @OptIn(ExperimentalTextApi::class)
     private fun buildStyleCandidates(
@@ -431,12 +285,6 @@ object GenreTypography {
         val normalized = ((hash / divisor) % 1000).toFloat() / 999f
         return (normalized - 0.5f) * span
     }
-
-    private data class BreakCandidate(
-        val firstLine: String,
-        val secondLine: String,
-        val score: Float
-    )
 
     private data class GenreTitleProfile(
         val totalChars: Int,

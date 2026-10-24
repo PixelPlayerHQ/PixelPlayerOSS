@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Einrichtung wird vorbereitet…</string>
+    <string name="song_info_label_provider">Anbieter</string>
+    <string name="song_info_label_path">Pfad</string>
+    <string name="cd_playlist_artwork">Playlist</string>
+    <string name="home_your_mix_subtitle">Der Mix des Tages für dich</string>
+    <string name="home_your_mix_queue_name">Mein Mix</string>
+    <string name="queue_name_liked_songs">Lieblingssongs</string>
+    <string name="queue_name_all_songs_shuffled">Alle Songs (gemischt)</string>
+    <string name="queue_name_liked_songs_shuffled">Lieblingssongs (gemischt)</string>
+    <string name="queue_name_selected_songs">Ausgewählte Songs</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">PixelPlayer-Player minimiert, %1$s</string>
+    <string name="cd_player_sheet_expanded">PixelPlayer-Player erweitert, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">PixelPlayer-Player minimiert</string>
+    <string name="cd_player_sheet_expanded_no_track">PixelPlayer-Player erweitert</string>
+    <string name="mini_player_connecting_device">Verbinde mit Gerät…</string>
+    <string name="mini_player_preparing_playback">Wiedergabe wird vorbereitet…</string>
+    <string name="mini_player_loading_audio">Audio wird geladen…</string>
+    <string name="cd_shuffle">Zufallswiedergabe</string>
+    <string name="cd_playback_position">Wiedergabeposition</string>
+    <string name="add_bookmark_title">Lesezeichen speichern</string>
+    <string name="add_bookmark_saved_point">Gespeicherte Wiedergabeposition</string>
+    <string name="add_bookmark_use_lyric_line">Liedtextzeile verwenden</string>
+    <string name="add_bookmark_default_name">Lesezeichen @ %1$s</string>
+</resources>

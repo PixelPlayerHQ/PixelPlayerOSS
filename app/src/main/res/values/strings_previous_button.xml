@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Previous button</string>
+    <string name="setcat_previous_button_description">Choose whether previous restarts the current song or goes straight to the previous one.</string>
+    <string name="setcat_previous_button_restart_track">Restart track</string>
+    <string name="setcat_previous_button_restart_track_description">After the first few seconds, previous starts the song over. Press it again to go back.</string>
+    <string name="setcat_previous_button_previous_track">Previous track</string>
+    <string name="setcat_previous_button_previous_track_description">Previous always goes back a song, wherever you are in the current one.</string>
+</resources>

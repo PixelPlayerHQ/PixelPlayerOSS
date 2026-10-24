@@ -155,8 +155,10 @@ import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImageCompactListTargetSize
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
+import com.lostf1sh.pixelplayeross.presentation.recap.RecapStatsCard
 import com.lostf1sh.pixelplayeross.presentation.stats.displayNameRes
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.RecapEntryViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel
 import com.lostf1sh.pixelplayeross.utils.formatListeningDurationCompact
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
@@ -181,9 +183,11 @@ private val ScreenGutter = 20.dp
 fun StatsScreen(
     navController: NavController,
     playerViewModel: PlayerViewModel,
-    statsViewModel: StatsViewModel = hiltViewModel()
+    statsViewModel: StatsViewModel = hiltViewModel(),
+    recapEntryViewModel: RecapEntryViewModel = hiltViewModel()
 ) {
     val uiState by statsViewModel.uiState.collectAsStateWithLifecycle()
+    val recapEntries by recapEntryViewModel.statsEntries.collectAsStateWithLifecycle()
     val summary = uiState.summary
     val lazyListState = rememberLazyListState()
     val density = LocalDensity.current
@@ -291,6 +295,19 @@ fun StatsScreen(
         value = if (topArtistNames.isEmpty()) emptyMap() else statsViewModel.resolveArtistImages(topArtistNames)
     }
 
+    // The recap card usually arrives after the first items are laid out. The list keeps its
+    // first visible item in place when something is inserted above it, so an untouched list
+    // is moved back to the top to actually show the card.
+    val hasRecapEntries = recapEntries.isNotEmpty()
+    LaunchedEffect(hasRecapEntries) {
+        if (hasRecapEntries &&
+            lazyListState.firstVisibleItemIndex <= 1 &&
+            lazyListState.firstVisibleItemScrollOffset == 0
+        ) {
+            lazyListState.scrollToItem(0)
+        }
+    }
+
     val heavyRotationQueueName = stringResource(R.string.presentation_batch_g_stats_section_heavy_rotation)
     // Stats only carry display names for artists, albums and genres, so each tap resolves the
     // library entity first; entries that no longer resolve (deleted songs, the synthetic
@@ -357,6 +374,17 @@ fun StatsScreen(
                     ),
                     verticalArrangement = Arrangement.spacedBy(SectionSpacing)
                 ) {
+                    if (hasRecapEntries) {
+                        item(key = "recap_entry", contentType = "recap_entry") {
+                            RecapStatsCard(
+                                entries = recapEntries,
+                                onOpen = { year -> navController.navigateSafely(Screen.Recap.createRoute(year)) },
+                                modifier = Modifier
+                                    .animateItem()
+                                    .padding(horizontal = ScreenGutter)
+                            )
+                        }
+                    }
                     if (summary == null || !summary.hasListeningActivity()) {
                         item(key = "empty", contentType = "empty") {
                             StatsEmptyState(

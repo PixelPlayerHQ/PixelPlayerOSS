@@ -94,6 +94,8 @@ class SettingsRegistryTest {
             "artist_word_delimiters" to "artist_settings?highlightKey=item_artist_word_delimiters",
             "artist_extract_from_title" to "artist_settings?highlightKey=item_artist_extract_from_title",
             "artist_group_by_album_artist" to "artist_settings?highlightKey=item_artist_group_by_album_artist",
+            "artist_albums_collapsed_by_default" to
+                "artist_settings?highlightKey=item_artist_albums_collapsed_by_default",
         )
 
         expected.forEach { (id, route) ->
@@ -125,6 +127,16 @@ class SettingsRegistryTest {
         spec("listening_stats").onAction!!.invoke(navController)
 
         verify(exactly = 1) { navController.navigate(Screen.Stats.route, any<NavOptionsBuilder.() -> Unit>()) }
+    }
+
+    @Test
+    fun `previous button setting is a behavior card found by rewind keywords`() {
+        val previousButton = spec("behavior_previous_button")
+
+        assertThat(previousButton.type).isEqualTo(SettingType.NAVIGABLE_CARD)
+        assertThat(previousButton.category).isEqualTo(SettingsCategory.BEHAVIOR)
+        assertThat(previousButton.itemKey).isEqualTo("item_behavior_previous_button")
+        assertThat(previousButton.keywordsStatic).containsAtLeast("previous", "rewind", "restart")
     }
 
     @Test

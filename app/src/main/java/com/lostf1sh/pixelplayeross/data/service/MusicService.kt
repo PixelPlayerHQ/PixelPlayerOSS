@@ -49,11 +49,15 @@ import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.EqualizerPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.player.AudioDecoderPolicy
 import com.lostf1sh.pixelplayeross.data.service.player.DualPlayerEngine
+import com.lostf1sh.pixelplayeross.data.service.player.FadingPlayer
+import com.lostf1sh.pixelplayeross.data.service.player.MappingPlayer
+import com.lostf1sh.pixelplayeross.data.service.player.PreviousButtonPlayer
 import com.lostf1sh.pixelplayeross.data.service.player.TransitionController
 import com.lostf1sh.pixelplayeross.data.service.player.selectCanonicalCloudPlaybackUri
 import com.lostf1sh.pixelplayeross.ui.glancewidget.ControlWidget4x2
@@ -227,6 +231,7 @@ class MusicService : MediaSessionService() {
     private var keepPlayingInBackground = true
     private var isManualShuffleEnabled = false
     private var persistentShuffleEnabled = false
+    private var previousButtonBehavior = PreviousButtonBehavior.DEFAULT
     private var previousMainThreadExceptionHandler: Thread.UncaughtExceptionHandler? = null
     private val sleepTimerController by lazy {
         SleepTimerController(
@@ -316,32 +321,44 @@ class MusicService : MediaSessionService() {
         replayGainProcessor.onTransitionFinished()
     }
 
+    private fun Player.unwrapPreviousButtonPlayer(): Player {
+        return (this as? PreviousButtonPlayer)?.innerPlayer ?: this
+    }
+
     private fun Player.unwrapMappingPlayer(): Player {
-        return (this as? com.lostf1sh.pixelplayeross.data.service.player.MappingPlayer)?.innerPlayer ?: this
+        return (this as? MappingPlayer)?.innerPlayer ?: this
     }
 
     private fun Player.unwrapFadingPlayer(): Player {
-        return (this as? com.lostf1sh.pixelplayeross.data.service.player.FadingPlayer)?.innerPlayer ?: this
+        return (this as? FadingPlayer)?.innerPlayer ?: this
     }
 
-    private fun wrapFadingPlayer(player: Player): Player {
-        val fadingPlayer = com.lostf1sh.pixelplayeross.data.service.player.FadingPlayer(
+    /** Wraps an engine player for the session; [unwrapSessionPlayer] is its inverse. */
+    private fun wrapSessionPlayer(player: Player): Player {
+        val fadingPlayer = FadingPlayer(
             innerPlayer = player,
             scope = appScope
         )
-        return com.lostf1sh.pixelplayeross.data.service.player.MappingPlayer(
+        val mappingPlayer = MappingPlayer(
             innerPlayer = fadingPlayer,
             context = this
         )
+        return PreviousButtonPlayer(
+            innerPlayer = mappingPlayer,
+            behaviorProvider = { previousButtonBehavior }
+        )
     }
+
+    private fun Player.unwrapSessionPlayer(): Player =
+        unwrapPreviousButtonPlayer().unwrapMappingPlayer().unwrapFadingPlayer()
 
     private fun publishMediaSessionPlayer(player: Player, logMessage: String) {
         val session = mediaSession ?: return
         val oldPlayer = session.player
-        val unwrappedOld = oldPlayer.unwrapMappingPlayer().unwrapFadingPlayer()
+        val unwrappedOld = oldPlayer.unwrapSessionPlayer()
         if (unwrappedOld !== player) {
             oldPlayer.removeListener(playerListener)
-            val wrappedPlayer = wrapFadingPlayer(player)
+            val wrappedPlayer = wrapSessionPlayer(player)
             session.player = wrappedPlayer
             wrappedPlayer.addListener(playerListener)
         }
@@ -497,6 +514,12 @@ class MusicService : MediaSessionService() {
         serviceScope.launch {
             userPreferencesRepository.persistentShuffleEnabledFlow.collect { enabled ->
                 persistentShuffleEnabled = enabled
+            }
+        }
+
+        serviceScope.launch {
+            userPreferencesRepository.previousButtonBehaviorFlow.collect { behavior ->
+                previousButtonBehavior = behavior
             }
         }
 
@@ -725,7 +748,7 @@ class MusicService : MediaSessionService() {
             }
         }
 
-        mediaSession = MediaSession.Builder(this, wrapFadingPlayer(engine.masterPlayer))
+        mediaSession = MediaSession.Builder(this, wrapSessionPlayer(engine.masterPlayer))
             .setCallback(callback)
             .setSessionActivity(getOpenAppPendingIntent())
             .setBitmapLoader(CoilBitmapLoader(this, serviceScope))

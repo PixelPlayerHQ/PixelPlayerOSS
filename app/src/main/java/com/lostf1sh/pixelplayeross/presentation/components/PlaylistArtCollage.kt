@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
@@ -45,7 +46,7 @@ fun PlaylistArtCollage(
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.QueueMusic,
-                contentDescription = "Playlist",
+                contentDescription = stringResource(R.string.cd_playlist_artwork),
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(12.dp),

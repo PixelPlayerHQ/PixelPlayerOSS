@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Preparando la configuración…</string>
+    <string name="song_info_label_provider">Proveedor</string>
+    <string name="song_info_label_path">Ruta</string>
+    <string name="cd_playlist_artwork">Lista de reproducción</string>
+    <string name="home_your_mix_subtitle">Tu mix de hoy</string>
+    <string name="home_your_mix_queue_name">Tu Mix</string>
+    <string name="queue_name_liked_songs">Canciones que me gustan</string>
+    <string name="queue_name_all_songs_shuffled">Todas las canciones (aleatorio)</string>
+    <string name="queue_name_liked_songs_shuffled">Canciones que me gustan (aleatorio)</string>
+    <string name="queue_name_selected_songs">Canciones seleccionadas</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">Panel del reproductor de PixelPlayer minimizado, %1$s</string>
+    <string name="cd_player_sheet_expanded">Panel del reproductor de PixelPlayer expandido, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Panel del reproductor de PixelPlayer minimizado</string>
+    <string name="cd_player_sheet_expanded_no_track">Panel del reproductor de PixelPlayer expandido</string>
+    <string name="mini_player_connecting_device">Conectando con el dispositivo…</string>
+    <string name="mini_player_preparing_playback">Preparando la reproducción…</string>
+    <string name="mini_player_loading_audio">Cargando audio…</string>
+    <string name="cd_shuffle">Aleatorio</string>
+    <string name="cd_playback_position">Posición de reproducción</string>
+    <string name="add_bookmark_title">Guardar marcador</string>
+    <string name="add_bookmark_saved_point">Punto de reproducción guardado</string>
+    <string name="add_bookmark_use_lyric_line">Usar línea de la letra</string>
+    <string name="add_bookmark_default_name">Marcador @ %1$s</string>
+</resources>

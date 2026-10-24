@@ -112,6 +112,7 @@ import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.AlbumDetailViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
+import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.formatSongCount
 import com.lostf1sh.pixelplayeross.utils.shapes.RoundedStarShape
 import kotlinx.coroutines.launch
@@ -230,12 +231,9 @@ fun AlbumDetailScreen(
                     val artistId = songs.firstOrNull()?.artistId
                     allArtists.firstOrNull { it.id == artistId }
                 }
+                // The genre most tracks share, split so "House; Electronic" counts as both.
                 val albumGenre = remember(songs) {
-                    songs.mapNotNull { it.genre?.trim()?.takeIf(String::isNotEmpty) }
-                        .groupingBy { it }
-                        .eachCount()
-                        .maxByOrNull { it.value }
-                        ?.key
+                    GenreParser.dominantGenre(songs.map { it.genre })
                 }
                 val albumDurationMs = remember(songs) { songs.sumOf { it.duration } }
                 val songIdsInScope = remember(songs) { songs.mapTo(HashSet()) { it.id } }

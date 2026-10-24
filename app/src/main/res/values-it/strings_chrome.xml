@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Preparazione della configurazione…</string>
+    <string name="song_info_label_provider">Provider</string>
+    <string name="song_info_label_path">Percorso</string>
+    <string name="cd_playlist_artwork">Playlist</string>
+    <string name="home_your_mix_subtitle">Il tuo mix di oggi</string>
+    <string name="home_your_mix_queue_name">Il tuo mix</string>
+    <string name="queue_name_liked_songs">Brani preferiti</string>
+    <string name="queue_name_all_songs_shuffled">Tutti i brani (casuale)</string>
+    <string name="queue_name_liked_songs_shuffled">Brani preferiti (casuale)</string>
+    <string name="queue_name_selected_songs">Brani selezionati</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">Pannello del player PixelPlayer compresso, %1$s</string>
+    <string name="cd_player_sheet_expanded">Pannello del player PixelPlayer espanso, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Pannello del player PixelPlayer compresso</string>
+    <string name="cd_player_sheet_expanded_no_track">Pannello del player PixelPlayer espanso</string>
+    <string name="mini_player_connecting_device">Connessione al dispositivo…</string>
+    <string name="mini_player_preparing_playback">Preparazione della riproduzione…</string>
+    <string name="mini_player_loading_audio">Caricamento audio…</string>
+    <string name="cd_shuffle">Casuale</string>
+    <string name="cd_playback_position">Posizione di riproduzione</string>
+    <string name="add_bookmark_title">Salva segnalibro</string>
+    <string name="add_bookmark_saved_point">Punto di riproduzione salvato</string>
+    <string name="add_bookmark_use_lyric_line">Usa riga del testo</string>
+    <string name="add_bookmark_default_name">Segnalibro @ %1$s</string>
+</resources>

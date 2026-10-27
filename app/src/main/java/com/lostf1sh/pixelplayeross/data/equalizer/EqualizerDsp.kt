@@ -98,10 +98,10 @@ class EqualizerDsp {
         state = DoubleArray(FILTER_COUNT * channelCount * 2)
         glideAlpha = 1 - exp(-BLOCK_FRAMES / (GLIDE_SECONDS * sampleRate))
         releaseAlpha = 1 - exp(-1 / (LIMITER_RELEASE_SECONDS * sampleRate))
-        limiterGain = 1.0
         // Usable bands and headroom depend on the rate.
         appliedSettings?.let(::computeTargets)
-        for (f in 0 until FILTER_COUNT) design(f, current[f], coefficients, f * 5)
+        // Jump, don't glide: a band above the new Nyquist limit is unstable at any non-zero gain.
+        reset()
     }
 
     fun update(settings: AudioEffectsSettings) {

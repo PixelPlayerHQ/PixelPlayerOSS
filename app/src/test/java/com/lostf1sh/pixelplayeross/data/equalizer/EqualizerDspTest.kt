@@ -68,6 +68,18 @@ class EqualizerDspTest {
     }
 
     @Test
+    fun droppingToARateBelowABoostedBand_staysStableAndWithinFullScale() {
+        val dsp = dsp(AudioEffectsSettings(equalizerEnabled = true, bandLevelsDb = bands(9 to 6)), channels = 1)
+        dsp.process(sine(hz = 1_000.0, seconds = 0.2), (rate * 0.2).toInt()) // 16 kHz band now at +6 dB
+
+        dsp.configure(sampleRate = 24_000, channelCount = 1) // 16 kHz is above the new Nyquist limit
+        val output = DoubleArray(12_000) { 0.5 * sin(2 * PI * 1_000 * it / 24_000) }
+        dsp.process(output, output.size)
+
+        assertThat(output.all { it.isFinite() && abs(it) <= 1.0 }).isTrue()
+    }
+
+    @Test
     fun disablingEffects_returnsToBypassAfterTheGlide() {
         val dsp = dsp(AudioEffectsSettings(equalizerEnabled = true, bandLevelsDb = bands(2 to -9)), channels = 1)
         dsp.process(sine(hz = 440.0, seconds = 0.2), (rate * 0.2).toInt())

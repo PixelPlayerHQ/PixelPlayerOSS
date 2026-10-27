@@ -195,6 +195,9 @@
     <string name="setcat_audio_output_mode_pcm_float">PCM flottant 32 bits</string>
     <string name="setcat_audio_output_mode_pcm_float_description">Plus de marge de traitement pour le PCM haute résolution. Android peut encore le rééchantillonner ; cela ne garantit pas une sortie bit-perfect.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Indisponible car cet appareil n’a pas pu initialiser un AudioTrack PCM_FLOAT.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">USB bit-perfect (expérimental)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Envoie chaque piste sans modification à un DAC USB, à sa propre fréquence d’échantillonnage. Le téléphone et le DAC doivent prendre en charge la sortie USB bit-perfect, sinon le chemin normal est utilisé. Le volume est alors réglé par le DAC, et activer l’égaliseur modifie le signal.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Nécessite Android 14 ou version ultérieure et la prise en charge de la sortie PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Se souvenir du réglage de lecture aléatoire même après la fermeture de l\'application.</string>
     <string name="setcat_persistent_shuffle_title">Mode aléatoire persistant</string>
     <string name="setcat_player_gestures">Gestes du lecteur</string>

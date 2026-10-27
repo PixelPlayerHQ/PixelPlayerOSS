@@ -87,6 +87,7 @@ data class SettingsUiState(
     val smartCrossfadeEnabled: Boolean = false,
     val audioOutputMode: AudioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
     val pcmFloatOutputSupported: Boolean = true,
+    val bitPerfectUsbOutputSupported: Boolean = false,
     val crossfadeDuration: Int = 2000,
     val persistentShuffleEnabled: Boolean = false,
     val folderBackGestureNavigation: Boolean = true,
@@ -208,6 +209,8 @@ class SettingsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
     private val pcmFloatOutputSupported = HiFiCapabilityChecker.isSupported()
+    private val bitPerfectUsbOutputSupported =
+        AudioOutputMode.isBitPerfectUsbAvailable(pcmFloatSupported = pcmFloatOutputSupported)
 
     private val fileExplorerStateHolder = FileExplorerStateHolder(userPreferencesRepository, viewModelScope, context)
 
@@ -275,6 +278,7 @@ class SettingsViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 pcmFloatOutputSupported = pcmFloatOutputSupported,
+                bitPerfectUsbOutputSupported = bitPerfectUsbOutputSupported,
                 appLanguageTag = AppLocaleManager.currentLanguageTag(context)
             )
         }
@@ -359,14 +363,7 @@ class SettingsViewModel @Inject constructor(
                     resumeOnHeadsetReconnect = values[1] as Boolean,
                     showQueueHistory = values[2] as Boolean,
                     isCrossfadeEnabled = values[3] as Boolean,
-                    audioOutputMode = if (
-                        requestedAudioOutputMode == AudioOutputMode.PCM_FLOAT &&
-                        !pcmFloatOutputSupported
-                    ) {
-                        AudioOutputMode.SYSTEM_DEFAULT
-                    } else {
-                        requestedAudioOutputMode
-                    },
+                    audioOutputMode = supportedOrDefault(requestedAudioOutputMode),
                     crossfadeDuration = values[5] as Int,
                     persistentShuffleEnabled = values[6] as Boolean,
                     folderBackGestureNavigation = values[7] as Boolean,
@@ -743,15 +740,14 @@ class SettingsViewModel @Inject constructor(
 
     fun setAudioOutputMode(mode: AudioOutputMode) {
         viewModelScope.launch {
-            val supportedMode = if (
-                mode == AudioOutputMode.PCM_FLOAT && !pcmFloatOutputSupported
-            ) {
-                AudioOutputMode.SYSTEM_DEFAULT
-            } else {
-                mode
-            }
-            userPreferencesRepository.setAudioOutputMode(supportedMode)
+            userPreferencesRepository.setAudioOutputMode(supportedOrDefault(mode))
         }
+    }
+
+    private fun supportedOrDefault(mode: AudioOutputMode): AudioOutputMode = when {
+        mode == AudioOutputMode.PCM_FLOAT && !pcmFloatOutputSupported -> AudioOutputMode.SYSTEM_DEFAULT
+        mode == AudioOutputMode.BIT_PERFECT_USB && !bitPerfectUsbOutputSupported -> AudioOutputMode.SYSTEM_DEFAULT
+        else -> mode
     }
 
     fun setShowQueueHistory(show: Boolean) {

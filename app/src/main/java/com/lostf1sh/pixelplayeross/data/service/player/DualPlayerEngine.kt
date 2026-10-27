@@ -1094,6 +1094,17 @@ class DualPlayerEngine @Inject constructor(
                             enableAudioOutputPlaybackParams
                         )
                     ) { "Media3 did not create its default AudioSink" }
+                } else if (
+                    outputMode == AudioOutputMode.BIT_PERFECT_USB &&
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                ) {
+                    // Stock processor chain: float hi-res input bypasses it, and nothing in it
+                    // changes samples at normal speed.
+                    DefaultAudioSink.Builder(context)
+                        .setEnableFloatOutput(true)
+                        .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
+                        .setAudioOutputProvider(BitPerfectUsbAudioOutputProvider(context))
+                        .build()
                 } else {
                     DefaultAudioSink.Builder(context)
                         .setEnableFloatOutput(outputMode.usesFloatOutput)
@@ -1359,14 +1370,20 @@ class DualPlayerEngine @Inject constructor(
     }
 
     fun setAudioOutputMode(mode: AudioOutputMode) {
-        val resolvedMode = if (
-            mode == AudioOutputMode.PCM_FLOAT && !HiFiCapabilityChecker.isSupported()
-        ) {
-            Timber.tag("DualPlayerEngine")
-                .w("PCM float output requested but device does not support PCM_FLOAT; using system default")
-            AudioOutputMode.SYSTEM_DEFAULT
-        } else {
-            mode
+        val resolvedMode = when {
+            mode == AudioOutputMode.PCM_FLOAT && !HiFiCapabilityChecker.isSupported() -> {
+                Timber.tag("DualPlayerEngine")
+                    .w("PCM float output requested but device does not support PCM_FLOAT; using system default")
+                AudioOutputMode.SYSTEM_DEFAULT
+            }
+            mode == AudioOutputMode.BIT_PERFECT_USB && !AudioOutputMode.isBitPerfectUsbAvailable(
+                pcmFloatSupported = HiFiCapabilityChecker.isSupported()
+            ) -> {
+                Timber.tag("DualPlayerEngine")
+                    .w("Bit-perfect USB output needs Android 14 and PCM_FLOAT; using system default")
+                AudioOutputMode.SYSTEM_DEFAULT
+            }
+            else -> mode
         }
         if (audioOutputMode == resolvedMode) return
         audioOutputMode = resolvedMode

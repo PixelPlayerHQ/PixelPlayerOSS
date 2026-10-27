@@ -1045,7 +1045,9 @@ fun SettingsCategoryScreen(
                                         AudioOutputMode.DIRECT.storageKey to
                                             stringResource(R.string.setcat_audio_output_mode_direct),
                                         AudioOutputMode.PCM_FLOAT.storageKey to
-                                            stringResource(R.string.setcat_audio_output_mode_pcm_float)
+                                            stringResource(R.string.setcat_audio_output_mode_pcm_float),
+                                        AudioOutputMode.BIT_PERFECT_USB.storageKey to
+                                            stringResource(R.string.setcat_audio_output_mode_bit_perfect_usb)
                                     ),
                                     optionDescriptions = mapOf(
                                         AudioOutputMode.SYSTEM_DEFAULT.storageKey to
@@ -1056,12 +1058,18 @@ fun SettingsCategoryScreen(
                                             stringResource(R.string.setcat_audio_output_mode_pcm_float_description)
                                         } else {
                                             stringResource(R.string.setcat_audio_output_mode_pcm_float_unsupported)
+                                        },
+                                        AudioOutputMode.BIT_PERFECT_USB.storageKey to if (uiState.bitPerfectUsbOutputSupported) {
+                                            stringResource(R.string.setcat_audio_output_mode_bit_perfect_usb_description)
+                                        } else {
+                                            stringResource(R.string.setcat_audio_output_mode_bit_perfect_usb_unsupported)
                                         }
                                     ),
-                                    disabledOptionKeys = if (uiState.pcmFloatOutputSupported) {
-                                        emptySet()
-                                    } else {
-                                        setOf(AudioOutputMode.PCM_FLOAT.storageKey)
+                                    disabledOptionKeys = buildSet {
+                                        if (!uiState.pcmFloatOutputSupported) add(AudioOutputMode.PCM_FLOAT.storageKey)
+                                        if (!uiState.bitPerfectUsbOutputSupported) {
+                                            add(AudioOutputMode.BIT_PERFECT_USB.storageKey)
+                                        }
                                     },
                                     selectedKey = uiState.audioOutputMode.storageKey,
                                     onSelectionChanged = { key ->

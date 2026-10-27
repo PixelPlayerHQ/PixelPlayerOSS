@@ -199,6 +199,9 @@
     <string name="setcat_audio_output_mode_pcm_float">32-bit float PCM</string>
     <string name="setcat_audio_output_mode_pcm_float_description">More processing headroom for high-resolution PCM. Android may still resample it; this is not bit-perfect.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Unavailable because this device could not initialize a PCM_FLOAT AudioTrack.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">Bit-perfect USB (experimental)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Sends each track to a USB DAC unchanged, at its own sample rate. Needs a phone and DAC that support bit-perfect USB output, otherwise the normal path is used. Volume is then set by the DAC, and turning on the equalizer changes the signal.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Requires Android 14 or newer and PCM_FLOAT output support.</string>
     <string name="setcat_persistent_shuffle_title">Persistent Shuffle</string>
     <string name="setcat_persistent_shuffle_subtitle">Remember shuffle setting even after closing the app.</string>
     <string name="setcat_show_queue_history_title">Show queue history</string>

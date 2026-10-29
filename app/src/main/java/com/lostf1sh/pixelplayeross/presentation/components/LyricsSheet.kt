@@ -782,6 +782,10 @@ fun LyricsSheet(
                                 color = backgroundColor,
                                 shape = CircleShape
                             )
+                            // Claim taps so they do not reach (and seek to) the lyric line underneath.
+                            .pointerInput(Unit) {
+                                detectTapGestures { resetImmersiveTimer() }
+                            }
                             .wrapContentWidth()
                             .animateContentSize(),
                         backgroundColor = backgroundColor,

@@ -67,6 +67,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -117,6 +118,7 @@ import androidx.navigation.NavController
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.presentation.components.AutoScrollingText
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.QueuePlaylistSongItem
@@ -295,12 +297,11 @@ fun PlaylistDetailScreen(
         topBar = {
             LargeFlexibleTopAppBar(
                 title = {
-                    Text(
+                    AutoScrollingText(
                         modifier = Modifier.padding(start = 8.dp),
                         text = currentPlaylist?.name ?: fallbackPlaylistName,
-                        fontFamily = RoundedSans,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        style = LocalTextStyle.current.copy(fontFamily = RoundedSans),
+                        gradientEdgeColor = MaterialTheme.colorScheme.surface
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

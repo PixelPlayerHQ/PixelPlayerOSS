@@ -12,19 +12,22 @@ class AudioOffloadPolicyTest {
         assertThat(
             shouldEnableAudioOffloadForMode(
                 audioOffloadAvailableForSession = true,
-                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
+                audioEffectsEnabled = false
             )
         ).isTrue()
         assertThat(
             shouldEnableAudioOffloadForMode(
                 audioOffloadAvailableForSession = true,
-                audioOutputMode = AudioOutputMode.DIRECT
+                audioOutputMode = AudioOutputMode.DIRECT,
+                audioEffectsEnabled = false
             )
         ).isFalse()
         assertThat(
             shouldEnableAudioOffloadForMode(
                 audioOffloadAvailableForSession = true,
-                audioOutputMode = AudioOutputMode.PCM_FLOAT
+                audioOutputMode = AudioOutputMode.PCM_FLOAT,
+                audioEffectsEnabled = false
             )
         ).isFalse()
     }
@@ -34,7 +37,19 @@ class AudioOffloadPolicyTest {
         assertThat(
             shouldEnableAudioOffloadForMode(
                 audioOffloadAvailableForSession = false,
-                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
+                audioEffectsEnabled = false
+            )
+        ).isFalse()
+    }
+
+    @Test
+    fun outputModePolicy_disablesOffloadWhileAudioEffectsAreEnabled() {
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = true,
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
+                audioEffectsEnabled = true
             )
         ).isFalse()
     }

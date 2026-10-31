@@ -35,6 +35,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.extractor.flac.FlacExtractor
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerAudioSink
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
@@ -50,6 +52,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -165,11 +169,15 @@ internal fun isAudioOffloadMarkedBroken(
     currentBuildFingerprint: String
 ): Boolean = !storedBuildFingerprint.isNullOrBlank() && storedBuildFingerprint == currentBuildFingerprint
 
+/** Offloaded audio reaches the DSP still encoded, so any enabled audio effect needs the PCM path. */
 internal fun shouldEnableAudioOffloadForMode(
     audioOffloadAvailableForSession: Boolean,
-    audioOutputMode: AudioOutputMode
+    audioOutputMode: AudioOutputMode,
+    audioEffectsEnabled: Boolean
 ): Boolean {
-    return audioOffloadAvailableForSession && audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT
+    return audioOffloadAvailableForSession &&
+        audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT &&
+        !audioEffectsEnabled
 }
 
 internal fun shouldTriggerAudioOffloadStallFallback(
@@ -234,7 +242,8 @@ class DualPlayerEngine @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val navidromeStreamProxy: NavidromeStreamProxy,
     private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy,
-    private val cloudOfflineRepository: CloudOfflineRepository
+    private val cloudOfflineRepository: CloudOfflineRepository,
+    private val equalizerManager: EqualizerManager
 ) {
     private companion object {
         // A local file reaches READY in ~100ms with a working output path, so 1.5s of
@@ -265,7 +274,12 @@ class DualPlayerEngine @Inject constructor(
     private var audioOffloadEnabled =
         !shouldDisableAudioOffloadByDefault() && !isAudioOffloadKnownBrokenOnThisBuild()
     private val audioOffloadEnabledForCurrentMode: Boolean
-        get() = shouldEnableAudioOffloadForMode(audioOffloadEnabled, audioOutputMode)
+        get() = shouldEnableAudioOffloadForMode(
+            audioOffloadEnabled,
+            audioOutputMode,
+            equalizerManager.settings.value.anyEnabled
+        )
+    private var audioEffectsOffloadJob: Job? = null
     private val transitionRunTracker = TransitionRunTracker()
     private var transitionJob: Job? = null
     private var bufferingFallbackJob: Job? = null
@@ -712,6 +726,19 @@ class DualPlayerEngine @Inject constructor(
 
         addMasterPlayerListeners(playerA)
 
+        audioEffectsOffloadJob?.cancel()
+        audioEffectsOffloadJob = scope.launch {
+            // Switching an effect on moves the live players off offload (a short renderer reset).
+            equalizerManager.settings
+                .map { it.anyEnabled }
+                .distinctUntilChanged()
+                .collect {
+                    if (!audioOffloadEnabledForCurrentMode) cancelAudioOffloadFallback()
+                    applyAudioOffloadPreferences(playerA)
+                    playerB?.let(::applyAudioOffloadPreferences)
+                }
+        }
+
         _activeAudioSessionId.value = playerA.audioSessionId
         isReleased = false
         queueSnapshot = emptyList()
@@ -1056,28 +1083,31 @@ class DualPlayerEngine @Inject constructor(
                 enableFloatOutput: Boolean,
                 enableAudioOutputPlaybackParams: Boolean
             ): AudioSink {
-                if (outputMode.usesUnmodifiedMedia3AudioSink) {
+                val sink = if (outputMode.usesUnmodifiedMedia3AudioSink) {
                     // Android's audio policy may
                     // grant a DIRECT thread for a compatible device/format, or safely fall back
                     // to the mixed path. This deliberately does not promise exclusive output.
-                    return requireNotNull(
+                    requireNotNull(
                         super.buildAudioSink(
                             context,
                             false,
                             enableAudioOutputPlaybackParams
                         )
                     ) { "Media3 did not create its default AudioSink" }
-                }
-                return DefaultAudioSink.Builder(context)
-                    .setEnableFloatOutput(outputMode.usesFloatOutput)
-                    .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
-                    .setAudioProcessorChain(
-                        DefaultAudioSink.DefaultAudioProcessorChain(
-                            HiResSampleRateCapAudioProcessor(),
-                            SurroundDownmixProcessor()
+                } else {
+                    DefaultAudioSink.Builder(context)
+                        .setEnableFloatOutput(outputMode.usesFloatOutput)
+                        .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
+                        .setAudioProcessorChain(
+                            DefaultAudioSink.DefaultAudioProcessorChain(
+                                HiResSampleRateCapAudioProcessor(),
+                                SurroundDownmixProcessor()
+                            )
                         )
-                    )
-                    .build()
+                        .build()
+                }
+                // Effects pass PCM through untouched while off, so DIRECT stays unmodified then.
+                return EqualizerAudioSink(sink, equalizerManager.settings)
             }
 
             override fun buildVideoRenderers(
@@ -1182,23 +1212,7 @@ class DualPlayerEngine @Inject constructor(
             }
             addListener(UnsupportedAudioListener(this))
             setAudioAttributes(audioAttributes, false)
-            // Gapless support is required, not optional: on a HAL that only advertises plain
-            // offload, the data written ahead for the next item is dropped at the automatic
-            // transition and the track starts seconds in. Devices without gapless offload fall
-            // back to the regular PCM path instead.
-            val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
-                .setAudioOffloadMode(
-                    if (audioOffloadEnabledForCurrentMode) {
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
-                    } else {
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
-                    }
-                )
-                .setIsGaplessSupportRequired(true)
-                .build()
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setAudioOffloadPreferences(offloadPreferences)
-                .build()
+            applyAudioOffloadPreferences(this)
             setHandleAudioBecomingNoisy(true)
             setWakeMode(C.WAKE_MODE_LOCAL)
             // Rebuilt players (offload fallback, output-mode change, crossfade auxiliary)
@@ -1206,6 +1220,26 @@ class DualPlayerEngine @Inject constructor(
             setPreferredAudioDevice(preferredAudioDevice)
             playWhenReady = false
         }
+    }
+
+    private fun applyAudioOffloadPreferences(player: ExoPlayer) {
+        // Gapless support is required, not optional: on a HAL that only advertises plain
+        // offload, the data written ahead for the next item is dropped at the automatic
+        // transition and the track starts seconds in. Devices without gapless offload fall
+        // back to the regular PCM path instead.
+        val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
+            .setAudioOffloadMode(
+                if (audioOffloadEnabledForCurrentMode) {
+                    TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
+                } else {
+                    TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
+                }
+            )
+            .setIsGaplessSupportRequired(true)
+            .build()
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setAudioOffloadPreferences(offloadPreferences)
+            .build()
     }
 
     private fun resolveReadyCloudProxyUri(uri: Uri): Uri? {

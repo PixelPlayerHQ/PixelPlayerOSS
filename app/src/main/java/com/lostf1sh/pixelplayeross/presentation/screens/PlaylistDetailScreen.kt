@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,7 +67,7 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TwoRowsTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -104,6 +105,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -121,6 +123,7 @@ import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.presentation.components.AutoScrollingText
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCover
 import com.lostf1sh.pixelplayeross.presentation.components.QueuePlaylistSongItem
 import com.lostf1sh.pixelplayeross.presentation.components.SongPickerBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
@@ -155,6 +158,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.lostf1sh.pixelplayeross.presentation.components.rememberModalSheetState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(
@@ -290,27 +294,55 @@ fun PlaylistDetailScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    // The cover would leave no room for the songs on short (landscape phone) windows.
+    val hasRoomForCover = LocalWindowInfo.current.containerDpSize.height >= 480.dp
+    // The same first songs the library thumbnail uses, so the collage matches it.
+    val coverSongs = remember(currentPlaylist?.songIds, songsInPlaylist) {
+        currentPlaylist?.songIds.orEmpty().take(4)
+            .mapNotNull { id -> songsInPlaylist.firstOrNull { it.id == id } }
+            .toImmutableList()
+    }
 
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    AutoScrollingText(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = currentPlaylist?.name ?: fallbackPlaylistName,
-                        style = LocalTextStyle.current.copy(fontFamily = RoundedSans),
-                        gradientEdgeColor = MaterialTheme.colorScheme.surface
-                    )
+            // TwoRowsTopAppBar styled like LargeFlexibleTopAppBar; it tells the title which row
+            // it is in, so the cover only shows above the expanded title.
+            TwoRowsTopAppBar(
+                title = { expanded ->
+                    Column {
+                        if (expanded && hasRoomForCover && currentPlaylist != null) {
+                            PlaylistCover(
+                                playlist = currentPlaylist,
+                                playlistSongs = coverSongs,
+                                modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
+                                size = 120.dp
+                            )
+                        }
+                        AutoScrollingText(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = currentPlaylist?.name ?: fallbackPlaylistName,
+                            style = if (expanded) {
+                                MaterialTheme.typography.displaySmall.copy(fontFamily = RoundedSans)
+                            } else {
+                                LocalTextStyle.current.copy(fontFamily = RoundedSans)
+                            },
+                            gradientEdgeColor = MaterialTheme.colorScheme.surface
+                        )
+                    }
                 },
+                collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
+                expandedHeight = TopAppBarDefaults.LargeFlexibleAppBarWithSubtitleExpandedHeight,
                 colors = TopAppBarDefaults.topAppBarColors(
                     scrolledContainerColor = Color.Transparent,
                     containerColor = Color.Transparent
                 ),
-                subtitle = {
+                subtitle = { expanded ->
                     Text(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .then(if (expanded) Modifier.paddingFromBaseline(bottom = 28.dp) else Modifier),
                         text = stringResource(
                             R.string.presentation_batch_f_status_bullet_step,
                             formatSongCount(songsInPlaylist.size),

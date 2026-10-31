@@ -942,7 +942,19 @@ class MusicService : MediaSessionService() {
                 }
             }
         }
-        val startCommandResult = super.onStartCommand(intent, flags, startId)
+        val startCommandResult = try {
+            super.onStartCommand(intent, flags, startId)
+        } catch (e: IllegalStateException) {
+            // Media3 promotes to foreground before stopping itself on a stale self-start
+            // intent (e.g. after the queue empties); Android may refuse that from background.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                e !is ForegroundServiceStartNotAllowedException
+            ) throw e
+            Timber.tag(TAG).w(e, "Media3 start command could not go foreground; stopping")
+            clearTemporaryForegroundNotification()
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (needsTemporaryForeground || startedTemporaryForegroundInOnCreate) {
             if (mediaSession?.player?.hasForegroundPlaybackIntent() != true) {
                 stopForeground(STOP_FOREGROUND_REMOVE)

@@ -52,6 +52,7 @@ class TransitionController @Inject constructor(
     private var transitionListener: Player.Listener? = null
     private var transitionSchedulerJob: Job? = null
     private var currentObservedPlayer: Player? = null
+    private var needsDurationReschedule = false
 
     private val swapListener: (Player) -> Unit = { newPlayer ->
         Timber.tag("TransitionDebug").d("Controller detected player swap. Moving listener.")
@@ -98,9 +99,22 @@ class TransitionController @Inject constructor(
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 val job = transitionSchedulerJob
-                if (isPlaying && (job == null || job.isCompleted)) {
+                if (isPlaying && (job == null || job.isCompleted || needsDurationReschedule)) {
+                    needsDurationReschedule = false
                     Timber.tag("TransitionDebug").d("Playback resumed. Checking if transition needs scheduling.")
                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                }
+            }
+
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                if (playbackState == Player.STATE_READY && needsDurationReschedule) {
+                    val player = engine.masterPlayer
+                    val duration = player.duration
+                    if (duration != C.TIME_UNSET && duration > 0) {
+                        needsDurationReschedule = false
+                        Timber.tag("TransitionDebug").d("Player became ready with valid duration (%d). Rescheduling transition.", duration)
+                        player.currentMediaItem?.let { scheduleTransitionFor(it) }
+                    }
                 }
             }
 
@@ -110,7 +124,14 @@ class TransitionController @Inject constructor(
                     transitionSchedulerJob?.cancel()
                     engine.cancelNext()
 
-                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                    engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                } else if (needsDurationReschedule) {
+                    val duration = engine.masterPlayer.duration
+                    if (duration != C.TIME_UNSET && duration > 0) {
+                        needsDurationReschedule = false
+                        Timber.tag("TransitionDebug").d("Timeline updated with valid duration (%d). Rescheduling transition.", duration)
+                        engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                    }
                 }
             }
 
@@ -143,6 +164,7 @@ class TransitionController @Inject constructor(
 
     private fun scheduleTransitionFor(currentMediaItem: MediaItem) {
         transitionSchedulerJob?.cancel()
+        needsDurationReschedule = false
         engine.setPauseAtEndOfMediaItems(shouldPause = false)
 
         if (engine.sleepTimerHold.value.suppressCrossfade) {
@@ -223,6 +245,7 @@ class TransitionController @Inject constructor(
                 )
             }.distinctUntilChanged()
             .collectLatest { snapshot ->
+                needsDurationReschedule = false
                 val resolution = snapshot.resolution
                 val isEnabled = snapshot.isCrossfadeEnabled
 
@@ -265,12 +288,20 @@ class TransitionController @Inject constructor(
                 engine.prepareNext(transitionTarget)
 
                 var duration = player.duration
+                var durationWaitAttempts = 0
                 while ((duration == C.TIME_UNSET || duration <= 0) && isActive) {
+                    if (++durationWaitAttempts > 10) {
+                        Timber.tag("TransitionDebug").w("Timed out waiting for duration (%d). Pausing transition scheduling until duration becomes available.", duration)
+                        engine.cancelNext()
+                        needsDurationReschedule = true
+                        return@collectLatest
+                    }
                     delay(500)
                     duration = player.duration
                     Timber.tag("TransitionDebug").v("Waiting for duration... (%d)", duration)
                 }
 
+                needsDurationReschedule = false
                 if (!isActive) return@collectLatest
 
                 val minFade = 500L

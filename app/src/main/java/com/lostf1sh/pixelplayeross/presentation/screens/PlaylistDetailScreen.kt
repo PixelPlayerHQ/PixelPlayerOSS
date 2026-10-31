@@ -295,7 +295,7 @@ fun PlaylistDetailScreen(
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     // The cover would leave no room for the songs on short (landscape phone) windows.
-    val hasRoomForCover = LocalWindowInfo.current.containerDpSize.height >= 480.dp
+    val hasRoomForCover = LocalWindowInfo.current.containerDpSize.height >= 560.dp
     // The same first songs the library thumbnail uses, so the collage matches it.
     val coverSongs = remember(currentPlaylist?.songIds, songsInPlaylist) {
         currentPlaylist?.songIds.orEmpty().take(4)
@@ -311,13 +311,15 @@ fun PlaylistDetailScreen(
             // it is in, so the cover only shows above the expanded title.
             TwoRowsTopAppBar(
                 title = { expanded ->
-                    Column {
+                    Column(if (expanded) Modifier.fillMaxWidth() else Modifier) {
                         if (expanded && hasRoomForCover && currentPlaylist != null) {
                             PlaylistCover(
                                 playlist = currentPlaylist,
                                 playlistSongs = coverSongs,
-                                modifier = Modifier.padding(start = 8.dp, bottom = 12.dp),
-                                size = 120.dp
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(bottom = 16.dp),
+                                size = 168.dp
                             )
                         }
                         AutoScrollingText(

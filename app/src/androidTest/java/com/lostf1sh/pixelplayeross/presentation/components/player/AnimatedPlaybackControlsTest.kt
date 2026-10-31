@@ -70,6 +70,40 @@ class AnimatedPlaybackControlsTest {
     }
 
     @Test
+    fun playTapDuringTheInitialNotPlayingDelayKeepsPause() {
+        composeRule.mainClock.autoAdvance = false
+        showControls(isPlayingProvider = { false })
+        // The controls appear paused and start waiting before they show "not playing".
+        composeRule.mainClock.advanceTimeByFrame()
+
+        composeRule.onNodeWithContentDescription(playLabel).performClick()
+        // Past that wait, but before the fallback to the player's real state.
+        composeRule.mainClock.advanceTimeBy(500)
+
+        composeRule.onNodeWithContentDescription(pauseLabel).assertExists()
+    }
+
+    @Test
+    fun pauseTapRightAfterASkipIsNotOverriddenByTheSkipsPlayingState() {
+        val isPlaying = mutableStateOf(true)
+        showControls(isPlayingProvider = { isPlaying.value })
+        composeRule.mainClock.autoAdvance = false
+
+        // A skip briefly reports "not playing"; the "playing" that follows waits for the skip.
+        composeRule.onNodeWithContentDescription(context.getString(R.string.next_track)).performClick()
+        composeRule.mainClock.advanceTimeBy(40)
+        composeRule.runOnUiThread { isPlaying.value = false }
+        composeRule.mainClock.advanceTimeBy(40)
+        composeRule.runOnUiThread { isPlaying.value = true }
+        composeRule.mainClock.advanceTimeBy(40)
+
+        composeRule.onNodeWithContentDescription(pauseLabel).performClick()
+        composeRule.mainClock.advanceTimeBy(80)
+
+        composeRule.onNodeWithContentDescription(playLabel).assertExists()
+    }
+
+    @Test
     fun playTapKeepsPauseOnceThePlayerFollows() {
         val isPlaying = mutableStateOf(false)
         showControls(

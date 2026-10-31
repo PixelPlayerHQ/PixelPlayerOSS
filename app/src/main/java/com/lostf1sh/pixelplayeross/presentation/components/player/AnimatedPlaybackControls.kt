@@ -96,11 +96,13 @@ fun AnimatedPlaybackControls(
             return@LaunchedEffect
         }
 
+        val tapsBeforeDelay = playPauseTapCount
         val shouldDelay = latestLastClicked != PlaybackButtonType.PLAY_PAUSE
         if (shouldDelay) {
             delay(releaseDelay)
         }
-        if (!latestIsPlayingProvider()) {
+        // A play/pause tap during the delay is newer than this "not playing" report.
+        if (playPauseTapCount == tapsBeforeDelay && !latestIsPlayingProvider()) {
             pendingPlayPauseState = false
         }
     }
@@ -193,6 +195,8 @@ fun AnimatedPlaybackControls(
                     .clickable {
                         lastClicked = PlaybackButtonType.PLAY_PAUSE
                         playPauseVisualState = !playPauseVisualState
+                        // A state held back by a skip predates this tap.
+                        pendingPlayPauseState = null
                         playPauseTapCount++
                         hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                         onPlayPause()

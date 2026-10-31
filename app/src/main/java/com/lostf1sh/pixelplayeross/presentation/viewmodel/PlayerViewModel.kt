@@ -1460,17 +1460,9 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun shuffleRandomAlbum() {
-        viewModelScope.launch {
-            val allAlbums = libraryStateHolder.albums.value
-            if (allAlbums.isNotEmpty()) {
-                val randomAlbum = allAlbums.random()
-                val albumSongs = musicRepository.getSongsForAlbum(randomAlbum.id).first()
-                if (albumSongs.isNotEmpty()) {
-                    playSongsShuffled(albumSongs, randomAlbum.title, startAtZero = true)
-                }
-            }
-        }
+    /** Only the album pick is random; its tracks play in album order. */
+    fun playRandomAlbum() {
+        libraryStateHolder.albums.value.randomOrNull()?.let(::playAlbum)
     }
 
     fun shuffleRandomGenre() {

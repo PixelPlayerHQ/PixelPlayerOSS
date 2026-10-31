@@ -1217,7 +1217,7 @@ fun LibraryScreen(
                                         when (visibleCurrentTabId) {
                                             LibraryTabId.PLAYLISTS -> showPlaylistCreationTypeDialog = true
                                             LibraryTabId.LIKED -> playerViewModel.shuffleFavoriteSongs()
-                                            LibraryTabId.ALBUMS -> playerViewModel.shuffleRandomAlbum()
+                                            LibraryTabId.ALBUMS -> playerViewModel.playRandomAlbum()
                                             LibraryTabId.ARTISTS -> playerViewModel.shuffleRandomArtist()
                                             LibraryTabId.GENRES -> playerViewModel.shuffleRandomGenre()
                                             else -> playerViewModel.shuffleAllSongs()

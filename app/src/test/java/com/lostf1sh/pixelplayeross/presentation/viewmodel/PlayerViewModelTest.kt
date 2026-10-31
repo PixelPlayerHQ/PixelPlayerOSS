@@ -609,7 +609,7 @@ class PlayerViewModelTest {
         }
 
         @Test
-        fun `shuffleRandomAlbum calls prepareShuffledQueue with startAtZero`() = runTest {
+        fun `playRandomAlbum plays the album in track order without shuffling`() = runTest {
             val album = Album(
                 id = 77L,
                 title = "Album Roulette",
@@ -619,19 +619,20 @@ class PlayerViewModelTest {
                 albumArtUriString = null,
                 songCount = 3
             )
+            val track1 = song3.copy(trackNumber = 1)
+            val track2 = song1.copy(trackNumber = 2)
+            val track3 = song2.copy(trackNumber = 3)
             every { mockLibraryStateHolder.albums } returns MutableStateFlow(persistentListOf(album))
-            every { mockMusicRepository.getSongsForAlbum(album.id) } returns flowOf(listOf(song1, song2, song3))
-            stubShuffledPlayback(listOf(song1, song2, song3), startSong = song2)
+            every { mockMusicRepository.getSongsForAlbum(album.id) } returns flowOf(listOf(track2, track3, track1))
+            stubShuffledPlayback(listOf(track1, track2, track3))
 
-            playerViewModel.shuffleRandomAlbum()
+            playerViewModel.playRandomAlbum()
             advanceUntilIdle()
 
-            coVerify {
-                mockQueueStateHolder.prepareShuffledQueueSuspending(
-                    listOf(song1, song2, song3),
-                    true
-                )
+            verify {
+                mockQueueStateHolder.setOriginalQueueOrder(listOf(track1, track2, track3), listOf(null, null, null))
             }
+            coVerify(exactly = 0) { mockQueueStateHolder.prepareShuffledQueueSuspending(any(), any(), any()) }
         }
 
         @Test

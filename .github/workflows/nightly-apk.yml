@@ -144,3 +144,13 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 14
+
+      # Kept as its own artifact so the APK download stays small, and longer than
+      # the APKs because installed nightlies keep crashing after those expire.
+      - name: Upload Phone nightly R8 mapping
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: PixelPlayerOSS-phone-nightly-${{ needs.changes.outputs.short-sha }}-mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 30

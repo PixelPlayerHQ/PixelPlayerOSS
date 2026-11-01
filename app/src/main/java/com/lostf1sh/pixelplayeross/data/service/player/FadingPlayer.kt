@@ -42,16 +42,25 @@ class FadingPlayer(
         return if (fadeJob?.isActive == true) logicalVolume else super.getVolume()
     }
 
+    /**
+     * The volume a fade should return the player to. Outside a fade that is the engine
+     * player's own volume, where ReplayGain (or the user) set it. Mid-fade the engine player
+     * only holds a ramp step, so reading it would make every later fade end near silence.
+     */
+    private fun settledVolume(): Float =
+        if (fadeJob?.isActive == true) logicalVolume else innerPlayer.volume
+
     override fun play() {
+        val targetVolume = settledVolume()
         fadeJob?.cancel()
+        logicalVolume = targetVolume
         if (isPlaying) {
+            // A pause fade cut short here has left the volume partway down.
+            super.setVolume(targetVolume)
             super.play()
             return
         }
 
-        // Capture the volume ReplayGain (or the user) set directly on the engine player.
-        logicalVolume = innerPlayer.volume
-        val targetVolume = logicalVolume
         super.setVolume(0f)
         super.play()
 
@@ -59,23 +68,28 @@ class FadingPlayer(
             val stepTime = FADE_DURATION_MS / FADE_STEPS
             for (i in 1..FADE_STEPS) {
                 if (!isActive) break
-                val volume = (i.toFloat() / FADE_STEPS) * targetVolume
+                val volume = (i.toFloat() / FADE_STEPS) * logicalVolume
                 super.setVolume(volume)
                 delay(stepTime)
             }
-            super.setVolume(targetVolume)
+            super.setVolume(logicalVolume)
         }
     }
 
     override fun pause() {
+        val settledVolume = settledVolume()
         fadeJob?.cancel()
+        logicalVolume = settledVolume
         if (!isPlaying) {
             super.pause()
+            // A play fade cut short while buffering has left the volume partway up.
+            super.setVolume(settledVolume)
             return
         }
 
+        // Ramp down from where the volume is now, which is below the settled level when
+        // this cuts a play fade short.
         val startVolume = innerPlayer.volume
-        logicalVolume = startVolume
         fadeJob = scope.launch(Dispatchers.Main) {
             val stepTime = FADE_DURATION_MS / FADE_STEPS
             for (i in 1..FADE_STEPS) {
@@ -87,7 +101,7 @@ class FadingPlayer(
             super.setVolume(0f)
             super.pause()
             // Restore the logical volume so the paused player resumes from the right level.
-            super.setVolume(startVolume)
+            super.setVolume(logicalVolume)
         }
     }
 

@@ -99,6 +99,8 @@ class MusicRepositoryImpl @Inject constructor(
         private const val SEARCH_RESULTS_LIMIT = 100
         private const val UNKNOWN_GENRE_NAME = "Unknown"
         private const val UNKNOWN_GENRE_ID = "unknown"
+        /** Songs per by-id query; leaves room for the directory filter's own bound variables. */
+        private const val SONGS_BY_ID_BATCH_SIZE = 500
     }
 
     private val directoryScanMutex = Mutex()
@@ -711,6 +713,23 @@ class MusicRepositoryImpl @Inject constructor(
             allowedParentDirs = allowedParentDirs,
             applyDirectoryFilter = applyDirectoryFilter
         ).first().map { it.toSong() }
+    }
+
+    override suspend fun getSongsByIdsOnce(songIds: Collection<String>): List<Song> = withContext(Dispatchers.IO) {
+        val longIds = songIds.mapNotNull { it.toLongOrNull() }
+        if (longIds.isEmpty()) return@withContext emptyList()
+        val allowedDirs = userPreferencesRepository.allowedDirectoriesFlow.first()
+        val blockedDirs = userPreferencesRepository.blockedDirectoriesFlow.first()
+        val (allowedParentDirs, applyDirectoryFilter) =
+            computeAllowedDirs(allowedDirs, blockedDirs)
+        // Batches keep the ids and the directory list under SQLite's bound-variable limit.
+        longIds.chunked(SONGS_BY_ID_BATCH_SIZE).flatMap { batch ->
+            musicDao.getSongsByIds(
+                songIds = batch,
+                allowedParentDirs = allowedParentDirs,
+                applyDirectoryFilter = applyDirectoryFilter
+            ).first()
+        }.map { it.toSong() }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

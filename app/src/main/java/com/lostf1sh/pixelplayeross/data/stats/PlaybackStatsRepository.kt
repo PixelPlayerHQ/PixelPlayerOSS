@@ -202,6 +202,11 @@ class PlaybackStatsRepository @Inject constructor(
         }
     }
 
+    /** Ids of the songs with at least one recorded play: the only songs a summary can show. */
+    suspend fun loadPlayedSongIds(): Set<String> = withContext(Dispatchers.IO) {
+        readEvents().mapTo(HashSet()) { it.songId }
+    }
+
     suspend fun loadSummary(
         range: StatsTimeRange,
         songs: List<Song>,

@@ -182,6 +182,29 @@ class MusicRepositoryImplTest {
     }
 
     @Test
+    fun `getSongsByIdsOnce reads only the requested songs under the library's directory filter`() = runTest(testDispatcher) {
+        every { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/forbidden/path"))
+        coEvery { mockMusicDao.getDistinctParentDirectories() } returns listOf("/allowed/path", "/forbidden/path")
+        val batches = mutableListOf<List<Long>>()
+        val filters = mutableListOf<Pair<List<String>, Boolean>>()
+        every { mockMusicDao.getSongsByIds(any(), any(), any()) } answers {
+            val ids = firstArg<List<Long>>()
+            batches += ids
+            filters += secondArg<List<String>>() to thirdArg<Boolean>()
+            flowOf(ids.map { createSongEntity(it, "Song $it", "Artist", null, "/allowed/path/$it.mp3", "/allowed/path") })
+        }
+        val requested = (1L..1_200L).map { it.toString() } + "not-a-library-id"
+
+        val result = musicRepository.getSongsByIdsOnce(requested)
+
+        assertEquals((1L..1_200L).map { it.toString() }.toSet(), result.map { it.id }.toSet())
+        // One query for all of them would exceed SQLite's bound-variable limit.
+        assertTrue(batches.size > 1 && batches.all { it.size <= 500 })
+        assertTrue(filters.all { (dirs, apply) -> apply && dirs == listOf("/allowed/path") })
+        verify(exactly = 0) { mockMusicDao.getAllSongs(any(), any()) }
+    }
+
+    @Test
     fun `getAudioFiles returns empty list if no allowed directories even before initial setup`() = runTest(testDispatcher) {
         val songEntities = listOf(
             createSongEntity(1L, "Song A", "Artist 1", "Pop", "/any/path/songA.mp3", "/any/path"),

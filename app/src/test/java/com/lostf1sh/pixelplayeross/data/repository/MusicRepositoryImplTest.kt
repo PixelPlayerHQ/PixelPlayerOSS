@@ -182,6 +182,37 @@ class MusicRepositoryImplTest {
     }
 
     @Test
+    fun `getSongsByIdsOnce reads only the requested songs under the library's directory filter`() = runTest(testDispatcher) {
+        // Many allowed folders: binding them next to each batch of ids would pass SQLite's limit.
+        val allowedFolders = (1..600).map { "/music/folder$it" }
+        every { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/blocked"))
+        coEvery { mockMusicDao.getDistinctParentDirectories() } returns allowedFolders + "/blocked"
+        val boundVariables = mutableListOf<Int>()
+        every { mockMusicDao.getSongsByIds(any(), any(), any()) } answers {
+            val ids = firstArg<List<Long>>()
+            boundVariables += ids.size + secondArg<List<String>>().size + 1
+            flowOf(ids.map { id ->
+                val folder = when {
+                    id < 0 -> "/Cloud/Jellyfin"
+                    id == 7L -> "/blocked"
+                    else -> allowedFolders[(id % allowedFolders.size).toInt()]
+                }
+                createSongEntity(id, "Song $id", "Artist", null, "$folder/$id.mp3", folder)
+            })
+        }
+        val cloudId = -12_000_000_000_001L
+        val requested = (1L..1_200L).map { it.toString() } + cloudId.toString() + "not-a-library-id"
+
+        val result = musicRepository.getSongsByIdsOnce(requested)
+
+        // The song in the blocked folder is left out; cloud songs pass the folder filter.
+        val expected = ((1L..1_200L).filter { it != 7L } + cloudId).map { it.toString() }.toSet()
+        assertEquals(expected, result.map { it.id }.toSet())
+        assertTrue(boundVariables.size > 1 && boundVariables.all { it <= 999 })
+        verify(exactly = 0) { mockMusicDao.getAllSongs(any(), any()) }
+    }
+
+    @Test
     fun `getAudioFiles returns empty list if no allowed directories even before initial setup`() = runTest(testDispatcher) {
         val songEntities = listOf(
             createSongEntity(1L, "Song A", "Artist 1", "Pop", "/any/path/songA.mp3", "/any/path"),

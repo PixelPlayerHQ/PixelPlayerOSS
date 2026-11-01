@@ -82,6 +82,7 @@ class StatsViewModelTest {
     private val playbackStatsRepository = mockk<PlaybackStatsRepository> {
         every { refreshFlow } returns refreshVersion
         every { requestRefresh() } answers { refreshVersion.update { it + 1 } }
+        coEvery { loadPlayedSongIds() } answers { events.mapTo(HashSet()) { it.songId } }
         coEvery { loadSummary(any(), any(), any()) } coAnswers {
             loadGate?.await()
             if (loadDelayMs > 0L) delay(loadDelayMs)
@@ -95,18 +96,25 @@ class StatsViewModelTest {
         }
     }
 
+    @Volatile
+    private var library: List<Song> = listOf(song("s1"), song("s2"))
+
     private val musicRepository = mockk<MusicRepository>(relaxed = true) {
-        coEvery { getAllSongsOnce() } returns listOf(song("s1"), song("s2"))
+        coEvery { getSongsByIdsOnce(any()) } answers {
+            val ids = firstArg<Collection<String>>().toSet()
+            library.filter { it.id in ids }
+        }
     }
 
     private val artistImageRepository = mockk<ArtistImageRepository>(relaxed = true)
 
     @Test
-    fun `startup refreshes read the library only once`() = runTest {
+    fun `startup refreshes read the played songs only once`() = runTest {
+        events = listOf(playThisWeek("s1"))
         val libraryGate = CompletableDeferred<Unit>()
-        coEvery { musicRepository.getAllSongsOnce() } coAnswers {
+        coEvery { musicRepository.getSongsByIdsOnce(any()) } coAnswers {
             libraryGate.await()
-            listOf(song("s1"), song("s2"))
+            listOf(song("s1"))
         }
         val viewModel = createViewModel()
 
@@ -116,13 +124,28 @@ class StatsViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        coVerify(exactly = 1) { musicRepository.getAllSongsOnce() }
+        coVerify(exactly = 1) { musicRepository.getSongsByIdsOnce(any()) }
+    }
+
+    @Test
+    fun `summaries read only the played songs, not the whole library`() = runTest {
+        events = listOf(playThisWeek("s1"))
+        val viewModel = createViewModel()
+
+        viewModel.homeOverviewState.test {
+            assertThat(awaitFirstResult()).isInstanceOf(HomeStatsOverviewState.Ready::class.java)
+        }
+
+        coVerify(exactly = 0) { musicRepository.getAllSongsOnce() }
+        coVerify { musicRepository.getSongsByIdsOnce(setOf("s1")) }
+        coVerify(exactly = 0) { musicRepository.getSongsByIdsOnce(match { "s2" in it }) }
     }
 
     @Test
     fun `each genre of a multi-genre song opens as a library genre`() = runTest {
-        coEvery { musicRepository.getAllSongsOnce() } returns
-            listOf(song("s1").copy(genre = "Alternative; Indie Rock"))
+        // Stats only list genres of played songs.
+        events = listOf(playThisWeek("s1"))
+        library = listOf(song("s1").copy(genre = "Alternative; Indie Rock"))
         val viewModel = createViewModel()
 
         assertThat(viewModel.isLibraryGenre("Indie Rock")).isTrue()
@@ -192,7 +215,8 @@ class StatsViewModelTest {
 
     @Test
     fun `home overview is Empty when loading songs fails`() = runTest {
-        coEvery { musicRepository.getAllSongsOnce() } throws IllegalStateException("library unavailable")
+        events = listOf(playThisWeek("s1"))
+        coEvery { musicRepository.getSongsByIdsOnce(any()) } throws IllegalStateException("library unavailable")
         val viewModel = createViewModel()
 
         viewModel.homeOverviewState.test {

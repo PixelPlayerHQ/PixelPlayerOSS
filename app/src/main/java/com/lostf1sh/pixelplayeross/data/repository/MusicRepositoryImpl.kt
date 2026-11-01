@@ -99,6 +99,8 @@ class MusicRepositoryImpl @Inject constructor(
         private const val SEARCH_RESULTS_LIMIT = 100
         private const val UNKNOWN_GENRE_NAME = "Unknown"
         private const val UNKNOWN_GENRE_ID = "unknown"
+        /** Songs per by-id query, under SQLite's 999 bound-variable limit. */
+        private const val SONGS_BY_ID_BATCH_SIZE = 900
     }
 
     private val directoryScanMutex = Mutex()
@@ -711,6 +713,28 @@ class MusicRepositoryImpl @Inject constructor(
             allowedParentDirs = allowedParentDirs,
             applyDirectoryFilter = applyDirectoryFilter
         ).first().map { it.toSong() }
+    }
+
+    override suspend fun getSongsByIdsOnce(songIds: Collection<String>): List<Song> = withContext(Dispatchers.IO) {
+        val longIds = songIds.mapNotNull { it.toLongOrNull() }
+        if (longIds.isEmpty()) return@withContext emptyList()
+        val allowedDirs = userPreferencesRepository.allowedDirectoriesFlow.first()
+        val blockedDirs = userPreferencesRepository.blockedDirectoriesFlow.first()
+        val (allowedParentDirs, applyDirectoryFilter) =
+            computeAllowedDirs(allowedDirs, blockedDirs)
+        // The directory filter runs here rather than in SQL: binding every allowed folder next
+        // to each batch of ids can pass SQLite's bound-variable limit on large libraries.
+        val allowedParentDirSet = allowedParentDirs.toHashSet()
+        longIds.chunked(SONGS_BY_ID_BATCH_SIZE).flatMap { batch ->
+            musicDao.getSongsByIds(
+                songIds = batch,
+                allowedParentDirs = emptyList(),
+                applyDirectoryFilter = false
+            ).first()
+        }.filter { entity ->
+            // Same rule as the DAO's filter: cloud songs (negative ids) always pass.
+            !applyDirectoryFilter || entity.id < 0 || entity.parentDirectoryPath in allowedParentDirSet
+        }.map { it.toSong() }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)

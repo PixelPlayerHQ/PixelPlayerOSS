@@ -58,11 +58,13 @@ class StatsViewModel @Inject constructor(
     /** Only the latest home refresh may publish, so an older result never overwrites a newer one. */
     private var homeOverviewJob: Job? = null
 
-    @Volatile
-    private var cachedSongs: List<Song>? = null
+    /** The library songs [loadSongs] read for [songIds], the history's played songs at the time. */
+    private class PlayedSongs(val songIds: Set<String>, val songs: List<Song>)
 
-    // init starts two refreshes at once; without the lock both would read the whole library,
-    // which on a large library is enough to run out of memory at startup.
+    @Volatile
+    private var cachedSongs: PlayedSongs? = null
+
+    // init starts two refreshes at once; without the lock both would read the same songs.
     private val loadSongsMutex = Mutex()
 
     init {
@@ -191,24 +193,32 @@ class StatsViewModel @Inject constructor(
         playbackStatsRepository.requestRefresh()
     }
 
+    /**
+     * The library songs that have recorded plays. Summaries only ever look up played songs, and
+     * reading the whole library instead kept a second copy of it for as long as Home lived.
+     * Read again once the history gains a song.
+     */
     private suspend fun loadSongs(): List<Song> = loadSongsMutex.withLock {
-        cachedSongs?.let { existing ->
-            if (existing.isNotEmpty()) return@withLock existing
+        val playedSongIds = playbackStatsRepository.loadPlayedSongIds()
+        if (playedSongIds.isEmpty()) return@withLock emptyList()
+        cachedSongs?.let { cached ->
+            if (cached.songIds == playedSongIds && cached.songs.isNotEmpty()) return@withLock cached.songs
         }
-        val songs = musicRepository.getAllSongsOnce()
-        cachedSongs = songs
+        val songs = musicRepository.getSongsByIdsOnce(playedSongIds)
+        cachedSongs = PlayedSongs(playedSongIds, songs)
         songs
     }
 
     /** Library songs for [songIds], in the given order; ids no longer in the library are dropped. */
     suspend fun resolveSongs(songIds: List<String>): List<Song> = withContext(dispatchers.io) {
-        val byId = loadSongs().associateBy { it.id }
+        val byId = musicRepository.getSongsByIdsOnce(songIds).associateBy { it.id }
         songIds.mapNotNull { byId[it] }
     }
 
     /**
      * Stats group artists by display name, so the id has to be looked up. Falls back to the
-     * library songs for names the artists table does not know (e.g. multi-artist display names).
+     * played songs for names the artists table does not know (e.g. multi-artist display names);
+     * every artist in a summary comes from one of them.
      */
     suspend fun resolveArtistId(name: String): Long? = withContext(dispatchers.io) {
         musicRepository.getArtistIdByName(name)
@@ -227,7 +237,7 @@ class StatsViewModel @Inject constructor(
 
     /**
      * Stats group albums by title, which is ambiguous across artists. Prefer an album that owns
-     * one of [preferredSongIds] (the tracks actually played in range) before any namesake.
+     * one of [preferredSongIds] (the tracks actually played in range) before a played namesake.
      */
     suspend fun resolveAlbumId(name: String, preferredSongIds: Collection<String>): Long? =
         withContext(dispatchers.io) {

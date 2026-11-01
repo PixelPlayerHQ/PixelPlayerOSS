@@ -73,7 +73,7 @@ class JellyfinRepositoryFullSyncTest {
 
     @Test
     fun `a complete sync holds off the next automatic one`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns emptyList()
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns emptyList()
         val repository = repository()
         assertThat(repository.isLoggedIn).isTrue()
         assertThat(repository.isFullSyncDue).isTrue()
@@ -85,7 +85,7 @@ class JellyfinRepositoryFullSyncTest {
 
     @Test
     fun `a sync whose shared library update fails stays due`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } throws IllegalStateException("db closed")
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } throws IllegalStateException("db closed")
         val repository = repository()
         assertThat(repository.isLoggedIn).isTrue()
 

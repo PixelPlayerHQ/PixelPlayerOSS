@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
@@ -53,6 +55,18 @@ class DailyMixStateHolder @Inject constructor(
      */
     @Volatile
     private var dailyMixReplacedAtMillis = 0L
+
+    /**
+     * Guards [dailyMixReplacements] together with the shown Daily Mix, so a generated mix is only
+     * shown if no replacement arrived while it was being made.
+     */
+    private val dailyMixLock = Any()
+
+    /** Counts [setDailyMixSongs] calls; guarded by [dailyMixLock]. */
+    private var dailyMixReplacements = 0
+
+    /** Orders the saved Daily Mix ids the same way the shown ones changed. */
+    private val dailyMixSaveMutex = Mutex()
     private val owners = OwnerStack<CoroutineScope> { it }
 
     private val _dailyMixSongs = MutableStateFlow<ImmutableList<Song>>(persistentListOf())
@@ -82,11 +96,18 @@ class DailyMixStateHolder @Inject constructor(
     fun setDailyMixSongs(songs: List<Song>) {
         updateJob?.cancel()
         val replacedAt = System.currentTimeMillis()
-        dailyMixReplacedAtMillis = replacedAt
-        _dailyMixSongs.value = songs.toImmutableList()
+        val replacement = synchronized(dailyMixLock) {
+            dailyMixReplacedAtMillis = replacedAt
+            _dailyMixSongs.value = songs.toImmutableList()
+            ++dailyMixReplacements
+        }
         updateJob = scope?.launch {
-            userPreferencesRepository.saveDailyMixSongIds(songs.map { it.id })
-            userPreferencesRepository.saveDailyMixReplacedAt(replacedAt)
+            dailyMixSaveMutex.withLock {
+                // A newer replacement saves its own songs.
+                if (replacement != synchronized(dailyMixLock) { dailyMixReplacements }) return@withLock
+                userPreferencesRepository.saveDailyMixSongIds(songs.map { it.id })
+                userPreferencesRepository.saveDailyMixReplacedAt(replacedAt)
+            }
         }
     }
 
@@ -106,15 +127,23 @@ class DailyMixStateHolder @Inject constructor(
         favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>,
         keepReplacedDailyMix: Boolean
     ) {
+        val replacementsBefore = synchronized(dailyMixLock) { dailyMixReplacements }
         val allSongs = musicRepository.getAllSongsOnce()
         if (allSongs.isNotEmpty()) {
             val favoriteIds = favoriteSongIdsFlow.first()
 
             val mix = dailyMixManager.generateDailyMix(allSongs, favoriteIds)
-            // Checked after generating, so a Smart Mix applied meanwhile also stays.
             if (!(keepReplacedDailyMix && isKeepingReplacedDailyMix())) {
-                _dailyMixSongs.value = mix.toImmutableList()
-                userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+                dailyMixSaveMutex.withLock {
+                    val shown = synchronized(dailyMixLock) {
+                        // A Daily Mix the user applied while this one was made wins, even if
+                        // the checks above still saw the one before it.
+                        (dailyMixReplacements == replacementsBefore).also { unchanged ->
+                            if (unchanged) _dailyMixSongs.value = mix.toImmutableList()
+                        }
+                    }
+                    if (shown) userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+                }
             }
 
             val yourMix = dailyMixManager.generateYourMix(allSongs, favoriteIds)
@@ -208,7 +237,13 @@ class DailyMixStateHolder @Inject constructor(
      */
     private suspend fun isKeepingReplacedDailyMix(): Boolean {
         val replacedAt = maxOf(dailyMixReplacedAtMillis, userPreferencesRepository.dailyMixReplacedAtFlow.first())
-        return !isDifferentDay(replacedAt, System.currentTimeMillis()) && hasDailyMixInLibrary()
+        if (isDifferentDay(replacedAt, System.currentTimeMillis())) return false
+        // The shown mix is the replacement as soon as it is applied, while its saved ids may still
+        // be on their way; after a restart nothing may be shown yet, so the saved ids decide.
+        val replacementIds = _dailyMixSongs.value.map { it.id }
+            .ifEmpty { userPreferencesRepository.dailyMixSongIdsFlow.first() }
+        return replacementIds.isNotEmpty() &&
+            musicRepository.getSongsByIds(replacementIds).first().isNotEmpty()
     }
 
     private suspend fun hasDailyMixInLibrary(): Boolean {

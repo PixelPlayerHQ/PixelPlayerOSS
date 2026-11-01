@@ -17,6 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
@@ -229,6 +230,76 @@ class DailyMixStateHolderTest {
 
         coVerify(timeout = 5_000) { preferences.saveDailyMixSongIds(listOf("other")) }
         assertEquals(listOf("other"), holder.dailyMixSongs.value.map { it.id })
+        owner.cancel()
+    }
+
+    @Test
+    fun `a Smart Mix applied while a mix is generated is not overwritten`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        // Today's saved mix is gone from the library, so the check generates a new one.
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis(),
+            dailyMixIds = listOf("removed"),
+            songsStillInLibrary = listOf(song("smart"), song("other"))
+        )
+        coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
+        val generating = CompletableDeferred<Unit>()
+        val finishGenerating = CompletableDeferred<Unit>()
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } coAnswers {
+            generating.complete(Unit)
+            finishGenerating.await()
+            listOf(song("other"))
+        }
+        coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
+        holder.initialize(owner)
+
+        holder.checkAndUpdateIfNeeded(favorites)
+        generating.await()
+        holder.setDailyMixSongs(listOf(song("smart")))
+        finishGenerating.complete(Unit)
+
+        coVerify(timeout = 5_000) { preferences.saveYourMixSongIds(listOf("other")) }
+        coVerify(timeout = 5_000) { preferences.saveDailyMixSongIds(listOf("smart")) }
+        assertEquals(listOf("smart"), holder.dailyMixSongs.value.map { it.id })
+        coVerify(exactly = 0) { preferences.saveDailyMixSongIds(listOf("other")) }
+        owner.cancel()
+    }
+
+    @Test
+    fun `a Smart Mix applied while the keep check looks up the previous mix is not overwritten`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        // After a restart: the previous replacement's songs are gone and nothing is shown yet.
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis(),
+            dailyMixIds = listOf("removed"),
+            songsStillInLibrary = listOf(song("smart"), song("other")),
+            savedReplacedAtMillis = System.currentTimeMillis()
+        )
+        coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
+        val lookups = AtomicInteger()
+        val keepCheckLooking = CompletableDeferred<Unit>()
+        val finishLookup = CompletableDeferred<Unit>()
+        every { musicRepository.getSongsByIds(listOf("removed")) } returns flow {
+            // The first lookup decides the check is due; the second is the keep check.
+            if (lookups.incrementAndGet() == 2) {
+                keepCheckLooking.complete(Unit)
+                finishLookup.await()
+            }
+            emit(emptyList())
+        }
+        holder.initialize(owner)
+
+        holder.checkAndUpdateIfNeeded(favorites)
+        keepCheckLooking.await()
+        holder.setDailyMixSongs(listOf(song("smart")))
+        finishLookup.complete(Unit)
+
+        coVerify(timeout = 5_000) { preferences.saveYourMixSongIds(listOf("other")) }
+        coVerify(timeout = 5_000) { preferences.saveDailyMixSongIds(listOf("smart")) }
+        assertEquals(listOf("smart"), holder.dailyMixSongs.value.map { it.id })
+        coVerify(exactly = 0) { preferences.saveDailyMixSongIds(listOf("other")) }
         owner.cancel()
     }
 

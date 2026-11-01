@@ -46,6 +46,10 @@ class DailyMixStateHolder @Inject constructor(
     /** Set by every [checkAndUpdateIfNeeded] call; the running check repeats until it is clear. */
     @Volatile
     private var checkRequested = false
+
+    /** When [setDailyMixSongs] last replaced the Daily Mix; a generation that day keeps it. */
+    @Volatile
+    private var dailyMixReplacedAtMillis = 0L
     private val owners = OwnerStack<CoroutineScope> { it }
 
     private val _dailyMixSongs = MutableStateFlow<ImmutableList<Song>>(persistentListOf())
@@ -74,12 +78,10 @@ class DailyMixStateHolder @Inject constructor(
     /** Replaces today's Daily Mix (e.g. with a Smart Mix preview) and persists it. */
     fun setDailyMixSongs(songs: List<Song>) {
         updateJob?.cancel()
-        checkJob?.cancel()
+        dailyMixReplacedAtMillis = System.currentTimeMillis()
         _dailyMixSongs.value = songs.toImmutableList()
         updateJob = scope?.launch {
             userPreferencesRepository.saveDailyMixSongIds(songs.map { it.id })
-            // Counts as today's mix, so a later check does not generate over it.
-            userPreferencesRepository.saveLastDailyMixUpdateTimestamp(System.currentTimeMillis())
         }
     }
 
@@ -91,18 +93,25 @@ class DailyMixStateHolder @Inject constructor(
         updateJob?.cancel()
         checkJob?.cancel()
         updateJob = scope?.launch(Dispatchers.IO) {
-            generateMixes(favoriteSongIdsFlow)
+            generateMixes(favoriteSongIdsFlow, keepReplacedDailyMix = false)
         }
     }
 
-    private suspend fun generateMixes(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
+    private suspend fun generateMixes(
+        favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>,
+        keepReplacedDailyMix: Boolean
+    ) {
         val allSongs = musicRepository.getAllSongsOnce()
         if (allSongs.isNotEmpty()) {
             val favoriteIds = favoriteSongIdsFlow.first()
 
             val mix = dailyMixManager.generateDailyMix(allSongs, favoriteIds)
-            _dailyMixSongs.value = mix.toImmutableList()
-            userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+            // Checked after generating, so a Smart Mix applied meanwhile also stays.
+            val dailyMixReplacedToday = !isDifferentDay(dailyMixReplacedAtMillis, System.currentTimeMillis())
+            if (!(keepReplacedDailyMix && dailyMixReplacedToday)) {
+                _dailyMixSongs.value = mix.toImmutableList()
+                userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+            }
 
             val yourMix = dailyMixManager.generateYourMix(allSongs, favoriteIds)
             _yourMixSongs.value = yourMix.toImmutableList()
@@ -170,6 +179,9 @@ class DailyMixStateHolder @Inject constructor(
         checkJob = scope?.launch {
             while (checkRequested) {
                 checkRequested = false
+                // A regeneration from Regenerate Daily Mix finishes first, so two never read
+                // the library at once.
+                updateJob?.join()
                 updateIfDue(favoriteSongIdsFlow)
             }
         }
@@ -182,7 +194,7 @@ class DailyMixStateHolder @Inject constructor(
             refreshTodaysMixes()
             return
         }
-        withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow) }
+        withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow, keepReplacedDailyMix = true) }
         userPreferencesRepository.saveLastDailyMixUpdateTimestamp(now)
     }
 
@@ -212,7 +224,10 @@ class DailyMixStateHolder @Inject constructor(
      */
     fun onCleared(owner: CoroutineScope) {
         owners.remove(owner) { next ->
-            if (next == null) updateJob?.cancel()
+            if (next == null) {
+                updateJob?.cancel()
+                checkJob?.cancel()
+            }
             scope = next
         }
     }

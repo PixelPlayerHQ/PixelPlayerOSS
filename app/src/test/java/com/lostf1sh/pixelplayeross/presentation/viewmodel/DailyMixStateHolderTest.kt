@@ -136,6 +136,56 @@ class DailyMixStateHolderTest {
     }
 
     @Test
+    fun `a check waits for a running regeneration instead of reading the library alongside it`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        val holder = holder(
+            lastUpdateMillis = 0L,
+            dailyMixIds = emptyList(),
+            songsStillInLibrary = emptyList()
+        )
+        val firstRead = CompletableDeferred<Unit>()
+        val reads = AtomicInteger()
+        coEvery { musicRepository.getAllSongsOnce() } coAnswers {
+            if (reads.incrementAndGet() == 1) firstRead.await()
+            emptyList()
+        }
+        holder.initialize(owner)
+
+        holder.updateDailyMix(favorites)
+        coVerify(timeout = 5_000) { musicRepository.getAllSongsOnce() }
+        holder.checkAndUpdateIfNeeded(favorites)
+        coVerify(exactly = 1) { musicRepository.getAllSongsOnce() }
+
+        firstRead.complete(Unit)
+        coVerify(timeout = 5_000, exactly = 2) { musicRepository.getAllSongsOnce() }
+        owner.cancel()
+    }
+
+    @Test
+    fun `a new day keeps a Daily Mix the user replaced today and still updates Your Mix`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L,
+            dailyMixIds = listOf("smart"),
+            songsStillInLibrary = listOf(song("smart"), song("other"))
+        )
+        coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
+        holder.initialize(owner)
+
+        // e.g. a Smart Mix applied after midnight, before the day's first check
+        holder.setDailyMixSongs(listOf(song("smart")))
+        holder.checkAndUpdateIfNeeded(favorites)
+
+        coVerify(timeout = 5_000) { preferences.saveYourMixSongIds(listOf("other")) }
+        assertEquals(listOf("smart"), holder.dailyMixSongs.value.map { it.id })
+        assertEquals(listOf("other"), holder.yourMixSongs.value.map { it.id })
+        coVerify(exactly = 0) { preferences.saveDailyMixSongIds(listOf("other")) }
+        owner.cancel()
+    }
+
+    @Test
     fun `a same-day check drops mix songs a sync removed without reshuffling`() = runTest {
         val owner = ownerScope()
         val holder = holder(

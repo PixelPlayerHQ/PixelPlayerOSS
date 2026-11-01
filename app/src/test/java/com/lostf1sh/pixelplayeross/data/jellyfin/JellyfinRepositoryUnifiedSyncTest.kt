@@ -17,7 +17,12 @@ import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -146,6 +151,42 @@ class JellyfinRepositoryUnifiedSyncTest {
         repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
 
         coVerify(exactly = 2) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `startup rebuild waits for a cache write under way instead of reading the old rows`() = runTest {
+        val oldRows = listOf(cachedSong("d1t1", "Old title", track = 1, disc = 1))
+        val newRows = listOf(cachedSong("d1t1", "New title", track = 1, disc = 1))
+        var cachedRows = oldRows
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } answers { cachedRows }
+        val writeStarted = CompletableDeferred<Unit>()
+        val finishWrite = CompletableDeferred<Unit>()
+        coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } coAnswers {
+            writeStarted.complete(Unit)
+            finishWrite.await()
+            cachedRows = newRows
+        }
+        coEvery { jellyfinDao.getPlaylistById(any()) } returns null
+        coEvery { api.getPlaylistItems("playlist") } returns Result.success(emptyList())
+        val repository = repository()
+
+        // e.g. a dashboard playlist sync, held between its revision bump and its write
+        val write = launch(Dispatchers.Default) { repository.syncPlaylistSongs("playlist") }
+        writeStarted.await()
+        val startupRebuild = launch(Dispatchers.Default) {
+            repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+        }
+        withContext(Dispatchers.Default) { delay(200) }
+        coVerify(exactly = 0) { jellyfinDao.getAllJellyfinSongsList() }
+
+        finishWrite.complete(Unit)
+        write.join()
+        startupRebuild.join()
+
+        assertThat(syncedSongs.captured.single().title).isEqualTo("New title")
+        // The saved state describes the rows it read, so the next startup can skip.
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
     }
 
     @Test

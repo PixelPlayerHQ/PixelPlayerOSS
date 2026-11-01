@@ -1359,12 +1359,6 @@ class PlayerViewModel @Inject constructor(
 
 
 
-    private fun updateDailyMix() {
-        dailyMixStateHolder.updateDailyMix(
-            favoriteSongIdsFlow = favoriteSongIds
-        )
-    }
-
     fun shuffleAllSongs(queueName: String = context.getString(R.string.queue_name_all_songs_shuffled)) {
         Timber.tag("ShuffleDebug").d("shuffleAllSongs called.")
         
@@ -1924,7 +1918,7 @@ class PlayerViewModel @Inject constructor(
         try {
             Timber.tag("PlayerViewModel").d("resetAndLoadInitialData called by $caller")
             loadInitialLibraryDataParallel()
-            updateDailyMix()
+            checkAndUpdateDailyMixIfNeeded()
         } finally {
             Trace.endSection()
         }

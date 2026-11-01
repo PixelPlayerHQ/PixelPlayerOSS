@@ -19,7 +19,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import java.util.Calendar
+import java.time.Instant
+import java.time.ZoneId
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -81,20 +82,24 @@ class DailyMixStateHolder @Inject constructor(
     fun updateDailyMix(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
         updateJob?.cancel()
         updateJob = scope?.launch(Dispatchers.IO) {
-            val allSongs = musicRepository.getAllSongsOnce()
-            if (allSongs.isNotEmpty()) {
-                val favoriteIds = favoriteSongIdsFlow.first()
+            generateMixes(favoriteSongIdsFlow)
+        }
+    }
 
-                val mix = dailyMixManager.generateDailyMix(allSongs, favoriteIds)
-                _dailyMixSongs.value = mix.toImmutableList()
-                userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+    private suspend fun generateMixes(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
+        val allSongs = musicRepository.getAllSongsOnce()
+        if (allSongs.isNotEmpty()) {
+            val favoriteIds = favoriteSongIdsFlow.first()
 
-                val yourMix = dailyMixManager.generateYourMix(allSongs, favoriteIds)
-                _yourMixSongs.value = yourMix.toImmutableList()
-                userPreferencesRepository.saveYourMixSongIds(yourMix.map { it.id })
-            } else {
-                _yourMixSongs.value = persistentListOf()
-            }
+            val mix = dailyMixManager.generateDailyMix(allSongs, favoriteIds)
+            _dailyMixSongs.value = mix.toImmutableList()
+            userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
+
+            val yourMix = dailyMixManager.generateYourMix(allSongs, favoriteIds)
+            _yourMixSongs.value = yourMix.toImmutableList()
+            userPreferencesRepository.saveYourMixSongIds(yourMix.map { it.id })
+        } else {
+            _yourMixSongs.value = persistentListOf()
         }
     }
 
@@ -143,21 +148,27 @@ class DailyMixStateHolder @Inject constructor(
     }
 
     /**
-     * Check if daily mix needs updating (new day) and update if so.
+     * Generates the mixes again on a new day, or when none of today's Daily Mix is in the
+     * library (e.g. the library was still empty at the day's first check). Generating ranks the
+     * whole library, so finished syncs and cold starts call this rather than [updateDailyMix].
      */
     fun checkAndUpdateIfNeeded(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
-        scope?.launch {
+        // The check or update already running covers this call. Starting another one would read
+        // the whole library again while the first copy is still in memory.
+        if (updateJob?.isActive == true) return
+        updateJob = scope?.launch {
             val lastUpdate = userPreferencesRepository.lastDailyMixUpdateFlow.first()
-            val today = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
-            val lastUpdateDay = Calendar.getInstance().apply {
-                timeInMillis = lastUpdate
-            }.get(Calendar.DAY_OF_YEAR)
+            val now = System.currentTimeMillis()
+            if (!isDifferentDay(lastUpdate, now) && hasDailyMixInLibrary()) return@launch
 
-            if (today != lastUpdateDay) {
-                updateDailyMix(favoriteSongIdsFlow)
-                userPreferencesRepository.saveLastDailyMixUpdateTimestamp(System.currentTimeMillis())
-            }
+            withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow) }
+            userPreferencesRepository.saveLastDailyMixUpdateTimestamp(now)
         }
+    }
+
+    private suspend fun hasDailyMixInLibrary(): Boolean {
+        val dailyMixIds = userPreferencesRepository.dailyMixSongIdsFlow.first()
+        return dailyMixIds.isNotEmpty() && musicRepository.getSongsByIds(dailyMixIds).first().isNotEmpty()
     }
 
     /**
@@ -172,3 +183,12 @@ class DailyMixStateHolder @Inject constructor(
         }
     }
 }
+
+/** Whether the two instants fall on different calendar days in [zoneId]. */
+internal fun isDifferentDay(
+    firstMillis: Long,
+    secondMillis: Long,
+    zoneId: ZoneId = ZoneId.systemDefault()
+): Boolean =
+    Instant.ofEpochMilli(firstMillis).atZone(zoneId).toLocalDate() !=
+        Instant.ofEpochMilli(secondMillis).atZone(zoneId).toLocalDate()

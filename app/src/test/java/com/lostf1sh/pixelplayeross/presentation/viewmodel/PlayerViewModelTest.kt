@@ -120,6 +120,7 @@ class PlayerViewModelTest {
     private val _repeatModeFlow = MutableStateFlow(Player.REPEAT_MODE_OFF)
     private val _favoriteIdsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val folderSongSortFlow = MutableStateFlow<SortOption>(SortOption.FolderSongTitleAZ)
+    private val isSyncingFlow = MutableStateFlow(true)
     private lateinit var stablePlayerStateFlow: MutableStateFlow<StablePlayerState>
     private lateinit var mockController: MediaController
     private val controllerRepeatModeWrites = mutableListOf<Int>()
@@ -151,6 +152,7 @@ class PlayerViewModelTest {
         coEvery { mockUserPreferencesRepository.isShuffleOnFlow } returns flowOf(false)
         every { mockUserPreferencesRepository.repeatModeFlow } returns _repeatModeFlow
         coEvery { mockThemePreferencesRepository.playerThemePreferenceFlow } returns flowOf("Global")
+        every { mockSyncManager.isSyncing } returns isSyncingFlow
         every { mockLibraryStateHolder.allSongs } returns _allSongsFlow
         every { mockLibraryStateHolder.isLoadingLibrary } returns MutableStateFlow(false)
         every { mockLibraryStateHolder.isLoadingCategories } returns MutableStateFlow(false)
@@ -844,6 +846,23 @@ class PlayerViewModelTest {
             }
             coVerify { mockMusicRepository.getSongIdsSorted(songSort, any()) }
             coVerify(exactly = 0) { mockMusicRepository.getFavoriteSongIdsSorted(any(), any()) }
+        }
+    }
+
+    @Nested
+    @DisplayName("Daily Mix refresh")
+    inner class DailyMixRefreshTests {
+
+        @Test
+        fun `a finished sync only regenerates the Daily Mix when it is due`() = runTest {
+            advanceUntilIdle()
+
+            isSyncingFlow.value = false
+            advanceUntilIdle()
+
+            // Generating reads the whole library; the holder decides whether today's mix is stale.
+            verify { mockDailyMixStateHolder.checkAndUpdateIfNeeded(any()) }
+            verify(exactly = 0) { mockDailyMixStateHolder.updateDailyMix(any()) }
         }
     }
 

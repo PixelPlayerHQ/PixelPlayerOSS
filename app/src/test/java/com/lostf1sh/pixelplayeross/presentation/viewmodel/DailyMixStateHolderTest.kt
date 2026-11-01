@@ -10,8 +10,10 @@ import io.mockk.every
 import io.mockk.mockk
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -19,6 +21,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -31,14 +34,21 @@ class DailyMixStateHolderTest {
     private val dailyMixManager = mockk<DailyMixManager>(relaxed = true)
     private val favorites = flowOf(emptySet<String>())
 
+    @Volatile
+    private var library: List<Song> = emptyList()
+
     private fun holder(
         lastUpdateMillis: Long,
         dailyMixIds: List<String>,
         songsStillInLibrary: List<Song>
     ): DailyMixStateHolder {
+        library = songsStillInLibrary
         every { preferences.lastDailyMixUpdateFlow } returns flowOf(lastUpdateMillis)
         every { preferences.dailyMixSongIdsFlow } returns flowOf(dailyMixIds)
-        every { musicRepository.getSongsByIds(dailyMixIds) } returns flowOf(songsStillInLibrary)
+        every { musicRepository.getSongsByIds(any()) } answers {
+            val ids = firstArg<List<String>>()
+            flowOf(library.filter { it.id in ids })
+        }
         return DailyMixStateHolder(dailyMixManager, preferences, musicRepository)
     }
 
@@ -96,28 +106,54 @@ class DailyMixStateHolderTest {
     }
 
     @Test
-    fun `a check while one is generating does not read the library again`() = runTest {
-        val owner = ownerScope()
+    fun `checks during a generation wait for it and then run once more`() = runTest {
+        // Real threads: the second run resumes on the owner's dispatcher while this test waits.
+        val owner = CoroutineScope(Dispatchers.Default + Job())
         val holder = holder(
             lastUpdateMillis = 0L,
             dailyMixIds = emptyList(),
             songsStillInLibrary = emptyList()
         )
-        val libraryRead = CompletableDeferred<Unit>()
+        val firstRead = CompletableDeferred<Unit>()
+        val reads = AtomicInteger()
         coEvery { musicRepository.getAllSongsOnce() } coAnswers {
-            libraryRead.await()
+            if (reads.incrementAndGet() == 1) firstRead.await()
             emptyList()
         }
         holder.initialize(owner)
 
         holder.checkAndUpdateIfNeeded(favorites)
-        runCurrent()
         coVerify(timeout = 5_000) { musicRepository.getAllSongsOnce() }
+        // e.g. the first sync finishing while the startup check still reads an empty library
+        holder.checkAndUpdateIfNeeded(favorites)
+        holder.checkAndUpdateIfNeeded(favorites)
+        coVerify(exactly = 1) { musicRepository.getAllSongsOnce() }
+
+        firstRead.complete(Unit)
+        // The check still finds no mix for today, so its second run generates again.
+        coVerify(timeout = 5_000, exactly = 2) { musicRepository.getAllSongsOnce() }
+        owner.cancel()
+    }
+
+    @Test
+    fun `a same-day check drops mix songs a sync removed without reshuffling`() = runTest {
+        val owner = ownerScope()
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis(),
+            dailyMixIds = listOf("a", "b", "c"),
+            songsStillInLibrary = listOf(song("a"), song("b"), song("c"))
+        )
+        holder.initialize(owner)
+        holder.setDailyMixSongs(listOf(song("c"), song("a"), song("b")))
+        runCurrent()
+
+        library = listOf(song("a"), song("c").copy(title = "Renamed"))
         holder.checkAndUpdateIfNeeded(favorites)
         runCurrent()
 
-        coVerify(exactly = 1) { musicRepository.getAllSongsOnce() }
-        libraryRead.complete(Unit)
+        assertEquals(listOf("c", "a"), holder.dailyMixSongs.value.map { it.id })
+        assertEquals("Renamed", holder.dailyMixSongs.value.first().title)
+        coVerify(exactly = 0) { musicRepository.getAllSongsOnce() }
         owner.cancel()
     }
 

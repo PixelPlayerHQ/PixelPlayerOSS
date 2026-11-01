@@ -41,6 +41,11 @@ class DailyMixStateHolder @Inject constructor(
 ) {
     private var scope: CoroutineScope? = null
     private var updateJob: Job? = null
+    private var checkJob: Job? = null
+
+    /** Set by every [checkAndUpdateIfNeeded] call; the running check repeats until it is clear. */
+    @Volatile
+    private var checkRequested = false
     private val owners = OwnerStack<CoroutineScope> { it }
 
     private val _dailyMixSongs = MutableStateFlow<ImmutableList<Song>>(persistentListOf())
@@ -69,9 +74,12 @@ class DailyMixStateHolder @Inject constructor(
     /** Replaces today's Daily Mix (e.g. with a Smart Mix preview) and persists it. */
     fun setDailyMixSongs(songs: List<Song>) {
         updateJob?.cancel()
+        checkJob?.cancel()
         _dailyMixSongs.value = songs.toImmutableList()
         updateJob = scope?.launch {
             userPreferencesRepository.saveDailyMixSongIds(songs.map { it.id })
+            // Counts as today's mix, so a later check does not generate over it.
+            userPreferencesRepository.saveLastDailyMixUpdateTimestamp(System.currentTimeMillis())
         }
     }
 
@@ -81,6 +89,7 @@ class DailyMixStateHolder @Inject constructor(
      */
     fun updateDailyMix(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
         updateJob?.cancel()
+        checkJob?.cancel()
         updateJob = scope?.launch(Dispatchers.IO) {
             generateMixes(favoriteSongIdsFlow)
         }
@@ -153,22 +162,47 @@ class DailyMixStateHolder @Inject constructor(
      * whole library, so finished syncs and cold starts call this rather than [updateDailyMix].
      */
     fun checkAndUpdateIfNeeded(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
-        // The check or update already running covers this call. Starting another one would read
-        // the whole library again while the first copy is still in memory.
-        if (updateJob?.isActive == true) return
-        updateJob = scope?.launch {
-            val lastUpdate = userPreferencesRepository.lastDailyMixUpdateFlow.first()
-            val now = System.currentTimeMillis()
-            if (!isDifferentDay(lastUpdate, now) && hasDailyMixInLibrary()) return@launch
-
-            withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow) }
-            userPreferencesRepository.saveLastDailyMixUpdateTimestamp(now)
+        checkRequested = true
+        // A check already running goes again once it finishes (e.g. to see the songs of a sync
+        // that ended meanwhile), rather than a second check reading the whole library while the
+        // first one's copy is still in memory.
+        if (checkJob?.isActive == true) return
+        checkJob = scope?.launch {
+            while (checkRequested) {
+                checkRequested = false
+                updateIfDue(favoriteSongIdsFlow)
+            }
         }
+    }
+
+    private suspend fun updateIfDue(favoriteSongIdsFlow: kotlinx.coroutines.flow.Flow<Set<String>>) {
+        val lastUpdate = userPreferencesRepository.lastDailyMixUpdateFlow.first()
+        val now = System.currentTimeMillis()
+        if (!isDifferentDay(lastUpdate, now) && hasDailyMixInLibrary()) {
+            refreshTodaysMixes()
+            return
+        }
+        withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow) }
+        userPreferencesRepository.saveLastDailyMixUpdateTimestamp(now)
     }
 
     private suspend fun hasDailyMixInLibrary(): Boolean {
         val dailyMixIds = userPreferencesRepository.dailyMixSongIdsFlow.first()
         return dailyMixIds.isNotEmpty() && musicRepository.getSongsByIds(dailyMixIds).first().isNotEmpty()
+    }
+
+    /** Keeps today's picks and their order, minus songs a sync removed, with current details. */
+    private suspend fun refreshTodaysMixes() {
+        val shownIds = (_dailyMixSongs.value + _yourMixSongs.value).map { it.id }.distinct()
+        if (shownIds.isEmpty()) return
+        val inLibrary = musicRepository.getSongsByIds(shownIds).first().associateBy { it.id }
+        val checkedIds = shownIds.toSet()
+        // A song that joined a mix after the read (e.g. the saved mix finished loading) stays.
+        fun List<Song>.refreshed() = mapNotNull { song ->
+            if (song.id in checkedIds) inLibrary[song.id] else song
+        }.toImmutableList()
+        _dailyMixSongs.update { it.refreshed() }
+        _yourMixSongs.update { it.refreshed() }
     }
 
     /**

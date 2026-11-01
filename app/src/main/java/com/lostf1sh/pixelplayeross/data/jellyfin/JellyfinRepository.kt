@@ -620,7 +620,7 @@ class JellyfinRepository @Inject constructor(
     }
 
     private suspend fun rebuildUnifiedLibrary(groupByAlbumArtist: Boolean) {
-        val jellyfinSongs = dao.getAllJellyfinSongsList()
+        val jellyfinSongs = dao.getDistinctJellyfinSongs(LIBRARY_PLAYLIST_ID)
         val existingUnifiedIds = musicDao.getAllJellyfinSongIds()
 
         if (jellyfinSongs.isEmpty()) {

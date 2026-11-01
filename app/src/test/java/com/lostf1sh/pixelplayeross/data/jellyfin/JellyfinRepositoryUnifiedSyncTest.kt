@@ -88,7 +88,7 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     @Test
     fun `unified library sync keeps disc numbers of multi disc albums`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1),
             cachedSong("d2t1", "What'd I Miss", track = 1, disc = 2),
             cachedSong("d1t2", "Aaron Burr, Sir", track = 2, disc = 1),
@@ -112,7 +112,7 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     @Test
     fun `unified library sync stores no disc when the server reports none`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("single", "Single", track = 1, disc = 0)
         )
 
@@ -123,7 +123,7 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     @Test
     fun `startup rebuild is skipped while nothing it reads has changed`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
         )
         val repository = repository()
@@ -131,13 +131,13 @@ class JellyfinRepositoryUnifiedSyncTest {
         repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
         repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
 
-        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 1) { jellyfinDao.getDistinctJellyfinSongs(any()) }
         coVerify(exactly = 1) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
     }
 
     @Test
     fun `startup rebuild runs after a playlist sync changed the cached songs`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
         )
         coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } just Runs
@@ -158,7 +158,7 @@ class JellyfinRepositoryUnifiedSyncTest {
         val oldRows = listOf(cachedSong("d1t1", "Old title", track = 1, disc = 1))
         val newRows = listOf(cachedSong("d1t1", "New title", track = 1, disc = 1))
         var cachedRows = oldRows
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } answers { cachedRows }
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } answers { cachedRows }
         val writeStarted = CompletableDeferred<Unit>()
         val finishWrite = CompletableDeferred<Unit>()
         coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } coAnswers {
@@ -177,7 +177,7 @@ class JellyfinRepositoryUnifiedSyncTest {
             repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
         }
         withContext(Dispatchers.Default) { delay(200) }
-        coVerify(exactly = 0) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 0) { jellyfinDao.getDistinctJellyfinSongs(any()) }
 
         finishWrite.complete(Unit)
         write.join()
@@ -186,12 +186,12 @@ class JellyfinRepositoryUnifiedSyncTest {
         assertThat(syncedSongs.captured.single().title).isEqualTo("New title")
         // The saved state describes the rows it read, so the next startup can skip.
         repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
-        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 1) { jellyfinDao.getDistinctJellyfinSongs(any()) }
     }
 
     @Test
     fun `startup rebuild runs when the album artist grouping changed`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
         )
         val repository = repository()
@@ -205,7 +205,7 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     @Test
     fun `startup rebuild runs when Jellyfin songs left the unified library`() = runTest {
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } returns listOf(
             cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
         )
         val repository = repository()

@@ -96,4 +96,25 @@ class JellyfinRepositoryTest {
             JellyfinLibrary(id = "ghi", name = "Mixed", collectionType = null)
         ).inOrder()
     }
+
+    @Test
+    fun `full sync is due when none has finished yet`() {
+        assertThat(isJellyfinFullSyncDue(lastFullSyncMs = 0L, nowMs = 1_761_955_200_000L)).isTrue()
+    }
+
+    @Test
+    fun `full sync is not due again within a day`() {
+        val lastSync = 10 * JELLYFIN_SYNC_THRESHOLD_MS
+        val oneHourLater = lastSync + 60 * 60 * 1000L
+
+        assertThat(isJellyfinFullSyncDue(lastFullSyncMs = lastSync, nowMs = oneHourLater)).isFalse()
+    }
+
+    @Test
+    fun `full sync is due once a day has passed`() {
+        val lastSync = 10 * JELLYFIN_SYNC_THRESHOLD_MS
+        val nextDay = lastSync + JELLYFIN_SYNC_THRESHOLD_MS + 1
+
+        assertThat(isJellyfinFullSyncDue(lastFullSyncMs = lastSync, nowMs = nextDay)).isTrue()
+    }
 }

@@ -14,6 +14,7 @@ import com.lostf1sh.pixelplayeross.data.stats.PlaybackStatsRepository.PlaybackSt
 import com.lostf1sh.pixelplayeross.data.stats.StatsTimeRange
 import com.lostf1sh.pixelplayeross.di.DispatcherProvider
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import java.time.DayOfWeek
@@ -99,6 +100,24 @@ class StatsViewModelTest {
     }
 
     private val artistImageRepository = mockk<ArtistImageRepository>(relaxed = true)
+
+    @Test
+    fun `startup refreshes read the library only once`() = runTest {
+        val libraryGate = CompletableDeferred<Unit>()
+        coEvery { musicRepository.getAllSongsOnce() } coAnswers {
+            libraryGate.await()
+            listOf(song("s1"), song("s2"))
+        }
+        val viewModel = createViewModel()
+
+        libraryGate.complete(Unit)
+        viewModel.homeOverviewState.test {
+            awaitFirstResult()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        coVerify(exactly = 1) { musicRepository.getAllSongsOnce() }
+    }
 
     @Test
     fun `each genre of a multi-genre song opens as a library genre`() = runTest {

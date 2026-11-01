@@ -59,6 +59,7 @@ class JellyfinRepository @Inject constructor(
         private const val KEY_USERNAME = "username"
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_USER_ID = "user_id"
+        private const val KEY_LAST_FULL_SYNC = "last_full_sync"
 
         private const val JELLYFIN_SONG_ID_OFFSET = 12_000_000_000_000L
         private const val JELLYFIN_ALBUM_ID_OFFSET = 13_000_000_000_000L
@@ -131,6 +132,14 @@ class JellyfinRepository @Inject constructor(
 
     val serverUrl: String?
         get() = prefs.getString(KEY_SERVER_URL, null)
+
+    /** When the last complete library and playlist sync finished, or 0 if none has. */
+    var lastFullSyncTime: Long
+        get() = prefs.getLong(KEY_LAST_FULL_SYNC, 0L)
+        private set(value) = prefs.edit().putLong(KEY_LAST_FULL_SYNC, value).apply()
+
+    val isFullSyncDue: Boolean
+        get() = isJellyfinFullSyncDue(lastFullSyncTime, System.currentTimeMillis())
 
     fun getAuthorizationHeader(): String? = api.getAuthorizationHeader()
 
@@ -454,6 +463,10 @@ class JellyfinRepository @Inject constructor(
                 Timber.e(e, "$TAG: Failed to sync unified library")
             }
 
+            if (libResult.isSuccess && failedPlaylistCount == 0) {
+                lastFullSyncTime = System.currentTimeMillis()
+            }
+
             Result.success(
                 BulkSyncResult(
                     playlistCount = playlistResult.size,
@@ -744,6 +757,16 @@ class JellyfinRepository @Inject constructor(
         )
     }
 }
+
+internal const val JELLYFIN_SYNC_THRESHOLD_MS = 24 * 60 * 60 * 1000L
+
+/**
+ * Whether opening the Jellyfin dashboard should sync again. A full sync of a large library
+ * can take most of an hour and holds the whole library in memory, so it runs at most daily
+ * on its own; the dashboard's sync button still forces one.
+ */
+internal fun isJellyfinFullSyncDue(lastFullSyncMs: Long, nowMs: Long): Boolean =
+    nowMs - lastFullSyncMs > JELLYFIN_SYNC_THRESHOLD_MS
 
 internal fun selectedJellyfinLibraryIds(
     availableLibraries: List<JellyfinLibrary>,

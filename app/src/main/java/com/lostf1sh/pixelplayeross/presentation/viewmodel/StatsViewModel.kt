@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlinx.collections.immutable.ImmutableList
@@ -58,6 +60,10 @@ class StatsViewModel @Inject constructor(
 
     @Volatile
     private var cachedSongs: List<Song>? = null
+
+    // init starts two refreshes at once; without the lock both would read the whole library,
+    // which on a large library is enough to run out of memory at startup.
+    private val loadSongsMutex = Mutex()
 
     init {
         observeStatsRefreshFlow()
@@ -185,13 +191,13 @@ class StatsViewModel @Inject constructor(
         playbackStatsRepository.requestRefresh()
     }
 
-    private suspend fun loadSongs(): List<Song> {
+    private suspend fun loadSongs(): List<Song> = loadSongsMutex.withLock {
         cachedSongs?.let { existing ->
-            if (existing.isNotEmpty()) return existing
+            if (existing.isNotEmpty()) return@withLock existing
         }
         val songs = musicRepository.getAllSongsOnce()
         cachedSongs = songs
-        return songs
+        songs
     }
 
     /** Library songs for [songIds], in the given order; ids no longer in the library are dropped. */

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.lostf1sh.pixelplayeross.BuildConfig
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
 import com.lostf1sh.pixelplayeross.data.database.ArtistEntity
 import com.lostf1sh.pixelplayeross.data.database.JellyfinDao
@@ -60,6 +61,8 @@ class JellyfinRepository @Inject constructor(
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_LAST_FULL_SYNC = "last_full_sync"
+        private const val KEY_SONG_CACHE_REVISION = "song_cache_revision"
+        private const val KEY_UNIFIED_LIBRARY_STATE = "unified_library_state"
 
         private const val JELLYFIN_SONG_ID_OFFSET = 12_000_000_000_000L
         private const val JELLYFIN_ALBUM_ID_OFFSET = 13_000_000_000_000L
@@ -140,6 +143,19 @@ class JellyfinRepository @Inject constructor(
 
     val isFullSyncDue: Boolean
         get() = isJellyfinFullSyncDue(lastFullSyncTime, System.currentTimeMillis())
+
+    /** Counts writes to the cached Jellyfin songs, so a unified-library rebuild can tell it is due. */
+    private val songCacheRevision: Long
+        get() = prefs.getLong(KEY_SONG_CACHE_REVISION, 0L)
+
+    /** Called before every write to the cached Jellyfin songs. */
+    private suspend fun markSongCacheChanged() {
+        withContext(Dispatchers.IO) {
+            // commit, not apply: a cache write that outlives its unsaved bump would leave the
+            // unified library stale until the next server sync.
+            prefs.edit().putLong(KEY_SONG_CACHE_REVISION, songCacheRevision + 1).commit()
+        }
+    }
 
     fun getAuthorizationHeader(): String? = api.getAuthorizationHeader()
 
@@ -283,6 +299,7 @@ class JellyfinRepository @Inject constructor(
                 if (stalePlaylists.isNotEmpty()) {
                     Timber.d("$TAG: Removing ${stalePlaylists.size} stale playlists")
                     stalePlaylists.forEach { stale ->
+                        markSongCacheChanged()
                         dao.deleteSongsByPlaylist(stale.id)
                         dao.deletePlaylist(stale.id)
                         deleteAppPlaylistForJellyfinPlaylist(stale.id)
@@ -329,11 +346,13 @@ class JellyfinRepository @Inject constructor(
                 }
 
                 if (entities.isNotEmpty()) {
+                    markSongCacheChanged()
                     dao.deleteSongsByPlaylist(playlistId)
                     dao.insertSongs(entities)
                     val playlistName = dao.getPlaylistById(playlistId)?.name ?: "Playlist"
                     updateAppPlaylistForJellyfinPlaylist(playlistId, playlistName, entities)
                 } else if (songJsons.isEmpty()) {
+                    markSongCacheChanged()
                     dao.deleteSongsByPlaylist(playlistId)
                     val playlistName = dao.getPlaylistById(playlistId)?.name ?: "Playlist"
                     updateAppPlaylistForJellyfinPlaylist(playlistId, playlistName, emptyList())
@@ -410,6 +429,7 @@ class JellyfinRepository @Inject constructor(
                 val uniqueSongs = allSongs.distinctBy { it.id }
                 val entities = uniqueSongs.map { song -> song.toEntity(LIBRARY_PLAYLIST_ID) }
 
+                markSongCacheChanged()
                 dao.replaceLibrarySongs(entities)
 
                 Timber.d("$TAG: Synced ${entities.size} library songs")
@@ -490,6 +510,7 @@ class JellyfinRepository @Inject constructor(
     }
 
     suspend fun deletePlaylist(playlistId: String) {
+        markSongCacheChanged()
         dao.clearSongsByPlaylist(playlistId)
         dao.deletePlaylist(playlistId)
         syncUnifiedLibrarySongsFromJellyfin()
@@ -553,7 +574,42 @@ class JellyfinRepository @Inject constructor(
         }
     }
 
+    /**
+     * [syncUnifiedLibrarySongsFromJellyfin], skipped while nothing it reads has changed since the
+     * last rebuild. Every sync worker run calls this, including the one queued on each cold
+     * start, and a rebuild holds the whole Jellyfin library in memory twice and rewrites all of
+     * its rows, which reloads the app's whole song list.
+     */
+    suspend fun syncUnifiedLibrarySongsFromJellyfinIfChanged() {
+        val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
+        val currentState = unifiedJellyfinLibraryState(
+            songCacheRevision = songCacheRevision,
+            groupByAlbumArtist = groupByAlbumArtist,
+            appBuild = APP_BUILD,
+            unifiedSongCount = musicDao.getJellyfinSongCount()
+        )
+        if (prefs.getString(KEY_UNIFIED_LIBRARY_STATE, null) == currentState) {
+            Timber.d("$TAG: Cached songs unchanged since the last unified library rebuild")
+            return
+        }
+        syncUnifiedLibrarySongsFromJellyfin()
+    }
+
     suspend fun syncUnifiedLibrarySongsFromJellyfin() {
+        // Read before the rebuild, so a cache write while it runs leaves the saved state stale.
+        val revision = songCacheRevision
+        val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
+        rebuildUnifiedLibrary(groupByAlbumArtist)
+        val state = unifiedJellyfinLibraryState(
+            songCacheRevision = revision,
+            groupByAlbumArtist = groupByAlbumArtist,
+            appBuild = APP_BUILD,
+            unifiedSongCount = musicDao.getJellyfinSongCount()
+        )
+        prefs.edit().putString(KEY_UNIFIED_LIBRARY_STATE, state).apply()
+    }
+
+    private suspend fun rebuildUnifiedLibrary(groupByAlbumArtist: Boolean) {
         val jellyfinSongs = dao.getAllJellyfinSongsList()
         val existingUnifiedIds = musicDao.getAllJellyfinSongIds()
 
@@ -563,8 +619,6 @@ class JellyfinRepository @Inject constructor(
             }
             return
         }
-
-        val groupByAlbumArtist = userPreferencesRepository.groupByAlbumArtistFlow.first()
 
         val songs = ArrayList<SongEntity>(jellyfinSongs.size)
         val artists = LinkedHashMap<Long, ArtistEntity>()
@@ -763,6 +817,21 @@ class JellyfinRepository @Inject constructor(
 }
 
 internal const val JELLYFIN_SYNC_THRESHOLD_MS = 24 * 60 * 60 * 1000L
+
+/** A new build may map cached songs into the unified library differently, so it rebuilds once. */
+private val APP_BUILD = "${BuildConfig.VERSION_CODE}-${BuildConfig.VERSION_NAME}"
+
+/**
+ * What a unified-library rebuild depends on: the cached songs (through their write count), the
+ * album-artist grouping, the app build, and how many Jellyfin songs the unified library holds,
+ * since other code can remove them. Equal states mean a rebuild would change nothing.
+ */
+internal fun unifiedJellyfinLibraryState(
+    songCacheRevision: Long,
+    groupByAlbumArtist: Boolean,
+    appBuild: String,
+    unifiedSongCount: Int
+): String = "$songCacheRevision|$groupByAlbumArtist|$appBuild|$unifiedSongCount"
 
 /**
  * Whether opening the Jellyfin dashboard should sync again. A full sync of a large library

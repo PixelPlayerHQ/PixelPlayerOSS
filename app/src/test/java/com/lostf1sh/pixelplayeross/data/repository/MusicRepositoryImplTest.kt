@@ -183,24 +183,32 @@ class MusicRepositoryImplTest {
 
     @Test
     fun `getSongsByIdsOnce reads only the requested songs under the library's directory filter`() = runTest(testDispatcher) {
-        every { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/forbidden/path"))
-        coEvery { mockMusicDao.getDistinctParentDirectories() } returns listOf("/allowed/path", "/forbidden/path")
-        val batches = mutableListOf<List<Long>>()
-        val filters = mutableListOf<Pair<List<String>, Boolean>>()
+        // Many allowed folders: binding them next to each batch of ids would pass SQLite's limit.
+        val allowedFolders = (1..600).map { "/music/folder$it" }
+        every { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/blocked"))
+        coEvery { mockMusicDao.getDistinctParentDirectories() } returns allowedFolders + "/blocked"
+        val boundVariables = mutableListOf<Int>()
         every { mockMusicDao.getSongsByIds(any(), any(), any()) } answers {
             val ids = firstArg<List<Long>>()
-            batches += ids
-            filters += secondArg<List<String>>() to thirdArg<Boolean>()
-            flowOf(ids.map { createSongEntity(it, "Song $it", "Artist", null, "/allowed/path/$it.mp3", "/allowed/path") })
+            boundVariables += ids.size + secondArg<List<String>>().size + 1
+            flowOf(ids.map { id ->
+                val folder = when {
+                    id < 0 -> "/Cloud/Jellyfin"
+                    id == 7L -> "/blocked"
+                    else -> allowedFolders[(id % allowedFolders.size).toInt()]
+                }
+                createSongEntity(id, "Song $id", "Artist", null, "$folder/$id.mp3", folder)
+            })
         }
-        val requested = (1L..1_200L).map { it.toString() } + "not-a-library-id"
+        val cloudId = -12_000_000_000_001L
+        val requested = (1L..1_200L).map { it.toString() } + cloudId.toString() + "not-a-library-id"
 
         val result = musicRepository.getSongsByIdsOnce(requested)
 
-        assertEquals((1L..1_200L).map { it.toString() }.toSet(), result.map { it.id }.toSet())
-        // One query for all of them would exceed SQLite's bound-variable limit.
-        assertTrue(batches.size > 1 && batches.all { it.size <= 500 })
-        assertTrue(filters.all { (dirs, apply) -> apply && dirs == listOf("/allowed/path") })
+        // The song in the blocked folder is left out; cloud songs pass the folder filter.
+        val expected = ((1L..1_200L).filter { it != 7L } + cloudId).map { it.toString() }.toSet()
+        assertEquals(expected, result.map { it.id }.toSet())
+        assertTrue(boundVariables.size > 1 && boundVariables.all { it <= 999 })
         verify(exactly = 0) { mockMusicDao.getAllSongs(any(), any()) }
     }
 

@@ -456,14 +456,18 @@ class JellyfinRepository @Inject constructor(
                 )
             }
 
-            try {
+            val unifiedLibrarySynced = try {
                 syncUnifiedLibrarySongsFromJellyfin()
+                true
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 Timber.e(e, "$TAG: Failed to sync unified library")
+                false
             }
 
-            if (libResult.isSuccess && failedPlaylistCount == 0) {
+            // Anything short of songs reaching the shared library has the next dashboard
+            // visit sync again instead of waiting out the threshold.
+            if (libResult.isSuccess && failedPlaylistCount == 0 && unifiedLibrarySynced) {
                 lastFullSyncTime = System.currentTimeMillis()
             }
 

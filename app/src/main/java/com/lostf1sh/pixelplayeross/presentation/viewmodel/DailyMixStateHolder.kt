@@ -47,7 +47,10 @@ class DailyMixStateHolder @Inject constructor(
     @Volatile
     private var checkRequested = false
 
-    /** When [setDailyMixSongs] last replaced the Daily Mix; a generation that day keeps it. */
+    /**
+     * When [setDailyMixSongs] last replaced the Daily Mix, set at once; the saved copy is written
+     * a moment later and covers restarts. A generation that day keeps the replacement.
+     */
     @Volatile
     private var dailyMixReplacedAtMillis = 0L
     private val owners = OwnerStack<CoroutineScope> { it }
@@ -78,10 +81,12 @@ class DailyMixStateHolder @Inject constructor(
     /** Replaces today's Daily Mix (e.g. with a Smart Mix preview) and persists it. */
     fun setDailyMixSongs(songs: List<Song>) {
         updateJob?.cancel()
-        dailyMixReplacedAtMillis = System.currentTimeMillis()
+        val replacedAt = System.currentTimeMillis()
+        dailyMixReplacedAtMillis = replacedAt
         _dailyMixSongs.value = songs.toImmutableList()
         updateJob = scope?.launch {
             userPreferencesRepository.saveDailyMixSongIds(songs.map { it.id })
+            userPreferencesRepository.saveDailyMixReplacedAt(replacedAt)
         }
     }
 
@@ -107,8 +112,7 @@ class DailyMixStateHolder @Inject constructor(
 
             val mix = dailyMixManager.generateDailyMix(allSongs, favoriteIds)
             // Checked after generating, so a Smart Mix applied meanwhile also stays.
-            val dailyMixReplacedToday = !isDifferentDay(dailyMixReplacedAtMillis, System.currentTimeMillis())
-            if (!(keepReplacedDailyMix && dailyMixReplacedToday)) {
+            if (!(keepReplacedDailyMix && isKeepingReplacedDailyMix())) {
                 _dailyMixSongs.value = mix.toImmutableList()
                 userPreferencesRepository.saveDailyMixSongIds(mix.map { it.id })
             }
@@ -196,6 +200,15 @@ class DailyMixStateHolder @Inject constructor(
         }
         withContext(Dispatchers.IO) { generateMixes(favoriteSongIdsFlow, keepReplacedDailyMix = true) }
         userPreferencesRepository.saveLastDailyMixUpdateTimestamp(now)
+    }
+
+    /**
+     * Whether the user replaced the Daily Mix today and some of it is still in the library. A
+     * replacement whose songs a sync removed is generated over like any other mix.
+     */
+    private suspend fun isKeepingReplacedDailyMix(): Boolean {
+        val replacedAt = maxOf(dailyMixReplacedAtMillis, userPreferencesRepository.dailyMixReplacedAtFlow.first())
+        return !isDifferentDay(replacedAt, System.currentTimeMillis()) && hasDailyMixInLibrary()
     }
 
     private suspend fun hasDailyMixInLibrary(): Boolean {

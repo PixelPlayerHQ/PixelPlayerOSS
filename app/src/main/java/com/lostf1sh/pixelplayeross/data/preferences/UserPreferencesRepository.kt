@@ -135,6 +135,7 @@ constructor(
         val LAST_STORAGE_FILTER = stringPreferencesKey("last_storage_filter")
         val MOCK_GENRES_ENABLED = booleanPreferencesKey("mock_genres_enabled")
         val LAST_DAILY_MIX_UPDATE = longPreferencesKey("last_daily_mix_update")
+        val DAILY_MIX_REPLACED_AT = longPreferencesKey("daily_mix_replaced_at")
         val DAILY_MIX_SONG_IDS = stringPreferencesKey("daily_mix_song_ids")
         val YOUR_MIX_SONG_IDS = stringPreferencesKey("your_mix_song_ids")
         val NAV_BAR_CORNER_RADIUS = intPreferencesKey("nav_bar_corner_radius")
@@ -885,6 +886,18 @@ constructor(
     suspend fun saveLastDailyMixUpdateTimestamp(timestamp: Long) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_DAILY_MIX_UPDATE] = timestamp
+        }
+    }
+
+    /** When the user last replaced the Daily Mix (e.g. with a Smart Mix), or 0 if never. */
+    val dailyMixReplacedAtFlow: Flow<Long> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.DAILY_MIX_REPLACED_AT] ?: 0L
+            }
+
+    suspend fun saveDailyMixReplacedAt(timestamp: Long) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DAILY_MIX_REPLACED_AT] = timestamp
         }
     }
 

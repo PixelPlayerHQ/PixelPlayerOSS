@@ -40,10 +40,12 @@ class DailyMixStateHolderTest {
     private fun holder(
         lastUpdateMillis: Long,
         dailyMixIds: List<String>,
-        songsStillInLibrary: List<Song>
+        songsStillInLibrary: List<Song>,
+        savedReplacedAtMillis: Long = 0L
     ): DailyMixStateHolder {
         library = songsStillInLibrary
         every { preferences.lastDailyMixUpdateFlow } returns flowOf(lastUpdateMillis)
+        every { preferences.dailyMixReplacedAtFlow } returns flowOf(savedReplacedAtMillis)
         every { preferences.dailyMixSongIdsFlow } returns flowOf(dailyMixIds)
         every { musicRepository.getSongsByIds(any()) } answers {
             val ids = firstArg<List<String>>()
@@ -182,6 +184,51 @@ class DailyMixStateHolderTest {
         assertEquals(listOf("smart"), holder.dailyMixSongs.value.map { it.id })
         assertEquals(listOf("other"), holder.yourMixSongs.value.map { it.id })
         coVerify(exactly = 0) { preferences.saveDailyMixSongIds(listOf("other")) }
+        owner.cancel()
+    }
+
+    @Test
+    fun `a Daily Mix replaced today is kept after a restart while Your Mix updates`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        // A fresh holder, as after a process restart: only the saved replacement date remains.
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L,
+            dailyMixIds = listOf("smart"),
+            songsStillInLibrary = listOf(song("smart"), song("other")),
+            savedReplacedAtMillis = System.currentTimeMillis()
+        )
+        coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
+        holder.initialize(owner)
+
+        holder.checkAndUpdateIfNeeded(favorites)
+
+        coVerify(timeout = 5_000) { preferences.saveYourMixSongIds(listOf("other")) }
+        coVerify(exactly = 0) { preferences.saveDailyMixSongIds(any()) }
+        owner.cancel()
+    }
+
+    @Test
+    fun `a Daily Mix replaced today is generated again once none of it is in the library`() = runTest {
+        val owner = CoroutineScope(Dispatchers.Default + Job())
+        val holder = holder(
+            lastUpdateMillis = System.currentTimeMillis(),
+            dailyMixIds = listOf("removed"),
+            songsStillInLibrary = listOf(song("other")),
+            savedReplacedAtMillis = System.currentTimeMillis()
+        )
+        coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
+        holder.initialize(owner)
+        // A Smart Mix applied earlier today whose only song a sync has since removed
+        holder.setDailyMixSongs(listOf(song("removed")))
+
+        holder.checkAndUpdateIfNeeded(favorites)
+
+        coVerify(timeout = 5_000) { preferences.saveDailyMixSongIds(listOf("other")) }
+        assertEquals(listOf("other"), holder.dailyMixSongs.value.map { it.id })
         owner.cancel()
     }
 

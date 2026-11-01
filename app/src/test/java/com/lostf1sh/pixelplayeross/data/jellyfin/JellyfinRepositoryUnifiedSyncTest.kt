@@ -158,7 +158,7 @@ class JellyfinRepositoryUnifiedSyncTest {
         val oldRows = listOf(cachedSong("d1t1", "Old title", track = 1, disc = 1))
         val newRows = listOf(cachedSong("d1t1", "New title", track = 1, disc = 1))
         var cachedRows = oldRows
-        coEvery { jellyfinDao.getAllJellyfinSongsList() } answers { cachedRows }
+        coEvery { jellyfinDao.getDistinctJellyfinSongs(any()) } answers { cachedRows }
         val writeStarted = CompletableDeferred<Unit>()
         val finishWrite = CompletableDeferred<Unit>()
         coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } coAnswers {
@@ -177,7 +177,7 @@ class JellyfinRepositoryUnifiedSyncTest {
             repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
         }
         withContext(Dispatchers.Default) { delay(200) }
-        coVerify(exactly = 0) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 0) { jellyfinDao.getDistinctJellyfinSongs(any()) }
 
         finishWrite.complete(Unit)
         write.join()
@@ -186,7 +186,7 @@ class JellyfinRepositoryUnifiedSyncTest {
         assertThat(syncedSongs.captured.single().title).isEqualTo("New title")
         // The saved state describes the rows it read, so the next startup can skip.
         repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
-        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 1) { jellyfinDao.getDistinctJellyfinSongs(any()) }
     }
 
     @Test

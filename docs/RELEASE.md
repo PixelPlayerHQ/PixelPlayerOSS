@@ -77,8 +77,10 @@ F-Droid and alpha builds are signed with different keys. The updater installs on
 
 Release builds are minified with R8, so stack traces from the in-app crash reporter are obfuscated. Each alpha release carries its R8 mapping as `PixelPlayerOSS-<X.Y.Z>-alpha.<N>-mapping.txt.gz`. Nightly runs keep theirs for 30 days as the `PixelPlayerOSS-phone-nightly-<short-sha>-mapping` workflow artifact.
 
-1. Download the mapping for the exact version in the report (the crash log has no version, so take it from the issue). A mapping from any other build gives wrong results.
-2. Save the stack trace to `trace.txt` and run:
+1. Download the mapping for the exact build that crashed. A mapping from any other build gives wrong results.
+   - Alpha: take the version from the issue (the crash log has none) and download that release's mapping asset.
+   - Nightly: nightlies keep the plain `APP_VERSION_NAME`, so the version does not identify one. Ask the reporter which `PixelPlayerOSS-phone-nightly-<short-sha>` artifact they installed and download the mapping artifact with the same SHA. It unzips to a plain `mapping.txt`.
+2. Save the stack trace to `trace.txt` and run (for an alpha mapping):
 
 ```sh
 gunzip PixelPlayerOSS-<X.Y.Z>-alpha.<N>-mapping.txt.gz

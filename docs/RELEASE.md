@@ -73,6 +73,18 @@ The Updates screen (`data/update/`) reads two sources, so keep their formats sta
 
 F-Droid and alpha builds are signed with different keys. The updater installs only same-channel releases whose signer matches the installed app, and walks users through uninstalling to switch channels.
 
+## Retracing Crash Reports
+
+Release builds are minified with R8, so stack traces from the in-app crash reporter are obfuscated. Each alpha release carries its R8 mapping as `PixelPlayerOSS-<X.Y.Z>-alpha.<N>-mapping.txt.gz`. Nightly runs keep theirs for 30 days as the `PixelPlayerOSS-phone-nightly-<short-sha>-mapping` workflow artifact.
+
+1. Download the mapping for the exact version in the report (the crash log has no version, so take it from the issue). A mapping from any other build gives wrong results.
+2. Save the stack trace to `trace.txt` and run:
+
+```sh
+gunzip PixelPlayerOSS-<X.Y.Z>-alpha.<N>-mapping.txt.gz
+$ANDROID_HOME/cmdline-tools/latest/bin/retrace PixelPlayerOSS-<X.Y.Z>-alpha.<N>-mapping.txt trace.txt
+```
+
 ## Publishing
 
 1. Ensure `main` is clean and pushed.

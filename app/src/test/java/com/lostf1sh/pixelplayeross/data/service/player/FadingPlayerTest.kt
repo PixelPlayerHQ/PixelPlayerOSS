@@ -10,10 +10,13 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
@@ -43,6 +46,33 @@ class FadingPlayerTest {
             every { player.volume } answers { state.volume }
             every { player.setVolume(any()) } answers { state.volume = firstArg() }
             every { player.isPlaying } answers { state.isPlaying }
+            every { player.pause() } answers { state.isPlaying = false }
+        }
+
+    @Test
+    fun `pause once the play fade is audible ramps down from there and keeps the full volume`() =
+        runTest(dispatcher) {
+            val state = InnerState(volume = 0.8f, isPlaying = false)
+            val player = FadingPlayer(innerPlayer(state), TestScope(dispatcher))
+
+            player.play()
+            advanceTimeBy(200)
+            state.isPlaying = true
+            val partialVolume = state.volume
+            assertTrue(partialVolume > 0f && partialVolume < 0.8f)
+
+            player.pause()
+            runCurrent()
+            // The ramp down starts below the partial level instead of jumping up first.
+            assertTrue(state.volume <= partialVolume)
+
+            advanceUntilIdle()
+            assertFalse(state.isPlaying)
+            assertEquals(0.8f, state.volume)
+
+            player.play()
+            advanceUntilIdle()
+            assertEquals(0.8f, state.volume)
         }
 
     @Test

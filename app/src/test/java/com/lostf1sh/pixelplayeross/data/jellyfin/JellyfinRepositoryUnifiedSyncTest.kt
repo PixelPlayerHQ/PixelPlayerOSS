@@ -1,18 +1,28 @@
 package com.lostf1sh.pixelplayeross.data.jellyfin
 
+import android.content.Context
+import android.content.SharedPreferences
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.database.JellyfinDao
 import com.lostf1sh.pixelplayeross.data.database.JellyfinSongEntity
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SourceType
+import com.lostf1sh.pixelplayeross.data.network.jellyfin.JellyfinApiService
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import io.mockk.Runs
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
@@ -23,20 +33,34 @@ class JellyfinRepositoryUnifiedSyncTest {
     private val musicDao: MusicDao = mockk()
     private val userPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val syncedSongs = slot<List<SongEntity>>()
+    private val groupByAlbumArtist = MutableStateFlow(true)
+    private val api: JellyfinApiService = mockk(relaxed = true)
+
+    @Volatile
+    private var unifiedSongCount = 0
+
+    // The encrypted preferences are unavailable on the JVM, so the repository falls back to
+    // plain ones; an in-memory map stands in for them.
+    private val prefs = InMemorySharedPreferences()
 
     private fun repository(): JellyfinRepository {
-        every { userPreferencesRepository.groupByAlbumArtistFlow } returns flowOf(true)
+        every { userPreferencesRepository.groupByAlbumArtistFlow } returns groupByAlbumArtist
         coEvery { musicDao.getAllJellyfinSongIds() } returns emptyList()
+        coEvery { musicDao.getJellyfinSongCount() } answers { unifiedSongCount }
         coEvery {
             musicDao.incrementalSyncMusicData(capture(syncedSongs), any(), any(), any(), any())
-        } just Runs
+        } answers { unifiedSongCount = syncedSongs.captured.size }
         return JellyfinRepository(
-            api = mockk(relaxed = true),
+            api = api,
             dao = jellyfinDao,
             musicDao = musicDao,
-            playlistPreferencesRepository = mockk(relaxed = true),
+            playlistPreferencesRepository = mockk(relaxed = true) {
+                every { userPlaylistsFlow } returns flowOf(emptyList())
+            },
             userPreferencesRepository = userPreferencesRepository,
-            context = mockk(relaxed = true)
+            context = mockk<Context>(relaxed = true) {
+                every { getSharedPreferences(any(), any()) } returns prefs
+            }
         )
     }
 
@@ -95,5 +119,148 @@ class JellyfinRepositoryUnifiedSyncTest {
         repository().syncUnifiedLibrarySongsFromJellyfin()
 
         assertThat(syncedSongs.captured.single().discNumber).isNull()
+    }
+
+    @Test
+    fun `startup rebuild is skipped while nothing it reads has changed`() = runTest {
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+            cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
+        )
+        val repository = repository()
+
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+
+        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
+        coVerify(exactly = 1) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `startup rebuild runs after a playlist sync changed the cached songs`() = runTest {
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+            cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
+        )
+        coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } just Runs
+        coEvery { jellyfinDao.getPlaylistById(any()) } returns null
+        coEvery { api.getPlaylistItems("playlist") } returns Result.success(emptyList())
+        val repository = repository()
+        repository.syncUnifiedLibrarySongsFromJellyfin()
+
+        // A playlist sync writes the cache without rebuilding the unified library itself.
+        repository.syncPlaylistSongs("playlist")
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+
+        coVerify(exactly = 2) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `startup rebuild waits for a cache write under way instead of reading the old rows`() = runTest {
+        val oldRows = listOf(cachedSong("d1t1", "Old title", track = 1, disc = 1))
+        val newRows = listOf(cachedSong("d1t1", "New title", track = 1, disc = 1))
+        var cachedRows = oldRows
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } answers { cachedRows }
+        val writeStarted = CompletableDeferred<Unit>()
+        val finishWrite = CompletableDeferred<Unit>()
+        coEvery { jellyfinDao.deleteSongsByPlaylist(any()) } coAnswers {
+            writeStarted.complete(Unit)
+            finishWrite.await()
+            cachedRows = newRows
+        }
+        coEvery { jellyfinDao.getPlaylistById(any()) } returns null
+        coEvery { api.getPlaylistItems("playlist") } returns Result.success(emptyList())
+        val repository = repository()
+
+        // e.g. a dashboard playlist sync, held between its revision bump and its write
+        val write = launch(Dispatchers.Default) { repository.syncPlaylistSongs("playlist") }
+        writeStarted.await()
+        val startupRebuild = launch(Dispatchers.Default) {
+            repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+        }
+        withContext(Dispatchers.Default) { delay(200) }
+        coVerify(exactly = 0) { jellyfinDao.getAllJellyfinSongsList() }
+
+        finishWrite.complete(Unit)
+        write.join()
+        startupRebuild.join()
+
+        assertThat(syncedSongs.captured.single().title).isEqualTo("New title")
+        // The saved state describes the rows it read, so the next startup can skip.
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+        coVerify(exactly = 1) { jellyfinDao.getAllJellyfinSongsList() }
+    }
+
+    @Test
+    fun `startup rebuild runs when the album artist grouping changed`() = runTest {
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+            cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
+        )
+        val repository = repository()
+        repository.syncUnifiedLibrarySongsFromJellyfin()
+
+        groupByAlbumArtist.value = false
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+
+        coVerify(exactly = 2) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `startup rebuild runs when Jellyfin songs left the unified library`() = runTest {
+        coEvery { jellyfinDao.getAllJellyfinSongsList() } returns listOf(
+            cachedSong("d1t1", "Alexander Hamilton", track = 1, disc = 1)
+        )
+        val repository = repository()
+        repository.syncUnifiedLibrarySongsFromJellyfin()
+
+        unifiedSongCount = 0
+        repository.syncUnifiedLibrarySongsFromJellyfinIfChanged()
+
+        coVerify(exactly = 2) { musicDao.incrementalSyncMusicData(any(), any(), any(), any(), any()) }
+    }
+
+    private class InMemorySharedPreferences : SharedPreferences {
+        private val values = mutableMapOf<String, Any?>()
+
+        override fun getAll(): Map<String, *> = values.toMap()
+        override fun getString(key: String, defValue: String?): String? =
+            values[key] as String? ?: defValue
+        @Suppress("UNCHECKED_CAST")
+        override fun getStringSet(key: String, defValues: Set<String>?): Set<String>? =
+            values[key] as Set<String>? ?: defValues
+        override fun getInt(key: String, defValue: Int): Int = values[key] as Int? ?: defValue
+        override fun getLong(key: String, defValue: Long): Long = values[key] as Long? ?: defValue
+        override fun getFloat(key: String, defValue: Float): Float = values[key] as Float? ?: defValue
+        override fun getBoolean(key: String, defValue: Boolean): Boolean =
+            values[key] as Boolean? ?: defValue
+        override fun contains(key: String): Boolean = key in values
+        override fun registerOnSharedPreferenceChangeListener(
+            listener: SharedPreferences.OnSharedPreferenceChangeListener
+        ) = Unit
+        override fun unregisterOnSharedPreferenceChangeListener(
+            listener: SharedPreferences.OnSharedPreferenceChangeListener
+        ) = Unit
+
+        override fun edit(): SharedPreferences.Editor = object : SharedPreferences.Editor {
+            private val changes = mutableMapOf<String, Any?>()
+            private var clear = false
+
+            override fun putString(key: String, value: String?) = apply { changes[key] = value }
+            override fun putStringSet(key: String, values: Set<String>?) = apply { changes[key] = values }
+            override fun putInt(key: String, value: Int) = apply { changes[key] = value }
+            override fun putLong(key: String, value: Long) = apply { changes[key] = value }
+            override fun putFloat(key: String, value: Float) = apply { changes[key] = value }
+            override fun putBoolean(key: String, value: Boolean) = apply { changes[key] = value }
+            override fun remove(key: String) = apply { changes[key] = null }
+            override fun clear() = apply { clear = true }
+            override fun commit(): Boolean {
+                apply()
+                return true
+            }
+            override fun apply() {
+                if (clear) values.clear()
+                changes.forEach { (key, value) ->
+                    if (value == null) values.remove(key) else values[key] = value
+                }
+            }
+        }
     }
 }

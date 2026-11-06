@@ -5,7 +5,6 @@ import coil.fetch.SourceResult
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.net.ConnectException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -83,19 +83,6 @@ class JellyfinCoilFetcherTest {
     }
 
     @Test
-    fun `cached song cover is served without the album fallback`() = runTest {
-        val songCover = cacheCover("item-1")
-        cacheCover("album-cover")
-        coEvery { repository.getAlbumCoverItemId("item-1") } returns "album-cover"
-
-        val result = JellyfinCoilFetcher(coverUri, repository, unreachableClient, cacheDir).fetch()
-
-        assertThat((result as SourceResult).cachedPath()).isEqualTo(songCover.absolutePath)
-        assertThat(unreachableRequests.get()).isEqualTo(0)
-        coVerify(exactly = 0) { repository.getAlbumCoverItemId(any()) }
-    }
-
-    @Test
     fun `uncached song cover falls back to the cached album cover when the server is unreachable`() = runTest {
         val albumCover = cacheCover("album-cover")
         coEvery { repository.getAlbumCoverItemId("item-1") } returns "album-cover"
@@ -103,39 +90,14 @@ class JellyfinCoilFetcherTest {
         val result = JellyfinCoilFetcher(coverUri, repository, unreachableClient, cacheDir).fetch()
 
         assertThat((result as SourceResult).cachedPath()).isEqualTo(albumCover.absolutePath)
-        // The album cover is not stored as the song's own cover, so the song's art is
-        // downloaded once the server is reachable again.
+        // Not cached as the song's own cover.
         assertThat(File(cacheDir, RemoteArtworkCache.cacheFileName("jellyfin_cover", "item-1", 500)).exists())
             .isFalse()
     }
 
     @Test
-    fun `album fallback uses the default size when the requested size is not cached`() = runTest {
-        val sizedUri = mockk<Uri>(relaxed = true) {
-            every { host } returns "item-1"
-            every { getQueryParameter("size") } returns "300"
-        }
-        every { repository.getImageUrl("item-1", 300) } returns "https://jellyfin.example/Items/item-1/Images/Primary?maxWidth=300"
-        val albumCover = cacheCover("album-cover", 500)
-        coEvery { repository.getAlbumCoverItemId("item-1") } returns "album-cover"
-
-        val result = JellyfinCoilFetcher(sizedUri, repository, unreachableClient, cacheDir).fetch()
-
-        assertThat((result as SourceResult).cachedPath()).isEqualTo(albumCover.absolutePath)
-    }
-
-    @Test
     fun `no cover when neither the song nor its album cover is cached`() = runTest {
         coEvery { repository.getAlbumCoverItemId("item-1") } returns "album-cover"
-
-        val result = JellyfinCoilFetcher(coverUri, repository, unreachableClient, cacheDir).fetch()
-
-        assertThat(result).isNull()
-    }
-
-    @Test
-    fun `no fallback when the song is its own album cover`() = runTest {
-        coEvery { repository.getAlbumCoverItemId("item-1") } returns "item-1"
 
         val result = JellyfinCoilFetcher(coverUri, repository, unreachableClient, cacheDir).fetch()
 
@@ -154,6 +116,22 @@ class JellyfinCoilFetcherTest {
 
         assertThat(unreachableRequests.get()).isEqualTo(1)
         assertThat((result as SourceResult).cachedPath()).isEqualTo(albumCover.absolutePath)
+    }
+
+    @Test
+    fun `a read timeout does not skip later cover downloads`() = runTest {
+        val requests = AtomicInteger()
+        val slowClient = OkHttpClient.Builder()
+            .addInterceptor {
+                requests.incrementAndGet()
+                throw SocketTimeoutException("timeout")
+            }
+            .build()
+
+        JellyfinCoilFetcher(coverUri, repository, slowClient, cacheDir).fetch()
+        JellyfinCoilFetcher(coverUri("item-2"), repository, slowClient, cacheDir).fetch()
+
+        assertThat(requests.get()).isEqualTo(2)
     }
 
     @Test

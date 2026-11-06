@@ -31,12 +31,7 @@ class JellyfinCoilFetcher(
         private val recentlyLoggedFailures = ConcurrentHashMap<String, Long>()
         private const val LOG_FAILURE_COOLDOWN_MS = 60_000L
 
-        /**
-         * How long cover downloads are skipped after one could not reach the server. Offline (a
-         * LAN-only server with the VPN off, say) every connection attempt waits for the connect
-         * timeout, so without this each track change would show no cover for several seconds
-         * before falling back to the album's. A successful download clears it.
-         */
+        /** Skips cover downloads after one could not connect, so offline covers don't each wait. */
         private const val SERVER_UNREACHABLE_BACKOFF_MS = 30_000L
 
         @Volatile
@@ -57,12 +52,12 @@ class JellyfinCoilFetcher(
         @VisibleForTesting
         internal fun resetServerReachability() = markServerReachable()
 
-        /** Whether [e] means the server could not be reached, as opposed to an HTTP or body error. */
+        /** Connect failures only: a read timeout means the server is up but slow. */
         private fun isConnectionFailure(e: Throwable): Boolean =
             e is ConnectException ||
                 e is NoRouteToHostException ||
                 e is UnknownHostException ||
-                e is SocketTimeoutException
+                (e is SocketTimeoutException && e.message?.contains("connect", ignoreCase = true) == true)
 
         private fun shouldLogFailure(key: String): Boolean {
             val now = System.currentTimeMillis()
@@ -111,7 +106,7 @@ class JellyfinCoilFetcher(
             if (shouldLogFailure("no_url_$itemId")) {
                 Timber.w("$TAG: No image URL for $itemId")
             }
-            return cachedAlbumCover(itemId, sizeParam)
+            return null
         }
 
         val authHeader = repository.getAuthorizationHeader()
@@ -136,31 +131,14 @@ class JellyfinCoilFetcher(
     }
 
     /**
-     * The cached cover of the album song [itemId] belongs to, for when the song's own cover is
-     * not cached and cannot be downloaded (for example, offline playback of a downloaded album).
-     *
-     * A track can carry its own embedded art, so this is only a fallback: it is read from the
-     * disk cache, never written under the song's cache file, and the song's own cover is fetched
-     * again once the server is reachable.
+     * Cached cover of [itemId]'s album, for when the song's own cover can't be fetched (e.g.
+     * offline). Never cached as the song's cover.
      */
     private suspend fun cachedAlbumCover(itemId: String, sizePx: Int): FetchResult? {
-        val albumCoverId = try {
-            repository.getAlbumCoverItemId(itemId)
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            Timber.w(e, "$TAG: Could not look up the album cover for $itemId")
-            null
-        }
-        if (albumCoverId.isNullOrBlank() || albumCoverId == itemId) return null
-
-        for (size in linkedSetOf(sizePx, RemoteArtworkCache.DEFAULT_COVER_SIZE_PX)) {
-            val albumFile = File(
-                cacheDir,
-                RemoteArtworkCache.cacheFileName("jellyfin_cover", albumCoverId, size)
-            )
-            RemoteArtworkCache.cachedResult(albumFile)?.let { return it }
-        }
-        return null
+        val albumCoverId = repository.getAlbumCoverItemId(itemId) ?: return null
+        return RemoteArtworkCache.cachedResult(
+            File(cacheDir, RemoteArtworkCache.cacheFileName("jellyfin_cover", albumCoverId, sizePx))
+        )
     }
 
     class Factory @Inject constructor(

@@ -564,18 +564,13 @@ class JellyfinRepository @Inject constructor(
         return api.getImageUrl(itemId, maxWidth = size)
     }
 
-    /**
-     * Id of the item whose image is the cover of the album that song [songItemId] belongs to,
-     * or null if the song is not in the library or the album has no Jellyfin cover.
-     */
+    /** Cover item id of the album [songItemId] belongs to, or null if unknown. */
     suspend fun getAlbumCoverItemId(songItemId: String): String? {
         val albumArtUri = withContext(Dispatchers.IO) {
             musicDao.getAlbumArtUriByContentUri("jellyfin://$songItemId")
         } ?: return null
         return albumArtUri.removePrefix("jellyfin_cover://")
-            .takeIf { it != albumArtUri }
-            ?.substringBefore('?')
-            ?.takeIf { it.isNotBlank() }
+            .takeIf { it != albumArtUri && it.isNotBlank() }
     }
 
     suspend fun getLyrics(songId: String): Result<String> {

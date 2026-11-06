@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Nút bài trước</string>
+    <string name="setcat_previous_button_description">Chọn cách hoạt động khi bấm nút bài trước: phát lại từ đầu bài hát hiện tại hay chuyển thẳng về bài trước đó.</string>
+    <string name="setcat_previous_button_restart_track">Phát lại bài hát</string>
+    <string name="setcat_previous_button_restart_track_description">Sau vài giây đầu, nút bài trước sẽ phát lại bài hát từ đầu. Bấm thêm một lần nữa để quay lại bài trước.</string>
+    <string name="setcat_previous_button_previous_track">Bài trước đó</string>
+    <string name="setcat_previous_button_previous_track_description">Luôn quay lại bài hát trước đó, bất kể bạn đang ở đoạn nào của bài hiện tại.</string>
+</resources>

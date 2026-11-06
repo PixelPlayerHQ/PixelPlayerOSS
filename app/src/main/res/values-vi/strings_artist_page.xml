@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Trang nghệ sĩ</string>
+    <string name="artist_page_albums_collapsed_by_default">Mặc định thu gọn album</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Khi một nghệ sĩ có nhiều hơn một album, ban đầu chỉ hiển thị tiêu đề album. Nhấn vào album để xem các bài hát.</string>
+    <string name="artist_page_collapse_all_albums">Thu gọn tất cả</string>
+    <string name="artist_page_expand_all_albums">Mở rộng tất cả</string>
+</resources>

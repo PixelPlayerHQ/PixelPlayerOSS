@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Đang chuẩn bị thiết lập…</string>
+    <string name="song_info_label_provider">Nguồn cung cấp</string>
+    <string name="song_info_label_path">Đường dẫn</string>
+    <string name="cd_playlist_artwork">Danh sách phát</string>
+    <string name="home_your_mix_subtitle">Bản phối hôm nay dành cho bạn</string>
+    <string name="home_your_mix_queue_name">Bản phối của bạn</string>
+    <string name="queue_name_liked_songs">Bài hát đã thích</string>
+    <string name="queue_name_all_songs_shuffled">Tất cả bài hát (Xáo trộn)</string>
+    <string name="queue_name_liked_songs_shuffled">Bài hát đã thích (Xáo trộn)</string>
+    <string name="queue_name_selected_songs">Các bài hát đã chọn</string>
+
+    <!-- Player sheet, mini player and full player chrome -->
+    <string name="cd_player_sheet_collapsed">Trình phát PixelPlayer đã thu gọn, %1$s</string>
+    <string name="cd_player_sheet_expanded">Trình phát PixelPlayer đã mở rộng, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Trình phát PixelPlayer đã thu gọn</string>
+    <string name="cd_player_sheet_expanded_no_track">Trình phát PixelPlayer đã mở rộng</string>
+    <string name="mini_player_connecting_device">Đang kết nối tới thiết bị…</string>
+    <string name="mini_player_preparing_playback">Đang chuẩn bị phát…</string>
+    <string name="mini_player_loading_audio">Đang tải âm thanh…</string>
+    <string name="cd_shuffle">Xáo trộn</string>
+    <string name="cd_playback_position">Vị trí phát</string>
+    <string name="add_bookmark_title">Lưu dấu trang</string>
+    <string name="add_bookmark_saved_point">Điểm phát đã lưu</string>
+    <string name="add_bookmark_use_lyric_line">Sử dụng dòng lời bài hát</string>
+    <string name="add_bookmark_default_name">Dấu trang @ %1$s</string>
+</resources>

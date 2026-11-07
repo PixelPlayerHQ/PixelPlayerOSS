@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Library sort method labels -->
+    <string name="sort_method_default_order">Thứ tự mặc định</string>
+    <string name="sort_method_title">Tiêu đề</string>
+    <string name="sort_method_artist">Nghệ sĩ</string>
+    <string name="sort_method_album">Album</string>
+    <string name="sort_method_date_added">Ngày thêm</string>
+    <string name="sort_method_duration">Thời lượng</string>
+    <string name="sort_method_release_year">Năm phát hành</string>
+    <string name="sort_method_song_count">Số lượng bài hát</string>
+    <string name="sort_method_name">Tên</string>
+    <string name="sort_method_num_songs">Số bài hát</string>
+    <string name="sort_method_date_created">Ngày tạo</string>
+    <string name="sort_method_date_liked">Ngày yêu thích</string>
+    <string name="sort_method_subfolder_count">Số thư mục con</string>
+</resources>

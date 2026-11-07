@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="collage_pattern_cosmic_swirl">Xoáy vũ trụ</string>
+    <string name="collage_pattern_honeycomb_groove">Nhịp tổ ong</string>
+    <string name="collage_pattern_vinyl_stack">Chồng đĩa than</string>
+    <string name="collage_pattern_pixel_mosaic">Khảm Pixel</string>
+    <string name="collage_pattern_stardust_scatter">Bụi sao rải rác</string>
+    <string name="collage_pattern_soft_orbit">Quỹ đạo êm dịu</string>
+    <string name="collage_pattern_arrow_fanfare">Mũi tên rực rỡ</string>
+    <string name="collage_pattern_sunny_bloom">Nắng sớm nở rộ</string>
+    <string name="collage_pattern_pixel_cookie">Bánh quy Pixel</string>
+    <string name="collage_pattern_heart_garden">Vườn trái tim</string>
+
+    <plurals name="cloud_download_selected_started">
+        <item quantity="other">Đang chuẩn bị %1$d bài hát đám mây để phát ngoại tuyến</item>
+    </plurals>
+</resources>

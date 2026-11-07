@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Total durations, such as a playlist's length -->
+    <string name="duration_hours_minutes_long">%1$d giờ %2$02d phút</string>
+    <string name="duration_minutes_long">%1$d phút</string>
+    <!-- Listening durations, such as the Stats overview total -->
+    <string name="duration_hours_minutes_medium">%1$d giờ %2$02d ph</string>
+    <string name="duration_hours_medium">%1$d giờ</string>
+    <string name="duration_minutes_medium">%1$d ph</string>
+    <string name="duration_seconds_medium">%1$d gi</string>
+    <!-- Compact listening durations for Stats chips and tiles -->
+    <string name="duration_hours_minutes_short">%1$dgiờ %2$02dph</string>
+    <string name="duration_hours_short">%1$dgiờ</string>
+    <string name="duration_minutes_short">%1$dph</string>
+    <string name="duration_seconds_short">%1$ds</string>
+    <!-- Relative times, such as the last sync time -->
+    <string name="time_ago_never">Chưa bao giờ</string>
+    <string name="time_ago_just_now">Vừa xong</string>
+</resources>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mix_title">Smart Mix</string>
+    <string name="mix_tune_today">Tùy chỉnh bản phối hôm nay</string>
+    <string name="mix_daily_subtitle">Xem trước thay đổi trước khi dùng cho hôm nay</string>
+    <string name="mix_library_subtitle">Tạo bản phối từ thư viện nhạc của bạn</string>
+    <string name="mix_close">Đóng bản phối</string>
+    <string name="mix_request_label">Bạn muốn nghe gì?</string>
+    <string name="mix_request_placeholder">Nghệ sĩ, thể loại, tâm trạng hoặc hoạt động</string>
+    <string name="mix_suggest_recent">Yêu cầu gần đây: %1$s</string>
+    <string name="mix_suggest_rediscover">Khám phá lại %1$s</string>
+    <string name="mix_back">Quay lại yêu cầu của bạn</string>
+    <string name="mix_done">Xong</string>
+    <string name="mix_thinking">Đang suy nghĩ…</string>
+    <string name="mix_refine">Tinh chỉnh bản phối của bạn</string>
+    <string name="mix_length">Độ dài danh sách phát</string>
+    <string name="mix_auto">Tự động</string>
+    <string name="mix_up_to">Tối đa %1$d</string>
+    <string name="mix_energy">Năng lượng</string>
+    <string name="mix_energy_calm">Êm dịu</string>
+    <string name="mix_energy_steady">Đều đặn</string>
+    <string name="mix_energy_energetic">Sôi động</string>
+    <string name="mix_refine_hint">Tự động tuân theo yêu cầu của bạn. Việc chọn năng lượng sẽ thêm điều kiện; có thể có ít bài hát phù hợp hơn.</string>
+    <string name="mix_selection_summary">Độ dài: %1$s · Năng lượng: %2$s</string>
+    <string name="mix_edit_request">Chỉnh sửa yêu cầu</string>
+    <string name="mix_playlist_name">Tên danh sách phát</string>
+    <string name="mix_short_result">Thư viện của bạn có ít bài hát phù hợp hơn yêu cầu. Chúng tôi đã giữ nguyên các điều kiện của bạn.</string>
+    <string name="mix_preview_action">Xem trước bản phối</string>
+    <string name="mix_play">Phát</string>
+    <string name="mix_use_today">Dùng cho hôm nay</string>
+    <string name="mix_save">Lưu danh sách phát</string>
+    <string name="mix_saved_action">Đã lưu</string>
+    <string name="mix_saved">Đã lưu dưới tên %1$s</string>
+    <string name="mix_save_failed">Không thể lưu danh sách phát này. Bản xem trước của bạn vẫn còn ở đây; hãy thử lưu lại.</string>
+    <string name="mix_no_matches">Không tìm thấy bài hát phù hợp. Hãy chỉnh sửa yêu cầu hoặc đặt năng lượng thành Tự động.</string>
+    <string name="mix_daily_updated">Đã cập nhật bản phối hàng ngày</string>
+    <string name="mix_undo">Hoàn tác</string>
+    <plurals name="mix_matching_songs">
+        <item quantity="other">%1$d bài hát phù hợp · %2$d phút</item>
+    </plurals>
+</resources>

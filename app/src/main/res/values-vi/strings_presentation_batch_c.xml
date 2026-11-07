@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_songs">Bài hát</string>
+    <string name="library_tab_albums">Album</string>
+    <string name="library_tab_artists">Nghệ sĩ</string>
+    <string name="library_tab_playlists">Danh sách phát</string>
+    <string name="library_tab_folders">Thư mục</string>
+    <string name="library_tab_liked">Đã thích</string>
+
+    <string name="library_error_loading_songs">Lỗi tải bài hát</string>
+    <string name="library_error_loading_albums">Lỗi tải album</string>
+    <string name="library_error_loading_artists">Lỗi tải nghệ sĩ</string>
+    <string name="library_retry">Thử lại</string>
+
+    <string name="library_no_songs_in_library_message">Không tìm thấy bài hát nào trong thư viện của bạn.</string>
+    <string name="library_no_songs_rescan_hint">Hãy thử quét lại thư viện trong cài đặt nếu bạn có nhạc trên thiết bị.</string>
+    <string name="cd_no_songs_in_library">Không tìm thấy bài hát nào</string>
+
+    <string name="library_action_new">Mới</string>
+    <string name="cd_create_new_playlist">Tạo danh sách phát mới</string>
+    <string name="cd_import_m3u_playlist">Nhập danh sách phát M3U</string>
+    <string name="cd_locate_current_song">Định vị bài hát hiện tại</string>
+    <string name="library_storage_filter_all_songs">Tất cả bài hát</string>
+    <string name="library_storage_filter_online">Đám mây</string>
+    <string name="library_storage_filter_offline">Cục bộ</string>
+    <string name="cd_sort_options">Tùy chọn sắp xếp</string>
+
+    <string name="lyrics_synced_badge">ĐÃ KHỚP LỜI</string>
+    <string name="song_field_artist_optional">Nghệ sĩ (không bắt buộc)</string>
+
+    <string name="song_picker_title">Thêm bài hát</string>
+    <string name="cd_confirm_add_songs">Thêm các bài hát đã chọn</string>
+    <string name="song_picker_action_add">Thêm</string>
+    <string name="song_picker_search_label">Tìm kiếm hoặc lọc bài hát…</string>
+    <string name="song_picker_filter_favorites">Đã thích</string>
+    <string name="song_picker_error_load_failed">Không thể tải bài hát</string>
+    <string name="song_picker_load_more">Tải thêm</string>
+
+    <string name="lib_empty_songs_all_title">Chưa có bài hát nào</string>
+    <string name="lib_empty_songs_all_subtitle">Thêm nhạc vào thiết bị hoặc đồng bộ nguồn đám mây để bắt đầu nghe.</string>
+    <string name="lib_empty_songs_offline_title">Không tìm thấy bài hát cục bộ nào</string>
+    <string name="lib_empty_songs_offline_subtitle">Hãy thử bộ lọc nguồn khác hoặc quét lại thư viện trên thiết bị.</string>
+    <string name="lib_empty_songs_online_title">Không tìm thấy bài hát đám mây nào</string>
+    <string name="lib_empty_songs_online_subtitle">Đồng bộ bài hát từ Navidrome hoặc Jellyfin, hoặc chuyển sang nguồn cục bộ.</string>
+    <string name="lib_empty_albums_all_title">Không có album nào</string>
+    <string name="lib_empty_albums_all_subtitle">Album sẽ xuất hiện ở đây ngay khi thư viện của bạn có các bài hát được nhóm lại.</string>
+    <string name="lib_empty_albums_offline_title">Không tìm thấy album cục bộ nào</string>
+    <string name="lib_empty_albums_offline_subtitle">Cần có bài hát cục bộ để tạo các nhóm album cục bộ.</string>
+    <string name="lib_empty_albums_online_title">Không tìm thấy album đám mây nào</string>
+    <string name="lib_empty_albums_online_subtitle">Các bài hát đám mây có dữ liệu album sẽ xuất hiện ở đây sau khi đồng bộ.</string>
+    <string name="lib_empty_artists_all_title">Không có nghệ sĩ nào</string>
+    <string name="lib_empty_artists_all_subtitle">Nghệ sĩ sẽ hiển thị sau khi các bài hát được lập chỉ mục từ bất kỳ nguồn nào.</string>
+    <string name="lib_empty_artists_offline_title">Không tìm thấy nghệ sĩ cục bộ nào</string>
+    <string name="lib_empty_artists_offline_subtitle">Hiện tại không có siêu dữ liệu nghệ sĩ cho các bài hát cục bộ.</string>
+    <string name="lib_empty_artists_online_title">Không tìm thấy nghệ sĩ đám mây nào</string>
+    <string name="lib_empty_artists_online_subtitle">Nghệ sĩ đám mây sẽ xuất hiện khi các bài hát từ xa được đồng bộ.</string>
+    <string name="lib_empty_liked_all_title">Chưa có bài hát yêu thích nào</string>
+    <string name="lib_empty_liked_all_subtitle">Nhấn vào biểu tượng trái tim khi đang phát một bài hát để lưu vào đây.</string>
+    <string name="lib_empty_liked_offline_title">Không có bài hát cục bộ nào được thích</string>
+    <string name="lib_empty_liked_offline_subtitle">Chuyển bộ lọc nguồn hoặc nhấn thích các bài hát từ thiết bị của bạn.</string>
+    <string name="lib_empty_liked_online_title">Không có bài hát đám mây nào được thích</string>
+    <string name="lib_empty_liked_online_subtitle">Thích các bài hát Navidrome hoặc Jellyfin để xem chúng ở đây.</string>
+    <string name="lib_empty_folders_title">Không tìm thấy thư mục nào</string>
+    <string name="lib_empty_folders_subtitle">Các thư mục trong bộ nhớ trong có chứa nhạc sẽ xuất hiện ở đây.</string>
+    <string name="lib_empty_playlists_title">Chưa có danh sách phát nào</string>
+    <string name="lib_empty_playlists_subtitle">Tạo danh sách phát đầu tiên để sắp xếp thư viện của bạn.</string>
+</resources>

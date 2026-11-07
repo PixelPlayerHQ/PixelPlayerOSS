@@ -21,7 +21,8 @@ class AppLanguageTest {
         AppLanguage.NORWEGIAN_BOKMAL to "Norsk bokmål",
         AppLanguage.RUSSIAN to "Русский",
         AppLanguage.TURKISH to "Türkçe",
-        AppLanguage.ZH_RCN to "简体中文"
+        AppLanguage.ZH_RCN to "简体中文",
+        AppLanguage.VIETNAMESE to "Tiếng Việt"
     )
 
     private val context = mockk<Context> {

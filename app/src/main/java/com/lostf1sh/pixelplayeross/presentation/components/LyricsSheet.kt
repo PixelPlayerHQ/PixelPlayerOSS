@@ -97,6 +97,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -1363,7 +1364,9 @@ fun SyncedLyricsList(
         LaunchedEffect(currentLineIndex, lines.size, metrics, isPreviewSeeking) {
             if (lines.isEmpty()) return@LaunchedEffect
             if (currentLineIndex !in lines.indices) return@LaunchedEffect
-            if (listState.layoutInfo.totalItemsCount == 0) return@LaunchedEffect
+            if (listState.layoutInfo.totalItemsCount == 0) {
+                snapshotFlow { listState.layoutInfo.totalItemsCount }.first { it > 0 }
+            }
 
             if (!hasAlignedInitialLine) {
                 listState.scrollToItem(currentLineIndex)
@@ -1622,7 +1625,12 @@ fun LyricLineRow(
                 // recompose every visible line each frame. The radius is quantized to whole
                 // pixels and the RenderEffect (API 31+) is cached between frames.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    renderEffect = lineBlurEffectCache.get(blurRadius.toPx().roundToInt().toFloat())
+                    val radiusPx = blurRadius.toPx()
+                    renderEffect = if (radiusPx > 0.5f) {
+                        lineBlurEffectCache.get(radiusPx.roundToInt().toFloat())
+                    } else {
+                        null
+                    }
                 }
             }
     } else baseModifier
@@ -1851,7 +1859,13 @@ fun PlainLyricsLine(
 
     Column(modifier = modifier.then(longClickModifier), horizontalAlignment = horizontalAlignment) {
         if (primaryText.isNotBlank()) {
-            Text(text = primaryText, style = style, color = LocalContentColor.current.copy(alpha = 0.7f), textAlign = textAlign)
+            Text(
+                text = primaryText,
+                style = style,
+                color = LocalContentColor.current.copy(alpha = 0.7f),
+                textAlign = textAlign,
+                modifier = Modifier.fillMaxWidth()
+            )
 
             if (showRomanization && romanizationText.isNotBlank()) {
                 Text(
@@ -1859,7 +1873,9 @@ fun PlainLyricsLine(
                     style = translationStyle,
                     color = translationColor,
                     textAlign = textAlign,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
                 )
             }
 
@@ -1869,7 +1885,9 @@ fun PlainLyricsLine(
                     style = translationStyle,
                     color = translationColor,
                     textAlign = textAlign,
-                    modifier = Modifier.padding(top = if (showRomanization && romanizationText.isNotBlank()) 2.dp else 4.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = if (showRomanization && romanizationText.isNotBlank()) 2.dp else 4.dp)
                 )
             }
         }

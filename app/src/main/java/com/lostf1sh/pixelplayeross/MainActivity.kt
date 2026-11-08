@@ -822,9 +822,9 @@ class MainActivity : ComponentActivity() {
                 !shouldHideNavigationBar || navBarVisibilityProgress > 0.01f
             }
         }
-        val isNavBarEffectivelyHidden by remember(shouldHideNavigationBar, navBarVisibilityProgress) {
+        val isNavBarEffectivelyHidden by remember(shouldHideNavigationBar, navBarVisibilityProgress, useNavigationRail) {
             derivedStateOf {
-                shouldHideNavigationBar && navBarVisibilityProgress <= 0.01f
+                useNavigationRail || (shouldHideNavigationBar && navBarVisibilityProgress <= 0.01f)
             }
         }
 
@@ -1114,16 +1114,8 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        val miniPlayerWidth = 460.dp
-                        val miniPlayerPaddingStart: Dp
-                        val miniPlayerPaddingEnd: Dp
-                        if (useNavigationRail) {
-                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - 80.dp - miniPlayerWidth) / 2)
-                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + 80.dp - miniPlayerWidth) / 2)
-                        } else {
-                            miniPlayerPaddingStart = horizontalPadding
-                            miniPlayerPaddingEnd = horizontalPadding
-                        }
+                        val miniPlayerPaddingStart: Dp = if (useNavigationRail) 12.dp else horizontalPadding
+                        val miniPlayerPaddingEnd: Dp = if (useNavigationRail) 12.dp else horizontalPadding
 
                         UnifiedPlayerSheetV2(
                             playerViewModel = playerViewModel,

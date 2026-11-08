@@ -1118,8 +1118,9 @@ class MainActivity : ComponentActivity() {
                         val miniPlayerPaddingStart: Dp
                         val miniPlayerPaddingEnd: Dp
                         if (useNavigationRail) {
-                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - 80.dp - miniPlayerWidth) / 2)
-                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + 80.dp - miniPlayerWidth) / 2)
+                            val railOffset = 80.dp * navBarVisibilityProgressState.value
+                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - railOffset - miniPlayerWidth) / 2)
+                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + railOffset - miniPlayerWidth) / 2)
                         } else {
                             miniPlayerPaddingStart = horizontalPadding
                             miniPlayerPaddingEnd = horizontalPadding

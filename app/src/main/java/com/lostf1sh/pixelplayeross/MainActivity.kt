@@ -1114,8 +1114,16 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        val miniPlayerPaddingStart: Dp = if (useNavigationRail) 12.dp else horizontalPadding
-                        val miniPlayerPaddingEnd: Dp = if (useNavigationRail) 12.dp else horizontalPadding
+                        val miniPlayerWidth = 460.dp
+                        val miniPlayerPaddingStart: Dp
+                        val miniPlayerPaddingEnd: Dp
+                        if (useNavigationRail) {
+                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - 80.dp - miniPlayerWidth) / 2)
+                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + 80.dp - miniPlayerWidth) / 2)
+                        } else {
+                            miniPlayerPaddingStart = horizontalPadding
+                            miniPlayerPaddingEnd = horizontalPadding
+                        }
 
                         UnifiedPlayerSheetV2(
                             playerViewModel = playerViewModel,

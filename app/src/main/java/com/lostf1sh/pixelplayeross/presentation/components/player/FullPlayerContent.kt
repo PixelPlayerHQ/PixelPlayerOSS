@@ -1494,7 +1494,7 @@ private fun FullPlayerTwoPaneFoldableContent(
         val density = LocalDensity.current
         val horizontalSpacing = 20.dp
         val maxHalfWidth = (maxWidth - horizontalSpacing) / 2
-        val openWidth = maxHalfWidth.coerceIn(260.dp, maxHalfWidth)
+        val openWidth = maxHalfWidth.coerceAtLeast(0.dp)
         val closedWidth = minOf(520.dp, maxWidth)
 
         val closedWidthPx = with(density) { closedWidth.toPx() }

@@ -99,6 +99,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.presentation.utils.ScreenAwakeCoordinator
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.SyncedLine
@@ -155,6 +156,7 @@ fun EmbeddedLyricsPane(
     onRepeatToggle: () -> Unit = {},
     onFavoriteToggle: () -> Unit = {},
     onMoreClick: (() -> Unit)? = null,
+    isPlayerExpanded: Boolean = true,
     modifier: Modifier = Modifier,
     highlightZoneFraction: Float = 0.08f,
     highlightOffsetDp: Dp = 32.dp,
@@ -207,7 +209,9 @@ fun EmbeddedLyricsPane(
     val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    DisposableEffect(keepScreenOn, lifecycleOwner) {
+    val shouldKeepAwake = keepScreenOn && isPlayerExpanded
+
+    DisposableEffect(shouldKeepAwake, lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_STOP && keepScreenOn) {
                 keepScreenOn = false
@@ -219,13 +223,11 @@ fun EmbeddedLyricsPane(
             }
         }
 
-        if (keepScreenOn) {
-            view.keepScreenOn = true
-        }
+        ScreenAwakeCoordinator.request("EmbeddedLyricsPane", shouldKeepAwake, view)
 
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
-            view.keepScreenOn = false
+            ScreenAwakeCoordinator.request("EmbeddedLyricsPane", false, view)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -236,6 +238,7 @@ fun EmbeddedLyricsPane(
             override fun onReceive(ctx: android.content.Context, intent: Intent) {
                 if (intent.action == Intent.ACTION_SCREEN_OFF) {
                     keepScreenOn = false
+                    ScreenAwakeCoordinator.reset(view)
                     coroutineScope.launch {
                         context.dataStore.edit { prefs ->
                             prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false

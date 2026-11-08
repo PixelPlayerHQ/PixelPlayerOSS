@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.presentation.utils.ScreenAwakeCoordinator
 import androidx.activity.compose.BackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.LyricsPredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
@@ -474,13 +475,11 @@ fun LyricsSheet(
             }
         }
 
-        if (keepScreenOn) {
-            view.keepScreenOn = true
-        }
+        ScreenAwakeCoordinator.request("LyricsSheet", keepScreenOn, view)
 
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
-            view.keepScreenOn = false
+            ScreenAwakeCoordinator.request("LyricsSheet", false, view)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -534,6 +533,7 @@ fun LyricsSheet(
             override fun onReceive(ctx: android.content.Context, intent: Intent) {
                 if (intent.action == Intent.ACTION_SCREEN_OFF) {
                     keepScreenOn = false
+                    ScreenAwakeCoordinator.reset(view)
                     coroutineScope.launch {
                         context.dataStore.edit { prefs ->
                             prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false

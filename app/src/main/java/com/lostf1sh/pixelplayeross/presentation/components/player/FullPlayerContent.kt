@@ -950,6 +950,7 @@ fun FullPlayerContent(
                                         onShuffleToggle = onShuffleToggle,
                                         onRepeatToggle = onRepeatToggle,
                                         onFavoriteToggle = onFavoriteToggle,
+                                        isPlayerExpanded = currentSheetState == PlayerSheetState.EXPANDED,
                                         modifier = rightPaneModifier
                                     )
                                 }
@@ -1532,7 +1533,7 @@ private fun FullPlayerTwoPaneFoldableContent(
         }
 
         // Right Pane: Queue or Lyrics (fixed width, GPU slide + fade, zero distortion)
-        val isPaneMounted by remember {
+        val isPaneMounted by remember(isRightPaneVisible) {
             derivedStateOf {
                 isRightPaneVisible || transitionProgressState.value > 0.005f
             }

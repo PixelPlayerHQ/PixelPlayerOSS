@@ -60,6 +60,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -68,6 +70,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.BroadcastReceiver
+import android.content.Intent
+import android.content.IntentFilter
+import androidx.compose.ui.platform.LocalView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -185,7 +196,59 @@ fun EmbeddedLyricsPane(
     var showMoreSheet by remember { mutableStateOf(false) }
     var showSyncControls by remember { mutableStateOf(false) }
     var showSaveLyricsDialog by remember { mutableStateOf(false) }
+    val keepScreenOnFlow = remember(context) {
+        context.dataStore.data.map { it[booleanPreferencesKey("keep_screen_on_lyrics")] ?: false }
+    }
     var keepScreenOn by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        keepScreenOnFlow.collect { keepScreenOn = it }
+    }
+
+    val view = LocalView.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(keepScreenOn, lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP && keepScreenOn) {
+                keepScreenOn = false
+                coroutineScope.launch {
+                    context.dataStore.edit { prefs ->
+                        prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false
+                    }
+                }
+            }
+        }
+
+        if (keepScreenOn) {
+            view.keepScreenOn = true
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            view.keepScreenOn = false
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    DisposableEffect(context) {
+        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: android.content.Context, intent: Intent) {
+                if (intent.action == Intent.ACTION_SCREEN_OFF) {
+                    keepScreenOn = false
+                    coroutineScope.launch {
+                        context.dataStore.edit { prefs ->
+                            prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false
+                        }
+                    }
+                }
+            }
+        }
+        context.registerReceiver(receiver, filter)
+        onDispose {
+            context.unregisterReceiver(receiver)
+        }
+    }
 
     val lyricsAlignmentFlow = remember(context) {
         context.dataStore.data.map { it[stringPreferencesKey("lyrics_alignment")] ?: "left" }
@@ -260,7 +323,9 @@ fun EmbeddedLyricsPane(
         shouldRomanizePlainLyrics
     ) {
         value = if (shouldRomanizePlainLyrics && lyrics?.plain != null) {
-            romanizePlainLyrics(lyrics.plain)
+            withContext(Dispatchers.Default) {
+                romanizePlainLyrics(lyrics.plain)
+            }
         } else {
             null
         }

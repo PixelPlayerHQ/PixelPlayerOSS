@@ -413,7 +413,10 @@ fun UnifiedPlayerSheetV2(
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isCompactHeight =
         !windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
-    val isFoldableTwoPane = isMediumOrExpandedWidth && !isCompactHeight
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val canFitTwoPanes = screenWidthDp >= 660.dp
+    val isFoldableTwoPane = isMediumOrExpandedWidth && !isCompactHeight && canFitTwoPanes
+
 
     val queueSheetState = rememberQueueSheetState(
         scope = scope,
@@ -429,6 +432,12 @@ fun UnifiedPlayerSheetV2(
     val queueSheetHeightPx = queueSheetState.queueSheetHeightPx
     val queueHiddenOffsetPx = queueSheetState.queueHiddenOffsetPx
     val queueSheetController = queueSheetState.queueSheetController
+
+    LaunchedEffect(isFoldableTwoPane) {
+        if (isFoldableTwoPane && showQueueSheet) {
+            queueSheetController.animateTo(false)
+        }
+    }
     val onQueueSheetHeightPxChange = queueSheetState.onQueueSheetHeightPxChange
 
     val sheetBackAndDragState = rememberSheetBackAndDragState(
@@ -437,11 +446,12 @@ fun UnifiedPlayerSheetV2(
     )
     val canHandlePlayerBack by remember(
         sheetBackAndDragState.predictiveBackEnabled,
-        showQueueSheet
+        showQueueSheet,
+        isFoldableTwoPane
     ) {
         derivedStateOf {
             sheetBackAndDragState.predictiveBackEnabled &&
-                !showQueueSheet
+                (!showQueueSheet || isFoldableTwoPane)
         }
     }
     val velocityTracker = remember { VelocityTracker() }
@@ -539,7 +549,7 @@ fun UnifiedPlayerSheetV2(
     }
     // Update underlying callbacks in the same composition commit as the sheet handlers. A Flow
     // handoff would leave folder back disabled until LibraryScreen's next recomposition.
-    val isPlayerSheetHandlingBack = canHandlePlayerBack || (isQueueVisible && !internalIsKeyboardVisible)
+    val isPlayerSheetHandlingBack = canHandlePlayerBack || (!isFoldableTwoPane && isQueueVisible && !internalIsKeyboardVisible)
     SideEffect {
         playerViewModel.playerSheetBackCoordinator.updatePlayerSheetHandlingBack(isPlayerSheetHandlingBack)
     }

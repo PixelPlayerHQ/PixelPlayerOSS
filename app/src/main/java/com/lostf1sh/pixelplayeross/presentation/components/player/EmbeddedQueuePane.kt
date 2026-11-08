@@ -88,6 +88,11 @@ import com.lostf1sh.pixelplayeross.presentation.components.TimerOptionsBottomShe
 import com.lostf1sh.pixelplayeross.presentation.utils.LocalAppHapticsConfig
 import com.lostf1sh.pixelplayeross.presentation.utils.performAppCompatHapticFeedback
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
+import androidx.compose.ui.text.font.FontWeight
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerUiState
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.SettingsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.sharedPlayerViewModel
@@ -98,6 +103,18 @@ import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.abs
+
+
+private data class EmbeddedQueueUndoBarProjection(
+    val isVisible: Boolean = false,
+    val removedSongTitle: String = ""
+)
+
+private fun PlayerUiState.toEmbeddedQueueUndoBarProjection(): EmbeddedQueueUndoBarProjection =
+    EmbeddedQueueUndoBarProjection(
+        isVisible = showQueueItemUndoBar,
+        removedSongTitle = lastRemovedQueueSong?.title.orEmpty()
+    )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -156,6 +173,12 @@ fun EmbeddedQueuePane(
     var showSpeedSheet by rememberSaveable { mutableStateOf(false) }
     var showClearQueueDialog by rememberSaveable { mutableStateOf(false) }
     var showSavePlaylistSheet by rememberSaveable { mutableStateOf(false) }
+
+    val queueUndoBarState by remember(playerViewModel) {
+        playerViewModel.playerUiState
+            .map { it.toEmbeddedQueueUndoBarProjection() }
+            .distinctUntilChanged()
+    }.collectAsStateWithLifecycle(initialValue = EmbeddedQueueUndoBarProjection())
 
     val activeTimerValueDisplay = playerViewModel.activeTimerValueDisplay.collectAsStateWithLifecycle()
     val activeTimerDurationMinutes = playerViewModel.activeTimerDurationMinutes.collectAsStateWithLifecycle()
@@ -560,6 +583,54 @@ fun EmbeddedQueuePane(
                     }
                     val isSpeedModifiedDerived = remember {
                         derivedStateOf { !PlaybackSpeedUtils.isNormal(playbackSpeed.value) }
+                    }
+
+
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = queueUndoBarState.isVisible,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 90.dp)
+                            .zIndex(50f),
+                        enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                        exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                    ) {
+                        val colors = MaterialTheme.colorScheme
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = colors.inverseSurface,
+                            tonalElevation = 6.dp,
+                            shadowElevation = 6.dp
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = queueUndoBarState.removedSongTitle,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.inverseOnSurface,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
+                                )
+                                Spacer(Modifier.width(4.dp))
+                                Text(
+                                    text = stringResource(R.string.presentation_batch_e_removed),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colors.inverseOnSurface.copy(alpha = 0.7f),
+                                )
+                                TextButton(
+                                    onClick = { playerViewModel.undoRemoveSongFromQueue() }
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.action_undo),
+                                        color = colors.inversePrimary,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Row(

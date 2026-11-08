@@ -339,8 +339,10 @@ fun FullPlayerContent(
         windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val isCompactHeight =
         !windowSizeClass.isHeightAtLeastBreakpoint(WindowSizeClass.HEIGHT_DP_MEDIUM_LOWER_BOUND)
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
+    val canFitTwoPanes = screenWidthDp >= 660.dp
 
-    val isFoldableTwoPane = isMediumOrExpandedWidth && !isCompactHeight
+    val isFoldableTwoPane = isMediumOrExpandedWidth && !isCompactHeight && canFitTwoPanes
     val isCompactLandscape = isLandscape && isCompactHeight
     val useTwoPaneLayout = isFoldableTwoPane || isCompactLandscape
 
@@ -1490,7 +1492,8 @@ private fun FullPlayerTwoPaneFoldableContent(
     ) {
         val density = LocalDensity.current
         val horizontalSpacing = 20.dp
-        val openWidth = ((maxWidth - horizontalSpacing) / 2).coerceAtLeast(320.dp)
+        val maxHalfWidth = (maxWidth - horizontalSpacing) / 2
+        val openWidth = maxHalfWidth.coerceIn(260.dp, maxHalfWidth)
         val closedWidth = minOf(520.dp, maxWidth)
 
         val closedWidthPx = with(density) { closedWidth.toPx() }
@@ -1529,8 +1532,12 @@ private fun FullPlayerTwoPaneFoldableContent(
         }
 
         // Right Pane: Queue or Lyrics (fixed width, GPU slide + fade, zero distortion)
-        val isAnimatingOrVisible = isRightPaneVisible || transitionProgressState.value > 0.005f
-        if (isAnimatingOrVisible) {
+        val isPaneMounted by remember {
+            derivedStateOf {
+                isRightPaneVisible || transitionProgressState.value > 0.005f
+            }
+        }
+        if (isPaneMounted) {
             Box(
                 modifier = Modifier
                     .width(openWidth)

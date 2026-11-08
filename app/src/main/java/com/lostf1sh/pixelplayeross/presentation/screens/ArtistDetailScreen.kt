@@ -92,6 +92,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.SmartImageCompactList
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistDetailViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistAlbumSection
@@ -151,7 +153,9 @@ fun ArtistDetailScreen(
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
+    val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
     var showArtistPlaylistSheet by remember { mutableStateOf(false) }
     val configuration = LocalConfiguration.current

@@ -47,6 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -73,6 +75,7 @@ fun DailyMixSection(
     onNavigateToAlbum: (Song) -> Unit = {},
     onNavigateToArtist: (Song) -> Unit = {},
     onNavigateToGenre: (Song) -> Unit = {},
+    topSpacing: Dp = 16.dp,
 ) {
     val playlistViewModel: PlaylistViewModel = hiltViewModel()
     val favoriteSongIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
@@ -80,7 +83,9 @@ fun DailyMixSection(
     val playlistUiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
+    val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
     var showSongInfoSheet by remember { mutableStateOf(false) }
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
     val dailyMixQueueName = stringResource(R.string.presentation_batch_g_daily_mix_queue_name)
@@ -90,7 +95,9 @@ fun DailyMixSection(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
     ) {
-        Spacer(Modifier.height(16.dp))
+        if (topSpacing > 0.dp) {
+            Spacer(Modifier.height(topSpacing))
+        }
         DailyMixCard(
             songs = songs,
             playerViewModel = playerViewModel,

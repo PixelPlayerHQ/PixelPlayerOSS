@@ -18,6 +18,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -1204,7 +1205,7 @@ fun QueueBottomSheet(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun QueueToolbarMenuButton(
+internal fun QueueToolbarMenuButton(
     text: String,
     icon: ImageVector,
     containerColor: Color,
@@ -1298,11 +1299,12 @@ private fun QueueHeaderSection(
 }
 
 @Composable
-private fun QueueHeader(
+internal fun QueueHeader(
     queueSourceName: String,
     queueCount: Int,
     modifier: Modifier = Modifier,
-    onLocateCurrentSong: () -> Unit = {}
+    onLocateCurrentSong: () -> Unit = {},
+    onClose: (() -> Unit)? = null
 ) {
     val view = LocalView.current
     val appHapticsConfig = LocalAppHapticsConfig.current
@@ -1348,15 +1350,33 @@ private fun QueueHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        QueueSourceBadge(
-            queueSourceName = queueSourceName,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier.padding(top = 6.dp)
-        )
+        ) {
+            QueueSourceBadge(
+                queueSourceName = queueSourceName
+            )
+            if (onClose != null) {
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = stringResource(R.string.cd_close),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun QueueSourceBadge(
+internal fun QueueSourceBadge(
     queueSourceName: String,
     modifier: Modifier = Modifier
 ) {
@@ -1390,11 +1410,11 @@ private fun QueueSourceBadge(
     }
 }
 
-private val QueueToolbarButtonSize = 48.dp
-private val QueueToolbarMinEdgeMargin = 8.dp
+internal val QueueToolbarButtonSize = 48.dp
+internal val QueueToolbarMinEdgeMargin = 8.dp
 
 @Composable
-private fun QueueControlsToolbar(
+internal fun QueueControlsToolbar(
     isShuffleOn: Boolean,
     repeatMode: Int,
     isTimerActive: androidx.compose.runtime.State<Boolean>,
@@ -1889,9 +1909,11 @@ fun SaveQueueAsPlaylistSheet(
     }
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun QueuePlaylistSongItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     song: Song,
     isCurrentSong: Boolean,
     isPlaying: Boolean? = null,
@@ -2024,11 +2046,20 @@ fun QueuePlaylistSongItem(
                 }
                 .padding(horizontal = 12.dp)
                 .clip(itemShape)
-                .clickable(
-                    enabled = currentOffsetPx == 0f
-                ) {
-                    onClick()
-                },
+                .then(
+                    if (onLongClick != null) {
+                        Modifier.combinedClickable(
+                            enabled = currentOffsetPx == 0f,
+                            onClick = onClick,
+                            onLongClick = onLongClick
+                        )
+                    } else {
+                        Modifier.clickable(
+                            enabled = currentOffsetPx == 0f,
+                            onClick = onClick
+                        )
+                    }
+                ),
             shape = itemShape,
             color = backgroundColor,
             tonalElevation = elevation,
@@ -2121,8 +2152,8 @@ fun QueuePlaylistSongItem(
                                 contentColor = mvContentColor
                             ),
                             modifier = Modifier
+                                .padding(end = 8.dp)
                                 .size(36.dp)
-                                .padding(end = 14.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.MoreVert,

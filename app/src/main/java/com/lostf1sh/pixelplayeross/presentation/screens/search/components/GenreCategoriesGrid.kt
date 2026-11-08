@@ -35,6 +35,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -106,9 +108,19 @@ fun GenreCategoriesGrid(
 
     val isGridView by playerViewModel.isGenreGridView.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val isMediumWidth = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val isExpandedWidth = windowSizeClass.isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_EXPANDED_LOWER_BOUND)
+    val genreColumns = when {
+        isGridView && isExpandedWidth -> 4
+        isGridView && isMediumWidth -> 3
+        isGridView -> 2
+        isMediumWidth -> 2
+        else -> 1
+    }
 
     LazyVerticalGrid(
-        columns = if (isGridView) GridCells.Fixed(2) else GridCells.Fixed(1),
+        columns = GridCells.Fixed(genreColumns),
         state = gridState,
         modifier = modifier
             .fillMaxSize()
@@ -125,7 +137,7 @@ fun GenreCategoriesGrid(
             )),
         contentPadding = contentPadding ?: PaddingValues(
             top = 8.dp,
-            bottom = 28.dp + resolveNavBarOccupiedHeight(systemNavBarHeight, navBarCompactMode) + MiniPlayerHeight
+            bottom = 28.dp + resolveNavBarOccupiedHeight(systemNavBarHeight, navBarCompactMode, isMediumWidth) + MiniPlayerHeight
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)

@@ -138,7 +138,7 @@
     <string name="setup_nav_full_width_description">Thanh điều hướng trải rộng toàn màn hình</string>
     <string name="dialog_delete_song_title">Xóa bài hát?</string>
     <string name="dialog_delete_song_message">"%1$s" của %2$s\n\nBài hát này sẽ bị xóa vĩnh viễn khỏi thiết bị và không thể khôi phục.</string>
-    <string name="home_your_mix_title">Bản phối của bạn</string>
+    <string name="home_your_mix_title">Your\nMix</string>
     <string name="home_empty_placeholder_title">Chưa có nội dung ở đây</string>
     <string name="home_empty_placeholder_subtitle">Bắt đầu nghe nhạc để xem các đề xuất được cá nhân hóa.</string>
     <string name="home_empty_placeholder_refresh">Làm mới</string>

@@ -22,7 +22,8 @@ import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
 @Composable
 fun MaterialYouVectorDrawable(
     modifier: Modifier = Modifier,
-    @DrawableRes drawableResId: Int
+    @DrawableRes drawableResId: Int,
+    contentScale: ContentScale = ContentScale.Fit
 ) {
     val context = LocalContext.current
     val isDarkTheme = LocalPixelPlayerDarkTheme.current
@@ -37,7 +38,7 @@ fun MaterialYouVectorDrawable(
         Image(
             painter = rememberDrawablePainter(it),
             contentDescription = null,
-            contentScale = ContentScale.FillBounds,
+            contentScale = contentScale,
             modifier = modifier
         )
     }

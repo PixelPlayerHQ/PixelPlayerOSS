@@ -1879,7 +1879,7 @@ fun PlainLyricsLine(
 private val KanaRange = '\u3040'..'\u30FF'
 
 /** Romanizes each plain lyric line; null entries mean the line needs no romanization. */
-private fun romanizePlainLyrics(lines: List<String>): List<String?> {
+internal fun romanizePlainLyrics(lines: List<String>): List<String?> {
     val entireLyricsHasKana = lines.any { line -> line.any { it in KanaRange } }
     return lines.map { line ->
         val primary = sanitizeLyricLineText(line.substringBefore('\n'))
@@ -1891,7 +1891,7 @@ private fun romanizePlainLyrics(lines: List<String>): List<String?> {
     }
 }
 
-private fun TextStyle.withLyricsFontSize(fontSizeSp: Float): TextStyle {
+internal fun TextStyle.withLyricsFontSize(fontSizeSp: Float): TextStyle {
     val lineHeightRatio = if (fontSize.isSp && lineHeight.isSp && fontSize.value > 0f) {
         lineHeight.value / fontSize.value
     } else {

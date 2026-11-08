@@ -42,6 +42,8 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -56,6 +58,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -72,6 +75,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Bookmark
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DarkMode
@@ -127,6 +132,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Constraints
@@ -341,6 +350,13 @@ fun SetupScreen(
                     },
                 contentAlignment = Alignment.Center
             ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .widthIn(max = 640.dp)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
                 when (page) {
                     SetupPage.Welcome -> WelcomePage()
                     SetupPage.MediaPermission -> MediaPermissionPage(
@@ -419,6 +435,7 @@ fun SetupScreen(
                             navigateToPage(pagerState.currentPage + 1)
                         }
                     )
+                }
                 }
             }
         }
@@ -662,28 +679,33 @@ fun WelcomePage() {
         verticalArrangement = Arrangement.SpaceBetween,
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
         Column(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = 8.dp)
                 .padding(top = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 text = stringResource(R.string.setup_welcome_prefix),
+                textAlign = TextAlign.Center,
                 style = ExpTitleTypography.displayLarge.copy(
-                    fontSize = 42.sp,
-                    lineHeight = 1.1.em
+                    fontSize = 38.sp,
+                    lineHeight = 1.15.em
                 ),
             )
             Text(
                 text = stringResource(R.string.app_name),
+                textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontFamily = RoundedSans,
-                    fontSize = 46.sp,
+                    fontSize = 42.sp,
                     color = MaterialTheme.colorScheme.primary,
-                    lineHeight = 1.1.em
+                    lineHeight = 1.15.em
                 ),
             )
         }
@@ -721,13 +743,16 @@ fun WelcomePage() {
         Spacer(modifier = Modifier.height(16.dp))
         Box(
             modifier = Modifier
+                .widthIn(max = 400.dp)
                 .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(20.dp))
+                .aspectRatio(1.5f)
+                .clip(RoundedCornerShape(20.dp)),
+            contentAlignment = Alignment.Center
         ){
             MaterialYouVectorDrawable(
                 modifier = Modifier.fillMaxSize(),
-                drawableResId = R.drawable.welcome_art
+                drawableResId = R.drawable.welcome_art,
+                contentScale = ContentScale.Fit
             )
             SineWaveLine(
                 modifier = Modifier
@@ -772,7 +797,7 @@ fun WelcomePage() {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Text(text = stringResource(R.string.setup_intro_body), style = MaterialTheme.typography.bodyLarge)
+        Text(text = stringResource(R.string.setup_intro_body), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
     }
 }
 
@@ -1503,7 +1528,7 @@ fun LibraryLayoutPage(
                     .height(previewHeight),
                 contentAlignment = Alignment.Center
             ) {
-                LibraryHeaderPreview(isCompact = isCompact, previewHeight = previewHeight)
+                LibraryHeaderPreview(isCompact = isCompact, previewHeight = previewHeight, cornerRadius = uiState.navBarCornerRadius.dp)
             }
 
             Column(
@@ -1561,7 +1586,8 @@ fun LibraryLayoutPage(
 }
 
 @Composable
-fun LibraryHeaderPreview(isCompact: Boolean, previewHeight: Dp = 180.dp) {
+@OptIn(ExperimentalTextApi::class)
+fun LibraryHeaderPreview(isCompact: Boolean, previewHeight: Dp = 180.dp, cornerRadius: Dp = 24.dp) {
     val gradientColors = listOf(
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
@@ -1570,8 +1596,8 @@ fun LibraryHeaderPreview(isCompact: Boolean, previewHeight: Dp = 180.dp) {
     
     Card(
         shape = RoundedCornerShape(
-            topStart = 24.dp,
-            topEnd = 24.dp,
+            topStart = cornerRadius,
+            topEnd = cornerRadius,
             bottomStart = 0.dp,
             bottomEnd = 0.dp
         ),
@@ -1596,20 +1622,143 @@ fun LibraryHeaderPreview(isCompact: Boolean, previewHeight: Dp = 180.dp) {
                 label = "HeaderPreviewAnim"
             ) { compact ->
                 if (compact) {
-                    Box(modifier = Modifier.fillMaxSize()) {
+                    val compactTitleFontFamily = remember {
+                        FontFamily(
+                            Font(
+                                resId = R.font.gflex_variable,
+                                variationSettings = FontVariation.Settings(
+                                    FontVariation.weight(800),
+                                    FontVariation.width(100f),
+                                    FontVariation.slant(-10f),
+                                    FontVariation.Setting("ROND", 46f),
+                                    FontVariation.Setting("XTRA", 520f),
+                                    FontVariation.Setting("YOPQ", 90f),
+                                    FontVariation.Setting("YTLC", 505f)
+                                )
+                            )
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                    ) {
                         Row(
-                            modifier = Modifier
-                                .padding(top = 24.dp, start = 16.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            ) {
+                                Box(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.tab_songs),
+                                        fontFamily = compactTitleFontFamily,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontSize = 32.sp,
+                                        letterSpacing = (-0.2).sp,
+                                        modifier = Modifier.padding(horizontal = 6.dp)
+                                    )
+                                }
+                            }
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Bookmark,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                                Surface(
+                                    shape = CircleShape,
+                                    color = MaterialTheme.colorScheme.primaryContainer,
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.rounded_settings_24),
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            LibraryNavigationPillSetupShow(
-                                title = stringResource(R.string.setup_preview_songs_label),
-                                isExpanded = false,
-                                iconRes = R.drawable.rounded_music_note_24,
-                                pageIndex = 0,
-                                onClick = {},
-                                onArrowClick = {}
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 3.dp)
+                                    .height(4.dp)
+                                    .width(22.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primary)
                             )
+                            repeat(4) {
+                                Box(
+                                    modifier = Modifier
+                                        .padding(horizontal = 3.dp)
+                                        .height(4.dp)
+                                        .width(10.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f))
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(100),
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                modifier = Modifier.height(34.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Shuffle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.shortcut_shuffle_short),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    )
+                                }
+                            }
                         }
                     }
                 } else {
@@ -2372,10 +2521,12 @@ fun SetupBottomBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(bottom = 14.dp)
+                .padding(bottom = 14.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
                 modifier = Modifier
+                    .widthIn(max = 640.dp)
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,

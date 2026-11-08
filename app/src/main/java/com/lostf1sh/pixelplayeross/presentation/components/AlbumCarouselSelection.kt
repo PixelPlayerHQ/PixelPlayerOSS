@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -160,7 +163,7 @@ fun AlbumCarouselSection(
             }
     }
 
-    val corner = 18.dp
+    val corner = 24.dp
 
     BoxWithConstraints(modifier = modifier) {
         val availableWidth = this.maxWidth
@@ -177,22 +180,27 @@ fun AlbumCarouselSection(
                 val song = queue[index]
                 val isFocusedItem = pagerState.currentPage == index
                 Box(
-                    Modifier
-                        .fillMaxSize()
-                        .aspectRatio(1f)
-                        .clickable(
-                            enabled = isFocusedItem && song.albumId != -1L,
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { onAlbumClick(song) }
-                        )
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    OptimizedAlbumArt(
-                        uri = song.albumArtUriString,
-                        title = song.title,
-                        modifier = Modifier.fillMaxSize(),
-                        targetSize = targetSize
-                    )
+                    Box(
+                        Modifier
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(corner))
+                            .clickable(
+                                enabled = isFocusedItem && song.albumId != -1L,
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { onAlbumClick(song) }
+                            )
+                    ) {
+                        OptimizedAlbumArt(
+                            uri = song.albumArtUriString,
+                            title = song.title,
+                            modifier = Modifier.fillMaxSize(),
+                            targetSize = targetSize
+                        )
+                    }
                 }
             }
         )

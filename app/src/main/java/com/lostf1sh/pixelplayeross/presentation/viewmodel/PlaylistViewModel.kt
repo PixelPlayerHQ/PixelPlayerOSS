@@ -843,6 +843,16 @@ class PlaylistViewModel @Inject constructor(
                     .thenBy { it.title.lowercase() }
                     .thenBy { it.id }
             )
+            SortOption.SongDateModified -> songs.sortedWith(
+                compareByDescending<Song> { it.dateModified }
+                    .thenBy { it.title.lowercase() }
+                    .thenBy { it.id }
+            )
+            SortOption.SongDateModifiedAsc -> songs.sortedWith(
+                compareBy<Song> { it.dateModified }
+                    .thenBy { it.title.lowercase() }
+                    .thenBy { it.id }
+            )
             else -> songs
         }
     }

@@ -6,6 +6,7 @@
     <string name="sort_method_artist">Artista</string>
     <string name="sort_method_album">Álbum</string>
     <string name="sort_method_date_added">Fecha de adición</string>
+    <string name="sort_method_date_modified">Fecha de modificación</string>
     <string name="sort_method_duration">Duración</string>
     <string name="sort_method_release_year">Año de lanzamiento</string>
     <string name="sort_method_song_count">Cantidad de canciones</string>

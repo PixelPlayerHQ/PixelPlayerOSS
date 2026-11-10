@@ -6,6 +6,7 @@
     <string name="sort_method_artist">Artis</string>
     <string name="sort_method_album">Album</string>
     <string name="sort_method_date_added">Tanggal Ditambahkan</string>
+    <string name="sort_method_date_modified">Tanggal Dimodifikasi</string>
     <string name="sort_method_duration">Durasi</string>
     <string name="sort_method_release_year">Tahun Rilis</string>
     <string name="sort_method_song_count">Jumlah Lagu</string>

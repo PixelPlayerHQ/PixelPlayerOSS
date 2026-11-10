@@ -25,6 +25,8 @@ private fun folderSongComparator(option: SortOption): Comparator<Song> = when (o
     SortOption.FolderSongAlbumArtistDesc -> albumArtistDescending
     SortOption.FolderSongDateAdded -> newestFirst
     SortOption.FolderSongDateAddedAsc -> oldestFirst
+    SortOption.FolderSongDateModified -> newestModifiedFirst
+    SortOption.FolderSongDateModifiedAsc -> oldestModifiedFirst
     SortOption.FolderSongDuration -> longestFirst
     SortOption.FolderSongDurationAsc -> shortestFirst
     else -> titleAscending
@@ -70,6 +72,12 @@ private val newestFirst: Comparator<Song> = compareByDescending<Song> { it.dateA
     .then(titleAscending)
 
 private val oldestFirst: Comparator<Song> = compareBy<Song> { it.dateAdded }
+    .then(titleAscending)
+
+private val newestModifiedFirst: Comparator<Song> = compareByDescending<Song> { it.dateModified }
+    .then(titleAscending)
+
+private val oldestModifiedFirst: Comparator<Song> = compareBy<Song> { it.dateModified }
     .then(titleAscending)
 
 private val longestFirst: Comparator<Song> = compareByDescending<Song> { it.duration }

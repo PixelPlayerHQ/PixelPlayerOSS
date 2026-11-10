@@ -6,6 +6,7 @@
     <string name="sort_method_artist">Sanatçı</string>
     <string name="sort_method_album">Albüm</string>
     <string name="sort_method_date_added">Ekleme Tarihi</string>
+    <string name="sort_method_date_modified">Değiştirilme Tarihi</string>
     <string name="sort_method_duration">Süre</string>
     <string name="sort_method_release_year">Yayın Yılı</string>
     <string name="sort_method_song_count">Şarkı Sayısı</string>

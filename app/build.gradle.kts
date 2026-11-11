@@ -55,7 +55,7 @@ android {
         localeFilters.addAll(
             listOf(
                 "en", "ar", "de", "es", "fr", "in",
-                "it", "ko", "nb", "ru", "tr", "zh-rCN", "vi"
+                "it", "ko", "nb", "pt-rBR", "ru", "tr", "zh-rCN", "vi"
             )
         )
     }

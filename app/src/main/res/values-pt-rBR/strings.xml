@@ -1,1 +1,292 @@
+<resources>
+    <string name="app_name" translatable="false">PixelPlayerOSS</string>
+    <string name="app_name_change_title">Alterar nome do aplicativo</string>
+    <string name="app_name_change_message">Este aplicativo agora é o PixelPlayerOSS. Continue ouvindo!</string>
+    <string name="do_not_show_again">Não mostrar novamente</string>
+    <string name="dismiss">Dispensar</string>
+    <string name="all_files_access_title">Permissão especial necessária</string>
+    <string name="all_files_access_description">Para editar os metadados das músicas (arquivos .mp3), o PixelPlayerOSS precisa de acesso especial a todos os arquivos. Isso permite modificar diretamente as tags das faixas. Conceda essa permissão na próxima tela para ativar a edição de metadados.</string>
+    <string name="grant_permission_button">Conceder permissão</string>
+    <string name="error">Erro</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="accounts_listenbrainz_title">ListenBrainz</string>
+    <string name="accounts_listenbrainz_token_dialog_title">Conectar ao ListenBrainz</string>
+    <string name="accounts_listenbrainz_token_dialog_body">Cole seu token de usuário para enviar seus registros de audição ao ListenBrainz. Você pode encontrá-lo nas configurações da sua conta em listenbrainz.org.</string>
+    <string name="accounts_listenbrainz_token_hint">Token de usuário</string>
+    <string name="accounts_listenbrainz_connect">Conectar</string>
+    <string name="accounts_listenbrainz_connect_failed">Não foi possível conectar. Confira seu token e o endereço do servidor e tente novamente.</string>
+    <string name="accounts_listenbrainz_server_hint">URL do servidor (opcional)</string>
+    <string name="accounts_listenbrainz_server_supporting">Deixe em branco para usar listenbrainz.org. Também funciona com servidores próprios compatíveis com a API do ListenBrainz, como o Maloja.</string>
+    <string name="accounts_listenbrainz_invalid_url">Digite uma URL de servidor válida, como https://maloja.example.com/apis/listenbrainz</string>
+    <string name="accounts_listenbrainz_custom_server">Enviando registros de audição para %1$s</string>
+    <string name="accounts_listenbrainz_get_token">Abrir listenbrainz.org</string>
+    <string name="accounts_listenbrainz_needs_reauth">Seu token não é mais válido. Conecte-se novamente para retomar o envio dos registros de audição. As audições que estão na fila serão mantidas.</string>
+    <string name="accounts_listenbrainz_reconnect">Conectar novamente</string>
+    <string name="accounts_listenbrainz_scrobble_local">Registrar audições de arquivos locais</string>
+    <string name="accounts_listenbrainz_scrobble_navidrome">Registrar audições do streaming Subsonic</string>
+    <string name="accounts_listenbrainz_scrobble_jellyfin">Registrar audições do streaming do Jellyfin</string>
+    <string name="accounts_listenbrainz_toggle_hint">Se o seu servidor já envia registros de audição ao ListenBrainz, desative essa origem aqui para evitar registros duplicados.</string>
+    <string name="accounts_listenbrainz_stat_listens">Total de audições</string>
+    <string name="accounts_listenbrainz_stat_queued">Na fila</string>
+    <string name="accounts_listenbrainz_now_playing_label">Registrando audição agora</string>
+    <string name="accounts_listenbrainz_now_playing_format">%1$s — %2$s</string>
+    <string name="accounts_listenbrainz_now_playing_idle">Nenhuma música em reprodução no momento</string>
+    <string name="accounts_available_services">Serviços disponíveis</string>
+    <string name="import_file">Importar</string>
+    <string name="search">Pesquisar</string>
+
+    <string name="lyrics">Letras</string>
+    <string name="loading_lyrics">Carregando letras…</string>
+    <string name="lyrics_provided_by">Letras fornecidas por</string>
+    <string name="lrclib_uri" translatable="false">https://lrclib.net/</string>
+    <string name="lyrics_not_found">Letras não encontradas</string>
+    <string name="search_lyrics_online_prompt">Deseja pesquisar letras na internet?</string>
+    <string name="lyrics_custom_search_hint">Não foi possível encontrar a letra automaticamente. Você pode editar o título ou o artista e tentar pesquisar manualmente.</string>
+    <string name="failed_to_search_for_lyrics">Não foi possível pesquisar a letra</string>
+    <string name="failed_to_fetch_lyrics_from_remote">Não foi possível buscar a letra no servidor remoto</string>
+    <string name="lyrics_fetch_timeout">A conexão expirou. Verifique sua conexão com a internet.</string>
+    <string name="lyrics_network_error">Erro de rede. Verifique sua conexão com a internet.</string>
+    <string name="lyrics_server_error">Erro no servidor (código %d). Tente novamente mais tarde.</string>
+    <string name="lyrics_remote_disabled">A busca de letras na internet está desativada nas configurações.</string>
+    <string name="found_n_matches_format">Resultados encontrados: %d</string>
+    <string name="searched_for_x_format">Pesquisa por \"%s\"</string>
+    <string name="searching_lyrics">Pesquisando letras…</string>
+    <string name="lyrics_already_available">As letras já estão disponíveis. A busca online foi ignorada.</string>
+    <string name="lyrics_embedded_already_available">Já foram encontradas letras incorporadas ao arquivo. A busca online foi ignorada.</string>
+    <string name="local_lrc_already_available">Já foram encontradas letras locais (.lrc). A busca online foi ignorada.</string>
+    <string name="fetch_lyrics_show_options_title">Mostrar opções de letras</string>
+    <string name="fetch_lyrics_show_options_subtitle">Sempre abrir a seleção de letras em vez de aplicar automaticamente o primeiro resultado</string>
+    <string name="save_lyrics_dialog_title">Salvar letra</string>
+    <string name="save_lyrics_dialog_message">Escolha qual versão deseja salvar:</string>
+    <string name="save_synced_lyrics">Sincronizadas (com marcações de tempo)</string>
+    <string name="save_plain_lyrics">Simples (somente texto)</string>
+    <string name="lyrics_saved_successfully">Letra salva com sucesso</string>
+    <string name="lyrics_save_failed">Não foi possível salvar a letra</string>
+    <string name="no_lyrics_to_save">Não há letras disponíveis para salvar</string>
+    <string name="reset_imported_lyrics">Redefinir letras importadas</string>
+
+    <string name="sync_scanning">Verificando arquivos de música…</string>
+    <string name="sync_processing">Processando arquivos…</string>
+    <string name="sync_files_progress">%1$d de %2$d arquivos</string>
+    <string name="sync_in_progress">Sincronizando biblioteca…</string>
+    <string name="sync_complete">Sincronização concluída</string>
+    <string name="sync_pending">Aguardando…</string>
+    <string name="syncing_library">Sincronizando biblioteca…</string>
+    <string name="sync_preparing_library">Preparando sua biblioteca…</string>
+    <string name="sync_scanned_count">Verificadas %1$d de %2$d músicas</string>
+    <string name="library_background_sync_lyrics">Procurando letras…</string>
+    <string name="library_background_sync_cache">Limpando o cache das capas dos álbuns…</string>
+    <string name="library_background_sync_cloud">Sincronizando fontes na nuvem…</string>
+    <string name="unknown_song_title">Faixa desconhecida</string>
+    <string name="unknown_artist">Artista desconhecido</string>
+    <string name="unknown_album">Álbum desconhecido</string>
+    <string name="artist_picker_title">Escolher artista</string>
+    <string name="artist_picker_count_single">1 artista</string>
+    <string name="artist_picker_count_multiple">%1$d artistas</string>
+    <string name="artist_picker_primary_label">Artista principal</string>
+    <string name="artist_picker_shortcut_label">Página do artista</string>
+    <string name="external_queue_label">Reprodução rápida</string>
+    <string name="external_playback_error">Não foi possível abrir esse arquivo de áudio.</string>
+    <string name="open_full_player">Abrir reprodutor completo</string>
+    <string name="close_notification_player">Fechar reprodutor</string>
+    <string name="previous_track">Faixa anterior</string>
+    <string name="next_track">Próxima faixa</string>
+    <string name="play_playback">Reproduzir</string>
+    <string name="playlist_not_found">Playlist não encontrada.</string>
+    <string name="disc_number_header">Disco %d</string>
+
+
+
+    <string name="shortcut_shuffle_short">Aleatório</string>
+    <string name="shortcut_shuffle_long">Reproduzir todas as músicas aleatoriamente</string>
+    <string name="shortcut_playlist_short">Playlist</string>
+
+    <string name="tile_shuffle_all">Reprodução aleatória</string>
+    <string name="tile_last_playlist">Última playlist</string>
+    <string name="tile_last_playlist_unavailable">Não há nenhuma playlist disponível para abrir</string>
+
+    <string name="invalid_album_id">ID de álbum inválido</string>
+    <string name="album_id_not_found">ID do álbum não encontrado</string>
+    <string name="error_loading_album">Erro ao carregar os dados do álbum: %s</string>
+    <string name="album_not_found">Álbum não encontrado</string>
+    <string name="invalid_artist_id">ID de artista inválido</string>
+    <string name="artist_id_not_found">ID do artista não encontrado</string>
+    <string name="error_loading_artist">Erro ao carregar os dados do artista: %s</string>
+    <string name="could_not_find_artist">Não foi possível encontrar o artista</string>
+    <string name="no_valid_songs">Nenhuma música válida encontrada para reproduzir</string>
+
+    <string name="glance_widget_description">Widget que se adapta ao próprio tamanho</string>
+    <string name="widget_bar_4x1_desc">Barra compacta do reprodutor</string>
+    <string name="widget_control_4x2_desc">Controles completos com reprodução aleatória e repetição</string>
+    <string name="widget_grid_2x2_desc">Reprodutor quadrado minimalista</string>
+
+    <string name="playlist_none_to_share">Não há playlists para compartilhar</string>
+    <string name="playlist_share_chooser_title">Compartilhar playlists</string>
+    <string name="playlist_share_failed">Não foi possível compartilhar: %1$s</string>
+    <string name="playlist_none_to_export">Não há playlists para exportar</string>
+    <string name="playlist_export_failed">Falha ao exportar: %1$s</string>
+    <string name="playlist_export_folder_display" translatable="false">Music/PixelPlayerOSS Exports</string>
+    <string name="error_unknown">Erro desconhecido</string>
+
+
+
+    <string name="backup_invalid_format">Backup inválido: %1$s</string>
+    <string name="backup_progress_preparing_restore">Preparando a restauração</string>
+    <string name="backup_progress_starting_task">Iniciando a tarefa de restauração.</string>
+    <string name="backup_progress_preparing_backup">Preparando o backup</string>
+    <string name="backup_progress_starting_backup_task">Iniciando a tarefa de backup.</string>
+    <string name="restore_completed_success">Backup restaurado com sucesso</string>
+    <string name="restore_completed_partial_issues">Restauração concluída com alguns problemas não resolvidos.</string>
+    <string name="restore_could_not_complete">Não foi possível concluir a restauração: %1$s</string>
+    <string name="restore_failed_format">Falha ao restaurar: %1$s</string>
+    <string name="data_exported_successfully">Dados exportados com sucesso</string>
+    <string name="export_failed_format">Falha ao exportar: %1$s</string>
+    <string name="data_restored_successfully">Dados restaurados com sucesso</string>
+    <string name="restore_partial_unresolved_format">Restauração concluída com problemas não resolvidos. Falhas: %1$s</string>
+    <string name="dev_test_crash_message">Falha de teste iniciada em Opções do desenvolvedor. Isso é intencional e serve para testar o sistema de relatório de falhas.</string>
+
+    <string name="player_song_not_found_in_list">Música não encontrada na lista atual</string>
+    <string name="player_could_not_locate_song">Não foi possível localizar a música</string>
+    <string name="player_no_songs_in_library_toast">Nenhuma música encontrada na biblioteca</string>
+    <string name="player_playback_stopped_eot">Reprodução interrompida: %1$s terminou (fim da faixa).</string>
+    <string name="player_default_track_title">Faixa</string>
+    <string name="player_audio_output_title">Reproduzir em</string>
+    <string name="player_audio_output_this_phone">Este celular</string>
+    <string name="player_audio_output_wired">Fones de ouvido com fio</string>
+    <string name="player_audio_output_unknown_device">Dispositivo de áudio</string>
+    <string name="player_audio_output_more_devices">Mais dispositivos</string>
+    <string name="player_audio_output_more_devices_subtitle">Conecte um dispositivo ou alterne entre eles usando o seletor de saída de áudio do sistema</string>
+    <string name="player_no_songs_to_shuffle">Não há músicas para reproduzir aleatoriamente.</string>
+    <string name="player_queue_name_selected_albums">Álbuns selecionados</string>
+    <string name="player_no_playable_songs_in_albums">Nenhuma música reproduzível encontrada nos álbuns selecionados</string>
+    <string name="player_no_playable_songs_in_genres">Nenhuma música reproduzível encontrada nos gêneros selecionados</string>
+    <string name="player_queue_name_selected_genres">Gêneros selecionados</string>
+    <string name="player_could_not_queue_genres">Não foi possível adicionar os gêneros selecionados à fila</string>
+    <string name="player_only_first_n_albums_queued">Somente os primeiros %1$d álbuns foram adicionados à fila</string>
+    <string name="player_albums_queued_format">%1$d álbuns adicionados à fila (%2$d músicas)</string>
+    <string name="player_could_not_queue_albums">Não foi possível adicionar os álbuns selecionados à fila</string>
+    <string name="player_only_first_n_albums_next">Somente os primeiros %1$d álbuns foram adicionados para reprodução em seguida</string>
+    <string name="player_albums_will_play_next_format">%1$d álbuns serão reproduzidos em seguida</string>
+    <string name="player_could_not_add_albums_next">Não foi possível adicionar os álbuns selecionados para reprodução em seguida</string>
+    <string name="player_only_first_n_albums_added_queue">Somente os primeiros %1$d álbuns foram adicionados à fila</string>
+    <string name="player_albums_added_to_queue_format">%1$d álbuns adicionados à fila</string>
+    <string name="player_could_not_add_albums_queue">Não foi possível adicionar os álbuns selecionados à fila</string>
+    <string name="player_all_songs_already_in_favorites">Todas as músicas já estão nos favoritos</string>
+    <string name="player_no_songs_were_in_favorites">Nenhuma música estava nos favoritos</string>
+    <string name="player_creating_zip">Criando arquivo ZIP…</string>
+    <string name="player_share_zip_failed_format">Não foi possível compartilhar: %1$s</string>
+    <string name="player_cannot_delete_currently_playing">Não é possível excluir a música que está sendo reproduzida</string>
+    <string name="player_batch_delete_files_deleted_skipped_format">%1$d arquivos excluídos (%2$d ignorados por estarem em reprodução)</string>
+    <string name="player_batch_delete_partial_format">%1$d de %2$d arquivos excluídos</string>
+    <string name="player_delete_files_failed">Não foi possível excluir os arquivos</string>
+    <string name="player_file_deleted">Arquivo excluído</string>
+    <string name="player_delete_file_not_found">Não é possível excluir o arquivo ou ele não foi encontrado</string>
+    <string name="player_deletion_cancelled">Exclusão cancelada</string>
+    <string name="player_permission_denied_edit_files">Permissão negada: não é possível editar arquivos</string>
+    <string name="player_permission_denied_save_lyrics">Permissão negada: não é possível salvar letras</string>
+    <string name="player_permission_denied_edit_this_file">Permissão negada: não é possível editar este arquivo</string>
+    <string name="metadata_updated_successfully">Metadados atualizados com sucesso</string>
+    <string name="metadata_edit_write_interrupted">Salvamento interrompido. Uma cópia completa foi preservada, e a música será restaurada mais tarde.</string>
+    <string name="metadata_edit_write_still_pending">Não foi salvo: a música precisa ser restaurada primeiro. Conceda acesso, libere espaço e tente novamente.</string>
+    <string name="metadata_restore_permission_prompt">Permita o acesso para restaurar as músicas cujo salvamento foi interrompido antes de ser concluído.</string>
+    <string name="metadata_restore_done">As músicas cujo salvamento foi interrompido foram restauradas</string>
+    <string name="metadata_restore_incomplete">Ainda não foi possível restaurar algumas músicas. O aplicativo tentará novamente mais tarde.</string>
+    <string name="metadata_restore_permission_denied">As músicas não foram restauradas. O aplicativo solicitará acesso novamente mais tarde ou quando você tentar editar uma delas.</string>
+    <string name="player_updating_n_songs">Atualizando %1$d músicas…</string>
+    <string name="player_batch_genre_updated_all">%1$d músicas atualizadas com sucesso!</string>
+    <string name="player_batch_genre_updated_partial">%1$d músicas atualizadas. Falhas: %2$d</string>
+    <string name="playlist_restored_toast">Playlist restaurada</string>
+    <string name="delete_songs_permanent_message">Essas músicas serão excluídas permanentemente do seu dispositivo e não poderão ser recuperadas.</string>
+    <string name="delete_action">Excluir</string>
+
+    <string name="sleep_timer_n_minutes_format">%1$d minutos</string>
+    <string name="sleep_timer_display_eot">Fim da faixa</string>
+    <string name="sleep_timer_set_for_minutes_toast">Temporizador definido para %1$d minutos.</string>
+    <string name="sleep_timer_cancelled_toast">Temporizador cancelado.</string>
+    <string name="sleep_timer_eot_no_song_toast">Não é possível ativar o fim da faixa: nenhuma música está em reprodução.</string>
+    <string name="sleep_timer_eot_song_changed_toast">Temporizador de fim da faixa desativado: a música mudou de %1$s para %2$s.</string>
+    <string name="sleep_timer_eot_stop_at_end_toast">A reprodução será interrompida ao fim da faixa.</string>
+    <string name="sleep_timer_label_previous_track">Faixa anterior</string>
+    <string name="sleep_timer_label_current_track">Faixa atual</string>
+    <string name="sleep_timer_ui_title">Temporizador</string>
+    <string name="sleep_timer_ui_slider_label_timer">Temporizador</string>
+    <string name="sleep_timer_ui_end_of_current_track">Fim da faixa atual</string>
+    <string name="sleep_timer_ui_custom_time">Tempo personalizado</string>
+    <string name="sleep_timer_ui_cancel_timer">Cancelar temporizador</string>
+    <string name="sleep_timer_ui_set_custom_duration">Definir duração personalizada</string>
+    <string name="sleep_timer_ui_play_count_label">Quantidade de reproduções: %1$s</string>
+    <string name="sleep_timer_ui_play_count_one_time">1 vez</string>
+    <string name="cd_switch_on">Ativar</string>
+    <string name="ui_format_percent_d">%1$d%%</string>
+    <string name="backup_manifest_schema_v">v%1$d</string>
+    <string name="backup_manifest_device_line">%1$s %2$s</string>
+
+    <string name="batch_edit_toolbar_title">Editar %d músicas</string>
+    <string name="batch_edit_info_message">Somente os campos alterados serão atualizados. Deixe os campos vazios para manter os valores atuais.</string>
+    <string name="batch_edit_mixed_values">(Valores diferentes)</string>
+    <string name="batch_edit_optional">(Opcional: deixe em branco para ignorar)</string>
+    <string name="batch_edit_success">%d músicas atualizadas com sucesso</string>
+    <string name="batch_edit_partial_success">%1$d de %2$d músicas atualizadas. Não foi possível editar alguns arquivos.</string>
+    <string name="batch_edit_failed">Não foi possível atualizar as músicas</string>
+
+    <string name="batch_edit_cover_art_heading">Edição de capas em lote</string>
+    <string name="batch_edit_cover_art_hint">Isso substituirá a capa de todas as %d músicas selecionadas</string>
+    <string name="batch_edit_set_cover_art">Definir capa para todas</string>
+    <string name="batch_edit_remove_all_art">Remover todas as capas</string>
+    <string name="batch_edit_multiple_covers">(Várias capas diferentes)</string>
+
+    <string name="player_error_skipping">Não foi possível reproduzir esta faixa. Pulando para a próxima.</string>
+    <string name="player_unsupported_format">Não é possível reproduzir %1$s: este dispositivo não tem um decodificador para %2$s</string>
+    <string name="player_unsupported_format_unknown">este formato</string>
+    <string name="sync_failed_toast">Falha ao sincronizar a biblioteca. Puxe a tela para baixo para atualizar e tente novamente.</string>
+
+    <string name="a11y_toggle_on">Ativado</string>
+    <string name="a11y_toggle_off">Desativado</string>
+
+    <string name="setcat_playback_speed">Velocidade de reprodução</string>
+
+    <string name="duplicates_title">Faixas duplicadas</string>
+    <string name="duplicates_none">Nenhuma faixa duplicada encontrada.</string>
+    <string name="duplicates_summary">%1$d grupos · %2$d faixas</string>
+    <string name="duplicates_group_count">%1$d cópias</string>
+    <string name="duplicates_group_title_format">%1$s — %2$s</string>
+    <string name="setcat_find_duplicates_title">Encontrar faixas duplicadas</string>
+    <string name="setcat_find_duplicates_subtitle">Verificar se há faixas repetidas na sua biblioteca.</string>
+
+    <string name="cloud_download_action">Baixar</string>
+    <string name="cloud_download_queued">Na fila</string>
+    <string name="cloud_downloading">Baixando…</string>
+    <string name="cloud_download_progress">%1$d%%</string>
+    <string name="cloud_remove_download">Remover download</string>
+    <string name="cloud_download_retry">Tentar novamente</string>
+    <string name="cloud_album_download">Baixar álbum</string>
+    <string name="cloud_playlist_download">Baixar playlist</string>
+    <string name="cloud_album_remove_downloads">Remover downloads</string>
+    <string name="cloud_downloads_title">Downloads</string>
+    <string name="cloud_downloads_settings_subtitle">Gerenciar músicas da nuvem disponíveis offline e o armazenamento</string>
+    <string name="cloud_downloads_storage_used">Espaço usado por downloads offline</string>
+    <string name="cloud_downloads_storage_summary">%1$d concluídos · %2$d no total</string>
+    <string name="cloud_downloads_active_section">Na fila ou em download</string>
+    <string name="cloud_downloads_failed_section">Com falha</string>
+    <string name="cloud_downloads_completed_section">Concluídos</string>
+    <string name="cloud_downloads_section_count">%1$s · %2$d</string>
+    <string name="cloud_downloads_unknown_track">Faixa desconhecida</string>
+    <string name="cloud_downloads_downloaded_size">Tamanho baixado · %1$s</string>
+    <string name="cloud_downloads_failed_fallback">Falha no download</string>
+    <string name="cloud_downloads_empty_title">Nenhum download offline</string>
+    <string name="cloud_downloads_empty_subtitle">As músicas da nuvem que você baixar aparecerão aqui.</string>
+    <string name="cloud_download_selected">Baixar músicas selecionadas da nuvem</string>
+    <string name="cloud_download_selected_count">Baixar %1$d músicas da nuvem</string>
+    <string name="musicbrainz_lookup">Pesquisar no MusicBrainz</string>
+    <string name="musicbrainz_searching">Procurando gravações correspondentes…</string>
+    <string name="musicbrainz_lookup_failed">Falha ao consultar o MusicBrainz</string>
+    <string name="musicbrainz_search_failed_fallback">Falha na pesquisa do MusicBrainz</string>
+    <string name="musicbrainz_save_failed_fallback">Não foi possível salvar os metadados do MusicBrainz</string>
+    <string name="musicbrainz_choose_match">Escolher um resultado do MusicBrainz</string>
+    <string name="musicbrainz_no_results">Nenhuma gravação adequada foi encontrada.</string>
+    <string name="musicbrainz_match_score">Confiabilidade da correspondência: %1$d%%</string>
+    <string name="musicbrainz_applied">Identificadores do MusicBrainz salvos. O ano que faltava e os nomes genéricos foram preenchidos.</string>
+
+</resources>
 

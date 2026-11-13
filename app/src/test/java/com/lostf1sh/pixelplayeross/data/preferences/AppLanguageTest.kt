@@ -22,7 +22,8 @@ class AppLanguageTest {
         AppLanguage.RUSSIAN to "Русский",
         AppLanguage.TURKISH to "Türkçe",
         AppLanguage.ZH_RCN to "简体中文",
-        AppLanguage.VIETNAMESE to "Tiếng Việt"
+        AppLanguage.VIETNAMESE to "Tiếng Việt",
+        AppLanguage.PORTUGUESE_BR to "Português (Brasil)"
     )
 
     private val context = mockk<Context> {
@@ -37,7 +38,6 @@ class AppLanguageTest {
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize(null))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize(""))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("   "))
-        assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("pt-BR"))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("klingon"))
     }
 

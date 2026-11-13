@@ -110,6 +110,18 @@ class FolderSongSortTest {
     }
 
     @Test
+    fun `date modified defaults to newest first and ascending flips it`() {
+        val songs = listOf(
+            song(id = "old", title = "Old", dateModified = 100L),
+            song(id = "new", title = "New", dateModified = 300L),
+            song(id = "mid", title = "Mid", dateModified = 200L)
+        )
+
+        assertEquals(listOf("new", "mid", "old"), ids(songs, SortOption.FolderSongDateModified))
+        assertEquals(listOf("old", "mid", "new"), ids(songs, SortOption.FolderSongDateModifiedAsc))
+    }
+
+    @Test
     fun `duration defaults to longest first and ascending flips it`() {
         val songs = listOf(
             song(id = "short", title = "Short", duration = 5_000L),
@@ -132,6 +144,7 @@ class FolderSongSortTest {
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDuration))
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDurationAsc))
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDateAdded))
+        assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDateModified))
     }
 
     @Test
@@ -177,6 +190,7 @@ class FolderSongSortTest {
         trackNumber: Int = 0,
         discNumber: Int? = null,
         dateAdded: Long = 0L,
+        dateModified: Long = 0L,
         duration: Long = 180_000L
     ) = Song(
         id = id,
@@ -193,6 +207,7 @@ class FolderSongSortTest {
         trackNumber = trackNumber,
         discNumber = discNumber,
         dateAdded = dateAdded,
+        dateModified = dateModified,
         mimeType = "audio/mpeg",
         bitrate = 320_000,
         sampleRate = 44_100

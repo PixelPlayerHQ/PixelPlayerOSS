@@ -12,6 +12,7 @@ class SortOptionTest {
         assertEquals(SortOption.SongTitleAZ, SortOption.SongTitleZA.methodOption())
         assertEquals(SortOption.SongArtist, SortOption.SongArtistDesc.methodOption())
         assertEquals(SortOption.SongDateAdded, SortOption.SongDateAddedAsc.methodOption())
+        assertEquals(SortOption.SongDateModified, SortOption.SongDateModifiedAsc.methodOption())
         assertEquals(SortOption.SongDefaultOrder, SortOption.SongDefaultOrder.methodOption())
     }
 
@@ -99,6 +100,7 @@ class SortOptionTest {
         assertEquals(SortOption.FolderSongAlbum, SortOption.FolderSongAlbumDesc.flipDirection())
         assertEquals(SortOption.FolderSongAlbumArtistDesc, SortOption.FolderSongAlbumArtist.flipDirection())
         assertEquals(SortOption.FolderSongDateAddedAsc, SortOption.FolderSongDateAdded.flipDirection())
+        assertEquals(SortOption.FolderSongDateModifiedAsc, SortOption.FolderSongDateModified.flipDirection())
         assertEquals(SortOption.FolderSongDuration, SortOption.FolderSongDurationAsc.flipDirection())
         assertEquals(SortOption.FolderSongAlbumArtist, SortOption.FolderSongAlbumArtistDesc.methodOption())
         assertEquals(
@@ -114,7 +116,7 @@ class SortOptionTest {
             .distinct()
             .associate { it.methodLabelRes to it.direction }
 
-        assertEquals(6, defaultDirections.size)
+        assertEquals(7, defaultDirections.size)
         SortOption.SONGS.map { it.methodOption() }.distinct()
             .filter { it.methodLabelRes in defaultDirections }
             .forEach { songsTabMethod ->

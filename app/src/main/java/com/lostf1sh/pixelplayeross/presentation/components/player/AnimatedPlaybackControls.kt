@@ -246,7 +246,8 @@ fun AnimatedPlaybackControls(
         layout(constraints.maxWidth, constraints.maxHeight) {
             var x = 0
             placeables.forEach { placeable ->
-                placeable.placeRelative(x, 0)
+                // Media transport controls stay left-to-right in RTL locales.
+                placeable.place(x, 0)
                 x += placeable.width + gap
             }
         }

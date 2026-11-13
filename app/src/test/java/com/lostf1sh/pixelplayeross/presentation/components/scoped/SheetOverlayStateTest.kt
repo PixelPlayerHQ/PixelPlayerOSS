@@ -1,6 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.components.scoped
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -87,5 +88,50 @@ class SheetOverlayStateTest {
     @Test
     fun overscrolledOffset_isClampedToFullCoverage() {
         assertEquals(1f, fraction(offsetPx = -40f))
+    }
+
+    @Test
+    fun keyboardOpenedFromTheOpenQueue_keepsTheQueueHostComposed() {
+        // Regression for #215: the custom speed field lives inside the queue's speed sheet.
+        assertTrue(
+            computeShouldRenderQueueHost(
+                isKeyboardVisible = true,
+                isQueueShown = true,
+                isSongInfoShown = false
+            )
+        )
+    }
+
+    @Test
+    fun keyboardWithQueueClosed_dropsTheQueueHost() {
+        assertFalse(
+            computeShouldRenderQueueHost(
+                isKeyboardVisible = true,
+                isQueueShown = false,
+                isSongInfoShown = false
+            )
+        )
+    }
+
+    @Test
+    fun keyboardWithSongInfoShown_keepsTheQueueHostComposed() {
+        assertTrue(
+            computeShouldRenderQueueHost(
+                isKeyboardVisible = true,
+                isQueueShown = false,
+                isSongInfoShown = true
+            )
+        )
+    }
+
+    @Test
+    fun noKeyboard_keepsTheQueueHostComposed() {
+        assertTrue(
+            computeShouldRenderQueueHost(
+                isKeyboardVisible = false,
+                isQueueShown = false,
+                isSongInfoShown = false
+            )
+        )
     }
 }

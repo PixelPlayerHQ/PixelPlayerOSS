@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.navidrome.model.NavidromeSong
 import com.lostf1sh.pixelplayeross.data.stream.CloudMusicUtils
 
@@ -75,7 +76,7 @@ fun NavidromeSongEntity.toSong(): Song {
         album = album,
         albumId = -1L,
         path = path,
-        contentUriString = "navidrome://$navidromeId",
+        contentUriString = NavidromeSongUri.build(navidromeId),
         albumArtUriString = coverArtId?.let { "navidrome_cover://$it" },
         duration = duration,
         genre = genre,

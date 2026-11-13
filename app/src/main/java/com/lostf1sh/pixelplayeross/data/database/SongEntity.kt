@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataText
@@ -126,9 +127,7 @@ private fun SongEntity.toSongInternal(artists: List<ArtistRef>): Song {
         discNumber = this.discNumber,
         dateAdded = this.dateAdded,
         year = this.year,
-        navidromeId = if (this.contentUriString.startsWith("navidrome://")) {
-            this.contentUriString.removePrefix("navidrome://")
-        } else null,
+        navidromeId = NavidromeSongUri.parseId(this.contentUriString),
         jellyfinId = if (this.contentUriString.startsWith("jellyfin://")) {
             this.contentUriString.removePrefix("jellyfin://")
         } else null,

@@ -45,6 +45,7 @@ import com.lostf1sh.pixelplayeross.MainActivity
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.PlayerInfo
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -1033,7 +1034,7 @@ class MusicService : MediaSessionService() {
         return mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_NAVIDROME_ID)
             ?: mediaItem.mediaId.let { if (it.startsWith("navidrome_")) it.substringAfter("navidrome_") else null }
             ?: mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)?.let {
-                if (it.startsWith("navidrome://")) it.substringAfter("navidrome://") else null
+                NavidromeSongUri.parseId(it)
             }
     }
 

@@ -27,6 +27,12 @@ class NavidromeSongUriTest {
     }
 
     @Test
+    fun `uris stored with raw ids before encoding keep their id`() {
+        listOf("song:a%20b", "song:a?b#c", "a+b c", "100%", "song:abc")
+            .forEach { id -> assertEquals(id, NavidromeSongUri.parseId("navidrome://$id")) }
+    }
+
+    @Test
     fun `non navidrome or empty uris are rejected`() {
         assertNull(NavidromeSongUri.parseId("jellyfin://abc"))
         assertNull(NavidromeSongUri.parseId("navidrome://"))

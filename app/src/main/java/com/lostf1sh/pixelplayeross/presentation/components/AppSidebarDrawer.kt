@@ -50,6 +50,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -95,6 +99,7 @@ fun AppSidebarDrawer(
         // off because it would fight the system back gesture; the Home menu button opens it.
         gesturesEnabled = drawerState.isOpen,
         drawerContent = {
+            val drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ModalDrawerSheet(
                 modifier = Modifier
                     .width(300.dp)
@@ -103,12 +108,31 @@ fun AppSidebarDrawer(
                         val scale = 1f - (predictiveBackProgress * 0.08f)
                         scaleX = scale
                         scaleY = scale
+                        transformOrigin = TransformOrigin(
+                            pivotFractionX = if (closingDirection < 0f) 0f else 1f,
+                            pivotFractionY = 0.5f
+                        )
                         translationX =
                             closingDirection * predictiveBackProgress * PredictiveBackMaxOffset.toPx()
                         alpha = 1f - (predictiveBackProgress * 0.15f)
                     }
-                    .clip(RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp)),
-                drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    .drawBehind {
+                        val bleedPx = 60.dp.toPx()
+                        if (closingDirection < 0f) {
+                            drawRect(
+                                color = drawerContainerColor,
+                                topLeft = Offset(-bleedPx, 0f),
+                                size = Size(bleedPx, size.height)
+                            )
+                        } else {
+                            drawRect(
+                                color = drawerContainerColor,
+                                topLeft = Offset(size.width, 0f),
+                                size = Size(bleedPx, size.height)
+                            )
+                        }
+                    },
+                drawerContainerColor = drawerContainerColor
             ) {
                 DrawerContent(
                     selectedRoute = selectedRoute,

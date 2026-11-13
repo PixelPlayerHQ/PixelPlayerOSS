@@ -7,6 +7,7 @@ import android.widget.Toast
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.Lyrics
 import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.presentation.utils.ScreenAwakeCoordinator
 import androidx.activity.compose.BackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.LyricsPredictiveBackHandler
 import androidx.compose.animation.AnimatedContent
@@ -474,13 +475,11 @@ fun LyricsSheet(
             }
         }
 
-        if (keepScreenOn) {
-            view.keepScreenOn = true
-        }
+        ScreenAwakeCoordinator.request("LyricsSheet", keepScreenOn, view)
 
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
-            view.keepScreenOn = false
+            ScreenAwakeCoordinator.request("LyricsSheet", false, view)
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -534,6 +533,7 @@ fun LyricsSheet(
             override fun onReceive(ctx: android.content.Context, intent: Intent) {
                 if (intent.action == Intent.ACTION_SCREEN_OFF) {
                     keepScreenOn = false
+                    ScreenAwakeCoordinator.reset(view)
                     coroutineScope.launch {
                         context.dataStore.edit { prefs ->
                             prefs[booleanPreferencesKey("keep_screen_on_lyrics")] = false
@@ -1879,7 +1879,7 @@ fun PlainLyricsLine(
 private val KanaRange = '\u3040'..'\u30FF'
 
 /** Romanizes each plain lyric line; null entries mean the line needs no romanization. */
-private fun romanizePlainLyrics(lines: List<String>): List<String?> {
+internal fun romanizePlainLyrics(lines: List<String>): List<String?> {
     val entireLyricsHasKana = lines.any { line -> line.any { it in KanaRange } }
     return lines.map { line ->
         val primary = sanitizeLyricLineText(line.substringBefore('\n'))
@@ -1891,7 +1891,7 @@ private fun romanizePlainLyrics(lines: List<String>): List<String?> {
     }
 }
 
-private fun TextStyle.withLyricsFontSize(fontSizeSp: Float): TextStyle {
+internal fun TextStyle.withLyricsFontSize(fontSizeSp: Float): TextStyle {
     val lineHeightRatio = if (fontSize.isSp && lineHeight.isSp && fontSize.value > 0f) {
         lineHeight.value / fontSize.value
     } else {

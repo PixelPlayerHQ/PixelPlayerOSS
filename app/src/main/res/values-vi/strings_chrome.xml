@@ -4,8 +4,8 @@
     <string name="song_info_label_provider">Nguồn cung cấp</string>
     <string name="song_info_label_path">Đường dẫn</string>
     <string name="cd_playlist_artwork">Danh sách phát</string>
-    <string name="home_your_mix_subtitle">Bản phối hôm nay dành cho bạn</string>
-    <string name="home_your_mix_queue_name">Bản phối của bạn</string>
+    <string name="home_your_mix_subtitle">Dành cho bạn hôm nay</string>
+    <string name="home_your_mix_queue_name">Your Mix</string>
     <string name="queue_name_liked_songs">Bài hát đã thích</string>
     <string name="queue_name_all_songs_shuffled">Tất cả bài hát (Xáo trộn)</string>
     <string name="queue_name_liked_songs_shuffled">Bài hát đã thích (Xáo trộn)</string>

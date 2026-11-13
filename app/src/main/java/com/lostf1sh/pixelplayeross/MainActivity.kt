@@ -24,10 +24,13 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -79,6 +82,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -787,11 +791,7 @@ class MainActivity : ComponentActivity() {
         val navBarHeight = resolveNavBarSurfaceHeight(navBarStyle, systemNavBarInset, navBarCompactMode)
         val navBarOccupiedHeight by remember(systemNavBarInset, navBarCompactMode, useNavigationRail) {
             derivedStateOf {
-                if (useNavigationRail) {
-                    0.dp
-                } else {
-                    resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
-                }
+                resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
             }
         }
         val navBarVisibilityProgressState = animateFloatAsState(
@@ -806,9 +806,11 @@ class MainActivity : ComponentActivity() {
         val visibleNavBarOccupiedHeight by remember(navBarOccupiedHeight, navBarVisibilityProgress) {
             derivedStateOf { navBarOccupiedHeight * navBarVisibilityProgress }
         }
-        val miniPlayerBottomMargin by remember(systemNavBarInset, visibleNavBarOccupiedHeight) {
+        val miniPlayerBottomMargin by remember(systemNavBarInset, visibleNavBarOccupiedHeight, useNavigationRail) {
             derivedStateOf {
-                if (visibleNavBarOccupiedHeight > systemNavBarInset) {
+                if (useNavigationRail) {
+                    systemNavBarInset
+                } else if (visibleNavBarOccupiedHeight > systemNavBarInset) {
                     visibleNavBarOccupiedHeight
                 } else {
                     systemNavBarInset
@@ -820,9 +822,9 @@ class MainActivity : ComponentActivity() {
                 !shouldHideNavigationBar || navBarVisibilityProgress > 0.01f
             }
         }
-        val isNavBarEffectivelyHidden by remember(shouldHideNavigationBar, navBarVisibilityProgress) {
+        val isNavBarEffectivelyHidden by remember(shouldHideNavigationBar, navBarVisibilityProgress, useNavigationRail) {
             derivedStateOf {
-                shouldHideNavigationBar && navBarVisibilityProgress <= 0.01f
+                useNavigationRail || (shouldHideNavigationBar && navBarVisibilityProgress <= 0.01f)
             }
         }
 
@@ -850,7 +852,15 @@ class MainActivity : ComponentActivity() {
                     scope.launch { userPreferencesRepository.setSidebarShortcuts(shortcuts) }
                 },
                 onDestinationSelected = { destination ->
-                    scope.launch { drawerState.close() }
+                    scope.launch {
+                        drawerState.animateTo(
+                            targetValue = DrawerValue.Closed,
+                            anim = spring(
+                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                stiffness = Spring.StiffnessMediumLow
+                            )
+                        )
+                    }
                     when (destination) {
                         DrawerDestination.Home -> navController.navigateSafely(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
@@ -862,12 +872,32 @@ class MainActivity : ComponentActivity() {
                     }
                 }
         ) {
-            Row(modifier = Modifier.fillMaxSize()) {
+            val isPlayerExpandedForRail by remember {
+                derivedStateOf {
+                    playerViewModel.playerContentExpansionFraction.value > 0.15f
+                }
+            }
+            val railVisible = useNavigationRail && !shouldHideNavigationBar && !isPlayerExpandedForRail
+            val animatedRailContentCornerRadius by animateDpAsState(
+                targetValue = if (railVisible) navBarCornerRadius.dp else 0.dp,
+                animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+                label = "ScaffoldCornerRadiusForRail"
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+            ) {
                 if (useNavigationRail) {
                     AnimatedVisibility(
-                        visible = !shouldHideNavigationBar,
-                        enter = expandHorizontally() + fadeIn(),
-                        exit = shrinkHorizontally() + fadeOut()
+                        visible = !shouldHideNavigationBar && !isPlayerExpandedForRail,
+                        enter = expandHorizontally(
+                            animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(180)),
+                        exit = shrinkHorizontally(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(140))
                     ) {
                         val onSearchIconDoubleTap = remember(playerViewModel) {
                             { playerViewModel.onSearchNavIconDoubleTapped() }
@@ -882,9 +912,21 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .then(
+                            if (useNavigationRail) {
+                                Modifier.clip(
+                                    RoundedCornerShape(
+                                        topStart = animatedRailContentCornerRadius,
+                                        bottomStart = animatedRailContentCornerRadius
+                                    )
+                                )
+                            } else {
+                                Modifier
+                            }
+                        ),
                 bottomBar = {
                     if (!useNavigationRail && shouldRenderNavigationBar) {
                         val currentSongId by remember {
@@ -989,6 +1031,7 @@ class MainActivity : ComponentActivity() {
                     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                         val density = LocalDensity.current
                         val containerHeight = this.maxHeight
+                        val containerWidth = this.maxWidth
                         val screenHeightPx = remember(containerHeight, density) {
                             with(density) { containerHeight.toPx() }
                         }
@@ -1030,7 +1073,17 @@ class MainActivity : ComponentActivity() {
                                 paddingValues = innerPadding,
                                 userPreferencesRepository = userPreferencesRepository,
                                 onSearchBarActiveChange = { isSearchBarActive = it },
-                                onOpenSidebar = { scope.launch { drawerState.open() } }
+                                onOpenSidebar = {
+                                    scope.launch {
+                                        drawerState.animateTo(
+                                            targetValue = DrawerValue.Open,
+                                            anim = spring(
+                                                dampingRatio = Spring.DampingRatioNoBouncy,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        )
+                                    }
+                                }
                             )
                         }
 
@@ -1061,12 +1114,27 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        val miniPlayerWidth = 460.dp
+                        val miniPlayerPaddingStart: Dp
+                        val miniPlayerPaddingEnd: Dp
+                        if (useNavigationRail) {
+                            val railOffset = 80.dp * navBarVisibilityProgressState.value
+                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - railOffset - miniPlayerWidth) / 2)
+                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + railOffset - miniPlayerWidth) / 2)
+                        } else {
+                            miniPlayerPaddingStart = horizontalPadding
+                            miniPlayerPaddingEnd = horizontalPadding
+                        }
+
                         UnifiedPlayerSheetV2(
                             playerViewModel = playerViewModel,
                             sheetCollapsedTargetY = sheetCollapsedTargetY,
-                            collapsedStateHorizontalPadding = horizontalPadding,
+                            collapsedStateHorizontalPadding = miniPlayerPaddingStart,
+                            collapsedStateHorizontalPaddingStart = miniPlayerPaddingStart,
+                            collapsedStateHorizontalPaddingEnd = miniPlayerPaddingEnd,
                             hideMiniPlayer = shouldHideMiniPlayer,
                             containerHeight = containerHeight,
+                            containerWidth = containerWidth,
                             navController = navController,
                             isNavBarHidden = isNavBarEffectivelyHidden
                         )

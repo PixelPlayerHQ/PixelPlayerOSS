@@ -65,8 +65,15 @@ internal fun calculatePlayerSheetCollapsedTargetY(
 internal fun resolveNavBarContentHeight(compactMode: Boolean): Dp =
     if (compactMode) NavBarCompactContentHeight else NavBarContentHeight
 
-internal fun resolveMainScreenBottomGradientHeight(compactMode: Boolean): Dp =
-    resolveNavBarContentHeight(compactMode) + MainScreenBottomGradientExtraHeight
+internal fun resolveMainScreenBottomGradientHeight(
+    compactMode: Boolean,
+    useNavigationRail: Boolean = false
+): Dp =
+    if (useNavigationRail) {
+        MiniPlayerHeight + MiniPlayerBottomSpacer + 24.dp
+    } else {
+        resolveNavBarContentHeight(compactMode) + MainScreenBottomGradientExtraHeight
+    }
 
 internal fun resolveNavBarSurfaceHeight(
     navBarStyle: String,
@@ -83,8 +90,9 @@ internal fun resolveNavBarSurfaceHeight(
 
 internal fun resolveNavBarOccupiedHeight(
     systemNavBarInset: Dp,
-    compactMode: Boolean
-): Dp = resolveNavBarContentHeight(compactMode) + systemNavBarInset
+    compactMode: Boolean,
+    useNavigationRail: Boolean = false
+): Dp = if (useNavigationRail) 0.dp else resolveNavBarContentHeight(compactMode) + systemNavBarInset
 
 @Composable
 private fun PlayerInternalNavigationItemsRow(

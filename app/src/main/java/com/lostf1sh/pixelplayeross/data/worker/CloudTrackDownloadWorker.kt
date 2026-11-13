@@ -9,6 +9,7 @@ import androidx.work.workDataOf
 import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.data.offline.OfflineDownloadStatus
 import com.lostf1sh.pixelplayeross.data.stream.CloudStreamSecurity
@@ -211,11 +212,12 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
             ?: throw IOException("Cloud track identifier is missing")
         return when (parsed.scheme?.lowercase()) {
             "navidrome" -> {
-                if (!CloudStreamSecurity.validateNavidromeSongId(id)) {
+                val songId = NavidromeSongUri.parseId(sourceUri)
+                if (songId == null || !CloudStreamSecurity.validateNavidromeSongId(songId)) {
                     throw IOException("Invalid Navidrome track identifier")
                 }
                 DownloadSource(
-                    url = navidromeRepository.getStreamUrl(id),
+                    url = navidromeRepository.getStreamUrl(songId),
                     allowedHost = navidromeRepository.serverUrl
                 )
             }

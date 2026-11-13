@@ -69,6 +69,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.scoped.PlayerSheetPre
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.QueuePredictiveBackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.QueueSheetRuntimeEffects
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.SheetMotionController
+import com.lostf1sh.pixelplayeross.presentation.components.scoped.computeShouldRenderQueueHost
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.miniPlayerHorizontalGesture
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.playerContentOffsetXPx
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.playerContentWidthPx
@@ -509,11 +510,11 @@ fun UnifiedPlayerSheetV2(
     val queueScrimAlphaProvider = sheetOverlayState.queueScrimAlphaProvider
     val showQueueScrim = sheetOverlayState.showQueueScrim
     val isQueueOccludingPlayer = sheetOverlayState.isQueueOccludingPlayer
-    val shouldRenderQueueHost by remember(internalIsKeyboardVisible, selectedSongForInfo) {
-        derivedStateOf {
-            !internalIsKeyboardVisible || selectedSongForInfo != null
-        }
-    }
+    val shouldRenderQueueHost = computeShouldRenderQueueHost(
+        isKeyboardVisible = internalIsKeyboardVisible,
+        isQueueShown = showQueueSheet,
+        isSongInfoShown = selectedSongForInfo != null
+    )
     val isQueueTelemetryActive = showQueueSheet
 
     LaunchedEffect(showQueueSheet) {

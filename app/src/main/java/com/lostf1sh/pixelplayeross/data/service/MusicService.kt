@@ -45,6 +45,7 @@ import com.lostf1sh.pixelplayeross.MainActivity
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.PlayerInfo
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -77,6 +78,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
 import com.lostf1sh.pixelplayeross.data.equalizer.ExternalAudioEffectSession
 import com.lostf1sh.pixelplayeross.data.model.WidgetThemeColors
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
@@ -458,6 +460,7 @@ class MusicService : MediaSessionService() {
             val eqEnabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
             val presetName = equalizerPreferencesRepository.equalizerPresetFlow.first()
             val customBands = equalizerPreferencesRepository.equalizerCustomBandsFlow.first()
+            val customPresets = equalizerPreferencesRepository.customPresetsFlow.first()
             val bassBoostEnabled = equalizerPreferencesRepository.bassBoostEnabledFlow.first()
             val bassBoostStrength = equalizerPreferencesRepository.bassBoostStrengthFlow.first()
             val virtualizerEnabled = equalizerPreferencesRepository.virtualizerEnabledFlow.first()
@@ -466,7 +469,7 @@ class MusicService : MediaSessionService() {
             val loudnessStrength = equalizerPreferencesRepository.loudnessEnhancerStrengthFlow.first()
 
             equalizerManager.restoreState(
-                eqEnabled, presetName, customBands,
+                eqEnabled, EqualizerPreset.resolve(presetName, customBands, customPresets),
                 bassBoostEnabled, bassBoostStrength,
                 virtualizerEnabled, virtualizerStrength,
                 loudnessEnabled, loudnessStrength
@@ -1031,7 +1034,7 @@ class MusicService : MediaSessionService() {
         return mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_NAVIDROME_ID)
             ?: mediaItem.mediaId.let { if (it.startsWith("navidrome_")) it.substringAfter("navidrome_") else null }
             ?: mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)?.let {
-                if (it.startsWith("navidrome://")) it.substringAfter("navidrome://") else null
+                NavidromeSongUri.parseId(it)
             }
     }
 

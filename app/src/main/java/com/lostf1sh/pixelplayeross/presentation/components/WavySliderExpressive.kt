@@ -19,6 +19,7 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.WavyProgressIndicatorDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -41,12 +42,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.times
@@ -276,124 +279,128 @@ fun WavySliderExpressive(
             },
         contentAlignment = Alignment.Center
     ) {
-        if (isVisible) {
-            LinearWavyProgressIndicator(
-                progress = { renderedNormalizedProgress.floatValue },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = trackEdgePadding.coerceAtLeast(0.dp))
-                    .clearAndSetSemantics { },
-                color = activeTrackColor,
-                trackColor = inactiveTrackColor,
-                stroke = stroke,
-                trackStroke = stroke,
-                gapSize = 2f * dynamicGapSize.value * (1.0f + 0.1573f * animatedAmplitude * animatedAmplitude),
-                stopSize = 3.dp,
-                amplitude = { progress -> if (progress > 0f) waveAmplitudeTarget else 0f },
-                wavelength = wavelength,
-                waveSpeed = indicatorWaveSpeed
-            )
-        } else {
-            Spacer(modifier = Modifier.fillMaxWidth().height(containerHeight))
-        }
-
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            if (!isVisible) return@Canvas
-            val edgePaddingPx = trackEdgePaddingPx.coerceIn(0f, size.width / 2f)
-            val trackStart = edgePaddingPx
-            val trackEnd = size.width - edgePaddingPx
-            val trackWidth = (trackEnd - trackStart).coerceAtLeast(0f)
-            val thumbY = size.height / 2
-            val renderedProgress = renderedNormalizedProgress.floatValue
-
-            fun lerp(start: Float, stop: Float, fraction: Float): Float {
-                return start + (stop - start) * fraction
+        // Media progress is never mirrored; forcing LTR also keeps the indicator (which would mirror)
+        // aligned with the thumb and touch math below, which use absolute x coordinates.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            if (isVisible) {
+                LinearWavyProgressIndicator(
+                    progress = { renderedNormalizedProgress.floatValue },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = trackEdgePadding.coerceAtLeast(0.dp))
+                        .clearAndSetSemantics { },
+                    color = activeTrackColor,
+                    trackColor = inactiveTrackColor,
+                    stroke = stroke,
+                    trackStroke = stroke,
+                    gapSize = 2f * dynamicGapSize.value * (1.0f + 0.1573f * animatedAmplitude * animatedAmplitude),
+                    stopSize = 3.dp,
+                    amplitude = { progress -> if (progress > 0f) waveAmplitudeTarget else 0f },
+                    wavelength = wavelength,
+                    waveSpeed = indicatorWaveSpeed
+                )
+            } else {
+                Spacer(modifier = Modifier.fillMaxWidth().height(containerHeight))
             }
 
-            val currentWidth = lerp(thumbRadiusPx * 2f, strokeWidthPx * 1.2f, thumbInteractionFraction)
-            val currentHeight = lerp(thumbRadiusPx * 2f, thumbLineHeightPx, thumbInteractionFraction)
-            val rawThumbX = trackStart + (trackWidth * renderedProgress)
-            val minThumbCenter = (currentWidth / 2f).coerceAtMost(size.width / 2f)
-            val maxThumbCenter = (size.width - currentWidth / 2f).coerceAtLeast(minThumbCenter)
-            val thumbX = rawThumbX.coerceIn(minThumbCenter, maxThumbCenter)
-            
-            drawRoundRect(
-                color = thumbColor,
-                topLeft = Offset(
-                    thumbX - currentWidth / 2f,
-                    thumbY - currentHeight / 2f
-                ),
-                size = Size(currentWidth, currentHeight),
-                cornerRadius = CornerRadius(currentWidth / 2f)
-            )
-        }
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                if (!isVisible) return@Canvas
+                val edgePaddingPx = trackEdgePaddingPx.coerceIn(0f, size.width / 2f)
+                val trackStart = edgePaddingPx
+                val trackEnd = size.width - edgePaddingPx
+                val trackWidth = (trackEnd - trackStart).coerceAtLeast(0f)
+                val thumbY = size.height / 2
+                val renderedProgress = renderedNormalizedProgress.floatValue
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(enabled, valueRange, trackEdgePaddingPx) {
-                    if (!enabled) return@pointerInput
+                fun lerp(start: Float, stop: Float, fraction: Float): Float {
+                    return start + (stop - start) * fraction
+                }
 
-                    fun valueForX(rawX: Float): Float {
-                        val edgePadding = trackEdgePaddingPx.coerceIn(0f, size.width / 2f)
-                        val trackStart = edgePadding
-                        val trackEnd = size.width - edgePadding
-                        val trackWidth = (trackEnd - trackStart).coerceAtLeast(1f)
-                        val normalized = ((rawX - trackStart) / trackWidth).coerceIn(0f, 1f)
-                        return valueRange.start +
-                            normalized * (valueRange.endInclusive - valueRange.start)
-                    }
+                val currentWidth = lerp(thumbRadiusPx * 2f, strokeWidthPx * 1.2f, thumbInteractionFraction)
+                val currentHeight = lerp(thumbRadiusPx * 2f, thumbLineHeightPx, thumbInteractionFraction)
+                val rawThumbX = trackStart + (trackWidth * renderedProgress)
+                val minThumbCenter = (currentWidth / 2f).coerceAtMost(size.width / 2f)
+                val maxThumbCenter = (size.width - currentWidth / 2f).coerceAtLeast(minThumbCenter)
+                val thumbX = rawThumbX.coerceIn(minThumbCenter, maxThumbCenter)
 
-                    awaitEachGesture {
-                        var gestureValue: Float? = null
-                        var committed = false
-                        try {
-                            val down = awaitFirstDown(requireUnconsumed = false)
-                            isPointerSeeking = true
-                            down.consume()
-                            var latestGestureValue = valueForX(down.position.x)
-                            gestureValue = latestGestureValue
-                            latestOnValueChange(latestGestureValue)
+                drawRoundRect(
+                    color = thumbColor,
+                    topLeft = Offset(
+                        thumbX - currentWidth / 2f,
+                        thumbY - currentHeight / 2f
+                    ),
+                    size = Size(currentWidth, currentHeight),
+                    cornerRadius = CornerRadius(currentWidth / 2f)
+                )
+            }
 
-                            var pointerId = down.id
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                val change = event.changes.firstOrNull { it.id == pointerId }
-                                    ?: event.changes.firstOrNull { it.pressed }
-                                    ?: break
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pointerInput(enabled, valueRange, trackEdgePaddingPx) {
+                        if (!enabled) return@pointerInput
 
-                                pointerId = change.id
-                                if (!change.pressed) {
-                                    change.consume()
-                                    break
+                        fun valueForX(rawX: Float): Float {
+                            val edgePadding = trackEdgePaddingPx.coerceIn(0f, size.width / 2f)
+                            val trackStart = edgePadding
+                            val trackEnd = size.width - edgePadding
+                            val trackWidth = (trackEnd - trackStart).coerceAtLeast(1f)
+                            val normalized = ((rawX - trackStart) / trackWidth).coerceIn(0f, 1f)
+                            return valueRange.start +
+                                normalized * (valueRange.endInclusive - valueRange.start)
+                        }
+
+                        awaitEachGesture {
+                            var gestureValue: Float? = null
+                            var committed = false
+                            try {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                isPointerSeeking = true
+                                down.consume()
+                                var latestGestureValue = valueForX(down.position.x)
+                                gestureValue = latestGestureValue
+                                latestOnValueChange(latestGestureValue)
+
+                                var pointerId = down.id
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val change = event.changes.firstOrNull { it.id == pointerId }
+                                        ?: event.changes.firstOrNull { it.pressed }
+                                        ?: break
+
+                                    pointerId = change.id
+                                    if (!change.pressed) {
+                                        change.consume()
+                                        break
+                                    }
+
+                                    if (change.position != change.previousPosition) {
+                                        change.consume()
+                                        latestGestureValue = valueForX(change.position.x)
+                                        gestureValue = latestGestureValue
+                                        latestOnValueChange(latestGestureValue)
+                                    }
                                 }
 
-                                if (change.position != change.previousPosition) {
-                                    change.consume()
-                                    latestGestureValue = valueForX(change.position.x)
-                                    gestureValue = latestGestureValue
-                                    latestOnValueChange(latestGestureValue)
-                                }
-                            }
-
-                            committed = true
-                            latestOnValueCommit?.invoke(latestGestureValue)
-                                ?: latestOnValueChangeFinished?.invoke()
-                        } finally {
-                            isPointerSeeking = false
-                            // A gesture can be torn down without an up event (pointerInput restart
-                            // or disposal). Always terminate it, otherwise callers that latch a
-                            // "user is scrubbing" flag in onValueChange stay latched forever and
-                            // stop following playback.
-                            if (!committed) {
-                                gestureValue?.let { pendingValue ->
-                                    latestOnValueCommit?.invoke(pendingValue)
-                                        ?: latestOnValueChangeFinished?.invoke()
+                                committed = true
+                                latestOnValueCommit?.invoke(latestGestureValue)
+                                    ?: latestOnValueChangeFinished?.invoke()
+                            } finally {
+                                isPointerSeeking = false
+                                // A gesture can be torn down without an up event (pointerInput restart
+                                // or disposal). Always terminate it, otherwise callers that latch a
+                                // "user is scrubbing" flag in onValueChange stay latched forever and
+                                // stop following playback.
+                                if (!committed) {
+                                    gestureValue?.let { pendingValue ->
+                                        latestOnValueCommit?.invoke(pendingValue)
+                                            ?: latestOnValueChangeFinished?.invoke()
+                                    }
                                 }
                             }
                         }
                     }
-                }
-        )
+            )
+        }
     }
 }

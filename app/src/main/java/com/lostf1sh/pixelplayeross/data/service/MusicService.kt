@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
 import com.lostf1sh.pixelplayeross.data.equalizer.ExternalAudioEffectSession
 import com.lostf1sh.pixelplayeross.data.model.WidgetThemeColors
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
@@ -458,6 +459,7 @@ class MusicService : MediaSessionService() {
             val eqEnabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
             val presetName = equalizerPreferencesRepository.equalizerPresetFlow.first()
             val customBands = equalizerPreferencesRepository.equalizerCustomBandsFlow.first()
+            val customPresets = equalizerPreferencesRepository.customPresetsFlow.first()
             val bassBoostEnabled = equalizerPreferencesRepository.bassBoostEnabledFlow.first()
             val bassBoostStrength = equalizerPreferencesRepository.bassBoostStrengthFlow.first()
             val virtualizerEnabled = equalizerPreferencesRepository.virtualizerEnabledFlow.first()
@@ -466,7 +468,7 @@ class MusicService : MediaSessionService() {
             val loudnessStrength = equalizerPreferencesRepository.loudnessEnhancerStrengthFlow.first()
 
             equalizerManager.restoreState(
-                eqEnabled, presetName, customBands,
+                eqEnabled, EqualizerPreset.resolve(presetName, customBands, customPresets),
                 bassBoostEnabled, bassBoostStrength,
                 virtualizerEnabled, virtualizerStrength,
                 loudnessEnabled, loudnessStrength

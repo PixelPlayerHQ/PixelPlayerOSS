@@ -93,5 +93,16 @@ data class EqualizerPreset(
         fun fromName(name: String): EqualizerPreset {
             return ALL_PRESETS.find { it.name == name } ?: FLAT
         }
+
+        /** Resolves a persisted preset name, including user-saved presets, to its bands. */
+        fun resolve(
+            name: String,
+            customBands: List<Int>,
+            customPresets: List<EqualizerPreset>
+        ): EqualizerPreset = if (name == "custom") {
+            custom(customBands)
+        } else {
+            customPresets.find { it.name == name } ?: fromName(name)
+        }
     }
 }

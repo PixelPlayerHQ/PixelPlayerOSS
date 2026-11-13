@@ -403,8 +403,7 @@ class EqualizerManager @Inject constructor() {
      */
     fun restoreState(
         enabled: Boolean,
-        presetName: String,
-        customBands: List<Int>,
+        preset: EqualizerPreset,
         bassBoostEnabled: Boolean,
         bassBoostStrength: Int,
         virtualizerEnabled: Boolean,
@@ -419,13 +418,7 @@ class EqualizerManager @Inject constructor() {
         _virtualizerStrength.value = virtualizerStrength
         _loudnessEnhancerEnabled.value = loudnessEnabled
         _loudnessEnhancerStrength.value = loudnessStrength.coerceIn(0, MAX_LOUDNESS_GAIN_MB)
-        
-        val preset = if (presetName == "custom") {
-            EqualizerPreset.custom(customBands)
-        } else {
-            EqualizerPreset.fromName(presetName)
-        }
-        
+
         _currentPresetName.value = preset.name
         _bandLevels.value = preset.bandLevels
         

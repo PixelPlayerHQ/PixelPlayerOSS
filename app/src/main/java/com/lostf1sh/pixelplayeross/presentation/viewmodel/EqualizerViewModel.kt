@@ -127,6 +127,7 @@ class EqualizerViewModel @Inject constructor(
                 val enabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
                 val presetName = equalizerPreferencesRepository.equalizerPresetFlow.first()
                 val customBands = equalizerPreferencesRepository.equalizerCustomBandsFlow.first()
+                val customPresets = equalizerPreferencesRepository.customPresetsFlow.first()
                 val bassBoostEnabled = equalizerPreferencesRepository.bassBoostEnabledFlow.first()
                 val bassBoost = equalizerPreferencesRepository.bassBoostStrengthFlow.first()
                 val virtualizerEnabled = equalizerPreferencesRepository.virtualizerEnabledFlow.first()
@@ -135,7 +136,7 @@ class EqualizerViewModel @Inject constructor(
                 val loudnessStrength = equalizerPreferencesRepository.loudnessEnhancerStrengthFlow.first()
                 
                 equalizerManager.restoreState(
-                    enabled, presetName, customBands, 
+                    enabled, EqualizerPreset.resolve(presetName, customBands, customPresets),
                     bassBoostEnabled, bassBoost, 
                     virtualizerEnabled, virtualizer,
                     loudnessEnabled, loudnessStrength
@@ -209,12 +210,7 @@ class EqualizerViewModel @Inject constructor(
                  val customPresets = (values[13] as? List<*>)?.filterIsInstance<EqualizerPreset>() ?: emptyList()
                  val pinnedPresets = (values[14] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-                val currentPreset = if (presetName == "custom") {
-                    EqualizerPreset.custom(customBands)
-                } else {
-                     customPresets.find { it.name == presetName }
-                        ?: EqualizerPreset.fromName(presetName)
-                }
+                val currentPreset = EqualizerPreset.resolve(presetName, customBands, customPresets)
 
                 EqualizerUiState(
                     isEnabled = enabled,

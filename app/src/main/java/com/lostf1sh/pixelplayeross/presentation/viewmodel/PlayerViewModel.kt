@@ -2704,6 +2704,15 @@ class PlayerViewModel @Inject constructor(
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 playbackStateHolder.onPlaybackOccurrenceTransition(mediaItem?.mediaId)
+                // An automatic move to the first entry means a repeat-all queue started over.
+                if (
+                    reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO &&
+                    playerCtrl.repeatMode == Player.REPEAT_MODE_ALL &&
+                    playerCtrl.currentMediaItemIndex == 0 &&
+                    !dualPlayerEngine.isUsingWindowedQueue()
+                ) {
+                    reshuffleForRepeat()
+                }
                 preparePlaybackAudioMetadataForMedia(mediaItem?.mediaId)
                 transitionSchedulerJob?.cancel()
                 lyricsStateHolder.cancelLoading()
@@ -3204,6 +3213,16 @@ class PlayerViewModel @Inject constructor(
         controller.sendCustomCommand(
             SessionCommand(MusicNotificationProvider.CUSTOM_COMMAND_SET_SHUFFLE_STATE, Bundle()),
             args
+        )
+    }
+
+    private fun reshuffleForRepeat() {
+        playbackStateHolder.reshuffleForRepeat(
+            currentSongs = _playerUiState.value.currentPlaybackQueue.toList(),
+            currentSong = playbackStateHolder.stablePlayerState.value.currentSong,
+            updateQueueCallback = { newQueue ->
+                _playerUiState.update { it.copy(currentPlaybackQueue = newQueue.toPlaybackQueue()) }
+            }
         )
     }
 

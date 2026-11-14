@@ -653,8 +653,8 @@ class PlaybackStateHolderTest {
         val playlistSongs = playlistOf(81)
         val duplicated = playlistSongs[5]
         val songs = playlistSongs + duplicated
-        // The playlist's own copy plays and keeps its tag in place, so the copy added through
-        // Play next must not be handed that tag as well.
+        // The playlist's own copy plays and keeps its tag as it moves to the front, so the copy
+        // added through Play next must not be handed that tag as well.
         val queue = TaggedQueue(songs, playlistSongs.map { "playlist" } + null, currentIndex = 5)
         val playing = queue.playing
 
@@ -663,8 +663,8 @@ class PlaybackStateHolderTest {
 
             holder.toggleShuffleAndWait(songs, duplicated)
 
-            assertSame(playing, queue.items[5])
-            val rebuilt = queue.entries().filterIndexed { index, _ -> index != 5 }
+            assertSame(playing, queue.items[0])
+            val rebuilt = queue.entries().drop(1)
             assertEquals(listOf(null), rebuilt.filter { it.first == duplicated.id }.map { it.second })
             assertEquals(playlistSongs.size - 1, rebuilt.count { it.second != null })
             verify(exactly = 0) { queue.controller.setMediaItems(any(), any(), any()) }
@@ -678,10 +678,10 @@ class PlaybackStateHolderTest {
         val songs = playlistSongs + duplicated
         val queue = TaggedQueue(songs, playlistSongs.map { "playlist" } + null, currentIndex = 5)
         val playing = queue.playing
-        // The player reports another current index once the entries around the playing one are
+        // The player reports another current index once the entries after the playing one are
         // replaced, so the shuffle replaces the whole queue in one call instead.
         every { queue.controller.currentMediaItemIndex } answers {
-            if (queue.segmentReplaceCount > 0) 0 else 5
+            if (queue.segmentReplaceCount > 0) 3 else 5
         }
 
         withPlaylistTagsIn(queue.tags) {
@@ -689,11 +689,30 @@ class PlaybackStateHolderTest {
 
             holder.toggleShuffleAndWait(songs, duplicated)
 
-            verify(exactly = 1) { queue.controller.setMediaItems(any(), 5, any()) }
-            assertSame(playing, queue.items[5])
-            val rebuilt = queue.entries().filterIndexed { index, _ -> index != 5 }
+            verify(exactly = 1) { queue.controller.setMediaItems(any(), 0, any()) }
+            assertSame(playing, queue.items[0])
+            val rebuilt = queue.entries().drop(1)
             assertEquals(listOf(null), rebuilt.filter { it.first == duplicated.id }.map { it.second })
             assertEquals(playlistSongs.size - 1, rebuilt.count { it.second != null })
+        }
+    }
+
+    @Test
+    fun `turning shuffle on moves the playing song to the front without restarting it`() = runTest {
+        val songs = playlistOf(10)
+        val queue = TaggedQueue(songs, songs.map { null }, currentIndex = 4)
+        val playing = queue.playing
+
+        withPlaylistTagsIn(queue.tags) {
+            val holder = holderFor(queue.controller)
+
+            val shuffled = holder.toggleShuffleAndWait(songs, songs[4])
+
+            assertEquals(songs[4], shuffled.first())
+            assertEquals(songs.toSet(), shuffled.toSet())
+            assertSame(playing, queue.items[0])
+            assertEquals(shuffled.map { it.id }, queue.items.map { it.mediaId })
+            verify(exactly = 0) { queue.controller.setMediaItems(any(), any(), any()) }
         }
     }
 

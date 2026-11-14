@@ -20,6 +20,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
 import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
+import com.lostf1sh.pixelplayeross.data.preferences.SwipeToQueueAction
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_DUET_LAYOUT_ENABLED
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_FONT_SIZE_SP
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_SHOW_LYRICS_BACKGROUND_VOCALS
@@ -105,6 +106,7 @@ data class SettingsUiState(
     val miniPlayerSwipeToSkip: Boolean = false,
     val autoplayOnSkip: Boolean = true,
     val previousButtonBehavior: PreviousButtonBehavior = PreviousButtonBehavior.DEFAULT,
+    val swipeToQueueAction: SwipeToQueueAction = SwipeToQueueAction.DEFAULT,
     val hapticsEnabled: Boolean = true,
     val immersiveLyricsEnabled: Boolean = false,
     val immersiveLyricsTimeout: Long = 4000L,
@@ -508,6 +510,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.previousButtonBehaviorFlow.collect { behavior ->
                 _uiState.update { it.copy(previousButtonBehavior = behavior) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.swipeToQueueActionFlow.collect { action ->
+                _uiState.update { it.copy(swipeToQueueAction = action) }
             }
         }
 
@@ -1079,6 +1087,12 @@ class SettingsViewModel @Inject constructor(
     fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
         viewModelScope.launch {
             userPreferencesRepository.setPreviousButtonBehavior(behavior)
+        }
+    }
+
+    fun setSwipeToQueueAction(action: SwipeToQueueAction) {
+        viewModelScope.launch {
+            userPreferencesRepository.setSwipeToQueueAction(action)
         }
     }
 

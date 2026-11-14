@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -115,6 +116,7 @@ fun GenreDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
     val favoriteSongIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val playlistUiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
     val libraryGenres by playerViewModel.genres.collectAsStateWithLifecycle()
 
@@ -410,6 +412,7 @@ fun GenreDetailScreen(
                                     playerViewModel.showAndPlaySong(song, uiState.sortedSongs, genreDisplayName)
                                 },
                                 onMoreOptionsClick = { song -> showSongOptionsSheet = song },
+                                onSwipeToQueue = swipeToQueue,
                                 isSelectionMode = isSelectionMode,
                                 isSelected = item.song.id in selectedSongIds,
                                 selectionIndex = multiSelectionState.getSelectionIndex(item.song.id),
@@ -1060,6 +1063,7 @@ fun GenreSongItemWrapper(
     stablePlayerState: StablePlayerState,
     onSongClick: (Song) -> Unit,
     onMoreOptionsClick: (Song) -> Unit,
+    onSwipeToQueue: ((Song) -> Unit)? = null,
     isSelectionMode: Boolean = false,
     isSelected: Boolean = false,
     selectionIndex: Int? = null,
@@ -1114,6 +1118,7 @@ fun GenreSongItemWrapper(
                  customShape = songItemShape,
                  onClick = { onSongClick(song) },
                  onMoreOptionsClick = onMoreOptionsClick,
+                 onSwipeToQueue = onSwipeToQueue?.let { { it(song) } },
                  isSelected = isSelected,
                  selectionIndex = selectionIndex,
                  isSelectionMode = isSelectionMode,

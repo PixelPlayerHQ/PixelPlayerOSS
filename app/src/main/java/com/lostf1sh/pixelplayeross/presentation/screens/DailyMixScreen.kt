@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 
 import androidx.compose.foundation.background
@@ -114,6 +115,7 @@ fun DailyMixScreen(
     val isPlaying by remember { playerViewModel.stablePlayerState.map { it.isPlaying }.distinctUntilChanged() }.collectAsStateWithLifecycle(initialValue = false)
     val isShuffleEnabled by remember { playerViewModel.stablePlayerState.map { it.isShuffleEnabled }.distinctUntilChanged() }.collectAsStateWithLifecycle(initialValue = false)
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
@@ -320,6 +322,7 @@ fun DailyMixScreen(
                         isCurrentSong = currentSongId == song.id,
                         isPlaying = currentSongId == song.id && isPlaying,
                         onClick = { playerViewModel.showAndPlaySong(song, dailyMixSongs, dailyMixTitle, isVoluntaryPlay = false) },
+                        onSwipeToQueue = swipeToQueue?.let { { it(song) } },
                         onMoreOptionsClick = {
                             playerViewModel.selectSongForInfo(song)
                             showSongInfoSheet = true

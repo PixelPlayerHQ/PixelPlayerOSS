@@ -65,6 +65,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.ShimmerBox
 import androidx.compose.ui.res.stringResource
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
+import com.lostf1sh.pixelplayeross.presentation.components.SwipeToQueueBox
 
 @Immutable
 private data class EnhancedSongAnimationTarget(
@@ -115,6 +116,7 @@ private class HighlightMorphShape(
  * @param isSelected Whether this item is selected in multi-selection mode
  * @param isSelectionMode Whether multi-selection mode is active
  * @param onLongPress Callback for long press gesture (activates selection)
+ * @param onSwipeToQueue Called when the row is swiped towards the end edge; null disables the swipe
  * @param onMoreOptionsClick Callback for more options button
  * @param onClick Callback for tap gesture
  */
@@ -135,6 +137,7 @@ fun EnhancedSongListItem(
     isSelectionMode: Boolean = false,
     showMoreOptionsButton: Boolean = true,
     onLongPress: () -> Unit = {},
+    onSwipeToQueue: (() -> Unit)? = null,
     onMoreOptionsClick: (Song) -> Unit,
     onClick: () -> Unit
 ) {
@@ -275,9 +278,13 @@ fun EnhancedSongListItem(
                 )
             }
         }
-    } else {
+    } else SwipeToQueueBox(
+        // A swipe would fight the selection gestures.
+        onSwipe = onSwipeToQueue?.takeUnless { isSelectionMode },
+        modifier = modifier
+    ) { rowModifier ->
         Surface(
-            modifier = modifier
+            modifier = rowModifier
                 .fillMaxWidth()
                 .scale(selectionScale)
                 .clip(surfaceShape)

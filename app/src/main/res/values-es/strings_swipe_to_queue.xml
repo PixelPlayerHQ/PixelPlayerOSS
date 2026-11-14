@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Listas de canciones</string>
+    <string name="setcat_swipe_to_queue_title">Deslizar una canción</string>
+    <string name="setcat_swipe_to_queue_description">Desliza la fila de una canción hacia el final de la pantalla en listas, álbumes, artistas, géneros y mixes.</string>
+    <string name="setcat_swipe_to_queue_add">Añadir a la cola</string>
+    <string name="setcat_swipe_to_queue_add_description">Añade la canción al final de la cola.</string>
+    <string name="setcat_swipe_to_queue_next">Reproducir a continuación</string>
+    <string name="setcat_swipe_to_queue_next_description">Añade la canción justo después de la que suena.</string>
+    <string name="setcat_swipe_to_queue_off">Desactivado</string>
+    <string name="setcat_swipe_to_queue_off_description">Deslizar una canción no hace nada.</string>
+</resources>

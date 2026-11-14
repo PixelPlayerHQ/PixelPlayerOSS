@@ -60,6 +60,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtQuality
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.restartsAtPosition
+import com.lostf1sh.pixelplayeross.data.preferences.SwipeToQueueAction
 import com.lostf1sh.pixelplayeross.data.repository.LyricsSearchResult
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.data.service.MusicNotificationProvider
@@ -442,6 +443,13 @@ class PlayerViewModel @Inject constructor(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
             initialValue = NavBarStyle.DEFAULT
+        )
+
+    val swipeToQueueAction: StateFlow<SwipeToQueueAction> = userPreferencesRepository.swipeToQueueActionFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = SwipeToQueueAction.OFF
         )
 
     val navBarCompactMode: StateFlow<Boolean> = userPreferencesRepository.navBarCompactModeFlow
@@ -3318,6 +3326,21 @@ class PlayerViewModel @Inject constructor(
     private fun parseFileUriPath(uriString: String): String? {
         val uri = runCatching { Uri.parse(uriString) }.getOrNull() ?: return null
         return uri.takeIf { it.scheme == "file" }?.path?.takeIf { it.isNotBlank() }
+    }
+
+    /** Queues [song] the way the swipe-to-queue setting says, and confirms it with a toast. */
+    fun queueSongFromSwipe(song: Song) {
+        when (swipeToQueueAction.value) {
+            SwipeToQueueAction.OFF -> return
+            SwipeToQueueAction.ADD_TO_QUEUE -> {
+                addSongToQueue(song)
+                sendToast(context.getString(R.string.toast_added_to_queue))
+            }
+            SwipeToQueueAction.PLAY_NEXT -> {
+                addSongNextToQueue(song)
+                sendToast(context.getString(R.string.toast_playing_next))
+            }
+        }
     }
 
     fun addSongToQueue(song: Song) {

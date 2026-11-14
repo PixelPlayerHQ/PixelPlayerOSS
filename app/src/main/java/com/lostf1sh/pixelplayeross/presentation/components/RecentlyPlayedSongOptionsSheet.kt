@@ -21,9 +21,9 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 
 /**
- * Song options for a Home "Recently played" pill. The pills have no more-options button, so a
- * long press opens this sheet instead. Playing from here keeps the recently played queue, the
- * same as tapping the pill.
+ * Song options for a Home "Recently played" pill or "Your Mix" cover. Neither has a
+ * more-options button, so a long press opens this sheet instead. Playing from here keeps the
+ * section's queue, the same as tapping the song.
  */
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable

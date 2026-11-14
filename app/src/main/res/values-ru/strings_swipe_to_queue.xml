@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Списки треков</string>
+    <string name="setcat_swipe_to_queue_title">Свайп по треку</string>
+    <string name="setcat_swipe_to_queue_description">Проведите строку трека к концу экрана в плейлистах, альбомах, исполнителях, жанрах и миксах.</string>
+    <string name="setcat_swipe_to_queue_add">Добавить в очередь</string>
+    <string name="setcat_swipe_to_queue_add_description">Добавляет трек в конец очереди.</string>
+    <string name="setcat_swipe_to_queue_next">Воспроизвести следующим</string>
+    <string name="setcat_swipe_to_queue_next_description">Добавляет трек сразу после текущего.</string>
+    <string name="setcat_swipe_to_queue_off">Выкл.</string>
+    <string name="setcat_swipe_to_queue_off_description">Свайп по треку ничего не делает.</string>
+</resources>

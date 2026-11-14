@@ -2,6 +2,7 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 import com.lostf1sh.pixelplayeross.presentation.components.DetailHeroArtistChip
@@ -142,6 +143,7 @@ fun AlbumDetailScreen(
     }
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val completedOfflineUris by viewModel.completedOfflineUris.collectAsStateWithLifecycle()
     val allArtists by playerViewModel.artistsFlow.collectAsStateWithLifecycle()
     var showAlbumPlaylistSheet by remember { mutableStateOf(false) }
@@ -527,6 +529,7 @@ fun AlbumDetailScreen(
                                     playerViewModel = playerViewModel,
                                     customShape = getSegmentedItemShape(index, discSongs.size),
                                     showAlbumArt = false,
+                                    onSwipeToQueue = swipeToQueue?.let { { it(song) } },
                                     onMoreOptionsClick = {
                                         playerViewModel.selectSongForInfo(song)
                                         showSongInfoBottomSheet = true

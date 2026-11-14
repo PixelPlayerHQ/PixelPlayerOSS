@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Listes de titres</string>
+    <string name="setcat_swipe_to_queue_title">Balayer un titre</string>
+    <string name="setcat_swipe_to_queue_description">Balayez la ligne d’un titre vers la fin de l’écran dans les playlists, albums, artistes, genres et mixes.</string>
+    <string name="setcat_swipe_to_queue_add">Ajouter à la file d’attente</string>
+    <string name="setcat_swipe_to_queue_add_description">Ajoute le titre à la fin de la file d’attente.</string>
+    <string name="setcat_swipe_to_queue_next">Lire ensuite</string>
+    <string name="setcat_swipe_to_queue_next_description">Ajoute le titre juste après celui en cours.</string>
+    <string name="setcat_swipe_to_queue_off">Désactivé</string>
+    <string name="setcat_swipe_to_queue_off_description">Balayer un titre ne fait rien.</string>
+</resources>

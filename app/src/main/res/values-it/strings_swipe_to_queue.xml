@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Elenchi di brani</string>
+    <string name="setcat_swipe_to_queue_title">Scorri un brano</string>
+    <string name="setcat_swipe_to_queue_description">Scorri la riga di un brano verso il bordo finale dello schermo in playlist, album, artisti, generi e mix.</string>
+    <string name="setcat_swipe_to_queue_add">Aggiungi alla coda</string>
+    <string name="setcat_swipe_to_queue_add_description">Aggiunge il brano alla fine della coda.</string>
+    <string name="setcat_swipe_to_queue_next">Riproduci dopo</string>
+    <string name="setcat_swipe_to_queue_next_description">Aggiunge il brano subito dopo quello in riproduzione.</string>
+    <string name="setcat_swipe_to_queue_off">Disattivato</string>
+    <string name="setcat_swipe_to_queue_off_description">Scorrere un brano non fa nulla.</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Danh sách bài hát</string>
+    <string name="setcat_swipe_to_queue_title">Vuốt bài hát</string>
+    <string name="setcat_swipe_to_queue_description">Vuốt một dòng bài hát về phía cuối màn hình trong danh sách phát, album, nghệ sĩ, thể loại và mix.</string>
+    <string name="setcat_swipe_to_queue_add">Thêm vào hàng đợi</string>
+    <string name="setcat_swipe_to_queue_add_description">Thêm bài hát vào cuối hàng đợi.</string>
+    <string name="setcat_swipe_to_queue_next">Phát tiếp theo</string>
+    <string name="setcat_swipe_to_queue_next_description">Thêm bài hát ngay sau bài đang phát.</string>
+    <string name="setcat_swipe_to_queue_off">Tắt</string>
+    <string name="setcat_swipe_to_queue_off_description">Vuốt bài hát không làm gì cả.</string>
+</resources>

@@ -20,6 +20,11 @@ import kotlinx.coroutines.launch
  * tracking only wrapper-side [setVolume] calls would make every fade end at full volume and
  * defeat the normalization. [getVolume] reports the logical volume during a fade rather
  * than the transient mid-ramp value.
+ *
+ * A pause is reported as soon as its fade starts, not when the engine player stops at the
+ * end of it. Controllers show a pause optimistically; a session that went on reporting
+ * "playing" for the length of the fade overwrote that, so the pause button answered half a
+ * second late and a second tap inside the fade paused again instead of resuming.
  */
 @OptIn(UnstableApi::class)
 class FadingPlayer(
@@ -30,6 +35,59 @@ class FadingPlayer(
     private var fadeJob: Job? = null
     // Volume the player should sit at when no fade is running.
     private var logicalVolume = innerPlayer.volume
+    // True while a pause fade ramps down: the pause is decided, only the audio trails it.
+    private var isFadingToPause = false
+    private val listeners = LinkedHashSet<Player.Listener>()
+
+    override fun addListener(listener: Player.Listener) {
+        listeners.add(listener)
+        super.addListener(listener)
+    }
+
+    override fun removeListener(listener: Player.Listener) {
+        listeners.remove(listener)
+        super.removeListener(listener)
+    }
+
+    override fun getPlayWhenReady(): Boolean = !isFadingToPause && super.getPlayWhenReady()
+
+    override fun isPlaying(): Boolean = !isFadingToPause && super.isPlaying()
+
+    override fun setPlayWhenReady(playWhenReady: Boolean) {
+        if (playWhenReady && isFadingToPause) {
+            // The engine player is still playing, so it would ignore this and the fade
+            // would go on to pause it.
+            play()
+        } else {
+            super.setPlayWhenReady(playWhenReady)
+        }
+    }
+
+    /**
+     * Enters or leaves the pause fade and tells listeners what that changes in the reported
+     * state. The engine player emits nothing here: it keeps playing until the fade ends, and
+     * never stopped if the fade is cut short.
+     */
+    private fun setFadingToPause(fading: Boolean) {
+        if (isFadingToPause == fading) return
+        val playWhenReadyBefore = playWhenReady
+        val isPlayingBefore = isPlaying
+        isFadingToPause = fading
+        val playWhenReadyNow = playWhenReady
+        val isPlayingNow = isPlaying
+        if (playWhenReadyBefore == playWhenReadyNow && isPlayingBefore == isPlayingNow) return
+        for (listener in listeners.toList()) {
+            if (playWhenReadyBefore != playWhenReadyNow) {
+                listener.onPlayWhenReadyChanged(
+                    playWhenReadyNow,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST
+                )
+            }
+            if (isPlayingBefore != isPlayingNow) {
+                listener.onIsPlayingChanged(isPlayingNow)
+            }
+        }
+    }
 
     override fun setVolume(volume: Float) {
         logicalVolume = volume
@@ -54,13 +112,15 @@ class FadingPlayer(
         val targetVolume = settledVolume()
         fadeJob?.cancel()
         logicalVolume = targetVolume
-        if (isPlaying) {
+        if (innerPlayer.isPlaying) {
             // A pause fade cut short here has left the volume partway down.
             super.setVolume(targetVolume)
+            setFadingToPause(false)
             super.play()
             return
         }
 
+        setFadingToPause(false)
         super.setVolume(0f)
         super.play()
 
@@ -80,12 +140,15 @@ class FadingPlayer(
         val settledVolume = settledVolume()
         fadeJob?.cancel()
         logicalVolume = settledVolume
-        if (!isPlaying) {
+        if (!innerPlayer.isPlaying) {
             super.pause()
             // A play fade cut short while buffering has left the volume partway up.
             super.setVolume(settledVolume)
+            setFadingToPause(false)
             return
         }
+
+        setFadingToPause(true)
 
         // Ramp down from where the volume is now, which is below the settled level when
         // this cuts a play fade short.
@@ -102,6 +165,7 @@ class FadingPlayer(
             super.pause()
             // Restore the logical volume so the paused player resumes from the right level.
             super.setVolume(logicalVolume)
+            setFadingToPause(false)
         }
     }
 

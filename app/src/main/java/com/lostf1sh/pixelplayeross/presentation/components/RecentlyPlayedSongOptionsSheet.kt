@@ -31,6 +31,7 @@ fun RecentlyPlayedSongOptionsSheet(
     song: Song,
     queueSongs: ImmutableList<Song>,
     queueName: String,
+    playFromLibrary: Boolean = false,
     playerViewModel: PlayerViewModel,
     onDismiss: () -> Unit,
     onSongDeleted: (Song) -> Unit,
@@ -60,7 +61,9 @@ fun RecentlyPlayedSongOptionsSheet(
             onDismiss()
         },
         onPlaySong = {
-            if (queueSongs.any { it.id == sheetSong.id }) {
+            if (playFromLibrary) {
+                playerViewModel.showAndPlaySongFromLibrary(sheetSong, queueName = queueName)
+            } else if (queueSongs.any { it.id == sheetSong.id }) {
                 playerViewModel.playSongs(
                     songsToPlay = queueSongs,
                     startSong = sheetSong,

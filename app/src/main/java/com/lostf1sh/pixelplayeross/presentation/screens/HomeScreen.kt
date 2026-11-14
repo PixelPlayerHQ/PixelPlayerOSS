@@ -134,7 +134,9 @@ private const val HomeScrollRestoreGraceMillis = 1_500L
 private data class HomeSongOptions(
     val song: Song,
     val queueSongs: ImmutableList<Song>,
-    val queueName: String
+    val queueName: String,
+    /** Play builds the full library queue, as tapping a Home library preview does. */
+    val playFromLibrary: Boolean = false
 )
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -451,7 +453,9 @@ fun HomeScreen(
                                     height = 290.dp,
                                     pattern = activePattern,
                                     onSongLongClick = { song ->
-                                        songForOptions = HomeSongOptions(song, yourMixSongs, yourMixQueueName)
+                                        songForOptions = HomeSongOptions(
+                                            song, yourMixSongs, yourMixQueueName, playFromLibrary = usesFallbackHomeMix
+                                        )
                                     },
                                     onSongClick = { song ->
                                         if (usesFallbackHomeMix) {
@@ -510,7 +514,9 @@ fun HomeScreen(
                             height = 400.dp,
                             pattern = activePattern,
                             onSongLongClick = { song ->
-                                songForOptions = HomeSongOptions(song, yourMixSongs, yourMixQueueName)
+                                songForOptions = HomeSongOptions(
+                                    song, yourMixSongs, yourMixQueueName, playFromLibrary = usesFallbackHomeMix
+                                )
                             },
                             onSongClick = { song ->
                                 if (usesFallbackHomeMix) {
@@ -755,11 +761,12 @@ fun HomeScreen(
             }
         )
     }
-    songForOptions?.let { (song, queueSongs, queueName) ->
+    songForOptions?.let { (song, queueSongs, queueName, playFromLibrary) ->
         RecentlyPlayedSongOptionsSheet(
             song = song,
             queueSongs = queueSongs,
             queueName = queueName,
+            playFromLibrary = playFromLibrary,
             playerViewModel = playerViewModel,
             onDismiss = { songForOptions = null },
             onSongDeleted = { deletedSong ->

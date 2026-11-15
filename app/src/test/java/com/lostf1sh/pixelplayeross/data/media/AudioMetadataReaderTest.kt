@@ -87,6 +87,34 @@ class AudioMetadataReaderTest {
     }
 
     @Test
+    fun `firstMusicBrainzId returns the first well-formed id and drops malformed values`() {
+        val recording = "a1b2c3d4-0000-4000-8000-123456789ABC"
+
+        assertEquals(recording.lowercase(), firstMusicBrainzId(listOf(null, "not-an-id", " $recording ")))
+        assertEquals(
+            "11111111-2222-3333-4444-555555555555",
+            firstMusicBrainzId(listOf("11111111-2222-3333-4444-555555555555; 66666666-7777-8888-9999-000000000000"))
+        )
+        assertNull(firstMusicBrainzId(listOf("", "12345")))
+        assertNull(firstMusicBrainzId(null))
+    }
+
+    @Test
+    fun `JAudioTagger fallback reads embedded MusicBrainz ids`() {
+        val file = writeTaggedWav()
+        val audioFile = AudioFileIO.read(file)
+        audioFile.tag.setField(FieldKey.MUSICBRAINZ_TRACK_ID, RECORDING_MBID)
+        audioFile.tag.setField(FieldKey.MUSICBRAINZ_RELEASEID, RELEASE_MBID)
+        audioFile.commit()
+
+        val metadata = AudioMetadataReader.readWithJAudioTagger(file, readArtwork = false)
+
+        assertEquals(RECORDING_MBID, metadata?.mbRecordingId)
+        assertEquals(RELEASE_MBID, metadata?.mbReleaseId)
+        assertNull(metadata?.mbArtistId)
+    }
+
+    @Test
     fun `read records a metadata timing even when the file cannot be read`() {
         // ParcelFileDescriptor is stubbed on the JVM, so the TagLib path fails and the read
         // returns null; the timing must still be recorded by the finally block.
@@ -146,6 +174,8 @@ class AudioMetadataReaderTest {
 
     private companion object {
         const val TITLE = "Scan Title"
+        const val RECORDING_MBID = "0f4a1b2c-3d4e-4f50-8a6b-7c8d9e0f1a2b"
+        const val RELEASE_MBID = "1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d"
 
         val PNG_SIGNATURE = byteArrayOf(
             0x89.toByte(), 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A

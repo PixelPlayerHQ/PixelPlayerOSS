@@ -113,6 +113,7 @@ import com.lostf1sh.pixelplayeross.presentation.viewmodel.StatsViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.StreamingProviderLoginViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.sharedPlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.ExpTitleTypography
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.delay
@@ -128,6 +129,15 @@ import com.lostf1sh.pixelplayeross.presentation.components.rememberModalSheetSta
 
 private const val HomeLoadingPlaceholderMinDurationMillis = 1200L
 private const val HomeScrollRestoreGraceMillis = 1_500L
+
+/** A Home song a long press opened options for, with the queue that playing it from there uses. */
+private data class HomeSongOptions(
+    val song: Song,
+    val queueSongs: ImmutableList<Song>,
+    val queueName: String,
+    /** Play builds the full library queue, as tapping a Home library preview does. */
+    val playFromLibrary: Boolean = false
+)
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -264,7 +274,7 @@ fun HomeScreen(
     var showChangelogBottomSheet by remember { mutableStateOf(false) }
     var showBetaInfoBottomSheet by remember { mutableStateOf(false) }
     var showStreamingProviderSheet by remember { mutableStateOf(false) }
-    var recentSongForOptions by remember { mutableStateOf<Song?>(null) }
+    var songForOptions by remember { mutableStateOf<HomeSongOptions?>(null) }
     val sheetState = rememberModalSheetState()
     val betaSheetState = rememberModalSheetState()
     val scope = rememberCoroutineScope()
@@ -442,6 +452,11 @@ fun HomeScreen(
                                     padding = 12.dp,
                                     height = 290.dp,
                                     pattern = activePattern,
+                                    onSongLongClick = { song ->
+                                        songForOptions = HomeSongOptions(
+                                            song, yourMixSongs, yourMixQueueName, playFromLibrary = usesFallbackHomeMix
+                                        )
+                                    },
                                     onSongClick = { song ->
                                         if (usesFallbackHomeMix) {
                                             playerViewModel.showAndPlaySongFromLibrary(song, queueName = yourMixQueueName)
@@ -498,6 +513,11 @@ fun HomeScreen(
                             padding = 14.dp,
                             height = 400.dp,
                             pattern = activePattern,
+                            onSongLongClick = { song ->
+                                songForOptions = HomeSongOptions(
+                                    song, yourMixSongs, yourMixQueueName, playFromLibrary = usesFallbackHomeMix
+                                )
+                            },
                             onSongClick = { song ->
                                 if (usesFallbackHomeMix) {
                                     playerViewModel.showAndPlaySongFromLibrary(song, queueName = yourMixQueueName)
@@ -542,7 +562,7 @@ fun HomeScreen(
                                     }
                                 },
                                 onSongLongClick = { song ->
-                                    recentSongForOptions = song
+                                    songForOptions = HomeSongOptions(song, recentlyPlayedQueue, recentlyPlayedQueueName)
                                 },
                                 onOpenAllClick = {
                                     navController.navigateSafely(Screen.RecentlyPlayed.route)
@@ -647,7 +667,7 @@ fun HomeScreen(
                                     }
                                 },
                                 onSongLongClick = { song ->
-                                    recentSongForOptions = song
+                                    songForOptions = HomeSongOptions(song, recentlyPlayedQueue, recentlyPlayedQueueName)
                                 },
                                 onOpenAllClick = {
                                     navController.navigateSafely(Screen.RecentlyPlayed.route)
@@ -741,13 +761,14 @@ fun HomeScreen(
             }
         )
     }
-    recentSongForOptions?.let { song ->
+    songForOptions?.let { (song, queueSongs, queueName, playFromLibrary) ->
         RecentlyPlayedSongOptionsSheet(
             song = song,
-            queueSongs = recentlyPlayedQueue,
-            queueName = recentlyPlayedQueueName,
+            queueSongs = queueSongs,
+            queueName = queueName,
+            playFromLibrary = playFromLibrary,
             playerViewModel = playerViewModel,
-            onDismiss = { recentSongForOptions = null },
+            onDismiss = { songForOptions = null },
             onSongDeleted = { deletedSong ->
                 recentlyPlayedSongs = recentlyPlayedSongs.withoutSong(deletedSong.id)
             },

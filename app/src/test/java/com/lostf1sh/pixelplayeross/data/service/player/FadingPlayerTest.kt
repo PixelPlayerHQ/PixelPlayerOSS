@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.data.service.player
 import androidx.media3.common.Player
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -39,14 +40,22 @@ class FadingPlayerTest {
         Dispatchers.resetMain()
     }
 
-    private class InnerState(var volume: Float, var isPlaying: Boolean)
+    private class InnerState(
+        var volume: Float,
+        var isPlaying: Boolean,
+        var playWhenReady: Boolean = isPlaying,
+    )
 
     private fun innerPlayer(state: InnerState): Player =
         mockk<Player>(relaxed = true).also { player ->
             every { player.volume } answers { state.volume }
             every { player.setVolume(any()) } answers { state.volume = firstArg() }
             every { player.isPlaying } answers { state.isPlaying }
-            every { player.pause() } answers { state.isPlaying = false }
+            every { player.playWhenReady } answers { state.playWhenReady }
+            every { player.pause() } answers {
+                state.isPlaying = false
+                state.playWhenReady = false
+            }
         }
 
     @Test
@@ -128,5 +137,125 @@ class FadingPlayerTest {
         advanceUntilIdle()
 
         assertEquals(1f, state.volume)
+    }
+
+    @Test
+    fun `pause is reported when its fade starts, before the engine player stops`() =
+        runTest(dispatcher) {
+            val state = InnerState(volume = 1f, isPlaying = true)
+            val inner = innerPlayer(state)
+            val player = FadingPlayer(inner, TestScope(dispatcher))
+            val listener = mockk<Player.Listener>(relaxed = true)
+            player.addListener(listener)
+
+            player.pause()
+            runCurrent()
+
+            assertFalse(player.isPlaying)
+            assertFalse(player.playWhenReady)
+            assertTrue(state.isPlaying)
+            verify(exactly = 1) {
+                listener.onPlayWhenReadyChanged(
+                    false,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST
+                )
+            }
+            verify(exactly = 1) { listener.onIsPlayingChanged(false) }
+            verify(exactly = 0) { inner.pause() }
+
+            advanceUntilIdle()
+
+            verify(exactly = 1) { inner.pause() }
+            assertFalse(player.isPlaying)
+            // The end of the fade changes nothing a listener has not already been told.
+            verify(exactly = 1) { listener.onIsPlayingChanged(any()) }
+            verify(exactly = 1) { listener.onPlayWhenReadyChanged(any(), any()) }
+        }
+
+    @Test
+    fun `play during the pause fade reports playing again and never pauses the engine player`() =
+        runTest(dispatcher) {
+            val state = InnerState(volume = 1f, isPlaying = true)
+            val inner = innerPlayer(state)
+            val player = FadingPlayer(inner, TestScope(dispatcher))
+            val listener = mockk<Player.Listener>(relaxed = true)
+            player.addListener(listener)
+
+            player.pause()
+            advanceTimeBy(250)
+            player.play()
+
+            assertTrue(player.isPlaying)
+            assertTrue(player.playWhenReady)
+            verify(exactly = 1) {
+                listener.onPlayWhenReadyChanged(
+                    true,
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST
+                )
+            }
+            verify(exactly = 1) { listener.onIsPlayingChanged(true) }
+
+            advanceUntilIdle()
+
+            verify(exactly = 0) { inner.pause() }
+            assertEquals(1f, state.volume)
+        }
+
+    @Test
+    fun `setting play when ready during the pause fade resumes instead of letting it pause`() =
+        runTest(dispatcher) {
+            val state = InnerState(volume = 1f, isPlaying = true)
+            val inner = innerPlayer(state)
+            val player = FadingPlayer(inner, TestScope(dispatcher))
+
+            player.pause()
+            advanceTimeBy(250)
+            player.playWhenReady = true
+            advanceUntilIdle()
+
+            assertTrue(player.isPlaying)
+            verify(exactly = 0) { inner.pause() }
+            assertEquals(1f, state.volume)
+        }
+
+    @Test
+    fun `second pause during the pause fade keeps ramping down and is reported once`() =
+        runTest(dispatcher) {
+            val state = InnerState(volume = 1f, isPlaying = true)
+            val inner = innerPlayer(state)
+            val player = FadingPlayer(inner, TestScope(dispatcher))
+            val listener = mockk<Player.Listener>(relaxed = true)
+            player.addListener(listener)
+
+            player.pause()
+            advanceTimeBy(250)
+            val midFadeVolume = state.volume
+            player.pause()
+            runCurrent()
+
+            // Still fading rather than cut off, and not back up to full volume.
+            assertTrue(state.isPlaying)
+            assertTrue(state.volume > 0f && state.volume <= midFadeVolume)
+            verify(exactly = 0) { inner.pause() }
+
+            advanceUntilIdle()
+
+            verify(exactly = 1) { inner.pause() }
+            verify(exactly = 1) { listener.onIsPlayingChanged(false) }
+            assertEquals(1f, state.volume)
+        }
+
+    @Test
+    fun `removed listener is not told about a pause fade`() = runTest(dispatcher) {
+        val state = InnerState(volume = 1f, isPlaying = true)
+        val player = FadingPlayer(innerPlayer(state), TestScope(dispatcher))
+        val listener = mockk<Player.Listener>(relaxed = true)
+        player.addListener(listener)
+        player.removeListener(listener)
+
+        player.pause()
+        advanceUntilIdle()
+
+        verify(exactly = 0) { listener.onIsPlayingChanged(any()) }
     }
 }

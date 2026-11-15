@@ -240,6 +240,7 @@ constructor(
         val MINI_PLAYER_SWIPE_TO_SKIP = booleanPreferencesKey("mini_player_swipe_to_skip")
         val AUTOPLAY_ON_SKIP = booleanPreferencesKey("autoplay_on_skip")
         val PREVIOUS_BUTTON_BEHAVIOR = stringPreferencesKey("previous_button_behavior")
+        val SWIPE_TO_QUEUE_ACTION = stringPreferencesKey("swipe_to_queue_action")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
             booleanPreferencesKey("advanced_performance_diagnostics_enabled")
@@ -1995,6 +1996,17 @@ constructor(
     suspend fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.PREVIOUS_BUTTON_BEHAVIOR] = behavior.storageKey
+        }
+    }
+
+    val swipeToQueueActionFlow: Flow<SwipeToQueueAction> =
+        dataStore.data.map { preferences ->
+            SwipeToQueueAction.fromStorageKey(preferences[PreferencesKeys.SWIPE_TO_QUEUE_ACTION])
+        }.distinctUntilChanged()
+
+    suspend fun setSwipeToQueueAction(action: SwipeToQueueAction) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_TO_QUEUE_ACTION] = action.storageKey
         }
     }
 

@@ -2,6 +2,7 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 import com.lostf1sh.pixelplayeross.presentation.components.DetailHeroFloatingLayer
@@ -150,6 +151,7 @@ fun ArtistDetailScreen(
     val lazyListState = rememberLazyListState()
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -544,6 +546,7 @@ fun ArtistDetailScreen(
                                         onSongClick = {
                                             playerViewModel.showAndPlaySong(song, section.songs)
                                         },
+                                        onSwipeToQueue = swipeToQueue?.let { { it(song) } },
                                         onMoreOptionsClick = {
                                             playerViewModel.selectSongForInfo(song)
                                             showSongInfoBottomSheet = true
@@ -890,6 +893,7 @@ private fun ArtistAlbumSectionSongItem(
     isCurrentSong: Boolean,
     isPlaying: Boolean,
     onSongClick: () -> Unit,
+    onSwipeToQueue: (() -> Unit)?,
     onMoreOptionsClick: () -> Unit
 ) {
     val isLastSong = songIndex == songCount - 1
@@ -932,6 +936,7 @@ private fun ArtistAlbumSectionSongItem(
                 isPlaying = isPlaying,
                 showAlbumArt = false,
                 customShape = songItemShape,
+                onSwipeToQueue = onSwipeToQueue,
                 onMoreOptionsClick = { onMoreOptionsClick() },
                 onClick = onSongClick
             )

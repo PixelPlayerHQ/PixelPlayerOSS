@@ -88,6 +88,22 @@ internal fun shouldReadEmbeddedMetadata(
         isDefaultMetadata(rawAlbum)
 }
 
+/**
+ * Embedded MusicBrainz tags win; otherwise IDs stored earlier (a previous scan or a manual
+ * lookup) survive a rescan that did not read tags. The three IDs move together so a recording
+ * is never paired with another match's release or artist.
+ */
+internal fun SongEntity.withMusicBrainzIdsFallback(stored: SongEntity): SongEntity =
+    if (mbRecordingId != null) {
+        this
+    } else {
+        copy(
+            mbRecordingId = stored.mbRecordingId,
+            mbReleaseId = stored.mbReleaseId,
+            mbArtistId = stored.mbArtistId
+        )
+    }
+
 private fun isDefaultMetadata(value: String): Boolean {
     val lower = value.trim().lowercase(Locale.ROOT)
     return lower.isEmpty() ||
@@ -1092,7 +1108,7 @@ constructor(
                                     artistUserEdited = localSong.artistUserEdited,
                                     albumUserEdited = localSong.albumUserEdited,
                                     genreUserEdited = localSong.genreUserEdited
-                                )
+                                ).withMusicBrainzIdsFallback(localSong)
                             } else {
                                 scannedMediaStoreSong.entity
                             }
@@ -1157,6 +1173,9 @@ constructor(
         var discNumber = raw.discNumber
         var year = raw.year
         var genre: String? = genreMap[raw.id] ?: raw.genre
+        var mbRecordingId: String? = null
+        var mbReleaseId: String? = null
+        var mbArtistId: String? = null
 
         val shouldAugmentMetadata = shouldReadEmbeddedMetadata(
             filePath = raw.filePath,
@@ -1190,6 +1209,11 @@ constructor(
                         if (meta.trackNumber != null) trackNumber = meta.trackNumber
                         if (meta.discNumber != null) discNumber = meta.discNumber
                         if (meta.year != null) year = meta.year
+                        if (meta.mbRecordingId != null) {
+                            mbRecordingId = meta.mbRecordingId
+                            mbReleaseId = meta.mbReleaseId
+                            mbArtistId = meta.mbArtistId
+                        }
                     }
                 } catch (e: Exception) {
                     Timber.tag(TAG).w(e, "Failed to read metadata via TagLib for ${raw.filePath}")
@@ -1225,7 +1249,10 @@ constructor(
                 bitrate = audioMetadata?.bitrate,
                 sourceType = SourceType.LOCAL,
                 mediaStoreDateAdded = raw.dateAdded,
-                mediaStoreDateModified = raw.dateModified
+                mediaStoreDateModified = raw.dateModified,
+                mbRecordingId = mbRecordingId,
+                mbReleaseId = mbReleaseId,
+                mbArtistId = mbArtistId
             ),
             artistValues = artistValues
         )

@@ -173,7 +173,7 @@ class DailyMixStateHolderTest {
             songsStillInLibrary = listOf(song("smart"), song("other"))
         )
         coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
-        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any(), any()) } returns listOf(song("other"))
         coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
         holder.initialize(owner)
 
@@ -199,7 +199,7 @@ class DailyMixStateHolderTest {
             savedReplacedAtMillis = System.currentTimeMillis()
         )
         coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
-        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any(), any()) } returns listOf(song("other"))
         coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
         holder.initialize(owner)
 
@@ -220,7 +220,7 @@ class DailyMixStateHolderTest {
             savedReplacedAtMillis = System.currentTimeMillis()
         )
         coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("other"))
-        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any(), any()) } returns listOf(song("other"))
         coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
         holder.initialize(owner)
         // A Smart Mix applied earlier today whose only song a sync has since removed
@@ -245,7 +245,7 @@ class DailyMixStateHolderTest {
         coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
         val generating = CompletableDeferred<Unit>()
         val finishGenerating = CompletableDeferred<Unit>()
-        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } coAnswers {
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any(), any()) } coAnswers {
             generating.complete(Unit)
             finishGenerating.await()
             listOf(song("other"))
@@ -276,7 +276,7 @@ class DailyMixStateHolderTest {
             savedReplacedAtMillis = System.currentTimeMillis()
         )
         coEvery { musicRepository.getAllSongsOnce() } returns listOf(song("smart"), song("other"))
-        coEvery { dailyMixManager.generateDailyMix(any(), any(), any()) } returns listOf(song("other"))
+        coEvery { dailyMixManager.generateDailyMix(any(), any(), any(), any()) } returns listOf(song("other"))
         coEvery { dailyMixManager.generateYourMix(any(), any(), any()) } returns listOf(song("other"))
         val lookups = AtomicInteger()
         val keepCheckLooking = CompletableDeferred<Unit>()

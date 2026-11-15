@@ -783,6 +783,18 @@ object SettingsRegistry {
                 )
             ),
             SettingSpec(
+                id = "behavior_swipe_to_queue",
+                itemKey = "item_behavior_swipe_to_queue",
+                titleRes = R.string.setcat_swipe_to_queue_title,
+                subtitleRes = R.string.setcat_swipe_to_queue_description,
+                category = SettingsCategory.BEHAVIOR,
+                subscreenRoute = Screen.SettingsCategory.createRoute("behavior"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf(
+                    "swipe", "gesture", "queue", "add to queue", "play next", "song list", "playlist"
+                )
+            ),
+            SettingSpec(
                 id = "behavior_haptics",
                 itemKey = "item_behavior_haptics",
                 titleRes = R.string.setcat_haptic_feedback_title,

@@ -18,6 +18,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -75,6 +76,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -455,9 +457,15 @@ fun SongInfoBottomSheet(
                                                         Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(R.string.cd_play_song_action))
                                                     },
                                                     text = {
+                                                        // Long translations (e.g. Italian) shrink to fit on one line.
                                                         Text(
                                                             modifier = Modifier.padding(end = 10.dp),
-                                                            text = stringResource(R.string.play_playback)
+                                                            text = stringResource(R.string.play_playback),
+                                                            maxLines = 1,
+                                                            autoSize = TextAutoSize.StepBased(
+                                                                minFontSize = 10.sp,
+                                                                maxFontSize = LocalTextStyle.current.fontSize
+                                                            )
                                                         )
                                                     }
                                                 )

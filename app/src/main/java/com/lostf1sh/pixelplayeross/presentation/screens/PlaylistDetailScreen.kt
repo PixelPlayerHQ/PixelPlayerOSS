@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.SwipeToQueueBox
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
@@ -243,6 +245,7 @@ fun PlaylistDetailScreen(
 
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val stableOnMoreOptionsClick: (Song) -> Unit = remember {
         { song ->
             playerViewModel.selectSongForInfo(song)
@@ -801,68 +804,76 @@ fun PlaylistDetailScreen(
                                         label = "scale"
                                     )
 
-                                    QueuePlaylistSongItem(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 0.dp)
-                                            .graphicsLayer {
-                                                scaleX = scale
-                                                scaleY = scale
+                                    SwipeToQueueBox(
+                                        // Swipes would fight reordering and removal.
+                                        onSwipe = swipeToQueue
+                                            ?.takeUnless { isReorderModeEnabled || isRemoveModeEnabled }
+                                            ?.let { { it(song) } },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { rowModifier ->
+                                        QueuePlaylistSongItem(
+                                            modifier = rowModifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 0.dp)
+                                                .graphicsLayer {
+                                                    scaleX = scale
+                                                    scaleY = scale
+                                                },
+                                            onClick = {
+                                                playerViewModel.playSongs(
+                                                    localReorderableSongs,
+                                                    song,
+                                                    currentPlaylist.name,
+                                                    currentPlaylist.id
+                                                )
                                             },
-                                        onClick = {
-                                            playerViewModel.playSongs(
-                                                localReorderableSongs,
-                                                song,
-                                                currentPlaylist.name,
-                                                currentPlaylist.id
-                                            )
-                                        },
-                                        song = song,
-                                        isCurrentSong = playbackUiState.isCurrentSong,
-                                        isPlaying = playbackUiState.isPlaying,
-                                        isDragging = isDragging,
-                                        onRemoveClick = {
-                                            if (isEditablePlaylist) {
-                                                currentPlaylist.let {
-                                                    playlistViewModel.removeSongFromPlaylist(it.id, song.id)
+                                            song = song,
+                                            isCurrentSong = playbackUiState.isCurrentSong,
+                                            isPlaying = playbackUiState.isPlaying,
+                                            isDragging = isDragging,
+                                            onRemoveClick = {
+                                                if (isEditablePlaylist) {
+                                                    currentPlaylist.let {
+                                                        playlistViewModel.removeSongFromPlaylist(it.id, song.id)
+                                                    }
+                                                }
+                                            },
+                                            isFromPlaylist = true,
+                                            isReorderModeEnabled = isReorderModeEnabled,
+                                            isDragHandleVisible = isReorderModeEnabled && isEditablePlaylist,
+                                            isRemoveButtonVisible = isRemoveModeEnabled && isEditablePlaylist,
+                                            onMoreOptionsClick = stableOnMoreOptionsClick,
+                                            dragHandle = {
+                                                IconButton(
+                                                    onClick = {},
+                                                    modifier = Modifier
+                                                        .draggableHandle(
+                                                            onDragStarted = {
+                                                                performAppCompatHapticFeedback(
+                                                                    view,
+                                                                    appHapticsConfig,
+                                                                    HapticFeedbackConstantsCompat.GESTURE_START
+                                                                )
+                                                            },
+                                                            onDragStopped = {
+                                                                performAppCompatHapticFeedback(
+                                                                    view,
+                                                                    appHapticsConfig,
+                                                                    HapticFeedbackConstantsCompat.GESTURE_END
+                                                                )
+                                                            }
+                                                        )
+                                                        .size(40.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.DragIndicator,
+                                                        contentDescription = reorderSongCd,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
                                                 }
                                             }
-                                        },
-                                        isFromPlaylist = true,
-                                        isReorderModeEnabled = isReorderModeEnabled,
-                                        isDragHandleVisible = isReorderModeEnabled && isEditablePlaylist,
-                                        isRemoveButtonVisible = isRemoveModeEnabled && isEditablePlaylist,
-                                        onMoreOptionsClick = stableOnMoreOptionsClick,
-                                        dragHandle = {
-                                            IconButton(
-                                                onClick = {},
-                                                modifier = Modifier
-                                                    .draggableHandle(
-                                                        onDragStarted = {
-                                                            performAppCompatHapticFeedback(
-                                                                view,
-                                                                appHapticsConfig,
-                                                                HapticFeedbackConstantsCompat.GESTURE_START
-                                                            )
-                                                        },
-                                                        onDragStopped = {
-                                                            performAppCompatHapticFeedback(
-                                                                view,
-                                                                appHapticsConfig,
-                                                                HapticFeedbackConstantsCompat.GESTURE_END
-                                                            )
-                                                        }
-                                                    )
-                                                    .size(40.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.DragIndicator,
-                                                    contentDescription = reorderSongCd,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -175,6 +175,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.LaunchTab
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
 import com.lostf1sh.pixelplayeross.data.preferences.NavBarStyle
 import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
+import com.lostf1sh.pixelplayeross.data.preferences.SwipeToQueueAction
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreset
 import com.lostf1sh.pixelplayeross.utils.isIgnoringBatteryOptimizations
@@ -1128,6 +1129,38 @@ fun SettingsCategoryScreen(
                                     onCheckedChange = { settingsViewModel.setMiniPlayerSwipeToSkip(it) },
                                     leadingIcon = { Icon(painterResource(R.drawable.rounded_skip_next_24), null, tint = MaterialTheme.colorScheme.secondary) },
                                     modifier = Modifier.settingHighlight("item_behavior_mini_swipe_skip", highlightKey)
+                                )
+                            }
+                            SettingsSubsection(
+                                title = stringResource(R.string.setcat_song_lists)
+                            ) {
+                                ThemeSelectorItem(
+                                    label = stringResource(R.string.setcat_swipe_to_queue_title),
+                                    description = stringResource(R.string.setcat_swipe_to_queue_description),
+                                    options = linkedMapOf(
+                                        SwipeToQueueAction.ADD_TO_QUEUE.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_add),
+                                        SwipeToQueueAction.PLAY_NEXT.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_next),
+                                        SwipeToQueueAction.OFF.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_off)
+                                    ),
+                                    optionDescriptions = mapOf(
+                                        SwipeToQueueAction.ADD_TO_QUEUE.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_add_description),
+                                        SwipeToQueueAction.PLAY_NEXT.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_next_description),
+                                        SwipeToQueueAction.OFF.storageKey to
+                                            stringResource(R.string.setcat_swipe_to_queue_off_description)
+                                    ),
+                                    selectedKey = uiState.swipeToQueueAction.storageKey,
+                                    onSelectionChanged = { key ->
+                                        settingsViewModel.setSwipeToQueueAction(
+                                            SwipeToQueueAction.fromStorageKey(key)
+                                        )
+                                    },
+                                    leadingIcon = { Icon(painterResource(R.drawable.rounded_queue_music_24), null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_behavior_swipe_to_queue", highlightKey)
                                 )
                             }
                             SettingsSubsection(

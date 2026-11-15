@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Sanglister</string>
+    <string name="setcat_swipe_to_queue_title">Sveip en sang</string>
+    <string name="setcat_swipe_to_queue_description">Sveip en sangrad mot enden av skjermen i spillelister, album, artister, sjangre og mikser.</string>
+    <string name="setcat_swipe_to_queue_add">Legg til i køen</string>
+    <string name="setcat_swipe_to_queue_add_description">Legger sangen til på slutten av køen.</string>
+    <string name="setcat_swipe_to_queue_next">Spill neste</string>
+    <string name="setcat_swipe_to_queue_next_description">Legger sangen rett etter den som spilles.</string>
+    <string name="setcat_swipe_to_queue_off">Av</string>
+    <string name="setcat_swipe_to_queue_off_description">Å sveipe en sang gjør ingenting.</string>
+</resources>

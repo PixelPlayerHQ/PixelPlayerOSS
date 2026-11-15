@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 
 import com.lostf1sh.pixelplayeross.utils.traceSection
@@ -115,6 +116,7 @@ fun RecentlyPlayedScreen(
         playerViewModel.stablePlayerState.map { it.isPlaying }.distinctUntilChanged()
     }.collectAsStateWithLifecycle(initialValue = false)
     val favoriteSongIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val playlistUiState by playlistViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -259,6 +261,7 @@ fun RecentlyPlayedScreen(
                                         queueName = queueRecentlyPlayed
                                     )
                                 },
+                                onSwipeToQueue = swipeToQueue?.let { { it(item.song) } },
                                 onMoreOptionsClick = { song ->
                                     playerViewModel.selectSongForInfo(song)
                                     showSongInfoBottomSheet = true

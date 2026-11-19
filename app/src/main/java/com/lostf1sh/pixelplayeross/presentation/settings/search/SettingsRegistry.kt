@@ -389,6 +389,28 @@ object SettingsRegistry {
                 keywordsStatic = listOf("amoled", "black", "oled", "true black", "dark", "theme", "preset")
             ),
             SettingSpec(
+                id = "appearance_system_font",
+                itemKey = "item_appearance_system_font",
+                titleRes = R.string.setcat_system_font_title,
+                subtitleRes = R.string.setcat_system_font_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("font", "typeface", "text", "system"),
+                getValue = { it.interfaceAppearance.useSystemFont },
+                onToggle = { viewModel, checked -> viewModel.setUseSystemFont(checked) }
+            ),
+            SettingSpec(
+                id = "appearance_interface_scale",
+                itemKey = "item_appearance_interface_scale",
+                titleRes = R.string.setcat_interface_scale_title,
+                subtitleRes = R.string.setcat_interface_scale_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("scale", "size", "display", "zoom")
+            ),
+            SettingSpec(
                 id = "appearance_global_now_playing_theme",
                 itemKey = "item_appearance_global_now_playing_theme",
                 titleRes = R.string.setcat_global_now_playing_theme_title,

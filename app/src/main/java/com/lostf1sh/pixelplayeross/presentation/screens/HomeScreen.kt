@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -1074,5 +1076,5 @@ private fun rememberYourMixTitleStyle(): TextStyle {
             fontSize = 64.sp,
             lineHeight = 62.sp
         )
-    }
+    }.withInterfaceFont()
 }

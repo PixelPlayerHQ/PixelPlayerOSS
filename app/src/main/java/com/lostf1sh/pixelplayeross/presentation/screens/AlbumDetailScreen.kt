@@ -2,6 +2,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
@@ -322,7 +324,7 @@ fun AlbumDetailScreen(
                 // Same per-album variable-font title as the album cards in the Library.
                 val heroTitleStyle = remember(album.id, album.title) {
                     GenreTypography.getGenreStyle(album.id.toString(), album.title)
-                }
+                }.withInterfaceFont()
                 val heroMetaLine = listOfNotNull(
                     albumGenre,
                     album.year.takeIf { it > 0 }?.toString()

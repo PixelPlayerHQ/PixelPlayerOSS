@@ -2,6 +2,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.rememberDisplayFont
+
 import android.content.ClipData
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -940,7 +942,7 @@ private fun rememberBookmarkFlexFont(
     slant: Float,
     rond: Float
 ): FontFamily =
-    remember(weight, width, slant, rond) {
+    rememberDisplayFont(weight, width, slant, rond) {
         FontFamily(
             Font(
                 resId = R.font.gflex_variable,
@@ -965,7 +967,7 @@ private fun rememberBookmarkGenreFont(
     width: Float,
     grade: Int
 ): FontFamily =
-    remember(weight, width, grade) {
+    rememberDisplayFont(weight, width, grade) {
         FontFamily(
             Font(
                 resId = R.font.genre_variable,

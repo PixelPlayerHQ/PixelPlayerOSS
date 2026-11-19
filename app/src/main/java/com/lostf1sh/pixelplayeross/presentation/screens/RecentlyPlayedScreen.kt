@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 
@@ -462,7 +464,7 @@ private fun rememberRecentlyPlayedTitleStyle(): TextStyle {
             lineHeight = 38.sp,
             letterSpacing = (-0.4).sp
         )
-    }
+    }.withInterfaceFont()
 }
 
 @Composable

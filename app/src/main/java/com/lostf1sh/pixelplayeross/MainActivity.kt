@@ -118,6 +118,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.sanitizeNavBarCornerRadius
 import com.lostf1sh.pixelplayeross.data.preferences.SidebarShortcutKeys
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreset
+import com.lostf1sh.pixelplayeross.data.preferences.InterfaceAppearance
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.service.MusicService
 import com.lostf1sh.pixelplayeross.data.worker.SyncManager
@@ -305,6 +306,7 @@ class MainActivity : ComponentActivity() {
             val systemDarkTheme = isSystemInDarkTheme()
             val appThemeMode by themePreferencesRepository.appThemeModeFlow.collectAsStateWithLifecycle(initialValue = AppThemeMode.FOLLOW_SYSTEM)
             val themePreset by themePreferencesRepository.themePresetFlow.collectAsStateWithLifecycle(initialValue = ThemePreset.DEFAULT)
+            val interfaceAppearance by themePreferencesRepository.interfaceAppearanceFlow.collectAsStateWithLifecycle(initialValue = InterfaceAppearance())
             val useDarkTheme = when (appThemeMode) {
                 AppThemeMode.DARK -> true
                 AppThemeMode.LIGHT -> false
@@ -389,7 +391,8 @@ class MainActivity : ComponentActivity() {
             PixelPlayerTheme(
                 darkTheme = useDarkTheme,
                 colorSchemePairOverride = appWideNowPlayingScheme,
-                themePreset = themePreset
+                themePreset = themePreset,
+                interfaceAppearance = interfaceAppearance
             ) {
                 var contentVisible by remember { mutableStateOf(false) }
                 val contentAlpha by animateFloatAsState(

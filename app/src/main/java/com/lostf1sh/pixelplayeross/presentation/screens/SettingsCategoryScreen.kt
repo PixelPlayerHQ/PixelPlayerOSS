@@ -178,6 +178,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.SwipeToQueueAction
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreset
+import com.lostf1sh.pixelplayeross.data.preferences.InterfaceAppearance
 import com.lostf1sh.pixelplayeross.utils.isIgnoringBatteryOptimizations
 import com.lostf1sh.pixelplayeross.utils.openBatteryOptimizationSettings
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -738,6 +739,25 @@ fun SettingsCategoryScreen(
                                     onSelectionChanged = { settingsViewModel.setThemePreset(it) },
                                     leadingIcon = { Icon(Icons.Outlined.Contrast, null, tint = MaterialTheme.colorScheme.secondary) },
                                     modifier = Modifier.settingHighlight("item_appearance_theme_preset", highlightKey)
+                                )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_system_font_title),
+                                    subtitle = stringResource(R.string.setcat_system_font_subtitle),
+                                    checked = uiState.interfaceAppearance.useSystemFont,
+                                    onCheckedChange = settingsViewModel::setUseSystemFont,
+                                    leadingIcon = { Icon(Icons.Outlined.Style, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_appearance_system_font", highlightKey)
+                                )
+                                ThemeSelectorItem(
+                                    label = stringResource(R.string.setcat_interface_scale_title),
+                                    description = stringResource(R.string.setcat_interface_scale_subtitle),
+                                    options = InterfaceAppearance.scaleOptions.associate {
+                                        it.toString() to stringResource(R.string.setcat_interface_scale_percent, it)
+                                    },
+                                    selectedKey = uiState.interfaceAppearance.scalePercent.toString(),
+                                    onSelectionChanged = { it.toIntOrNull()?.let(settingsViewModel::setInterfaceScale) },
+                                    leadingIcon = { Icon(Icons.Rounded.UnfoldMore, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_appearance_interface_scale", highlightKey)
                                 )
                                 SwitchSettingItem(
                                     title = stringResource(R.string.setcat_global_now_playing_theme_title),

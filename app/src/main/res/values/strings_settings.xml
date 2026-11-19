@@ -116,6 +116,11 @@
     <string name="setcat_theme_preset_desc">Default follows your wallpaper colors. AMOLED uses true black surfaces and always stays dark.</string>
     <string name="setcat_theme_preset_default">Default</string>
     <string name="setcat_theme_preset_amoled">AMOLED</string>
+    <string name="setcat_system_font_title">Use system font</string>
+    <string name="setcat_system_font_subtitle">Use Android’s default typeface instead of PixelPlayer’s rounded font.</string>
+    <string name="setcat_interface_scale_title">Interface size</string>
+    <string name="setcat_interface_scale_subtitle">Resize the app’s interface without changing Android’s display settings.</string>
+    <string name="setcat_interface_scale_percent">%1$d%%</string>
     <string name="setcat_theme_light">Light Theme</string>
     <string name="setcat_theme_dark">Dark Theme</string>
     <string name="setcat_theme_follow_system">Follow System</string>

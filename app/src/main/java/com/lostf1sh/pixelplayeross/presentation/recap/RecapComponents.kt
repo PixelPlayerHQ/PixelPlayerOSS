@@ -2,6 +2,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.recap
 
+import com.lostf1sh.pixelplayeross.ui.theme.rememberDisplayFont
+
 import android.content.ContentResolver
 import android.database.ContentObserver
 import android.os.Handler
@@ -145,7 +147,7 @@ internal fun ImmutableList<RecapPalette>.forPage(page: Int): RecapPalette = this
 @OptIn(ExperimentalTextApi::class)
 @Composable
 internal fun rememberRecapFlexFont(weight: Int, width: Float = 100f, rond: Float = 100f): FontFamily =
-    remember(weight, width, rond) {
+    rememberDisplayFont(weight, width, rond) {
         FontFamily(
             Font(
                 resId = R.font.gflex_variable,

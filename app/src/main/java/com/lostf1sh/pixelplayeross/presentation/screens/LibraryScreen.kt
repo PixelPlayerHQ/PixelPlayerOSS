@@ -2,6 +2,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -2479,7 +2481,7 @@ private fun LibraryNavigationCompactTitle(
                     trim = LineHeightStyle.Trim.None
                 )
             )
-        }
+        }.withInterfaceFont()
 
         val idealTextWidth = remember(displayedTitle, baseTextStyle) {
             with(density) {
@@ -2588,7 +2590,7 @@ private fun LibraryNavigationCompactTitle(
                     trim = LineHeightStyle.Trim.None
                 )
             )
-        }
+        }.withInterfaceFont()
 
         Surface(
             color = MaterialTheme.colorScheme.primaryContainer,
@@ -3954,7 +3956,7 @@ fun AlbumListItem(
 
                             Text(
                                 album.title,
-                                style = variableTextStyle.copy(fontSize = 22.sp),
+                                style = variableTextStyle.copy(fontSize = 22.sp).withInterfaceFont(),
                                 color = onGradientColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis

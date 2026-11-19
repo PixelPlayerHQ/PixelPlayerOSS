@@ -2,6 +2,9 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.rememberDisplayFont
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import android.text.format.DateFormat as AndroidDateFormat
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
@@ -492,7 +495,7 @@ fun StatsScreen(
 @OptIn(ExperimentalTextApi::class)
 @Composable
 private fun rememberStatsFlexFont(weight: Int, width: Float, rond: Float = 100f): FontFamily =
-    remember(weight, width, rond) {
+    rememberDisplayFont(weight, width, rond) {
         FontFamily(
             Font(
                 resId = R.font.gflex_variable,
@@ -1141,7 +1144,7 @@ private fun rememberStatsSectionTitleStyle(): TextStyle {
             lineHeight = 28.sp,
             letterSpacing = (-0.2).sp
         )
-    }
+    }.withInterfaceFont()
 }
 
 @OptIn(ExperimentalTextApi::class)
@@ -1167,7 +1170,7 @@ private fun rememberStatsAxisLabelStyle(range: StatsTimeRange): TextStyle {
             lineHeight = if (range == StatsTimeRange.YEAR) 12.sp else 11.sp,
             letterSpacing = 0.sp
         )
-    }
+    }.withInterfaceFont()
 }
 
 @OptIn(ExperimentalTextApi::class)
@@ -1190,7 +1193,7 @@ private fun rememberStatsMetricValueStyle(compact: Boolean): TextStyle {
             lineHeight = if (compact) 12.sp else 14.sp,
             letterSpacing = 0.sp
         )
-    }
+    }.withInterfaceFont()
 }
 
 @Composable

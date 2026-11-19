@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Pripravuje sa nastavenie…</string>
+    <string name="song_info_label_provider">Poskytovateľ</string>
+    <string name="song_info_label_path">Cesta k súboru</string>
+    <string name="song_info_open_source">Otvoriť zdroj</string>
+    <string name="song_info_open_source_failed">Tento odkaz nedokázala otvoriť žiadna aplikácia</string>
+    <string name="cd_playlist_artwork">Zoznam skladieb</string>
+    <string name="home_your_mix_subtitle">Dnešný mix pre vás</string>
+    <string name="home_your_mix_queue_name">Váš mix</string>
+    <string name="queue_name_liked_songs">Obľúbené skladby</string>
+    <string name="queue_name_all_songs_shuffled">Všetky skladby (náhodné poradie)</string>
+    <string name="queue_name_liked_songs_shuffled">Obľúbené skladby (náhodné poradie)</string>
+    <string name="queue_name_selected_songs">Vybrané skladby</string>
+    <string name="cd_player_sheet_collapsed">Panel prehrávača PixelPlayer je zbalený, %1$s</string>
+    <string name="cd_player_sheet_expanded">Panel prehrávača PixelPlayer je rozbalený, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Panel prehrávača PixelPlayer je zbalený</string>
+    <string name="cd_player_sheet_expanded_no_track">Panel prehrávača PixelPlayer je rozbalený</string>
+    <string name="mini_player_connecting_device">Pripája sa k zariadeniu…</string>
+    <string name="mini_player_preparing_playback">Pripravuje sa prehrávanie…</string>
+    <string name="mini_player_loading_audio">Načítava sa zvuk…</string>
+    <string name="cd_shuffle">Náhodné prehrávanie</string>
+    <string name="cd_playback_position">Pozícia prehrávania</string>
+    <string name="add_bookmark_title">Uložiť záložku</string>
+    <string name="add_bookmark_saved_point">Uložená pozícia prehrávania</string>
+    <string name="add_bookmark_use_lyric_line">Použiť riadok textu skladby</string>
+    <string name="add_bookmark_default_name">Záložka na pozícii %1$s</string>
+</resources>

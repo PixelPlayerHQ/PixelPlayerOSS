@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_previous_button_title">Tlačítko Předchozí</string>
+    <string name="setcat_previous_button_description">Zvolte, jestli tlačítko Předchozí vrátí aktuální skladbu na začátek, nebo rovnou přejde na předchozí.</string>
+    <string name="setcat_previous_button_restart_track">Přehrát skladbu od začátku</string>
+    <string name="setcat_previous_button_restart_track_description">Po prvních několika sekundách tlačítko vrátí skladbu na začátek. Dalším stisknutím přejdete na předchozí skladbu.</string>
+    <string name="setcat_previous_button_previous_track">Předchozí skladba</string>
+    <string name="setcat_previous_button_previous_track_description">Tlačítko vždy přejde na předchozí skladbu bez ohledu na pozici přehrávání.</string>
+</resources>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_more_copy_lyrics">Kopírovať text skladby</string>
+    <string name="lyrics_copied">Text skladby je skopírovaný do schránky</string>
+    <string name="lyrics_line_copied">Riadok je skopírovaný do schránky</string>
+    <string name="lyrics_copy_line_action">Kopírovať riadok</string>
+</resources>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="collage_pattern_cosmic_swirl">Kozmický vír</string>
+    <string name="collage_pattern_honeycomb_groove">Rytmus včelích plástov</string>
+    <string name="collage_pattern_vinyl_stack">Kopa platní</string>
+    <string name="collage_pattern_pixel_mosaic">Pixelová mozaika</string>
+    <string name="collage_pattern_stardust_scatter">Rozsypaný hviezdny prach</string>
+    <string name="collage_pattern_soft_orbit">Jemná obežná dráha</string>
+    <string name="collage_pattern_arrow_fanfare">Šípová fanfára</string>
+    <string name="collage_pattern_sunny_bloom">Slnečný kvet</string>
+    <string name="collage_pattern_pixel_cookie">Pixelová sušienka</string>
+    <string name="collage_pattern_heart_garden">Záhrada sŕdc</string>
+
+    <plurals name="cloud_download_selected_started">
+        <item quantity="one">Pripravuje sa %1$d skladba z cloudu na prehrávanie offline</item>
+        <item quantity="few">Pripravujú sa %1$d skladby z cloudu na prehrávanie offline</item>
+        <item quantity="many">Pripravuje sa %1$d skladby z cloudu na prehrávanie offline</item>
+        <item quantity="other">Pripravuje sa %1$d skladieb z cloudu na prehrávanie offline</item>
+    </plurals>
+</resources>

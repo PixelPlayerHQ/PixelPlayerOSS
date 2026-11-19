@@ -14,6 +14,14 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
+internal fun String.withNavidromeCoverSize(sizePx: Int): String {
+    if (!startsWith("navidrome_cover://")) return this
+    val uri = substringBefore('#')
+    val query = uri.substringAfter('?', "").split('&')
+        .filter { it.isNotEmpty() && it.substringBefore('=') != "size" } + "size=$sizePx"
+    return uri.substringBefore('?') + "?" + query.joinToString("&") + substring(uri.length)
+}
+
 /**
  * Custom Coil Fetcher for Navidrome album art.
  * Handles URIs in format: navidrome_cover://coverArtId

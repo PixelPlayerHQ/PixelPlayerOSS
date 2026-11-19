@@ -9,6 +9,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.platform.LocalContext
 import coil.request.CachePolicy
 import coil.size.Size
+import com.lostf1sh.pixelplayeross.data.image.withNavidromeCoverSize
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.presentation.components.albumArtMemoryCacheKey
 import com.lostf1sh.pixelplayeross.presentation.components.safeAlbumArtTargetSize
@@ -60,7 +61,8 @@ fun PrefetchAlbumNeighbors(
     queue: ImmutableList<Song>,
     radius: Int = 1,
     targetSize: Size = Size(600, 600),
-    anchorIndex: Int? = null
+    anchorIndex: Int? = null,
+    navidromeCoverSizePx: Int,
 ) {
     if (!isActive || queue.isEmpty()) return
     val context = LocalContext.current
@@ -69,7 +71,7 @@ fun PrefetchAlbumNeighbors(
         safeAlbumArtTargetSize(targetSize)
     }
 
-    LaunchedEffect(pagerState, queue, anchorIndex, requestTargetSize) {
+    LaunchedEffect(pagerState, queue, anchorIndex, requestTargetSize, navidromeCoverSizePx) {
         snapshotFlow { 
             if (pagerState.isScrollInProgress) pagerState.currentPage 
             else anchorIndex ?: pagerState.currentPage 
@@ -79,7 +81,7 @@ fun PrefetchAlbumNeighbors(
                 val indices = (page - radius..page + radius)
                     .filter { it in queue.indices && it != page }
                 indices.forEach { idx ->
-                    queue[idx].albumArtUriString?.let { uri ->
+                    queue[idx].albumArtUriString?.withNavidromeCoverSize(navidromeCoverSizePx)?.let { uri ->
                         val diskPolicy = if (LocalArtworkUri.isLocalArtworkUri(uri)) coil.request.CachePolicy.DISABLED else coil.request.CachePolicy.ENABLED
                         val memoryCacheKey = albumArtMemoryCacheKey(uri, requestTargetSize)
                         val req = coil.request.ImageRequest.Builder(context)

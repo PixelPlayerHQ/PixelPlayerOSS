@@ -248,10 +248,11 @@ class MusicRepositoryImpl @Inject constructor(
             userPreferencesRepository.allowedDirectoriesFlow,
             userPreferencesRepository.blockedDirectoriesFlow,
             userPreferencesRepository.groupByAlbumArtistFlow,
+            userPreferencesRepository.minTracksPerArtistFlow,
             artistImageRepository.folderArtworkRevision
-        ) { allowedDirs, blockedDirs, groupByAlbumArtist, _ ->
-            Triple(allowedDirs, blockedDirs, groupByAlbumArtist)
-        }.flatMapLatest { (allowedDirs, blockedDirs, groupByAlbumArtist) ->
+        ) { allowedDirs, blockedDirs, groupByAlbumArtist, minTracks, _ ->
+            ArtistListConfig(allowedDirs, blockedDirs, groupByAlbumArtist, minTracks)
+        }.flatMapLatest { (allowedDirs, blockedDirs, groupByAlbumArtist, minTracks) ->
             flow {
                 val (allowedParentDirs, applyDirectoryFilter) =
                     computeAllowedDirs(allowedDirs, blockedDirs)
@@ -264,14 +265,16 @@ class MusicRepositoryImpl @Inject constructor(
                                     allowedParentDirs = allowedParentDirs,
                                     applyDirectoryFilter = applyDirectoryFilter,
                                     filterMode = storageFilter.toFilterMode(),
-                                    sortOrder = sortOption.storageKey
+                                    sortOrder = sortOption.storageKey,
+                                    minTracks = minTracks
                                 )
                             } else {
                                 musicDao.getArtistsPaginated(
                                     allowedParentDirs = allowedParentDirs,
                                     applyDirectoryFilter = applyDirectoryFilter,
                                     filterMode = storageFilter.toFilterMode(),
-                                    sortOrder = sortOption.storageKey
+                                    sortOrder = sortOption.storageKey,
+                                    minTracks = minTracks
                                 )
                             }
                         }
@@ -365,6 +368,13 @@ class MusicRepositoryImpl @Inject constructor(
         ).map { it.toAlbum() }
     }
 
+    private data class ArtistListConfig(
+        val allowedDirs: Set<String>,
+        val blockedDirs: Set<String>,
+        val groupByAlbumArtist: Boolean,
+        val minTracks: Int
+    )
+
     override suspend fun getArtistsPage(
         limit: Int,
         offset: Int,
@@ -372,13 +382,20 @@ class MusicRepositoryImpl @Inject constructor(
         storageFilter: StorageFilter
     ): List<Artist> = withContext(Dispatchers.IO) {
         val filter = cachedDirFilter.value
-        musicDao.getArtistsPage(
-            allowedParentDirs = filter.allowedParentDirs,
-            applyDirectoryFilter = filter.applyFilter,
-            sortOrder = sortOption.storageKey,
-            filterMode = storageFilter.toFilterMode(),
-            limit = limit,
-            offset = offset
+        val minTracks = userPreferencesRepository.minTracksPerArtistFlow.first()
+        val pageQuery = if (userPreferencesRepository.groupByAlbumArtistFlow.first()) {
+            musicDao::getArtistsPageByAlbumArtist
+        } else {
+            musicDao::getArtistsPage
+        }
+        pageQuery(
+            filter.allowedParentDirs,
+            filter.applyFilter,
+            storageFilter.toFilterMode(),
+            sortOption.storageKey,
+            limit,
+            offset,
+            minTracks
         ).map { it.toArtist().withFolderArtwork() }
     }
 

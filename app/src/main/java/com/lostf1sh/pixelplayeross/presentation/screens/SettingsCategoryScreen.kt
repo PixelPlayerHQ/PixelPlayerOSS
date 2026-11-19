@@ -245,6 +245,9 @@ fun SettingsCategoryScreen(
     var minTracksPerAlbumDraft by remember(uiState.minTracksPerAlbum) {
         mutableStateOf(uiState.minTracksPerAlbum.toFloat())
     }
+    var minTracksPerArtistDraft by remember(uiState.minTracksPerArtist) {
+        mutableStateOf(uiState.minTracksPerArtist.toFloat())
+    }
     var albumArtCacheLimitDraft by remember(uiState.albumArtCacheLimitMb) {
         mutableStateOf(uiState.albumArtCacheLimitMb.toFloat())
     }
@@ -507,6 +510,21 @@ fun SettingsCategoryScreen(
                                     },
                                     valueText = { value -> "${value.toInt()}" },
                                     modifier = Modifier.settingHighlight("item_library_min_tracks", highlightKey)
+                                )
+                                SliderSettingsItem(
+                                    label = stringResource(R.string.setcat_min_tracks_per_artist),
+                                    value = minTracksPerArtistDraft,
+                                    valueRange = 1f..5f,
+                                    steps = 3,
+                                    onValueChange = { minTracksPerArtistDraft = it },
+                                    onValueChangeFinished = {
+                                        val selectedTracks = minTracksPerArtistDraft.roundToInt()
+                                        if (selectedTracks != uiState.minTracksPerArtist) {
+                                            settingsViewModel.setMinTracksPerArtist(selectedTracks)
+                                        }
+                                    },
+                                    valueText = { value -> "${value.roundToInt()}" },
+                                    modifier = Modifier.settingHighlight("item_library_min_artist_tracks", highlightKey)
                                 )
                                 SliderSettingsItem(
                                     label = stringResource(R.string.setcat_album_art_cache_limit),

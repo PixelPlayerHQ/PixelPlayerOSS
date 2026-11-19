@@ -53,6 +53,7 @@
     <string name="setcat_filtering">Filtering</string>
     <string name="setcat_min_song_duration">Minimum Song Duration</string>
     <string name="setcat_min_tracks_per_album">Minimum Tracks per Album</string>
+    <string name="setcat_min_tracks_per_artist">Minimum Tracks per Artist</string>
     <string name="setcat_album_art_cache_limit">Album Art Cache Limit</string>
     <string name="setcat_sync_scanning">Sync and Scanning</string>
     <string name="setcat_sync_full_rescan_label">Running full rescan</string>

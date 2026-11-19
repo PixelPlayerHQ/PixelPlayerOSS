@@ -1147,13 +1147,23 @@ fun LibraryScreen(
                                     SelectionActionRow(
                                         selectedCount = selectedArtists.size,
                                         onSelectAll = {
-                                            multiSelectionState.clearSelection()
-                                            showMultiSelectionSheet = false
-                                            selectedArtists = appendDistinctSelection(
-                                                current = selectedArtists,
-                                                candidates = playerViewModel.artistsFlow.value,
-                                                keyOf = Artist::id
-                                            ).toImmutableList()
+                                            scope.launch {
+                                                runCatching { playerViewModel.getArtistsForCurrentLibrarySelection() }
+                                                    .onSuccess { artists ->
+                                                        if (latestSelectedArtists.isNotEmpty()) {
+                                                            multiSelectionState.clearSelection()
+                                                            showMultiSelectionSheet = false
+                                                            selectedArtists = appendDistinctSelection(
+                                                                current = latestSelectedArtists,
+                                                                candidates = artists,
+                                                                keyOf = Artist::id
+                                                            ).toImmutableList()
+                                                        }
+                                                    }.onFailure { error ->
+                                                        if (error is CancellationException) throw error
+                                                        Timber.tag("LibrarySelection").e(error, "Unable to select all artists")
+                                                    }
+                                            }
                                         },
                                         onDeselect = {
                                             selectedArtists = persistentListOf()

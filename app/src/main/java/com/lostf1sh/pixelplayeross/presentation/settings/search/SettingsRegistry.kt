@@ -118,6 +118,15 @@ object SettingsRegistry {
                 keywordsStatic = listOf("tracks", "album", "filter", "singles")
             ),
             SettingSpec(
+                id = "library_min_artist_tracks",
+                itemKey = "item_library_min_artist_tracks",
+                titleRes = R.string.setcat_min_tracks_per_artist,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("tracks", "artist", "filter", "songs")
+            ),
+            SettingSpec(
                 id = "library_album_art_cache",
                 itemKey = "item_library_album_art_cache",
                 titleRes = R.string.setcat_album_art_cache_limit,

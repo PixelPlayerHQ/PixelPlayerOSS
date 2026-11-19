@@ -360,6 +360,36 @@ class MusicDaoTest {
     }
 
     @Test
+    fun artistMinimum_countsOnlyVisibleSongsForTheActiveGrouping() = runTest {
+        val songs = listOf(
+            createSongEntity(1, "First", "Artist A", "Alpha", "/allowed/1.mp3").copy(albumArtistId = 101),
+            createSongEntity(2, "Second", "Artist A", "Alpha", "/allowed/2.mp3").copy(albumArtistId = 101),
+            createSongEntity(3, "Third", "Artist B", "Beta", "/allowed/3.mp3", artistId = 102, albumId = 202)
+                .copy(albumArtistId = 101),
+            createSongEntity(4, "Fourth", "Artist B", "Beta", "/hidden/4.mp3", artistId = 102, albumId = 202)
+                .copy(albumArtistId = 102)
+        )
+        insertSongsWithParents(songs)
+        musicDao.insertSongArtistCrossRefs(songs.map { SongArtistCrossRef(songId = it.id, artistId = it.artistId, isPrimary = true) })
+
+        val allowed = listOf("/allowed")
+        val sort = "artist_name_az"
+        val trackArtists = musicDao.getArtistsPaginated(allowed, true, 0, sort, minTracks = 2).loadArtists()
+        assertEquals(listOf(101L to 2), trackArtists.map { it.id to it.trackCount })
+        assertEquals(trackArtists, musicDao.getArtistsPage(allowed, true, 0, sort, 100, 0, minTracks = 2))
+        assertEquals(listOf(101L, 102L), musicDao.getArtistsPaginated(allowed, true, 0, sort).loadArtists().map(ArtistEntity::id))
+
+        val albumArtists = musicDao.getArtistsPaginatedByAlbumArtist(allowed, true, 0, sort, minTracks = 3).loadArtists()
+        assertEquals(listOf(101L to 3), albumArtists.map { it.id to it.trackCount })
+        assertEquals(albumArtists, musicDao.getArtistsPageByAlbumArtist(allowed, true, 0, sort, 100, 0, minTracks = 3))
+    }
+
+    private suspend fun PagingSource<Int, ArtistEntity>.loadArtists(): List<ArtistEntity> {
+        val result = load(PagingSource.LoadParams.Refresh(key = null, loadSize = 100, placeholdersEnabled = false))
+        return (result as PagingSource.LoadResult.Page<Int, ArtistEntity>).data
+    }
+
+    @Test
     fun albumSort_ordersEveryFavoriteQueryByDiscAndTrackWithinAlbum() = runTest {
         val (ascending, descending) = insertAlbumSortFixture()
         db.favoritesDao().insertAll(

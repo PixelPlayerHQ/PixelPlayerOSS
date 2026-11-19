@@ -273,6 +273,7 @@ constructor(
         val MIN_SONG_DURATION = intPreferencesKey("min_song_duration_ms")
 
         val MIN_TRACKS_PER_ALBUM = intPreferencesKey("min_tracks_per_album")
+        val MIN_TRACKS_PER_ARTIST = intPreferencesKey("min_tracks_per_artist")
 
         val REPLAYGAIN_ENABLED = booleanPreferencesKey("replaygain_enabled")
         val REPLAYGAIN_USE_ALBUM_GAIN = booleanPreferencesKey("replaygain_use_album_gain")
@@ -936,6 +937,17 @@ constructor(
     suspend fun setMinTracksPerAlbum(minTracks: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_TRACKS_PER_ALBUM] = minTracks
+        }
+    }
+
+    val minTracksPerArtistFlow: Flow<Int> =
+        dataStore.data.map { preferences ->
+            (preferences[PreferencesKeys.MIN_TRACKS_PER_ARTIST] ?: 1).coerceIn(1, 5)
+        }.distinctUntilChanged()
+
+    suspend fun setMinTracksPerArtist(minTracks: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MIN_TRACKS_PER_ARTIST] = minTracks.coerceIn(1, 5)
         }
     }
 

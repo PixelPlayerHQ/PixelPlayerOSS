@@ -121,6 +121,45 @@ private const val LIBRARY_SONG_ORDER = """
     id ASC
 """
 
+private const val LIBRARY_ARTISTS_SELECT = """
+    SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
+           COUNT(DISTINCT songs.id) AS track_count
+    FROM songs
+"""
+
+private const val TRACK_ARTIST_JOIN = """
+    INNER JOIN song_artist_cross_ref ON song_artist_cross_ref.song_id = songs.id
+    INNER JOIN artists ON artists.id = song_artist_cross_ref.artist_id
+"""
+
+private const val ALBUM_ARTIST_JOIN = """
+    INNER JOIN artists ON artists.id = songs.album_artist_id
+"""
+
+private const val LIBRARY_ARTISTS_FILTER_AND_ORDER = """
+    WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
+    AND (
+        :filterMode = 0
+        OR (
+            :filterMode = 1
+            AND songs.source_type = 0
+        )
+        OR (
+            :filterMode = 2
+            AND songs.source_type != 0
+        )
+    )
+    GROUP BY artists.id
+    HAVING COUNT(DISTINCT songs.id) >= :minTracks
+    ORDER BY
+        CASE WHEN :sortOrder = 'artist_name_az' THEN artists.name END COLLATE NOCASE ASC,
+        CASE WHEN :sortOrder = 'artist_name_za' THEN artists.name END COLLATE NOCASE DESC,
+        CASE WHEN :sortOrder = 'artist_num_songs_desc' THEN track_count END DESC,
+        CASE WHEN :sortOrder = 'artist_num_songs_asc' THEN track_count END ASC,
+        artists.name COLLATE NOCASE ASC,
+        artists.id ASC
+"""
+
 data class DeviceCapabilitySongRow(
     val filePath: String,
     val contentUriString: String,
@@ -1365,38 +1404,13 @@ interface MusicDao {
         applyDirectoryFilter: Boolean
     ): Flow<List<ArtistEntity>>
 
-    @Query("""
-        SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
-               COUNT(DISTINCT songs.id) AS track_count
-        FROM songs
-        INNER JOIN song_artist_cross_ref ON song_artist_cross_ref.song_id = songs.id
-        INNER JOIN artists ON artists.id = song_artist_cross_ref.artist_id
-        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
-        AND (
-            :filterMode = 0
-            OR (
-                :filterMode = 1
-                AND songs.source_type = 0
-            )
-            OR (
-                :filterMode = 2
-                AND songs.source_type != 0
-            )
-        )
-        GROUP BY artists.id
-        ORDER BY
-            CASE WHEN :sortOrder = 'artist_name_az' THEN artists.name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'artist_name_za' THEN artists.name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_desc' THEN track_count END DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_asc' THEN track_count END ASC,
-            artists.name COLLATE NOCASE ASC,
-            artists.id ASC
-    """)
+    @Query(LIBRARY_ARTISTS_SELECT + TRACK_ARTIST_JOIN + LIBRARY_ARTISTS_FILTER_AND_ORDER)
     fun getArtistsPaginated(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
         filterMode: Int,
-        sortOrder: String
+        sortOrder: String,
+        minTracks: Int = 1
     ): PagingSource<Int, ArtistEntity>
 
     /**
@@ -1406,74 +1420,35 @@ interface MusicDao {
      * list. Counts are per-album-artist; sorting and source/directory filtering mirror the
      * track-artist query so toggling the preference only swaps which query backs the tab.
      */
-    @Query("""
-        SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
-               COUNT(DISTINCT songs.id) AS track_count
-        FROM songs
-        INNER JOIN artists ON artists.id = songs.album_artist_id
-        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
-        AND (
-            :filterMode = 0
-            OR (
-                :filterMode = 1
-                AND songs.source_type = 0
-            )
-            OR (
-                :filterMode = 2
-                AND songs.source_type != 0
-            )
-        )
-        GROUP BY artists.id
-        ORDER BY
-            CASE WHEN :sortOrder = 'artist_name_az' THEN artists.name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'artist_name_za' THEN artists.name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_desc' THEN track_count END DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_asc' THEN track_count END ASC,
-            artists.name COLLATE NOCASE ASC,
-            artists.id ASC
-    """)
+    @Query(LIBRARY_ARTISTS_SELECT + ALBUM_ARTIST_JOIN + LIBRARY_ARTISTS_FILTER_AND_ORDER)
     fun getArtistsPaginatedByAlbumArtist(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
         filterMode: Int,
-        sortOrder: String
+        sortOrder: String,
+        minTracks: Int = 1
     ): PagingSource<Int, ArtistEntity>
 
-    @Query("""
-        SELECT artists.id, artists.name, artists.image_url, artists.custom_image_uri,
-               COUNT(DISTINCT songs.id) AS track_count
-        FROM songs
-        INNER JOIN song_artist_cross_ref ON song_artist_cross_ref.song_id = songs.id
-        INNER JOIN artists ON artists.id = song_artist_cross_ref.artist_id
-        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
-        AND (
-            :filterMode = 0
-            OR (
-                :filterMode = 1
-                AND songs.source_type = 0
-            )
-            OR (
-                :filterMode = 2
-                AND songs.source_type != 0
-            )
-        )
-        GROUP BY artists.id
-        ORDER BY
-            CASE WHEN :sortOrder = 'artist_name_az' THEN artists.name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'artist_name_za' THEN artists.name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_desc' THEN track_count END DESC,
-            CASE WHEN :sortOrder = 'artist_num_songs_asc' THEN track_count END ASC,
-            artists.name COLLATE NOCASE ASC,
-            artists.id ASC
-        LIMIT :limit OFFSET :offset
-    """)
+    @Query(LIBRARY_ARTISTS_SELECT + TRACK_ARTIST_JOIN + LIBRARY_ARTISTS_FILTER_AND_ORDER + " LIMIT :limit OFFSET :offset")
     suspend fun getArtistsPage(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
         filterMode: Int,
         sortOrder: String,
         limit: Int,
-        offset: Int
+        offset: Int,
+        minTracks: Int = 1
+    ): List<ArtistEntity>
+
+    @Query(LIBRARY_ARTISTS_SELECT + ALBUM_ARTIST_JOIN + LIBRARY_ARTISTS_FILTER_AND_ORDER + " LIMIT :limit OFFSET :offset")
+    suspend fun getArtistsPageByAlbumArtist(
+        allowedParentDirs: List<String>,
+        applyDirectoryFilter: Boolean,
+        filterMode: Int,
+        sortOrder: String,
+        limit: Int,
+        offset: Int,
+        minTracks: Int = 1
     ): List<ArtistEntity>
 
     /**

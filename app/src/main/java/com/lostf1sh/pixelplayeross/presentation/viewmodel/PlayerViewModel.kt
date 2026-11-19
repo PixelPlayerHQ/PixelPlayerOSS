@@ -702,6 +702,16 @@ class PlayerViewModel @Inject constructor(
         return resolvePlaybackQueueFromSortedIds(sortedIds)
     }
 
+    suspend fun getArtistsForCurrentLibrarySelection(): List<Artist> {
+        val state = playerUiState.value
+        return musicRepository.getArtistsPage(
+            limit = -1,
+            offset = 0,
+            sortOption = state.currentArtistSortOption,
+            storageFilter = currentEffectiveLibraryStorageFilter(state),
+        )
+    }
+
     /** Every song in the Liked list as it is sorted and filtered on screen, not just the loaded pages. */
     suspend fun getSongsForCurrentFavoriteSelection(): List<Song> {
         val state = playerUiState.value

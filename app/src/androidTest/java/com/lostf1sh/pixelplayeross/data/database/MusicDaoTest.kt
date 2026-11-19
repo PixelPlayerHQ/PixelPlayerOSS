@@ -280,6 +280,41 @@ class MusicDaoTest {
     }
 
     @Test
+    fun searchSongsLimited_matchesPrimaryAndLinkedArtistNames() = runTest {
+        val primarySong = createSongEntity(1L, "Dawn", "Aurora Fields", "Album", "/p1/one.mp3")
+        val featuredSong = createSongEntity(
+            2L, "Dusk", "Different Artist", "Another Album", "/p2/two.mp3",
+            artistId = 102L, albumId = 202L
+        )
+        insertSongsWithParents(listOf(primarySong, featuredSong))
+        val guestArtist = createArtistEntity(103L, "t+pazolite")
+        musicDao.insertArtists(listOf(guestArtist))
+        musicDao.insertSongArtistCrossRefs(listOf(SongArtistCrossRef(featuredSong.id, guestArtist.id)))
+
+        assertEquals(listOf(1L), musicDao.searchSongsLimited("Aurora Fields", emptyList(), false, 10).first().map { it.id })
+        assertEquals(listOf(2L), musicDao.searchSongsLimited("t+pazolite", emptyList(), false, 10).first().map { it.id })
+        assertEquals(emptyList<Long>(), musicDao.searchSongsLimited("t+pazolite", listOf("/p1"), true, 10).first().map { it.id })
+    }
+
+    @Test
+    fun lyricSearchBatch_usesSavedLyricsBeforeEmbeddedAndRespectsDirectoryFilter() = runTest {
+        val songs = listOf(
+            createSongEntity(1L, "One", "Artist", "Album", "/p1/one.mp3").copy(lyrics = "Embedded override"),
+            createSongEntity(2L, "Two", "Artist", "Album", "/p1/two.mp3").copy(lyrics = "Embedded only"),
+            createSongEntity(3L, "Three", "Artist", "Album", "/p2/three.mp3").copy(lyrics = "Hidden"),
+            createSongEntity(4L, "Four", "Artist", "Album", "/p1/four.mp3")
+        )
+        insertSongsWithParents(songs)
+        db.lyricsDao().insert(LyricsEntity(songId = 1L, content = "Saved override"))
+
+        val first = musicDao.getSongLyricSearchBatch(Long.MIN_VALUE, listOf("/p1"), true, 1)
+        val next = musicDao.getSongLyricSearchBatch(first.single().id, listOf("/p1"), true, 10)
+
+        assertEquals(listOf(SongLyricSearchRow(1L, "Saved override")), first)
+        assertEquals(listOf(SongLyricSearchRow(2L, "Embedded only")), next)
+    }
+
+    @Test
     fun albumSort_ordersEveryLibraryQueryByDiscAndTrackWithinAlbum() = runTest {
         val (ascending, descending) = insertAlbumSortFixture()
 

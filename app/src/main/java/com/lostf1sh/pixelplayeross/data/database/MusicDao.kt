@@ -14,6 +14,15 @@ import kotlinx.coroutines.flow.combine
 
 private val SONG_SEARCH_QUERY_TOKEN_REGEX = Regex("""[\p{L}\p{N}]+""")
 private const val EMPTY_SONG_SEARCH_MATCH_QUERY = "pixelplayeremptyquery*"
+private const val SONG_SEARCH_LIKE_PREDICATE = """
+    (title LIKE '%' || :query || '%' OR artist_name LIKE '%' || :query || '%'
+     OR songs.id IN (
+        SELECT song_artist_cross_ref.song_id
+        FROM artists
+        INNER JOIN song_artist_cross_ref ON artists.id = song_artist_cross_ref.artist_id
+        WHERE artists.name LIKE '%' || :query || '%'
+     ))
+"""
 
 private fun buildSongSearchMatchQuery(query: String): String {
     val tokens = SONG_SEARCH_QUERY_TOKEN_REGEX
@@ -84,6 +93,8 @@ data class DeviceCapabilitySongRow(
     val sampleRate: Int?,
     val sourceType: Int
 )
+
+data class SongLyricSearchRow(val id: Long, val content: String)
 
 /**
  * Single-pass audio aggregates for the diagnostic performance report.
@@ -462,11 +473,11 @@ interface MusicDao {
         applyDirectoryFilter: Boolean
     ): Flow<List<SongEntity>>
 
-    @Query("""
-        SELECT * FROM songs
+    @Query("SELECT " + SONG_LIST_PROJECTION + """
+        FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND (title LIKE '%' || :query || '%' OR artist_name LIKE '%' || :query || '%')
-        ORDER BY title ASC
+        AND """ + SONG_SEARCH_LIKE_PREDICATE + """
+        ORDER BY title, id
     """)
     fun searchSongsLike(
         query: String,
@@ -1011,11 +1022,11 @@ interface MusicDao {
     /**
      * LIKE-based fallback search for songs that FTS tokenization may miss.
      */
-    @Query("""
-        SELECT * FROM songs
+    @Query("SELECT " + SONG_LIST_PROJECTION + """
+        FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
-        AND (title LIKE '%' || :query || '%' OR artist_name LIKE '%' || :query || '%')
-        ORDER BY title ASC
+        AND """ + SONG_SEARCH_LIKE_PREDICATE + """
+        ORDER BY title, id
         LIMIT :limit
     """)
     fun searchSongsLimitedLike(
@@ -1050,6 +1061,23 @@ interface MusicDao {
             seen.values.toList().take(limit)
         }
     }
+
+    @Query("""
+        SELECT songs.id, COALESCE(NULLIF(lyrics.content, ''), songs.lyrics) AS content
+        FROM songs
+        LEFT JOIN lyrics ON lyrics.songId = songs.id
+        WHERE songs.id > :afterId
+        AND (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
+        AND COALESCE(NULLIF(lyrics.content, ''), NULLIF(songs.lyrics, '')) IS NOT NULL
+        ORDER BY songs.id
+        LIMIT :limit
+    """)
+    suspend fun getSongLyricSearchBatch(
+        afterId: Long,
+        allowedParentDirs: List<String>,
+        applyDirectoryFilter: Boolean,
+        limit: Int
+    ): List<SongLyricSearchRow>
 
     @Query("""
         SELECT

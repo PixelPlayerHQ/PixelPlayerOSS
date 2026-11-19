@@ -137,7 +137,11 @@ class SearchStateHolder @Inject constructor(
      * typing debounce runs out.
      */
     fun updateSearchFilter(filterType: SearchFilterType) {
-        if (_selectedSearchFilter.value == filterType) return
+        val previousFilter = _selectedSearchFilter.value
+        if (previousFilter == filterType) return
+        if (filterType == SearchFilterType.LYRICS || previousFilter == SearchFilterType.LYRICS) {
+            _searchResults.value = persistentListOf()
+        }
         _selectedSearchFilter.value = filterType
 
         val currentQuery = searchRequests.replayCache.lastOrNull()?.query

@@ -21,6 +21,7 @@ import androidx.core.net.toUri
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.GenreSongCountRow
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryEntity
 import com.lostf1sh.pixelplayeross.data.database.toAlbum
@@ -92,6 +93,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val playlistPreferencesRepository: PlaylistPreferencesRepository,
     private val searchHistoryDao: SearchHistoryDao,
     private val musicDao: MusicDao,
+    private val database: PixelPlayerDatabase,
     private val lyricsRepository: LyricsRepository,
     private val songRepository: SongRepository,
     private val favoritesDao: FavoritesDao,
@@ -595,8 +597,10 @@ class MusicRepositoryImpl @Inject constructor(
         return combine(
             userPreferencesRepository.allowedDirectoriesFlow,
             userPreferencesRepository.blockedDirectoriesFlow,
-            ::Pair
-        ).mapLatest { (allowedDirs, blockedDirs) ->
+            database.invalidationTracker.createFlow("songs", "lyrics", emitInitialState = true)
+        ) { allowedDirs, blockedDirs, _ ->
+            allowedDirs to blockedDirs
+        }.mapLatest { (allowedDirs, blockedDirs) ->
             val (allowedParents, applyFilter) = computeAllowedDirs(allowedDirs, blockedDirs)
             val matchingIds = ArrayList<Long>(SEARCH_RESULTS_LIMIT)
             var afterId = Long.MIN_VALUE

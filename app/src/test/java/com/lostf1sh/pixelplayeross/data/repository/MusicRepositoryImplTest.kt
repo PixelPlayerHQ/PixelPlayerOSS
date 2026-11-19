@@ -1,8 +1,10 @@
 package com.lostf1sh.pixelplayeross.data.repository
 
 import android.content.Context
+import androidx.room.InvalidationTracker
 import com.lostf1sh.pixelplayeross.data.database.GenreSongCountRow
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.data.database.SongLyricSearchRow
@@ -38,6 +40,7 @@ class MusicRepositoryImplTest {
 
     private lateinit var musicRepository: MusicRepositoryImpl
     private val mockMusicDao: MusicDao = mockk()
+    private val mockDatabase: PixelPlayerDatabase = mockk()
     private val mockSearchHistoryDao: SearchHistoryDao = mockk(relaxed = true)
     private val mockContext: Context = mockk(relaxed = true)
     private val mockUserPreferencesRepository: UserPreferencesRepository = mockk()
@@ -102,6 +105,7 @@ class MusicRepositoryImplTest {
             playlistPreferencesRepository = mockPlaylistPreferencesRepository,
             searchHistoryDao = mockSearchHistoryDao,
             musicDao = mockMusicDao,
+            database = mockDatabase,
             lyricsRepository = mockLyricsRepository,
             songRepository = mockSongRepository,
 
@@ -488,6 +492,10 @@ class MusicRepositoryImplTest {
 
         @Test
         fun `lyrics filter finds a phrase in a later batch without running metadata search`() = runTest {
+            val tracker = mockk<InvalidationTracker>()
+            every { mockDatabase.invalidationTracker } returns tracker
+            every { tracker.createFlow("songs", "lyrics", emitInitialState = true) } returns
+                flowOf(setOf("songs", "lyrics"))
             val earlyBatch = (1L..32L).map { SongLyricSearchRow(it, "Another verse") }
             coEvery { mockMusicDao.getSongLyricSearchBatch(Long.MIN_VALUE, any(), any(), 32) } returns earlyBatch
             coEvery { mockMusicDao.getSongLyricSearchBatch(32L, any(), any(), 32) } returns listOf(

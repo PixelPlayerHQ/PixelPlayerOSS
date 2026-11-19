@@ -5,9 +5,24 @@ import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.lostf1sh.pixelplayeross.data.model.SearchFilterType
+import com.lostf1sh.pixelplayeross.data.model.SearchResultItem
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.repository.FolderTreeBuilder
+import com.lostf1sh.pixelplayeross.data.repository.MusicRepositoryImpl
 import com.lostf1sh.pixelplayeross.utils.GenreParser
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -312,6 +327,52 @@ class MusicDaoTest {
 
         assertEquals(listOf(SongLyricSearchRow(1L, "Saved override")), first)
         assertEquals(listOf(SongLyricSearchRow(2L, "Embedded only")), next)
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    fun lyricsSearch_updatesWhenSavedOrEmbeddedLyricsChangeWithoutANewQuery() = runBlocking {
+        val savedSong = createSongEntity(1L, "One", "Artist", "Album", "/music/one.mp3")
+        val embeddedSong = createSongEntity(2L, "Two", "Artist", "Album", "/music/two.mp3")
+        insertSongsWithParents(listOf(savedSong, embeddedSong))
+        val preferences = mockk<UserPreferencesRepository> {
+            every { allowedDirectoriesFlow } returns flowOf(emptySet())
+            every { blockedDirectoriesFlow } returns flowOf(emptySet())
+        }
+        val repository = MusicRepositoryImpl(
+            context = ApplicationProvider.getApplicationContext(),
+            userPreferencesRepository = preferences,
+            playlistPreferencesRepository = mockk(),
+            searchHistoryDao = db.searchHistoryDao(),
+            musicDao = musicDao,
+            database = db,
+            lyricsRepository = mockk(),
+            songRepository = mockk(),
+            favoritesDao = db.favoritesDao(),
+            artistImageRepository = mockk(),
+            folderTreeBuilder = FolderTreeBuilder()
+        )
+
+        val updates = repository.searchAll("the amber sky", SearchFilterType.LYRICS)
+            .map { results -> results.filterIsInstance<SearchResultItem.SongItem>().map { it.song.id } }
+            .distinctUntilChanged()
+            .produceIn(this)
+        try {
+            withTimeout(10_000) {
+                assertEquals(emptyList<String>(), updates.receive())
+
+                db.lyricsDao().insert(LyricsEntity(savedSong.id, "[00:01.00]The amber sky"))
+                assertEquals(listOf("1"), updates.receive())
+
+                db.lyricsDao().insert(LyricsEntity(savedSong.id, "Replaced with another verse"))
+                assertEquals(emptyList<String>(), updates.receive())
+
+                musicDao.updateLyrics(embeddedSong.id, "The amber sky")
+                assertEquals(listOf("2"), updates.receive())
+            }
+        } finally {
+            updates.cancel()
+        }
     }
 
     @Test

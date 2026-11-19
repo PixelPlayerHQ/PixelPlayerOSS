@@ -147,8 +147,8 @@ object AudioMetadataReader {
                 val genre = GenreParser.joinValues(propertyMap["GENRE"]?.asIterable() ?: emptyList())
                 val composer = propertyMap["COMPOSER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TCOM"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                val lyrics = propertyMap["LYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                    ?: propertyMap["UNSYNCEDLYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
+                val lyrics = sequenceOf("LYRICS", "SYNCEDLYRICS", "TTML", "UNSYNCEDLYRICS")
+                    .firstNotNullOfOrNull { key -> propertyMap[key]?.firstOrNull { it.isNotBlank() } }
                 val trackString = propertyMap["TRACKNUMBER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TRACK"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                 val trackNumber = trackString?.substringBefore('/')?.toIntOrNull()

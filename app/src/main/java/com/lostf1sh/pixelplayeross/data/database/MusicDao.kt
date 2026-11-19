@@ -373,6 +373,9 @@ interface MusicDao {
     @Query("SELECT " + SONG_LIST_PROJECTION + " FROM songs WHERE id IN (:songIds)")
     suspend fun getSongsByIdsListSimple(songIds: List<Long>): List<SongEntity>
 
+    @Query("SELECT * FROM songs WHERE id IN (:songIds)")
+    suspend fun getSongsByIdsForSync(songIds: List<Long>): List<SongEntity>
+
     /**
      * Resolves the unified-table song id for a given content URI. Used when the
      * currently-playing song was loaded from a non-unified source and we need the

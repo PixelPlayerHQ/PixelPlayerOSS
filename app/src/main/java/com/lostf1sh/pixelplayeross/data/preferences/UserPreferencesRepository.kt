@@ -98,6 +98,7 @@ constructor(
         // Describes which text repair this install's library database went through, not a user
         // choice — restoring another device's value could skip or repeat the repair here.
         PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION.name,
+        PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION.name,
         "listenbrainz_token",
         "lastfm_session_key",
         // Update settings describe this install (F-Droid vs. GitHub signed), not user taste;
@@ -224,6 +225,7 @@ constructor(
         val LAST_APPLIED_DIRECTORY_RULES_VERSION =
             intPreferencesKey("last_applied_directory_rules_version")
         val METADATA_CHARSET_REPAIR_VERSION = intPreferencesKey("metadata_charset_repair_version")
+        val EMBEDDED_TAG_SCAN_VERSION = intPreferencesKey("embedded_tag_scan_version")
 
         val LYRICS_SYNC_OFFSETS = stringPreferencesKey("lyrics_sync_offsets_json")
 
@@ -632,6 +634,13 @@ constructor(
 
     suspend fun setMetadataCharsetRepairVersion(version: Int) {
         dataStore.edit { it[PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION] = version }
+    }
+
+    suspend fun getEmbeddedTagScanVersion(): Int =
+        dataStore.data.first()[PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION] ?: 0
+
+    suspend fun setEmbeddedTagScanVersion(version: Int) {
+        dataStore.edit { it[PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION] = version }
     }
 
     suspend fun setLastSyncTimestamp(timestamp: Long) {

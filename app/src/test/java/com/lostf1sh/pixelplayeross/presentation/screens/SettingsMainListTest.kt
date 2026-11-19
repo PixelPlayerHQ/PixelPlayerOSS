@@ -69,6 +69,13 @@ class SettingsMainListTest {
     }
 
     @Test
+    fun `equalizer appears with playback and lyrics in the main list`() {
+        val lyricsIndex = mainSettingsEntries.indexOf(MainSettingsEntry.Destination.LYRICS)
+
+        assertEquals(MainSettingsEntry.Category(SettingsCategory.EQUALIZER), mainSettingsEntries[lyricsIndex + 1])
+    }
+
+    @Test
     fun `only the last row of the main list gets rounded bottom corners`() {
         val count = mainSettingsEntries.size
 

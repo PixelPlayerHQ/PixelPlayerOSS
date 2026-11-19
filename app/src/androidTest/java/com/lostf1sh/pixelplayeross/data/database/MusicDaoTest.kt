@@ -338,6 +338,28 @@ class MusicDaoTest {
     }
 
     @Test
+    fun secondaryAlbumSort_groupsAlbumsWithinEachArtistInPageAndQueueOrder() = runTest {
+        insertSongsWithParents(
+            listOf(
+                createSongEntity(1, "Zulu", "Artist A", "Alpha", "/music/1.mp3", trackNumber = 1),
+                createSongEntity(2, "Bravo", "Artist A", "Alpha", "/music/2.mp3", trackNumber = 2),
+                createSongEntity(3, "Alpha", "Artist A", "Beta", "/music/3.mp3", albumId = 202),
+                createSongEntity(4, "Another", "Artist B", "Alpha", "/music/4.mp3", artistId = 102, albumId = 203)
+            )
+        )
+        val primary = "song_artist"
+        assertEquals(listOf(3L, 2L, 1L, 4L), musicDao.getSongIdsSorted(emptyList(), false, primary, 0))
+        listOf(
+            "song_album" to listOf(1L, 2L, 3L, 4L),
+            "song_album_desc" to listOf(3L, 1L, 2L, 4L)
+        ).forEach { (secondary, expected) ->
+            assertEquals(expected, musicDao.getSongIdsSorted(emptyList(), false, primary, 0, secondary))
+            assertEquals(expected, musicDao.getSongsPaginated(emptyList(), false, primary, 0, secondary).loadIds())
+            assertEquals(expected, musicDao.getSongsPage(emptyList(), false, primary, 0, 100, 0, secondary).map(SongEntity::id))
+        }
+    }
+
+    @Test
     fun albumSort_ordersEveryFavoriteQueryByDiscAndTrackWithinAlbum() = runTest {
         val (ascending, descending) = insertAlbumSortFixture()
         db.favoritesDao().insertAll(

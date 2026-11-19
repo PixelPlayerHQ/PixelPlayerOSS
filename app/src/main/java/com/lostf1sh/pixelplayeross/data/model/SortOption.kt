@@ -391,6 +391,22 @@ sealed class SortOption(
         methodKey = "folder_song_title",
         direction = SortDirection.Descending
     )
+    object FolderSongFilenameAZ : SortOption(
+        storageKey = "folder_song_filename_az",
+        displayName = "Filename (A-Z)",
+        methodLabel = "Filename",
+        methodLabelRes = R.string.sort_method_filename,
+        methodKey = "folder_song_filename",
+        direction = SortDirection.Ascending
+    )
+    object FolderSongFilenameZA : SortOption(
+        storageKey = "folder_song_filename_za",
+        displayName = "Filename (Z-A)",
+        methodLabel = "Filename",
+        methodLabelRes = R.string.sort_method_filename,
+        methodKey = "folder_song_filename",
+        direction = SortDirection.Descending
+    )
     object FolderSongArtist : SortOption(
         storageKey = "folder_song_artist",
         displayName = "Artist",
@@ -541,6 +557,12 @@ sealed class SortOption(
         return resolveForDirection(targetDirection)
     }
 
+    fun resolveSecondarySongSort(configured: SortOption?): SortOption? {
+        if (configured == null || configured !in SONG_SECONDARY) return null
+        return configured.takeUnless { it.methodKey == methodKey }
+            ?: SONG_SECONDARY.first { it.methodKey != methodKey }
+    }
+
     companion object {
 
         val SONGS: List<SortOption> by lazy {
@@ -560,6 +582,8 @@ sealed class SortOption(
                 SongDurationAsc
             )
         }
+
+        val SONG_SECONDARY: List<SortOption> by lazy { SONGS.filter { it.direction != null } }
 
         val ALBUMS: List<SortOption> by lazy {
             listOf(
@@ -608,6 +632,8 @@ sealed class SortOption(
             listOf(
                 FolderSongTitleAZ,
                 FolderSongTitleZA,
+                FolderSongFilenameAZ,
+                FolderSongFilenameZA,
                 FolderSongArtist,
                 FolderSongArtistDesc,
                 FolderSongAlbum,

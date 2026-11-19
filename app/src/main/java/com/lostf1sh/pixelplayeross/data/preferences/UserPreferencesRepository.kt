@@ -122,6 +122,7 @@ constructor(
         val PLAYLIST_SONG_ORDER_MODES = stringPreferencesKey("playlist_song_order_modes")
 
         val SONGS_SORT_OPTION = stringPreferencesKey("songs_sort_option")
+        val SONGS_SECONDARY_SORT_OPTION = stringPreferencesKey("songs_secondary_sort_option")
         val SONGS_SORT_OPTION_MIGRATED = booleanPreferencesKey("songs_sort_option_migrated_v2")
         val ALBUMS_SORT_OPTION = stringPreferencesKey("albums_sort_option")
         val ARTISTS_SORT_OPTION = stringPreferencesKey("artists_sort_option")
@@ -1184,6 +1185,22 @@ constructor(
                         )
                         .storageKey
             }
+
+    val songsSecondarySortOptionFlow: Flow<SortOption?> =
+        dataStore.data.map { preferences ->
+            val key = preferences[PreferencesKeys.SONGS_SECONDARY_SORT_OPTION]
+            SortOption.SONG_SECONDARY.firstOrNull { it.storageKey == key }
+        }.distinctUntilChanged()
+
+    suspend fun setSongsSecondarySortOption(option: SortOption?) {
+        dataStore.edit { preferences ->
+            if (option == null) {
+                preferences.remove(PreferencesKeys.SONGS_SECONDARY_SORT_OPTION)
+            } else {
+                preferences[PreferencesKeys.SONGS_SECONDARY_SORT_OPTION] = option.storageKey
+            }
+        }
+    }
 
     val albumsSortOptionFlow: Flow<String> =
             dataStore.data.map { preferences ->

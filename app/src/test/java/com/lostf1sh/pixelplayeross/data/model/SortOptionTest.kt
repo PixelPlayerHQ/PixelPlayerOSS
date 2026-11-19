@@ -96,6 +96,7 @@ class SortOptionTest {
     @Test
     fun `folder song options flip and resolve within their own method`() {
         assertEquals(SortOption.FolderSongTitleZA, SortOption.FolderSongTitleAZ.flipDirection())
+        assertEquals(SortOption.FolderSongFilenameZA, SortOption.FolderSongFilenameAZ.flipDirection())
         assertEquals(SortOption.FolderSongArtistDesc, SortOption.FolderSongArtist.flipDirection())
         assertEquals(SortOption.FolderSongAlbum, SortOption.FolderSongAlbumDesc.flipDirection())
         assertEquals(SortOption.FolderSongAlbumArtistDesc, SortOption.FolderSongAlbumArtist.flipDirection())
@@ -116,7 +117,8 @@ class SortOptionTest {
             .distinct()
             .associate { it.methodLabelRes to it.direction }
 
-        assertEquals(7, defaultDirections.size)
+        assertEquals(8, defaultDirections.size)
+        assertEquals(SortOption.FolderSongFilenameAZ, SortOption.FolderSongFilenameZA.methodOption())
         SortOption.SONGS.map { it.methodOption() }.distinct()
             .filter { it.methodLabelRes in defaultDirections }
             .forEach { songsTabMethod ->

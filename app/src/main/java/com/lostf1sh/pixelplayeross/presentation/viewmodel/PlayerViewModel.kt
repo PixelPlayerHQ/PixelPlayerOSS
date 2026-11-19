@@ -359,6 +359,15 @@ class PlayerViewModel @Inject constructor(
     val paginatedSongs: Flow<PagingData<Song>> = libraryStateHolder.songsPagingFlow
         .cachedIn(viewModelScope)
 
+    val secondarySongSortOption = userPreferencesRepository.songsSecondarySortOptionFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun setSecondarySongSortOption(option: SortOption?) {
+        viewModelScope.launch {
+            userPreferencesRepository.setSongsSecondarySortOption(option)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val playlistPickerFavoriteSongs: Flow<PagingData<Song>> = combine(
         libraryStateHolder.currentSongSortOption,

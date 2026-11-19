@@ -94,6 +94,8 @@ fun LibrarySortBottomSheet(
     primaryTargetLabel: String = "",
     secondaryTargetLabel: String = "",
     initiallyShowSecondary: Boolean = false,
+    advancedSortingEnabled: Boolean? = null,
+    onAdvancedSortingChange: (Boolean) -> Unit = {},
     showViewToggle: Boolean = false,
     viewSectionTitle: String = "View",
     viewToggleLabel: String = "Playlist View",
@@ -141,6 +143,17 @@ fun LibrarySortBottomSheet(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(start = 2.dp, top = 0.dp, bottom = 16.dp)
             )
+
+            if (advancedSortingEnabled != null) {
+                LibrarySheetToggleCard(
+                    label = stringResource(R.string.sort_advanced_sorting),
+                    checked = advancedSortingEnabled,
+                    boxBackgroundColor = if (advancedSortingEnabled) MaterialTheme.colorScheme.tertiary else unselectedColor,
+                    boxCornerRadius = 20.dp,
+                    onCheckedChange = onAdvancedSortingChange
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
 
             val hasSecondaryTarget = secondaryOptions.isNotEmpty()
             var secondaryTargetChosen by rememberSaveable { mutableStateOf(initiallyShowSecondary) }

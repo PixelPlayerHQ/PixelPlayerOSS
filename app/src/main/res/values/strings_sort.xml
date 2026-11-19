@@ -3,6 +3,7 @@
     <!-- Library sort method labels -->
     <string name="sort_method_default_order">Default Order</string>
     <string name="sort_method_title">Title</string>
+    <string name="sort_method_filename">Filename</string>
     <string name="sort_method_artist">Artist</string>
     <string name="sort_method_album">Album</string>
     <string name="sort_method_date_added">Date Added</string>
@@ -15,4 +16,7 @@
     <string name="sort_method_date_created">Date Created</string>
     <string name="sort_method_date_liked">Date Liked</string>
     <string name="sort_method_subfolder_count">Subfolder Count</string>
+    <string name="sort_advanced_sorting">Advanced sorting</string>
+    <string name="sort_primary">Primary</string>
+    <string name="sort_secondary">Secondary</string>
 </resources>

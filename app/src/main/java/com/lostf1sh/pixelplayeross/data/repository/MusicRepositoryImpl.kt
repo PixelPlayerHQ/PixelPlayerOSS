@@ -339,7 +339,10 @@ class MusicRepositoryImpl @Inject constructor(
             sortOrder = sortOption.storageKey,
             filterMode = storageFilter.toFilterMode(),
             limit = limit,
-            offset = offset
+            offset = offset,
+            secondarySortOrder = sortOption.resolveSecondarySongSort(
+                userPreferencesRepository.songsSecondarySortOptionFlow.first()
+            )?.storageKey
         ).map { it.toSong() }
     }
 
@@ -1060,7 +1063,10 @@ class MusicRepositoryImpl @Inject constructor(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
             sortOrder = sortOption.storageKey,
-            filterMode = storageFilter.toFilterMode()
+            filterMode = storageFilter.toFilterMode(),
+            secondarySortOrder = sortOption.resolveSecondarySongSort(
+                userPreferencesRepository.songsSecondarySortOptionFlow.first()
+            )?.storageKey
         )
     }
 

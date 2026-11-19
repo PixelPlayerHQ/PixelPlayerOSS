@@ -84,6 +84,43 @@ private const val SONG_LIST_PROJECTION = """
     mb_recording_id, mb_release_id, mb_artist_id
 """
 
+private const val LIBRARY_SONG_ORDER = """
+    CASE WHEN :sortOrder = 'song_default_order' THEN track_number END ASC,
+    CASE WHEN :sortOrder = 'song_title_az' THEN title END COLLATE NOCASE ASC,
+    CASE WHEN :sortOrder = 'song_title_za' THEN title END COLLATE NOCASE DESC,
+    CASE WHEN :sortOrder = 'song_artist' THEN artist_name END COLLATE NOCASE ASC,
+    CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
+    CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
+    CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
+    CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
+    CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
+    CASE WHEN :sortOrder = 'song_date_modified' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END DESC,
+    CASE WHEN :sortOrder = 'song_date_modified_asc' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END ASC,
+    CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
+    CASE WHEN :sortOrder = 'song_duration_asc' THEN duration END ASC,
+    CASE WHEN :secondarySortOrder = 'song_title_az' THEN title END COLLATE NOCASE ASC,
+    CASE WHEN :secondarySortOrder = 'song_title_za' THEN title END COLLATE NOCASE DESC,
+    CASE WHEN :secondarySortOrder = 'song_artist' THEN artist_name END COLLATE NOCASE ASC,
+    CASE WHEN :secondarySortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
+    CASE WHEN :secondarySortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
+    CASE WHEN :secondarySortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
+    CASE WHEN :secondarySortOrder = 'song_date_added' THEN date_added END DESC,
+    CASE WHEN :secondarySortOrder = 'song_date_added_asc' THEN date_added END ASC,
+    CASE WHEN :secondarySortOrder = 'song_date_modified' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END DESC,
+    CASE WHEN :secondarySortOrder = 'song_date_modified_asc' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END ASC,
+    CASE WHEN :secondarySortOrder = 'song_duration' THEN duration END DESC,
+    CASE WHEN :secondarySortOrder = 'song_duration_asc' THEN duration END ASC,
+    CASE WHEN :secondarySortOrder IN ('song_album', 'song_album_desc') THEN album_id END ASC,
+    CASE WHEN (:sortOrder IN ('song_album', 'song_album_desc') OR :secondarySortOrder IN ('song_album', 'song_album_desc'))
+        THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
+    CASE WHEN (:sortOrder IN ('song_album', 'song_album_desc') OR :secondarySortOrder IN ('song_album', 'song_album_desc'))
+        THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
+    CASE WHEN (:sortOrder IN ('song_album', 'song_album_desc') OR :secondarySortOrder IN ('song_album', 'song_album_desc')) AND track_number > 0
+        THEN track_number END ASC,
+    title COLLATE NOCASE ASC,
+    id ASC
+"""
+
 data class DeviceCapabilitySongRow(
     val filePath: String,
     val contentUriString: String,
@@ -668,34 +705,14 @@ interface MusicDao {
                 AND source_type != 0
             )
         )
-        ORDER BY
-            CASE WHEN :sortOrder = 'song_default_order' THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_title_az' THEN title END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_title_za' THEN title END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_artist' THEN artist_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
-                THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
-            CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
-            CASE WHEN :sortOrder = 'song_date_modified' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END DESC,
-            CASE WHEN :sortOrder = 'song_date_modified_asc' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END ASC,
-            CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
-            CASE WHEN :sortOrder = 'song_duration_asc' THEN duration END ASC,
-            title COLLATE NOCASE ASC,
-            id ASC
+        ORDER BY """ + LIBRARY_SONG_ORDER + """
     """)
     suspend fun getSongIdsSorted(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
         sortOrder: String,
-        filterMode: Int
+        filterMode: Int,
+        secondarySortOrder: String? = null
     ): List<Long>
 
     @Query("""
@@ -756,36 +773,14 @@ interface MusicDao {
                 AND source_type != 0
             )
         )
-        ORDER BY
-            CASE WHEN :sortOrder = 'song_default_order' THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_title_az' THEN title END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_title_za' THEN title END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_artist' THEN artist_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
-                THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
-            CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
-            CASE WHEN :sortOrder = 'song_date_modified' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END DESC,
-            CASE WHEN :sortOrder = 'song_date_modified_asc' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END ASC,
-            CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
-            CASE WHEN :sortOrder = 'song_duration_asc' THEN duration END ASC,
-
-            -- Secondary sort falls back to title for consistency (case-insensitive)
-            title COLLATE NOCASE ASC,
-            id ASC
+        ORDER BY """ + LIBRARY_SONG_ORDER + """
     """)
     fun getSongsPaginated(
         allowedParentDirs: List<String>,
         applyDirectoryFilter: Boolean,
         sortOrder: String,
-        filterMode: Int
+        filterMode: Int,
+        secondarySortOrder: String? = null
     ): PagingSource<Int, SongEntity>
 
     @Query("""
@@ -803,28 +798,7 @@ interface MusicDao {
                 AND source_type != 0
             )
         )
-        ORDER BY
-            CASE WHEN :sortOrder = 'song_default_order' THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_title_az' THEN title END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_title_za' THEN title END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_artist' THEN artist_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_artist_desc' THEN artist_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder = 'song_album' THEN album_name END COLLATE NOCASE ASC,
-            CASE WHEN :sortOrder = 'song_album_desc' THEN album_name END COLLATE NOCASE DESC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN COALESCE(disc_number, 0) <= 0 THEN 1 ELSE disc_number END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc')
-                THEN CASE WHEN track_number > 0 THEN 0 ELSE 1 END END ASC,
-            CASE WHEN :sortOrder IN ('song_album', 'song_album_desc') AND track_number > 0
-                THEN track_number END ASC,
-            CASE WHEN :sortOrder = 'song_date_added' THEN date_added END DESC,
-            CASE WHEN :sortOrder = 'song_date_added_asc' THEN date_added END ASC,
-            CASE WHEN :sortOrder = 'song_date_modified' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END DESC,
-            CASE WHEN :sortOrder = 'song_date_modified_asc' THEN CASE WHEN media_store_date_modified > 0 THEN media_store_date_modified ELSE date_added / 1000 END END ASC,
-            CASE WHEN :sortOrder = 'song_duration' THEN duration END DESC,
-            CASE WHEN :sortOrder = 'song_duration_asc' THEN duration END ASC,
-            title COLLATE NOCASE ASC,
-            id ASC
+        ORDER BY """ + LIBRARY_SONG_ORDER + """
         LIMIT :limit OFFSET :offset
     """)
     suspend fun getSongsPage(
@@ -833,7 +807,8 @@ interface MusicDao {
         sortOrder: String,
         filterMode: Int,
         limit: Int,
-        offset: Int
+        offset: Int,
+        secondarySortOrder: String? = null
     ): List<SongEntity>
 
     /**

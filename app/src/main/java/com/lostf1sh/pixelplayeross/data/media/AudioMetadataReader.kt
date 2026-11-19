@@ -99,6 +99,18 @@ object AudioMetadataReader {
      */
     private const val VERBOSE_LOGGING = false
 
+    fun readSourceUrl(context: Context, uri: Uri): String? {
+        return try {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { fd ->
+                TagLib.getMetadata(fd.detachFd(), readPictures = false)
+                    ?.propertyMap
+                    ?.let(::findEmbeddedSourceUrl)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun read(context: Context, uri: Uri): AudioMetadata? {
         val tempFile = createTempAudioFileFromUri(context, uri) ?: run {
             Timber.tag(TAG).w("Unable to create temp file for uri: $uri")

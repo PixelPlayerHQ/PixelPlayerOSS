@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -145,6 +146,15 @@ fun SongInfoBottomSheet(
     val offlineDownload by songInfoViewModel.offlineDownload.collectAsStateWithLifecycle()
     val musicBrainzState by songInfoViewModel.musicBrainzState.collectAsStateWithLifecycle()
     val isCloudSong = remember(song.contentUriString) { CloudOfflineRepository.isCloudSong(song) }
+    val offlineFilePath = offlineDownload?.takeIf {
+        it.sourceUri == song.contentUriString && it.status == OfflineDownloadStatus.COMPLETE
+    }?.localPath
+    var sourceUrl by remember(song.id, song.path, song.contentUriString, offlineFilePath) {
+        mutableStateOf<String?>(null)
+    }
+    LaunchedEffect(song.id, song.path, song.contentUriString, offlineFilePath) {
+        sourceUrl = songInfoViewModel.readSourceUrl(song, offlineFilePath)
+    }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -656,6 +666,22 @@ fun SongInfoBottomSheet(
                                             }
                                         }
 
+                                        sourceUrl?.let { url ->
+                                            item {
+                                                FilledTonalButton(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .heightIn(min = 66.dp),
+                                                    shape = CircleShape,
+                                                    onClick = { openSongSourceUrl(context, url) },
+                                                ) {
+                                                    Icon(Icons.Rounded.Link, contentDescription = null)
+                                                    Spacer(Modifier.width(8.dp))
+                                                    Text(stringResource(R.string.song_info_open_source))
+                                                }
+                                            }
+                                        }
+
                                         if (!isCloudSong) {
                                             item {
                                                 RingtoneActionButton(
@@ -1002,6 +1028,16 @@ fun SongInfoBottomSheet(
             }
         )
     }
+}
+
+private fun openSongSourceUrl(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addCategory(Intent.CATEGORY_BROWSABLE))
+        return
+    } catch (_: ActivityNotFoundException) {
+    } catch (_: SecurityException) {
+    }
+    Toast.makeText(context, R.string.song_info_open_source_failed, Toast.LENGTH_SHORT).show()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

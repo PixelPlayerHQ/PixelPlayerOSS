@@ -25,4 +25,6 @@
     <string name="add_bookmark_saved_point">Punto di riproduzione salvato</string>
     <string name="add_bookmark_use_lyric_line">Usa riga del testo</string>
     <string name="add_bookmark_default_name">Segnalibro @ %1$s</string>
+    <string name="song_info_open_source">Apri origine</string>
+    <string name="song_info_open_source_failed">Nessuna app ha potuto aprire questo link</string>
 </resources>

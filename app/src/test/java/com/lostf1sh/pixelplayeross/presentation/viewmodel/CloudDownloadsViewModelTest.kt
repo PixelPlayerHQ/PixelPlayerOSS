@@ -2,10 +2,15 @@ package com.lostf1sh.pixelplayeross.presentation.viewmodel
 
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.MainCoroutineExtension
+import com.lostf1sh.pixelplayeross.R
+import com.lostf1sh.pixelplayeross.data.offline.CloudDownloadExports
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.data.offline.OfflineDownload
 import com.lostf1sh.pixelplayeross.data.offline.OfflineDownloadStatus
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
+import app.cash.turbine.test
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -45,7 +50,7 @@ class CloudDownloadsViewModelTest {
         val failed = download("failed", OfflineDownloadStatus.FAILED)
         val repository = mockk<CloudOfflineRepository>(relaxed = true)
         every { repository.observeAll() } returns flowOf(listOf(failed))
-        val viewModel = CloudDownloadsViewModel(repository)
+        val viewModel = viewModel(repository)
 
         advanceUntilIdle()
         viewModel.retry(failed)
@@ -61,7 +66,7 @@ class CloudDownloadsViewModelTest {
         val complete = download("complete", OfflineDownloadStatus.COMPLETE)
         val repository = mockk<CloudOfflineRepository>(relaxed = true)
         every { repository.observeAll() } returns flowOf(listOf(complete))
-        val viewModel = CloudDownloadsViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.retry(complete)
         advanceUntilIdle()
@@ -77,7 +82,7 @@ class CloudDownloadsViewModelTest {
         val local = song("local", "content://media/audio/3")
         val repository = mockk<CloudOfflineRepository>(relaxed = true)
         every { repository.observeAll() } returns flowOf(emptyList())
-        val viewModel = CloudDownloadsViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.downloadSelected(listOf(navidrome, duplicate, jellyfin, local))
         advanceUntilIdle()
@@ -89,12 +94,60 @@ class CloudDownloadsViewModelTest {
     fun `batch download ignores a local only selection`() = runTest {
         val repository = mockk<CloudOfflineRepository>(relaxed = true)
         every { repository.observeAll() } returns flowOf(emptyList())
-        val viewModel = CloudDownloadsViewModel(repository)
+        val viewModel = viewModel(repository)
 
         viewModel.downloadSelected(listOf(song("local", "content://media/audio/3")))
         advanceUntilIdle()
 
         coVerify(exactly = 0) { repository.enqueueAll(any()) }
+    }
+
+    @Test
+    fun `download all snapshots the synced cloud library and reports the number newly queued`() = runTest {
+        val navidrome = song("navidrome", "navidrome://one")
+        val jellyfin = song("jellyfin", "jellyfin://two")
+        val music = mockk<MusicRepository>()
+        coEvery { music.getAllSongsOnce() } returns listOf(
+            navidrome,
+            navidrome.copy(id = "duplicate"),
+            song("local", "content://media/audio/3"),
+            jellyfin
+        )
+        val repository = mockk<CloudOfflineRepository>()
+        every { repository.observeAll() } returns flowOf(emptyList())
+        coEvery { repository.enqueueAll(listOf(navidrome, jellyfin)) } returns 1
+        val viewModel = viewModel(repository, music)
+
+        viewModel.feedback.test {
+            viewModel.downloadAll()
+            viewModel.downloadAll()
+            assertThat(awaitItem()).isEqualTo(CloudDownloadFeedback(R.string.cloud_download_batch_queued, 1))
+            coVerify(exactly = 1) { repository.enqueueAll(listOf(navidrome, jellyfin)) }
+        }
+    }
+
+    @Test
+    fun `download all does not queue local tracks when no cloud library has been synced`() = runTest {
+        val music = mockk<MusicRepository>()
+        coEvery { music.getAllSongsOnce() } returns listOf(song("local", "content://media/audio/3"))
+        val repository = mockk<CloudOfflineRepository>()
+        every { repository.observeAll() } returns flowOf(emptyList())
+        val viewModel = viewModel(repository, music)
+
+        viewModel.feedback.test {
+            viewModel.downloadAll()
+            assertThat(awaitItem()).isEqualTo(CloudDownloadFeedback(R.string.cloud_download_no_synced_tracks))
+            coVerify(exactly = 0) { repository.enqueueAll(any()) }
+        }
+    }
+
+    private fun viewModel(
+        repository: CloudOfflineRepository,
+        music: MusicRepository = mockk()
+    ): CloudDownloadsViewModel {
+        val exports = mockk<CloudDownloadExports>()
+        every { exports.folder } returns flowOf(null)
+        return CloudDownloadsViewModel(repository, music, exports)
     }
 
     private fun download(

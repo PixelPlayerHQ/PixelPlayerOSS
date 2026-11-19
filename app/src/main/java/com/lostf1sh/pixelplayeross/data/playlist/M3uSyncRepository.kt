@@ -8,6 +8,7 @@ import android.provider.DocumentsContract
 import com.lostf1sh.pixelplayeross.data.model.Playlist
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.model.isSmartPlaylist
+import com.lostf1sh.pixelplayeross.data.offline.CloudDownloadExports
 import com.lostf1sh.pixelplayeross.data.preferences.M3uSyncConfig
 import com.lostf1sh.pixelplayeross.data.preferences.M3uSyncLink
 import com.lostf1sh.pixelplayeross.data.preferences.M3uSyncPreferences
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -126,6 +128,7 @@ class M3uSyncRepository @Inject constructor(
     private val playlistRepository: PlaylistPreferencesRepository,
     private val musicRepository: MusicRepository,
     private val preferences: M3uSyncPreferences,
+    private val cloudDownloadExports: CloudDownloadExports,
     private val dispatchers: DispatcherProvider,
     @AppScope appScope: CoroutineScope,
 ) {
@@ -177,7 +180,7 @@ class M3uSyncRepository @Inject constructor(
         val oldTree = preferences.snapshot().treeUri?.let(Uri::parse)
         preferences.disable()
         runtimeState.value = RuntimeState()
-        oldTree?.let(::releaseTreePermission)
+        oldTree?.let { releaseTreePermission(it) }
     }
 
     suspend fun syncNow(): M3uSyncReport = syncMutex.withLock {
@@ -719,7 +722,8 @@ class M3uSyncRepository @Inject constructor(
             }
             .getOrDefault(false)
 
-    private fun releaseTreePermission(treeUri: Uri) {
+    private suspend fun releaseTreePermission(treeUri: Uri) {
+        if (cloudDownloadExports.folder.first()?.uri == treeUri) return
         runCatching {
             resolver.releasePersistableUriPermission(treeUri, TREE_PERMISSION_FLAGS)
         }.onFailure { error ->

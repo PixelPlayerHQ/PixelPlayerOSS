@@ -6,10 +6,14 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
+import com.lostf1sh.pixelplayeross.data.offline.CloudDownloadExports
+import com.lostf1sh.pixelplayeross.data.offline.CloudDownloadNotifications
+import com.lostf1sh.pixelplayeross.data.offline.CloudExportResult
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.data.offline.OfflineDownloadStatus
 import com.lostf1sh.pixelplayeross.data.stream.CloudStreamSecurity
@@ -20,6 +24,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -35,6 +40,7 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
     private val dao: OfflineTrackDao,
     private val navidromeRepository: NavidromeRepository,
     private val jellyfinRepository: JellyfinRepository,
+    private val exports: CloudDownloadExports,
     baseOkHttpClient: OkHttpClient
 ) : CoroutineWorker(appContext, workerParams) {
     private val client = baseOkHttpClient.newBuilder()
@@ -54,6 +60,9 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
         if (entity.attemptId != attemptId || entity.sourceUri != sourceUri) {
             return@withContext Result.success()
         }
+        if (entity.state == OfflineDownloadStatus.COMPLETE.storageValue) {
+            return@withContext Result.success()
+        }
 
         val now = System.currentTimeMillis()
         if (dao.updateState(
@@ -71,8 +80,9 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
             .resolve("${CloudOfflineRepository.attemptFileStem(downloadId, attemptId)}.part")
         tempFile.delete()
         var finalizedFile: File? = null
+        var completedFile: File? = null
 
-        try {
+        val result = try {
             val source = resolveSource(sourceUri)
             val requestBuilder = Request.Builder().url(source.url)
             source.headers.forEach { (name, value) -> requestBuilder.header(name, value) }
@@ -133,18 +143,19 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
                 }
                 finalizedFile = finalFile
                 coroutineContext.ensureActive()
-                val completed = dao.updateState(
-                    downloadId = downloadId,
-                    attemptId = attemptId,
-                    state = OfflineDownloadStatus.COMPLETE.storageValue,
-                    bytesDownloaded = copied,
-                    totalBytes = total ?: copied,
-                    localPath = finalFile.absolutePath,
-                    errorMessage = null,
-                    updatedAt = System.currentTimeMillis()
-                )
-                if (completed == 0) {
-                    finalFile.delete()
+                withContext(NonCancellable) {
+                    val completed = dao.updateState(
+                        downloadId = downloadId,
+                        attemptId = attemptId,
+                        state = OfflineDownloadStatus.COMPLETE.storageValue,
+                        bytesDownloaded = copied,
+                        totalBytes = total ?: copied,
+                        localPath = finalFile.absolutePath,
+                        errorMessage = null,
+                        updatedAt = System.currentTimeMillis()
+                    )
+                    if (completed == 0) finalFile.delete() else completedFile = finalFile
+                    finalizedFile = null
                 }
                 Result.success()
             }
@@ -179,11 +190,29 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
             when {
                 updated == 0 -> Result.success()
                 shouldRetry -> Result.retry()
-                else -> Result.failure(
-                    workDataOf(KEY_ERROR to (error.message ?: "Download failed"))
-                )
+                else -> {
+                    CloudDownloadNotifications.show(
+                        applicationContext, entity.title, R.string.cloud_downloads_failed_fallback,
+                        failed = true
+                    )
+                    Result.failure(workDataOf(KEY_ERROR to (error.message ?: "Download failed")))
+                }
             }
         }
+        completedFile?.let { file ->
+            val export = exports.export(file, entity.title, downloadId)
+            CloudDownloadNotifications.show(
+                applicationContext,
+                entity.title,
+                when (export) {
+                    CloudExportResult.DISABLED -> R.string.cloud_download_saved_offline
+                    CloudExportResult.EXPORTED -> R.string.cloud_download_saved_and_exported
+                    CloudExportResult.FAILED -> R.string.cloud_download_saved_export_failed
+                },
+                failed = export == CloudExportResult.FAILED
+            )
+        }
+        result
     }
 
     private suspend fun publishProgress(

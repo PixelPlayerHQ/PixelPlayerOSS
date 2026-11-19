@@ -99,6 +99,8 @@ constructor(
         // choice — restoring another device's value could skip or repeat the repair here.
         PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION.name,
         PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION.name,
+        "cloud_download_export_tree_uri",
+        "cloud_download_export_tree_name",
         "listenbrainz_token",
         "lastfm_session_key",
         // Update settings describe this install (F-Droid vs. GitHub signed), not user taste;

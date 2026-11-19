@@ -220,6 +220,7 @@ Backslash (\) can be used to escape character delimiters.</string>
     <string name="presentation_batch_g_selection_cd_like">Like selected</string>
     <string name="presentation_batch_g_selection_play">Play</string>
     <string name="presentation_batch_g_selection_all">All</string>
+    <string name="selection_select_between">Select all between selected tracks</string>
     <string name="presentation_batch_g_selection_deselect">Deselect</string>
     <string name="presentation_batch_g_selection_cd_more">More options</string>
     <string name="presentation_batch_g_selection_overflow_count">+%1$d</string>

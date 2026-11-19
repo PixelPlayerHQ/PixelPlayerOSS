@@ -59,6 +59,7 @@ import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.RemoveDone
@@ -199,6 +200,8 @@ import kotlinx.coroutines.flow.map
 import java.util.RandomAccess
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import kotlin.math.abs
 import kotlinx.collections.immutable.ImmutableList
 
@@ -1927,7 +1930,8 @@ fun QueuePlaylistSongItem(
     enableSwipeToDismiss: Boolean = false,
     swipeStateIdentity: Long = 0L,
     onDismissSong: () -> Unit = {},
-    isFromPlaylist: Boolean
+    isFromPlaylist: Boolean,
+    selectionChecked: Boolean? = null
 ) {
     val colors = MaterialTheme.colorScheme
 
@@ -1950,7 +1954,7 @@ fun QueuePlaylistSongItem(
         label = "elevationAnimation"
     )
 
-    val backgroundColor = colors.surfaceContainerLowest
+    val backgroundColor = if (selectionChecked == true) colors.secondaryContainer else colors.surfaceContainerLowest
     val mvContainerColor = if (isCurrentSong) colors.tertiaryContainer else colors.surfaceContainerHigh
     val mvContentColor = if (isCurrentSong) colors.onTertiaryContainer else colors.onSurface
     val hapticView = LocalView.current
@@ -2047,6 +2051,11 @@ fun QueuePlaylistSongItem(
                 .padding(horizontal = 12.dp)
                 .clip(itemShape)
                 .then(
+                    if (selectionChecked != null) {
+                        Modifier.semantics { selected = selectionChecked }
+                    } else Modifier
+                )
+                .then(
                     if (onLongClick != null) {
                         Modifier.combinedClickable(
                             enabled = currentOffsetPx == 0f,
@@ -2126,7 +2135,7 @@ fun QueuePlaylistSongItem(
                         )
                     }
 
-                    if (isCurrentSong) {
+                    if (isCurrentSong && selectionChecked == null) {
                         if (isPlaying != null) {
                             PlayingEqIcon(
                                 modifier = Modifier
@@ -2144,7 +2153,20 @@ fun QueuePlaylistSongItem(
                         Spacer(Modifier.width(8.dp))
                     }
 
-                    if (isFromPlaylist) {
+                    if (selectionChecked != null) {
+                        Box(
+                            modifier = Modifier.padding(end = 8.dp).size(36.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (selectionChecked) {
+                                Icon(
+                                    imageVector = Icons.Rounded.CheckCircle,
+                                    contentDescription = null,
+                                    tint = colors.onSecondaryContainer
+                                )
+                            }
+                        }
+                    } else if (isFromPlaylist) {
                         FilledIconButton(
                             onClick = { onMoreOptionsClick(song) },
                             colors = IconButtonDefaults.filledIconButtonColors(

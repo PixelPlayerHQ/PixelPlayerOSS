@@ -48,6 +48,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -301,6 +302,7 @@ fun EnhancedSongListItem(
                 )
                 .semantics(mergeDescendants = true) {
                     role = Role.Button
+                    if (isSelectionMode) selected = isSelected
                     onClick {
                         if (isSelectionMode) {
                             onLongPress()

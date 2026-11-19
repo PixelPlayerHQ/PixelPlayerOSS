@@ -89,22 +89,38 @@ class CloudDownloadExports @Inject constructor(
     }
 
     suspend fun export(file: File, title: String, downloadId: String): CloudExportResult =
+        exportCopy(file, exportFileName(title, downloadId, file.extension), resumeInterruptedCopy = false)
+
+    internal suspend fun exportDownloadedTrack(
+        file: File,
+        title: String,
+        attemptId: String,
+        resumeInterruptedCopy: Boolean
+    ): CloudExportResult =
+        exportCopy(file, exportFileName(title, attemptId, file.extension, idLength = attemptId.length), resumeInterruptedCopy)
+
+    private suspend fun exportCopy(
+        file: File,
+        displayName: String,
+        resumeInterruptedCopy: Boolean
+    ): CloudExportResult =
         withContext(Dispatchers.IO) {
             var document: Uri? = null
             var finished = false
             try {
                 val destination = folder.first()?.uri ?: return@withContext CloudExportResult.DISABLED
+                val existing = if (resumeInterruptedCopy) findExportCopy(destination, displayName) else null
+                if (existing != null && existing.second == file.length()) {
+                    return@withContext CloudExportResult.EXPORTED
+                }
                 val mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(file.extension)
                     ?: "application/octet-stream"
                 file.inputStream().buffered().use { input ->
-                    val created = DocumentsContract.createDocument(
-                        resolver,
-                        rootDocument(destination),
-                        mimeType,
-                        exportFileName(title, downloadId, file.extension)
+                    val created = existing?.first ?: DocumentsContract.createDocument(
+                        resolver, rootDocument(destination), mimeType, displayName
                     ) ?: throw IOException()
                     document = created
-                    resolver.openOutputStream(created)?.buffered()?.use { output ->
+                    resolver.openOutputStream(created, "wt")?.buffered()?.use { output ->
                         val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
                         while (true) {
                             coroutineContext.ensureActive()
@@ -127,6 +143,25 @@ class CloudDownloadExports @Inject constructor(
             }
         }
 
+    private fun findExportCopy(folder: Uri, displayName: String): Pair<Uri, Long?>? {
+        val children = DocumentsContract.buildChildDocumentsUriUsingTree(folder, DocumentsContract.getTreeDocumentId(folder))
+        val columns = arrayOf(
+            DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+            DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+            DocumentsContract.Document.COLUMN_SIZE,
+            DocumentsContract.Document.COLUMN_MIME_TYPE
+        )
+        val cursor = resolver.query(children, columns, null, null, null) ?: throw IOException()
+        cursor.use {
+            while (it.moveToNext()) {
+                if (it.getString(1) != displayName || it.getString(3) == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                val uri = DocumentsContract.buildDocumentUriUsingTree(folder, it.getString(0))
+                return uri to if (it.isNull(2)) null else it.getLong(2)
+            }
+        }
+        return null
+    }
+
     private suspend fun releaseFolder(uri: Uri) {
         if (m3uPreferences.snapshot().treeUri == uri.toString()) return
         runCatching { resolver.releasePersistableUriPermission(uri, TREE_FLAGS) }
@@ -145,9 +180,9 @@ class CloudDownloadExports @Inject constructor(
 
 private val unsupportedFileNameCharacters = Regex("""[\\/:*?"<>|\p{Cc}]""")
 
-internal fun exportFileName(title: String, downloadId: String, extension: String): String {
+internal fun exportFileName(title: String, id: String, extension: String, idLength: Int = 12): String {
     val stem = title.replace(unsupportedFileNameCharacters, "_")
         .trim(' ', '.').take(60).trimEnd(' ', '.')
         .ifBlank { "Track" }
-    return "$stem - ${downloadId.take(12)}.$extension"
+    return "$stem - ${id.take(idLength)}.$extension"
 }

@@ -8,6 +8,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.database.OfflineTrackDao
+import com.lostf1sh.pixelplayeross.data.database.OfflineTrackEntity
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
@@ -61,6 +62,9 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
             return@withContext Result.success()
         }
         if (entity.state == OfflineDownloadStatus.COMPLETE.storageValue) {
+            entity.localPath?.let(::File)?.takeIf { it.isFile && it.length() > 0L }?.let { file ->
+                finishExport(entity, file, resumeInterruptedCopy = true)
+            }
             return@withContext Result.success()
         }
 
@@ -199,20 +203,28 @@ class CloudTrackDownloadWorker @AssistedInject constructor(
                 }
             }
         }
-        completedFile?.let { file ->
-            val export = exports.export(file, entity.title, downloadId)
-            CloudDownloadNotifications.show(
-                applicationContext,
-                entity.title,
-                when (export) {
-                    CloudExportResult.DISABLED -> R.string.cloud_download_saved_offline
-                    CloudExportResult.EXPORTED -> R.string.cloud_download_saved_and_exported
-                    CloudExportResult.FAILED -> R.string.cloud_download_saved_export_failed
-                },
-                failed = export == CloudExportResult.FAILED
-            )
-        }
+        completedFile?.let { file -> finishExport(entity, file, resumeInterruptedCopy = false) }
         result
+    }
+
+    private suspend fun finishExport(
+        entity: OfflineTrackEntity,
+        file: File,
+        resumeInterruptedCopy: Boolean
+    ) {
+        if (!dao.isCurrentAttempt(entity.downloadId, entity.attemptId)) return
+        val export = exports.exportDownloadedTrack(file, entity.title, entity.attemptId, resumeInterruptedCopy)
+        if (!dao.isCurrentAttempt(entity.downloadId, entity.attemptId)) return
+        CloudDownloadNotifications.show(
+            applicationContext,
+            entity.title,
+            when (export) {
+                CloudExportResult.DISABLED -> R.string.cloud_download_saved_offline
+                CloudExportResult.EXPORTED -> R.string.cloud_download_saved_and_exported
+                CloudExportResult.FAILED -> R.string.cloud_download_saved_export_failed
+            },
+            failed = export == CloudExportResult.FAILED
+        )
     }
 
     private suspend fun publishProgress(

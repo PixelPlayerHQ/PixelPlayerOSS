@@ -75,8 +75,14 @@ class SharedArtworkContentProvider : ContentProvider() {
             return openCachedCloudArtwork(appContext, cloudArtworkUri)
         }
 
-        val file = resolveArtworkFile(uri)
-            ?: throw FileNotFoundException("No artwork found for uri=$uri")
+        val songId = parseSongId(uri, appContext.packageName)
+            ?: throw FileNotFoundException("Unsupported artwork URI")
+        val file = if (Binder.getCallingUid() == appContext.applicationInfo.uid) {
+            AlbumArtUtils.ensureAlbumArtCachedFile(appContext, songId)
+        } else {
+            AlbumArtUtils.getOrWarmCachedAlbumArtFile(appContext, songId)
+        }?.takeIf { it.isFile && it.canRead() }
+            ?: throw FileNotFoundException("Local artwork is unavailable")
 
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
@@ -84,15 +90,6 @@ class SharedArtworkContentProvider : ContentProvider() {
     override fun openAssetFile(uri: Uri, mode: String): AssetFileDescriptor {
         val fileDescriptor = openFile(uri, mode)
         return AssetFileDescriptor(fileDescriptor, 0, AssetFileDescriptor.UNKNOWN_LENGTH)
-    }
-
-    private fun resolveArtworkFile(uri: Uri): File? {
-        val appContext = context?.applicationContext ?: return null
-        val songId = parseSongId(uri, appContext.packageName) ?: return null
-        return AlbumArtUtils.ensureAlbumArtCachedFile(
-            appContext = appContext,
-            songId = songId
-        )?.takeIf { it.exists() && it.isFile && it.canRead() }
     }
 
     /**

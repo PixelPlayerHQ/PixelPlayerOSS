@@ -565,6 +565,7 @@ fun FullPlayerContent(
             placeholderColor = placeholderColor,
             placeholderOnColor = placeholderOnColor,
             albumArtQuality = albumArtQuality,
+            fitCarouselToHeight = isCompactLandscape,
             requestedScrollIndex = pendingCarouselIndex,
             onSongSelected = onAlbumSongSelected,
             onAlbumClick = { albumSong ->
@@ -1069,6 +1070,7 @@ private fun FullPlayerAlbumCoverSection(
     placeholderColor: Color,
     placeholderOnColor: Color,
     albumArtQuality: AlbumArtQuality,
+    fitCarouselToHeight: Boolean,
     requestedScrollIndex: Int?,
     onSongSelected: (Song, Int) -> Unit,
     onAlbumClick: (Song) -> Unit,
@@ -1088,17 +1090,18 @@ private fun FullPlayerAlbumCoverSection(
             .padding(vertical = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        val baseCarouselHeight = when (carouselStyle) {
-            CarouselStyle.NO_PEEK -> maxWidth
-            CarouselStyle.ONE_PEEK -> maxWidth * 0.8f
-            CarouselStyle.TWO_PEEK -> maxWidth * 0.6f
-            else -> maxWidth * 0.8f
+        val pageWidthFraction = when {
+            currentPlaybackQueue.size == 1 || carouselStyle == CarouselStyle.NO_PEEK -> 1f
+            carouselStyle == CarouselStyle.TWO_PEEK -> 0.6f
+            else -> 0.8f
         }
+        val baseCarouselHeight = maxWidth * pageWidthFraction
         val carouselHeight = if (maxHeight != Dp.Infinity && maxHeight > 0.dp) {
             minOf(baseCarouselHeight, maxHeight * 0.85f)
         } else {
             baseCarouselHeight
         }
+        val carouselWidth = if (fitCarouselToHeight) carouselHeight / pageWidthFraction else maxWidth
 
         DelayedContent(
             shouldDelay = shouldDelay,
@@ -1106,7 +1109,7 @@ private fun FullPlayerAlbumCoverSection(
             applyPlaceholderDelayOnClose = loadingTweaks.applyPlaceholdersOnClose,
             switchOnDragRelease = loadingTweaks.switchOnDragRelease,
             isSheetDragGestureActive = isSheetDragGestureActive,
-            sharedBoundsModifier = Modifier.fillMaxWidth().height(carouselHeight),
+            sharedBoundsModifier = Modifier.width(carouselWidth).height(carouselHeight),
             expansionFractionProvider = expansionFractionProvider,
             isExpandedOverride = currentSheetState == PlayerSheetState.EXPANDED,
             normalStartThreshold = 0.08f,

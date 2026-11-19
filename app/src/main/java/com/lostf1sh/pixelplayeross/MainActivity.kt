@@ -872,12 +872,14 @@ class MainActivity : ComponentActivity() {
                     }
                 }
         ) {
-            val isPlayerExpandedForRail by remember {
+            val playerSheetState by playerViewModel.sheetState.collectAsStateWithLifecycle()
+            val isPlayerBeyondMiniPlayer by remember(playerViewModel) {
                 derivedStateOf {
                     playerViewModel.playerContentExpansionFraction.value > 0.15f
                 }
             }
-            val railVisible = useNavigationRail && !shouldHideNavigationBar && !isPlayerExpandedForRail
+            val playerCoversRail = playerSheetState == PlayerSheetState.EXPANDED || isPlayerBeyondMiniPlayer
+            val railVisible = useNavigationRail && !shouldHideNavigationBar && !playerCoversRail
             val animatedRailContentCornerRadius by animateDpAsState(
                 targetValue = if (railVisible) navBarCornerRadius.dp else 0.dp,
                 animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
@@ -889,9 +891,9 @@ class MainActivity : ComponentActivity() {
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
-                if (useNavigationRail) {
+                if (useNavigationRail && !playerCoversRail) {
                     AnimatedVisibility(
-                        visible = !shouldHideNavigationBar && !isPlayerExpandedForRail,
+                        visible = !shouldHideNavigationBar,
                         enter = expandHorizontally(
                             animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing)
                         ) + fadeIn(animationSpec = tween(180)),
@@ -1118,9 +1120,9 @@ class MainActivity : ComponentActivity() {
                         val miniPlayerPaddingStart: Dp
                         val miniPlayerPaddingEnd: Dp
                         if (useNavigationRail) {
-                            val railOffset = 80.dp * navBarVisibilityProgressState.value
-                            miniPlayerPaddingStart = maxOf(12.dp, (containerWidth - railOffset - miniPlayerWidth) / 2)
-                            miniPlayerPaddingEnd = maxOf(12.dp, (containerWidth + railOffset - miniPlayerWidth) / 2)
+                            val centeredPadding = maxOf(12.dp, (containerWidth - miniPlayerWidth) / 2)
+                            miniPlayerPaddingStart = centeredPadding
+                            miniPlayerPaddingEnd = centeredPadding
                         } else {
                             miniPlayerPaddingStart = horizontalPadding
                             miniPlayerPaddingEnd = horizontalPadding

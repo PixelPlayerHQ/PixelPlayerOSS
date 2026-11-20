@@ -170,6 +170,20 @@ class TransitionController @Inject constructor(
                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
                 }
         }
+
+        // Turning a playlist into a mix (or back) while it plays changes how the current song
+        // ends: rebuild its pending transition now instead of at the next song. A transition
+        // already running finishes as it is; the swap reschedules for the incoming song.
+        scope.launch {
+            transitionRepository.mixEnabledPlaylistIds()
+                .distinctUntilChanged()
+                .drop(1)
+                .collect {
+                    if (engine.isTransitionRunning()) return@collect
+                    mixPlaybackState.clear()
+                    engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                }
+        }
     }
 
     private fun scheduleTransitionFor(currentMediaItem: MediaItem) {
@@ -183,6 +197,8 @@ class TransitionController @Inject constructor(
 
         if (engine.sleepTimerHold.value.suppressCrossfade) {
             Timber.tag("TransitionDebug").d("Sleep timer holds playback at track end. No transition.")
+            // The song now plays to its real end: no mix point for its seek bar to stop at.
+            mixPlaybackState.clear()
             if (!engine.isTransitionRunning()) engine.cancelNext()
             return
         }
@@ -206,6 +222,8 @@ class TransitionController @Inject constructor(
                     player.mediaItemCount,
                     repeatMode,
                 )
+                // Nothing follows (queue emptied, last song): the song plays to its real end.
+                mixPlaybackState.clear()
                 engine.cancelNext()
                 return@launch
             }
@@ -440,10 +458,6 @@ class TransitionController @Inject constructor(
         storedFlow.distinctUntilChanged().collectLatest { stored ->
             needsDurationReschedule = false
 
-            // The incoming song must be positioned before it is prepared; only the authored mix
-            // knows a non-zero start. An automatic mix always starts the incoming song at 0.
-            engine.prepareNext(transitionTarget, startPositionMs = stored?.inStartMs ?: 0L)
-
             var duration = player.duration
             var attempts = 0
             while ((duration == C.TIME_UNSET || duration <= 0) && currentCoroutineContext().isActive) {
@@ -461,9 +475,12 @@ class TransitionController @Inject constructor(
 
             val outgoingBpm = trackBpmRepository.bpmFor(currentMediaItem)
             val incomingBpm = trackBpmRepository.bpmFor(nextMediaItem)
+            // Fitted inside both songs: the incoming one must last the whole window from where it
+            // starts, or its player would run on into the song after it while the lines still play.
             val mix = MixPlanner.fit(
                 stored ?: MixPlanner.auto(duration, outgoingBpm, incomingBpm),
                 duration,
+                durationHintOf(nextMediaItem),
             )
             if (mix == null) {
                 Timber.tag("TransitionDebug").w("Mix: track too short (duration=%d).", duration)
@@ -472,6 +489,9 @@ class TransitionController @Inject constructor(
                 engine.setPauseAtEndOfMediaItems(shouldPause = false)
                 return@collectLatest
             }
+
+            // The incoming song is positioned where the (fitted) mix starts it before it is prepared.
+            engine.prepareNext(transitionTarget, startPositionMs = mix.inStartMs)
 
             Timber.tag("TransitionDebug").d(
                 "Mix scheduled: out=%d ms, in=%d ms, window=%d ms, preset=%s, authored=%s",
@@ -532,6 +552,10 @@ class TransitionController @Inject constructor(
         }
     }
 
+    /** The song's length as the library knows it, or null when the item doesn't carry one. */
+    private fun durationHintOf(item: MediaItem): Long? =
+        item.mediaMetadata.extras?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)?.takeIf { it > 0L }
+
     /**
      * Works out where [incoming] will itself mix into the song after it and publishes that, so the
      * player's seek bar for [incoming] is right from the moment the player switches to it
@@ -558,6 +582,7 @@ class TransitionController @Inject constructor(
                 trackBpmRepository.bpmFor(followingItem),
             ),
             incomingDuration,
+            durationHintOf(followingItem),
         ) ?: return true
 
         mixPlaybackState.set(

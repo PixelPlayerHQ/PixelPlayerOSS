@@ -11,7 +11,6 @@ import com.lostf1sh.pixelplayeross.data.media.WaveformRepository
 import com.lostf1sh.pixelplayeross.data.model.MixPreset
 import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.model.TransitionMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionRule
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
@@ -85,6 +84,9 @@ class MixEditorViewModel @Inject constructor(
     private var baseline: MixTransition? = null
     private var existingRuleId: Long = 0L
 
+    /** The pair's ordinary crossfade settings, if the row had any; saving a mix must leave them alone. */
+    private var existingSettings: TransitionSettings? = null
+
     init {
         load()
         viewModelScope.launch {
@@ -108,11 +110,13 @@ class MixEditorViewModel @Inject constructor(
             val existingRule = transitionRepository.getAllRulesForPlaylist(playlistId).first()
                 .firstOrNull { it.fromTrackId == fromId && it.toTrackId == toId }
             existingRuleId = existingRule?.id ?: 0L
+            existingSettings = existingRule?.settings
 
             val stored = existingRule?.mix
             val initial = MixPlanner.fit(
                 stored ?: MixPlanner.auto(from.duration, fromBpm, toBpm),
                 from.duration,
+                to.duration,
             )
             baseline = initial
 
@@ -143,7 +147,8 @@ class MixEditorViewModel @Inject constructor(
 
     fun selectWindow(option: MixPlanner.WindowOption) {
         val from = _uiState.value.from ?: return
-        editMix(markCustom = false) { MixEditing.withWindow(it, option, from.duration) }
+        val to = _uiState.value.to ?: return
+        editMix(markCustom = false) { MixEditing.withWindow(it, option, from.duration, to.duration) }
     }
 
     /** Slides the mix window along the outgoing song by [deltaMs]. */
@@ -176,8 +181,9 @@ class MixEditorViewModel @Inject constructor(
     fun resetToAuto() {
         val state = _uiState.value
         val from = state.from ?: return
+        val to = state.to ?: return
         editMix(markCustom = false) {
-            MixPlanner.fit(MixPlanner.auto(from.duration, state.fromBpm, state.toBpm), from.duration) ?: it
+            MixPlanner.fit(MixPlanner.auto(from.duration, state.fromBpm, state.toBpm), from.duration, to.duration) ?: it
         }
     }
 
@@ -201,7 +207,9 @@ class MixEditorViewModel @Inject constructor(
                     playlistId = playlistId,
                     fromTrackId = fromId,
                     toTrackId = toId,
-                    settings = TransitionSettings(mode = TransitionMode.OVERLAP, durationMs = mix.windowMs.toInt()),
+                    // The mix is kept apart from ordinary crossfade settings: a pair that has one is
+                    // played by its mix only, and these settings stay as they were (or default).
+                    settings = existingSettings ?: TransitionSettings(),
                     mix = mix,
                 )
             )

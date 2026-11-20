@@ -104,4 +104,29 @@ class MixPlannerTest {
     fun `fit returns null when the song is too short for any mix`() {
         assertNull(MixPlanner.fit(MixTransition(outPointMs = 0, windowMs = 4000), 400L))
     }
+
+    @Test
+    fun `fit also keeps the incoming song long enough for the whole window`() {
+        // Incoming song is 60 s; the window starts it 55 s in and runs 20 s: pulled back so it fits.
+        val mix = MixTransition(outPointMs = 100_000, inStartMs = 55_000, windowMs = 20_000)
+        val fitted = MixPlanner.fit(mix, songMs, incomingDurationMs = 60_000)!!
+        assertEquals(20_000L, fitted.windowMs)
+        assertEquals(60_000L - MixPlanner.END_GUARD_MS - 20_000L, fitted.inStartMs)
+    }
+
+    @Test
+    fun `fit shortens a window longer than the incoming song`() {
+        val fitted = MixPlanner.fit(
+            MixTransition(outPointMs = 100_000, inStartMs = 3_000, windowMs = 30_000),
+            songMs,
+            incomingDurationMs = 10_000,
+        )!!
+        assertEquals(10_000L - MixPlanner.END_GUARD_MS, fitted.windowMs)
+        assertEquals(0L, fitted.inStartMs)
+    }
+
+    @Test
+    fun `fit returns null when the incoming song is too short for any mix`() {
+        assertNull(MixPlanner.fit(MixTransition(outPointMs = 0, windowMs = 4000), songMs, incomingDurationMs = 300L))
+    }
 }

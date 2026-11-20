@@ -118,15 +118,28 @@ object MixPlanner {
     }
 
     /**
-     * Fits [mix] inside an outgoing song of [trackDurationMs]: the window can't be shorter than
-     * [MIN_WINDOW_MS] or run past the song's end, so it is shortened or moved earlier. Returns
-     * null when the song is too short for any mix.
+     * Fits [mix] inside an outgoing song of [trackDurationMs] and, when known, an incoming song of
+     * [incomingDurationMs]: the window can't be shorter than [MIN_WINDOW_MS] or run past the end of
+     * either song, so it is shortened or moved earlier, and the incoming start is pulled back so
+     * the incoming song lasts the whole window. Returns null when a song is too short for any mix.
      */
-    fun fit(mix: MixTransition, trackDurationMs: Long): MixTransition? {
+    fun fit(mix: MixTransition, trackDurationMs: Long, incomingDurationMs: Long? = null): MixTransition? {
         val usable = trackDurationMs - END_GUARD_MS
         if (usable < MIN_WINDOW_MS) return null
-        val window = mix.windowMs.coerceIn(MIN_WINDOW_MS, usable)
+        var maxWindow = usable
+        if (incomingDurationMs != null) {
+            val incomingUsable = incomingDurationMs - END_GUARD_MS
+            if (incomingUsable < MIN_WINDOW_MS) return null
+            maxWindow = minOf(maxWindow, incomingUsable)
+        }
+        val window = mix.windowMs.coerceIn(MIN_WINDOW_MS, maxWindow)
         val outPoint = mix.outPointMs.coerceIn(0L, usable - window)
-        return mix.copy(outPointMs = outPoint, windowMs = window)
+        // The incoming song plays from inStartMs for the whole window: it must have that much song.
+        val inStart = if (incomingDurationMs != null) {
+            mix.inStartMs.coerceIn(0L, (incomingDurationMs - END_GUARD_MS - window).coerceAtLeast(0L))
+        } else {
+            mix.inStartMs
+        }
+        return mix.copy(outPointMs = outPoint, inStartMs = inStart, windowMs = window)
     }
 }

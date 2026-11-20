@@ -33,7 +33,9 @@ class TransitionRepositoryImpl @Inject constructor(
         if (fromTrackId == null || toTrackId == null) return resolvePlaylistDefault(playlistId)
         return transitionDao.getSpecificRule(playlistId, fromTrackId, toTrackId)
             .flatMapLatest { specificRule ->
-                if (specificRule != null) {
+                // A pair row that carries a mix belongs to the mix: it is played only while the
+                // playlist is a mix, and never stands in for an ordinary crossfade setting.
+                if (specificRule != null && specificRule.mixJson == null) {
                     flowOf(
                         TransitionResolution(
                             settings = specificRule.settings,
@@ -65,6 +67,8 @@ class TransitionRepositoryImpl @Inject constructor(
                 }
             }
         }
+
+    override fun mixEnabledPlaylistIds(): Flow<Set<String>> = userPreferences.mixEnabledPlaylistIdsFlow
 
     override fun isMixEnabled(playlistId: String): Flow<Boolean> =
         userPreferences.mixEnabledPlaylistIdsFlow.map { playlistId in it }.distinctUntilChanged()

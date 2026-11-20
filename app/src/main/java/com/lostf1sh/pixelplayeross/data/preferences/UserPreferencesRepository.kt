@@ -1121,6 +1121,17 @@ constructor(
                 preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] ?: emptySet()
             }
 
+    /** Replaces the whole set (backup restore); empty clears it. */
+    suspend fun setMixEnabledPlaylistIds(ids: Set<String>) {
+        dataStore.edit { preferences ->
+            if (ids.isEmpty()) {
+                preferences.remove(PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS)
+            } else {
+                preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] = ids
+            }
+        }
+    }
+
     suspend fun setPlaylistMixEnabled(playlistId: String, enabled: Boolean) {
         dataStore.edit { preferences ->
             val current = preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] ?: emptySet()

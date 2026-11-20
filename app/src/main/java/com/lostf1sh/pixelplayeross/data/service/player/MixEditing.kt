@@ -65,8 +65,16 @@ object MixEditing {
         return mix.copy(inStartMs = (mix.inStartMs + deltaMs).coerceIn(0L, maxStart))
     }
 
-    /** Applies a new window length (e.g. from the bars chip) and refits it. */
-    fun withWindow(mix: MixTransition, option: MixPlanner.WindowOption, outgoingDurationMs: Long): MixTransition {
+    /**
+     * Applies a new window length (e.g. from the bars chip) and refits it inside both songs: a
+     * longer window can need the incoming start moved back so the incoming song lasts it out.
+     */
+    fun withWindow(
+        mix: MixTransition,
+        option: MixPlanner.WindowOption,
+        outgoingDurationMs: Long,
+        incomingDurationMs: Long,
+    ): MixTransition {
         // Keep the window's end anchored: a longer window starts earlier, a shorter one later.
         val end = mix.outPointMs + mix.windowMs
         val resized = mix.copy(
@@ -74,7 +82,7 @@ object MixEditing {
             bars = option.bars,
             outPointMs = end - option.windowMs,
         )
-        return MixPlanner.fit(resized, outgoingDurationMs) ?: mix
+        return MixPlanner.fit(resized, outgoingDurationMs, incomingDurationMs) ?: mix
     }
 
     /** Marks [mix] as hand-edited. */

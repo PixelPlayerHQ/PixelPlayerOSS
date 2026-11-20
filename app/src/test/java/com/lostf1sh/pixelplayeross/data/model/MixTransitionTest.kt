@@ -87,4 +87,23 @@ class MixTransitionTest {
         val json = """{"outPointMs":1000,"windowMs":8000,"inVolume":[{"t":0,"v":0},{"t":1,"v":0.78}]}"""
         assertEquals(1f, MixTransition.fromJson(json)!!.inVolume.last().v, 1e-6f)
     }
+
+    @Test
+    fun `a null keyframe in stored json is dropped instead of throwing`() {
+        val parsed = MixTransition.fromJson("""{"outPointMs":1000,"windowMs":4000,"outVolume":[null]}""")
+        assertNotNull(parsed)
+        // One null leaves no playable line, so the default one is used.
+        assertEquals(MixTransition.DEFAULT_OUT_VOLUME, parsed!!.outVolume)
+
+        val kept = MixTransition.fromJson(
+            """{"outPointMs":0,"windowMs":4000,"outVolume":[{"t":0,"v":1},null,{"t":0.5,"v":0.5},{"t":1,"v":0}]}"""
+        )!!
+        assertEquals(3, kept.outVolume.size)
+    }
+
+    @Test
+    fun `json that is not an object parses to null`() {
+        assertNull(MixTransition.fromJson("null"))
+        assertNull(MixTransition.fromJson("[1,2]"))
+    }
 }

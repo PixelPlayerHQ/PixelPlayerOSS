@@ -74,7 +74,7 @@ class MixEditingTest {
     @Test
     fun `a longer window starts earlier and keeps its end`() {
         val mix = MixTransition(outPointMs = 170_000, windowMs = 10_000)
-        val longer = MixEditing.withWindow(mix, MixPlanner.WindowOption(20_000, 8), 200_000)
+        val longer = MixEditing.withWindow(mix, MixPlanner.WindowOption(20_000, 8), 200_000, incomingDurationMs = 180_000)
         assertEquals(20_000L, longer.windowMs)
         assertEquals(8, longer.bars)
         assertEquals(160_000L, longer.outPointMs)
@@ -95,5 +95,14 @@ class MixEditingTest {
     fun `custom marks a mix as hand edited`() {
         val mix = MixTransition(outPointMs = 0, windowMs = 1000, preset = MixPreset.FADE)
         assertEquals(MixPreset.CUSTOM, MixEditing.custom(mix).preset)
+    }
+
+    @Test
+    fun `a longer window moves the incoming start back so the incoming song lasts it out`() {
+        // Incoming starts 55 s into a 60 s song; a 32 s window must pull that start back.
+        val mix = MixTransition(outPointMs = 100_000, inStartMs = 50_000, windowMs = 8_000)
+        val resized = MixEditing.withWindow(mix, MixPlanner.WindowOption(32_000, 16), 200_000, incomingDurationMs = 60_000)
+        assertEquals(32_000L, resized.windowMs)
+        assertTrue(resized.inStartMs + resized.windowMs <= 60_000L - MixPlanner.END_GUARD_MS)
     }
 }

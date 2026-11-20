@@ -60,11 +60,14 @@ data class MixTransition(
         /** Parses stored JSON; null for blank or corrupt input so callers fall back to Auto. */
         fun fromJson(json: String?): MixTransition? {
             if (json.isNullOrBlank()) return null
-            return runCatching { gson.fromJson(json, MixTransition::class.java) }
-                .getOrNull()
+            // Defaults and cleanup are inside the guard too: parsed-but-malformed data (a null
+            // keyframe, say) must fall back to an automatic mix, not throw when it is read.
+            return runCatching {
                 // Gson bypasses Kotlin defaults for fields missing from the JSON, leaving them null.
-                ?.let { raw -> raw.fieldsOrDefaults() }
-                ?.sanitized()
+                gson.fromJson(json, MixTransition::class.java)
+                    ?.fieldsOrDefaults()
+                    ?.sanitized()
+            }.getOrNull()
         }
 
         @Suppress("USELESS_ELVIS", "SENSELESS_COMPARISON")
@@ -87,7 +90,10 @@ data class MixTransition(
             }
 
         private fun List<VolumeKeyframe>.sanitizedLine(fallback: List<VolumeKeyframe>): List<VolumeKeyframe> {
-            val cleaned = filter { it.t.isFinite() && it.v.isFinite() }
+            // Gson can put a null where the JSON has one, whatever the Kotlin type says.
+            @Suppress("UNCHECKED_CAST")
+            val cleaned = (this as List<VolumeKeyframe?>).filterNotNull()
+                .filter { it.t.isFinite() && it.v.isFinite() }
                 .map { VolumeKeyframe(it.t.coerceIn(0f, 1f), it.v.coerceIn(0f, 1f)) }
                 .sortedBy { it.t }
             return if (cleaned.size >= 2) cleaned else fallback

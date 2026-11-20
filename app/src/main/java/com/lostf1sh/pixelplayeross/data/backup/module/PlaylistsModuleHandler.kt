@@ -87,9 +87,13 @@ class PlaylistsModuleHandler @Inject constructor(
             readFileAsBase64(uri)?.let { coverImages[playlist.id] = it }
         }
 
+        val backedUpIds = filteredPlaylists.map { it.id }.toSet()
         val payload = PlaylistsBackupPayload(
             playlists = filteredPlaylists,
             playlistSongOrderModes = playlistPreferencesRepository.playlistSongOrderModesFlow.first(),
+            mixEnabledPlaylistIds = playlistPreferencesRepository.mixEnabledPlaylistIdsFlow.first()
+                .filter { it in backedUpIds }
+                .ifEmpty { null },
             playlistsSortOption = playlistPreferencesRepository.playlistsSortOptionFlow.first(),
             songMetadata = songMetadata.ifEmpty { null },
             coverImages = coverImages.ifEmpty { null }
@@ -109,6 +113,7 @@ class PlaylistsModuleHandler @Inject constructor(
         val payload = PlaylistsBackupPayload(
             playlists = playlistPreferencesRepository.getPlaylistsOnce(),
             playlistSongOrderModes = playlistPreferencesRepository.playlistSongOrderModesFlow.first(),
+            mixEnabledPlaylistIds = playlistPreferencesRepository.mixEnabledPlaylistIdsFlow.first().toList(),
             playlistsSortOption = playlistPreferencesRepository.playlistsSortOptionFlow.first()
         )
         gson.toJson(payload)
@@ -156,6 +161,8 @@ class PlaylistsModuleHandler @Inject constructor(
             playlistPreferencesRepository.replaceAllPlaylists(finalPlaylists)
         }
         playlistPreferencesRepository.setPlaylistSongOrderModes(parsed.playlistSongOrderModes.orEmpty())
+        // Mix status belongs to the playlists: restoring them restores which ones are mixes.
+        playlistPreferencesRepository.setMixEnabledPlaylistIds(parsed.mixEnabledPlaylistIds.orEmpty().toSet())
         playlistPreferencesRepository.setPlaylistsSortOption(
             parsed.playlistsSortOption ?: SortOption.PlaylistNameAZ.storageKey
         )
@@ -522,6 +529,8 @@ class PlaylistsModuleHandler @Inject constructor(
     private data class PlaylistsBackupPayload(
         val playlists: List<Playlist>? = null,
         val playlistSongOrderModes: Map<String, String>? = null,
+        /** Ids of the playlists that are DJ-style mixes. Null in backups made before mixes existed. */
+        val mixEnabledPlaylistIds: List<String>? = null,
         val playlistsSortOption: String? = null,
         /** Song metadata for cross-device matching. Key = songId from backup. Null in legacy/snapshot payloads. */
         val songMetadata: Map<String, BackupSongMetadata>? = null,
@@ -549,10 +558,13 @@ class PlaylistsModuleHandler @Inject constructor(
         const val LEGACY_USER_PLAYLISTS_KEY = "user_playlists_json_v1"
         const val LEGACY_PLAYLIST_ORDER_MODES_KEY = "playlist_song_order_modes"
         const val LEGACY_PLAYLIST_SORT_OPTION_KEY = "playlists_sort_option"
+        const val MIX_ENABLED_PLAYLISTS_KEY = "mix_enabled_playlist_ids"
         val PLAYLIST_KEYS = setOf(
             LEGACY_USER_PLAYLISTS_KEY,
             LEGACY_PLAYLIST_ORDER_MODES_KEY,
-            LEGACY_PLAYLIST_SORT_OPTION_KEY
+            LEGACY_PLAYLIST_SORT_OPTION_KEY,
+            // Per-playlist state: kept out of global settings and carried by the playlists payload.
+            MIX_ENABLED_PLAYLISTS_KEY
         )
     }
 }

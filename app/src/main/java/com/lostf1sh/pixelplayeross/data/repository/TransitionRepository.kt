@@ -31,6 +31,9 @@ interface TransitionRepository {
     /** Whether the playlist is a DJ-style mix. */
     fun isMixEnabled(playlistId: String): Flow<Boolean>
 
+    /** Ids of every mix playlist; emits when any playlist is turned into a mix or back. */
+    fun mixEnabledPlaylistIds(): Flow<Set<String>>
+
     suspend fun setMixEnabled(playlistId: String, enabled: Boolean)
 
     /**

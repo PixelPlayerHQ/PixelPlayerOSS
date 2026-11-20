@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.lostf1sh.pixelplayeross.data.model.MixTransition
@@ -59,6 +60,17 @@ class MixPreviewPlayer(
         outgoing = out
         incoming = inc
 
+        // Either player failing (file gone, decoder error) ends the preview instead of leaving
+        // both players held with a playhead that never reaches the end.
+        var failed = false
+        val errorListener = object : Player.Listener {
+            override fun onPlayerError(error: PlaybackException) {
+                failed = true
+            }
+        }
+        out.addListener(errorListener)
+        inc.addListener(errorListener)
+
         job = scope.launch {
             var incomingStarted = false
             var outgoingStopped = false
@@ -88,7 +100,12 @@ class MixPreviewPlayer(
                 }
 
                 val outgoingEnded = out.playbackState == Player.STATE_ENDED
-                if (rel >= mix.windowMs + TAIL_MS || (outgoingEnded && !incomingStarted)) break
+                // The incoming song can run out before the tail is over (its start was set late in
+                // the song): its position then stops moving, so end on its own ending too.
+                val incomingEnded = incomingStarted && inc.playbackState == Player.STATE_ENDED
+                if (failed || incomingEnded || rel >= mix.windowMs + TAIL_MS ||
+                    (outgoingEnded && !incomingStarted)
+                ) break
                 delay(FRAME_MS)
             }
             stop()

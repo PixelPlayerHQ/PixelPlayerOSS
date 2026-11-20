@@ -99,6 +99,18 @@ object AudioMetadataReader {
      */
     private const val VERBOSE_LOGGING = false
 
+    fun readSourceUrl(context: Context, uri: Uri): String? {
+        return try {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { fd ->
+                TagLib.getMetadata(fd.detachFd(), readPictures = false)
+                    ?.propertyMap
+                    ?.let(::findEmbeddedSourceUrl)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     fun read(context: Context, uri: Uri): AudioMetadata? {
         val tempFile = createTempAudioFileFromUri(context, uri) ?: run {
             Timber.tag(TAG).w("Unable to create temp file for uri: $uri")
@@ -147,8 +159,8 @@ object AudioMetadataReader {
                 val genre = GenreParser.joinValues(propertyMap["GENRE"]?.asIterable() ?: emptyList())
                 val composer = propertyMap["COMPOSER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TCOM"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                val lyrics = propertyMap["LYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                    ?: propertyMap["UNSYNCEDLYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
+                val lyrics = sequenceOf("LYRICS", "SYNCEDLYRICS", "TTML", "UNSYNCEDLYRICS")
+                    .firstNotNullOfOrNull { key -> propertyMap[key]?.firstOrNull { it.isNotBlank() } }
                 val trackString = propertyMap["TRACKNUMBER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TRACK"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                 val trackNumber = trackString?.substringBefore('/')?.toIntOrNull()

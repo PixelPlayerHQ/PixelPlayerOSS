@@ -1,6 +1,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.rememberDisplayFont
+
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -1622,7 +1624,7 @@ fun LibraryHeaderPreview(isCompact: Boolean, previewHeight: Dp = 180.dp, cornerR
                 label = "HeaderPreviewAnim"
             ) { compact ->
                 if (compact) {
-                    val compactTitleFontFamily = remember {
+                    val compactTitleFontFamily = rememberDisplayFont {
                         FontFamily(
                             Font(
                                 resId = R.font.gflex_variable,

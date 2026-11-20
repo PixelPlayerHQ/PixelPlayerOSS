@@ -3,13 +3,6 @@ package com.lostf1sh.pixelplayeross.presentation.components
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,14 +18,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -89,29 +79,12 @@ fun EditMultipleSongsSheet(
         coverArtUpdate: CoverArtUpdate?
     ) -> Unit
 ) {
-    val transitionState = remember { MutableTransitionState(false) }
-    transitionState.targetState = visible
-
-    if (transitionState.currentState || transitionState.targetState) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
-            )
-        ) {
-            AnimatedVisibility(
-                visibleState = transitionState,
-                enter = slideInVertically(initialOffsetY = { it / 6 }) + fadeIn(animationSpec = tween(220)),
-                exit = slideOutVertically(targetOffsetY = { it / 6 }) + fadeOut(animationSpec = tween(200))
-            ) {
-                EditMultipleSongsContent(
-                    songs = songs,
-                    onDismiss = onDismiss,
-                    onSave = onSave
-                )
-            }
-        }
+    MetadataEditorDialog(visible, onDismiss) {
+        EditMultipleSongsContent(
+            songs = songs,
+            onDismiss = onDismiss,
+            onSave = onSave
+        )
     }
 }
 
@@ -188,10 +161,6 @@ private fun EditMultipleSongsContent(
         cornerRadiusBR = 10.dp, smoothnessAsPercentTR = 60
     )
 
-    val density = LocalDensity.current
-    val imeInsets = WindowInsets.ime
-    val isKeyboardVisible by remember { derivedStateOf { imeInsets.getBottom(density) > 0 } }
-
     if (showCoverArtCropper && pendingCoverArtUri != null) {
         CoverArtCropperDialog(
             sourceUri = pendingCoverArtUri!!,
@@ -226,16 +195,18 @@ private fun EditMultipleSongsContent(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
-        val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
+        ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .imePadding(),
+                    .weight(1f)
+                    .fillMaxWidth(),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = if (isKeyboardVisible) 8.dp else (navBarBottom + 100.dp),
+                    bottom = 8.dp,
                     start = 16.dp,
                     end = 16.dp
                 ),
@@ -398,60 +369,54 @@ private fun EditMultipleSongsContent(
                 }
             }
 
-            AnimatedVisibility(
-                visible = !isKeyboardVisible,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
+            HorizontalFloatingToolbar(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = innerPadding.calculateBottomPadding() + 24.dp)
-            ) {
-                HorizontalFloatingToolbar(
-                    expandedShadowElevation = 0.dp,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    expanded = true,
-                    scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
-                        exitDirection = FloatingToolbarExitDirection.Bottom
-                    ),
-                    content = {
-                        FilledTonalButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.height(48.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        ) {
-                            Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Button(
-                            onClick = {
-                                onSave(
-                                    songs,
-                                    title,
-                                    artist,
-                                    album,
-                                    albumArtist,
-                                    composer,
-                                    genre,
-                                    lyrics,
-                                    trackNumber?.toIntOrNull(),
-                                    discNumber?.toIntOrNull(),
-                                    replayGainTrackGainDb,
-                                    replayGainAlbumGainDb,
-                                    coverArtUpdate
-                                )
-                            },
-                            modifier = Modifier.height(48.dp)
-                        ) {
-                            Text(stringResource(R.string.action_save))
-                        }
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp, bottom = 24.dp),
+                expandedShadowElevation = 0.dp,
+                colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                    toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                expanded = true,
+                scrollBehavior = FloatingToolbarDefaults.exitAlwaysScrollBehavior(
+                    exitDirection = FloatingToolbarExitDirection.Bottom
+                ),
+                content = {
+                    FilledTonalButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.height(48.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    ) {
+                        Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                )
-            }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            onSave(
+                                songs,
+                                title,
+                                artist,
+                                album,
+                                albumArtist,
+                                composer,
+                                genre,
+                                lyrics,
+                                trackNumber?.toIntOrNull(),
+                                discNumber?.toIntOrNull(),
+                                replayGainTrackGainDb,
+                                replayGainAlbumGainDb,
+                                coverArtUpdate
+                            )
+                        },
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        Text(stringResource(R.string.action_save))
+                    }
+                }
+            )
         }
     }
 }

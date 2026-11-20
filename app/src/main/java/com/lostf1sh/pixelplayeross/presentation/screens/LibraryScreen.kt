@@ -2,6 +2,8 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 
@@ -988,6 +990,8 @@ fun LibraryScreen(
                 playerViewModel.playerUiState.value.toLibraryScreenProjection()
             }
         )
+        val configuredSecondarySongSort by playerViewModel.secondarySongSortOption.collectAsStateWithLifecycle()
+        val secondarySongSort = playerUiState.currentSongSortOption.resolveSecondarySongSort(configuredSecondarySongSort)
         val isLibraryContentEmpty by remember(playerViewModel) {
             combine(
                 playerViewModel.songCountFlow,
@@ -1145,13 +1149,23 @@ fun LibraryScreen(
                                     SelectionActionRow(
                                         selectedCount = selectedArtists.size,
                                         onSelectAll = {
-                                            multiSelectionState.clearSelection()
-                                            showMultiSelectionSheet = false
-                                            selectedArtists = appendDistinctSelection(
-                                                current = selectedArtists,
-                                                candidates = playerViewModel.artistsFlow.value,
-                                                keyOf = Artist::id
-                                            ).toImmutableList()
+                                            scope.launch {
+                                                runCatching { playerViewModel.getArtistsForCurrentLibrarySelection() }
+                                                    .onSuccess { artists ->
+                                                        if (latestSelectedArtists.isNotEmpty()) {
+                                                            multiSelectionState.clearSelection()
+                                                            showMultiSelectionSheet = false
+                                                            selectedArtists = appendDistinctSelection(
+                                                                current = latestSelectedArtists,
+                                                                candidates = artists,
+                                                                keyOf = Artist::id
+                                                            ).toImmutableList()
+                                                        }
+                                                    }.onFailure { error ->
+                                                        if (error is CancellationException) throw error
+                                                        Timber.tag("LibrarySelection").e(error, "Unable to select all artists")
+                                                    }
+                                            }
                                         },
                                         onDeselect = {
                                             selectedArtists = persistentListOf()
@@ -1266,6 +1280,12 @@ fun LibraryScreen(
                                 ?: sanitizedSortOptions.first()
 
 
+                            val isSongsTab = currentTabId == LibraryTabId.SONGS
+                            val songSecondaryOptions = remember(selectedOptionForSheet.methodKey) {
+                                SortOption.SONG_SECONDARY.filterNot {
+                                    it.methodKey == selectedOptionForSheet.methodKey
+                                }.toImmutableList()
+                            }
                             val isAlbumTab = currentTabId == LibraryTabId.ALBUMS
                             val isFoldersTab = currentTabId == LibraryTabId.FOLDERS
                             // Playlist view opens folders as playlists, which sort their own songs.
@@ -1285,18 +1305,35 @@ fun LibraryScreen(
                                 onDirectionToggle = { option ->
                                     onSortOptionChanged(option)
                                 },
-                                secondaryOptions = if (showsFolderSongs) folderSongSortOptions else persistentListOf(),
-                                secondarySelectedOption = playerUiState.currentFolderSongSortOption,
+                                secondaryOptions = when {
+                                    showsFolderSongs -> folderSongSortOptions
+                                    isSongsTab && secondarySongSort != null -> songSecondaryOptions
+                                    else -> persistentListOf()
+                                },
+                                secondarySelectedOption = if (isSongsTab) secondarySongSort else playerUiState.currentFolderSongSortOption,
                                 onSecondaryOptionSelected = { option ->
-                                    playerViewModel.sortFolderSongs(option)
+                                    if (isSongsTab) playerViewModel.setSecondarySongSortOption(option)
+                                    else playerViewModel.sortFolderSongs(option)
                                     playerViewModel.hideSortingSheet()
                                 },
                                 onSecondaryDirectionToggle = { option ->
-                                    playerViewModel.sortFolderSongs(option)
+                                    if (isSongsTab) playerViewModel.setSecondarySongSortOption(option)
+                                    else playerViewModel.sortFolderSongs(option)
                                 },
-                                primaryTargetLabel = stringResource(R.string.library_tab_folders),
-                                secondaryTargetLabel = stringResource(R.string.library_tab_songs),
-                                initiallyShowSecondary = playerUiState.currentFolder?.songs?.isNotEmpty() == true,
+                                primaryTargetLabel = stringResource(
+                                    if (isSongsTab) R.string.sort_primary else R.string.library_tab_folders
+                                ),
+                                secondaryTargetLabel = stringResource(
+                                    if (isSongsTab) R.string.sort_secondary else R.string.library_tab_songs
+                                ),
+                                initiallyShowSecondary = showsFolderSongs &&
+                                    playerUiState.currentFolder?.songs?.isNotEmpty() == true,
+                                advancedSortingEnabled = if (isSongsTab) secondarySongSort != null else null,
+                                onAdvancedSortingChange = { enabled ->
+                                    playerViewModel.setSecondarySongSortOption(
+                                        if (enabled) songSecondaryOptions.firstOrNull() else null
+                                    )
+                                },
                                 showViewToggle = isFoldersTab,
                                 viewSectionTitle = stringResource(R.string.presentation_batch_d_view_section_view),
                                 viewToggleLabel = stringResource(R.string.presentation_batch_d_playlist_view),
@@ -1533,6 +1570,7 @@ fun LibraryScreen(
                                             onLocateCurrentSongVisibilityChanged = { songsShowLocateButton = it },
                                             onRegisterLocateCurrentSongAction = { songsLocateAction = it },
                                             sortOption = playerUiState.currentSongSortOption,
+                                            secondarySortOption = secondarySongSort,
                                             storageFilter = playerUiState.currentStorageFilter,
                                             hasCurrentSong = hasCurrentSong
                                         )
@@ -2443,7 +2481,7 @@ private fun LibraryNavigationCompactTitle(
                     trim = LineHeightStyle.Trim.None
                 )
             )
-        }
+        }.withInterfaceFont()
 
         val idealTextWidth = remember(displayedTitle, baseTextStyle) {
             with(density) {
@@ -2552,7 +2590,7 @@ private fun LibraryNavigationCompactTitle(
                     trim = LineHeightStyle.Trim.None
                 )
             )
-        }
+        }.withInterfaceFont()
 
         Surface(
             color = MaterialTheme.colorScheme.primaryContainer,
@@ -3918,7 +3956,7 @@ fun AlbumListItem(
 
                             Text(
                                 album.title,
-                                style = variableTextStyle.copy(fontSize = 22.sp),
+                                style = variableTextStyle.copy(fontSize = 22.sp).withInterfaceFont(),
                                 color = onGradientColor,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis

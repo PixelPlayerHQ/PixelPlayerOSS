@@ -21,6 +21,7 @@ import androidx.core.net.toUri
 import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.GenreSongCountRow
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryEntity
 import com.lostf1sh.pixelplayeross.data.database.toAlbum
@@ -48,10 +49,14 @@ import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.LogUtils
 import com.lostf1sh.pixelplayeross.utils.StorageType
 import com.lostf1sh.pixelplayeross.utils.StorageUtils
+import com.lostf1sh.pixelplayeross.utils.lyricsContainPhrase
+import com.lostf1sh.pixelplayeross.utils.normalizeLyricSearchQuery
 import com.lostf1sh.pixelplayeross.utils.toHexString
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -60,6 +65,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
@@ -87,6 +93,7 @@ class MusicRepositoryImpl @Inject constructor(
     private val playlistPreferencesRepository: PlaylistPreferencesRepository,
     private val searchHistoryDao: SearchHistoryDao,
     private val musicDao: MusicDao,
+    private val database: PixelPlayerDatabase,
     private val lyricsRepository: LyricsRepository,
     private val songRepository: SongRepository,
     private val favoritesDao: FavoritesDao,
@@ -97,6 +104,7 @@ class MusicRepositoryImpl @Inject constructor(
     companion object {
         /** Maximum number of search results to load at once to avoid memory issues with large libraries. */
         private const val SEARCH_RESULTS_LIMIT = 100
+        private const val LYRIC_SEARCH_BATCH_SIZE = 32
         private const val UNKNOWN_GENRE_NAME = "Unknown"
         private const val UNKNOWN_GENRE_ID = "unknown"
         /** Songs per by-id query, under SQLite's 999 bound-variable limit. */
@@ -242,10 +250,11 @@ class MusicRepositoryImpl @Inject constructor(
             userPreferencesRepository.allowedDirectoriesFlow,
             userPreferencesRepository.blockedDirectoriesFlow,
             userPreferencesRepository.groupByAlbumArtistFlow,
+            userPreferencesRepository.minTracksPerArtistFlow,
             artistImageRepository.folderArtworkRevision
-        ) { allowedDirs, blockedDirs, groupByAlbumArtist, _ ->
-            Triple(allowedDirs, blockedDirs, groupByAlbumArtist)
-        }.flatMapLatest { (allowedDirs, blockedDirs, groupByAlbumArtist) ->
+        ) { allowedDirs, blockedDirs, groupByAlbumArtist, minTracks, _ ->
+            ArtistListConfig(allowedDirs, blockedDirs, groupByAlbumArtist, minTracks)
+        }.flatMapLatest { (allowedDirs, blockedDirs, groupByAlbumArtist, minTracks) ->
             flow {
                 val (allowedParentDirs, applyDirectoryFilter) =
                     computeAllowedDirs(allowedDirs, blockedDirs)
@@ -258,14 +267,16 @@ class MusicRepositoryImpl @Inject constructor(
                                     allowedParentDirs = allowedParentDirs,
                                     applyDirectoryFilter = applyDirectoryFilter,
                                     filterMode = storageFilter.toFilterMode(),
-                                    sortOrder = sortOption.storageKey
+                                    sortOrder = sortOption.storageKey,
+                                    minTracks = minTracks
                                 )
                             } else {
                                 musicDao.getArtistsPaginated(
                                     allowedParentDirs = allowedParentDirs,
                                     applyDirectoryFilter = applyDirectoryFilter,
                                     filterMode = storageFilter.toFilterMode(),
-                                    sortOrder = sortOption.storageKey
+                                    sortOrder = sortOption.storageKey,
+                                    minTracks = minTracks
                                 )
                             }
                         }
@@ -333,7 +344,10 @@ class MusicRepositoryImpl @Inject constructor(
             sortOrder = sortOption.storageKey,
             filterMode = storageFilter.toFilterMode(),
             limit = limit,
-            offset = offset
+            offset = offset,
+            secondarySortOrder = sortOption.resolveSecondarySongSort(
+                userPreferencesRepository.songsSecondarySortOptionFlow.first()
+            )?.storageKey
         ).map { it.toSong() }
     }
 
@@ -356,6 +370,13 @@ class MusicRepositoryImpl @Inject constructor(
         ).map { it.toAlbum() }
     }
 
+    private data class ArtistListConfig(
+        val allowedDirs: Set<String>,
+        val blockedDirs: Set<String>,
+        val groupByAlbumArtist: Boolean,
+        val minTracks: Int
+    )
+
     override suspend fun getArtistsPage(
         limit: Int,
         offset: Int,
@@ -363,13 +384,20 @@ class MusicRepositoryImpl @Inject constructor(
         storageFilter: StorageFilter
     ): List<Artist> = withContext(Dispatchers.IO) {
         val filter = cachedDirFilter.value
-        musicDao.getArtistsPage(
-            allowedParentDirs = filter.allowedParentDirs,
-            applyDirectoryFilter = filter.applyFilter,
-            sortOrder = sortOption.storageKey,
-            filterMode = storageFilter.toFilterMode(),
-            limit = limit,
-            offset = offset
+        val minTracks = userPreferencesRepository.minTracksPerArtistFlow.first()
+        val pageQuery = if (userPreferencesRepository.groupByAlbumArtistFlow.first()) {
+            musicDao::getArtistsPageByAlbumArtist
+        } else {
+            musicDao::getArtistsPage
+        }
+        pageQuery(
+            filter.allowedParentDirs,
+            filter.applyFilter,
+            storageFilter.toFilterMode(),
+            sortOption.storageKey,
+            limit,
+            offset,
+            minTracks
         ).map { it.toArtist().withFolderArtwork() }
     }
 
@@ -562,6 +590,44 @@ class MusicRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
+    private fun searchSongsByLyrics(query: String): Flow<List<SearchResultItem>> {
+        val phrase = normalizeLyricSearchQuery(query)
+        if (phrase.isEmpty()) return flowOf(emptyList())
+
+        return combine(
+            userPreferencesRepository.allowedDirectoriesFlow,
+            userPreferencesRepository.blockedDirectoriesFlow,
+            database.invalidationTracker.createFlow("songs", "lyrics", emitInitialState = true)
+        ) { allowedDirs, blockedDirs, _ ->
+            allowedDirs to blockedDirs
+        }.mapLatest { (allowedDirs, blockedDirs) ->
+            val (allowedParents, applyFilter) = computeAllowedDirs(allowedDirs, blockedDirs)
+            val matchingIds = ArrayList<Long>(SEARCH_RESULTS_LIMIT)
+            var afterId = Long.MIN_VALUE
+            while (matchingIds.size < SEARCH_RESULTS_LIMIT) {
+                val rows = musicDao.getSongLyricSearchBatch(
+                    afterId, allowedParents, applyFilter, LYRIC_SEARCH_BATCH_SIZE
+                )
+                if (rows.isEmpty()) break
+                for (row in rows) {
+                    currentCoroutineContext().ensureActive()
+                    if (lyricsContainPhrase(row.content, phrase)) {
+                        matchingIds.add(row.id)
+                        if (matchingIds.size == SEARCH_RESULTS_LIMIT) break
+                    }
+                }
+                if (rows.size < LYRIC_SEARCH_BATCH_SIZE) break
+                afterId = rows.last().id
+            }
+            if (matchingIds.isEmpty()) {
+                emptyList()
+            } else {
+                musicDao.getSongsByIdsListSimple(matchingIds)
+                    .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.title })
+                    .map { SearchResultItem.SongItem(it.toSong()) }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
 
     override fun searchAlbums(query: String, minTracks: Int): Flow<List<Album>> {
         if (query.isBlank()) return flowOf(emptyList())
@@ -587,36 +653,31 @@ class MusicRepositoryImpl @Inject constructor(
 
     override fun searchAll(query: String, filterType: SearchFilterType): Flow<List<SearchResultItem>> {
         if (query.isBlank()) return flowOf(emptyList())
-        val playlistsFlow = flow { emit(searchPlaylists(query)) }
 
-        return combine(
-            userPreferencesRepository.minTracksPerAlbumFlow
-        ) { (minTracks) ->
-            minTracks
-        }.flatMapLatest { minTracks ->
-            when (filterType) {
-                SearchFilterType.ALL -> {
-                    combine(
-                        searchSongs(query),
-                        searchAlbums(query, minTracks),
-                        searchArtists(query),
-                        playlistsFlow
-                    ) { songs, albums, artists, playlists ->
-                        mutableListOf<SearchResultItem>().apply {
-                            songs.forEach { add(SearchResultItem.SongItem(it)) }
-                            albums.forEach { add(SearchResultItem.AlbumItem(it)) }
-                            artists.forEach { add(SearchResultItem.ArtistItem(it)) }
-                            playlists.forEach { add(SearchResultItem.PlaylistItem(it)) }
-                        }
-                    }
-                }
-                // Each type filter shows exactly its section of the All results, so Songs matches
-                // artists as well as titles: an artist search must not lose its songs.
-                SearchFilterType.SONGS -> searchSongs(query).map { songs -> songs.map { SearchResultItem.SongItem(it) } }
-                SearchFilterType.ALBUMS -> searchAlbums(query, minTracks).map { albums -> albums.map { SearchResultItem.AlbumItem(it) } }
-                SearchFilterType.ARTISTS -> searchArtists(query).map { artists -> artists.map { SearchResultItem.ArtistItem(it) } }
-                SearchFilterType.PLAYLISTS -> playlistsFlow.map { playlists -> playlists.map { SearchResultItem.PlaylistItem(it) } }
+        fun songs() = searchSongs(query).map { results -> results.map { SearchResultItem.SongItem(it) } }
+        fun albums() =
+            userPreferencesRepository.minTracksPerAlbumFlow.flatMapLatest { minTracks ->
+                searchAlbums(query, minTracks).map { results -> results.map { SearchResultItem.AlbumItem(it) } }
             }
+        fun artists() = searchArtists(query).map { results -> results.map { SearchResultItem.ArtistItem(it) } }
+        fun playlists() = flow {
+            emit(searchPlaylists(query).map { SearchResultItem.PlaylistItem(it) })
+        }
+
+        return when (filterType) {
+            SearchFilterType.ALL -> combine(songs(), albums(), artists(), playlists()) { songs, albums, artists, playlists ->
+                buildList {
+                    addAll(songs)
+                    addAll(albums)
+                    addAll(artists)
+                    addAll(playlists)
+                }
+            }
+            SearchFilterType.SONGS -> songs()
+            SearchFilterType.ALBUMS -> albums()
+            SearchFilterType.ARTISTS -> artists()
+            SearchFilterType.PLAYLISTS -> playlists()
+            SearchFilterType.LYRICS -> searchSongsByLyrics(query)
         }.flowOn(Dispatchers.Default)
     }
 
@@ -1023,7 +1084,10 @@ class MusicRepositoryImpl @Inject constructor(
             allowedParentDirs = filter.allowedParentDirs,
             applyDirectoryFilter = filter.applyFilter,
             sortOrder = sortOption.storageKey,
-            filterMode = storageFilter.toFilterMode()
+            filterMode = storageFilter.toFilterMode(),
+            secondarySortOrder = sortOption.resolveSecondarySongSort(
+                userPreferencesRepository.songsSecondarySortOptionFlow.first()
+            )?.storageKey
         )
     }
 

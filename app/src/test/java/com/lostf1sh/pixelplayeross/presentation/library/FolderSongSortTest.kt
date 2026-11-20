@@ -32,6 +32,25 @@ class FolderSongSortTest {
     }
 
     @Test
+    fun `filename sorts numbered files rather than titles and compares only basenames`() {
+        val songs = listOf(
+            song(id = "second", title = "Alpha").copy(path = "/a/02-Alpha.mp3"),
+            song(id = "first", title = "Zulu").copy(path = "/z/01-Zulu.mp3"),
+            song(id = "sameFilename", title = "Bravo").copy(path = "C:\\Music\\01-zulu.MP3"),
+            song(id = "missing", title = "03-Unknown").copy(path = "")
+        )
+
+        assertEquals(
+            listOf("sameFilename", "first", "second", "missing"),
+            ids(songs, SortOption.FolderSongFilenameAZ)
+        )
+        assertEquals(
+            listOf("missing", "second", "sameFilename", "first"),
+            ids(songs, SortOption.FolderSongFilenameAZ.flipDirection())
+        )
+    }
+
+    @Test
     fun `artist sort groups by artist then album then disc and track`() {
         val songs = listOf(
             song(id = "1", title = "Zulu", artist = "Mira", album = "Second", trackNumber = 1),
@@ -150,8 +169,8 @@ class FolderSongSortTest {
     @Test
     fun `equal titles and artists fall back to the id for a stable order`() {
         val songs = listOf(
-            song(id = "2", title = "Same", artist = "Same"),
-            song(id = "1", title = "Same", artist = "Same")
+            song(id = "2", title = "Same", artist = "Same").copy(path = "/music/same.mp3"),
+            song(id = "1", title = "Same", artist = "Same").copy(path = "/music/same.mp3")
         )
 
         SortOption.FOLDER_SONGS.forEach { option ->

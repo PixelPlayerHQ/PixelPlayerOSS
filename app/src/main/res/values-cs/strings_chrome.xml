@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setup_gate_preparing">Příprava nastavení…</string>
+    <string name="song_info_label_provider">Poskytovatel</string>
+    <string name="song_info_label_path">Cesta</string>
+    <string name="song_info_open_source">Otevřít zdroj</string>
+    <string name="song_info_open_source_failed">Tento odkaz se nepodařilo otevřít v žádné aplikaci</string>
+    <string name="cd_playlist_artwork">Obal playlistu</string>
+    <string name="home_your_mix_subtitle">Dnešní mix pro vás</string>
+    <string name="home_your_mix_queue_name">Váš mix</string>
+    <string name="queue_name_liked_songs">Oblíbené skladby</string>
+    <string name="queue_name_all_songs_shuffled">Všechny skladby (náhodně)</string>
+    <string name="queue_name_liked_songs_shuffled">Oblíbené skladby (náhodně)</string>
+    <string name="queue_name_selected_songs">Vybrané skladby</string>
+    <string name="cd_player_sheet_collapsed">Panel přehrávače PixelPlayer je sbalený, %1$s</string>
+    <string name="cd_player_sheet_expanded">Panel přehrávače PixelPlayer je rozbalený, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Panel přehrávače PixelPlayer je sbalený</string>
+    <string name="cd_player_sheet_expanded_no_track">Panel přehrávače PixelPlayer je rozbalený</string>
+    <string name="mini_player_connecting_device">Připojování k zařízení…</string>
+    <string name="mini_player_preparing_playback">Příprava přehrávání…</string>
+    <string name="mini_player_loading_audio">Načítání zvuku…</string>
+    <string name="cd_shuffle">Náhodné přehrávání</string>
+    <string name="cd_playback_position">Pozice přehrávání</string>
+    <string name="add_bookmark_title">Uložit záložku</string>
+    <string name="add_bookmark_saved_point">Uložená pozice přehrávání</string>
+    <string name="add_bookmark_use_lyric_line">Použít řádek textu skladby</string>
+    <string name="add_bookmark_default_name">Záložka v čase %1$s</string>
+</resources>

@@ -18,7 +18,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -41,6 +40,7 @@ import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudDone
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.Link
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -76,7 +76,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -147,6 +146,15 @@ fun SongInfoBottomSheet(
     val offlineDownload by songInfoViewModel.offlineDownload.collectAsStateWithLifecycle()
     val musicBrainzState by songInfoViewModel.musicBrainzState.collectAsStateWithLifecycle()
     val isCloudSong = remember(song.contentUriString) { CloudOfflineRepository.isCloudSong(song) }
+    val offlineFilePath = offlineDownload?.takeIf {
+        it.sourceUri == song.contentUriString && it.status == OfflineDownloadStatus.COMPLETE
+    }?.localPath
+    var sourceUrl by remember(song.id, song.path, song.contentUriString, offlineFilePath) {
+        mutableStateOf<String?>(null)
+    }
+    LaunchedEffect(song.id, song.path, song.contentUriString, offlineFilePath) {
+        sourceUrl = songInfoViewModel.readSourceUrl(song, offlineFilePath)
+    }
     val ringtonePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
@@ -446,29 +454,20 @@ fun SongInfoBottomSheet(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                                             ) {
-                                                MediumExtendedFloatingActionButton(
+                                                MediumFloatingActionButton(
                                                     modifier = Modifier
                                                         .weight(0.5f)
                                                         .fillMaxHeight(),
                                                     onClick = onPlaySong,
                                                     elevation = FloatingActionButtonDefaults.elevation(0.dp),
                                                     shape = playButtonShape,
-                                                    icon = {
-                                                        Icon(Icons.Rounded.PlayArrow, contentDescription = stringResource(R.string.cd_play_song_action))
-                                                    },
-                                                    text = {
-                                                        // Long translations (e.g. Italian) shrink to fit on one line.
-                                                        Text(
-                                                            modifier = Modifier.padding(end = 10.dp),
-                                                            text = stringResource(R.string.play_playback),
-                                                            maxLines = 1,
-                                                            autoSize = TextAutoSize.StepBased(
-                                                                minFontSize = 10.sp,
-                                                                maxFontSize = LocalTextStyle.current.fontSize
-                                                            )
-                                                        )
-                                                    }
-                                                )
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.PlayArrow,
+                                                        contentDescription = stringResource(R.string.cd_play_song_action),
+                                                        modifier = Modifier.size(FloatingActionButtonDefaults.LargeIconSize)
+                                                    )
+                                                }
 
                                                 FilledIconButton(
                                                     modifier = Modifier
@@ -663,6 +662,22 @@ fun SongInfoBottomSheet(
                                                         maxLines = 1,
                                                         overflow = TextOverflow.Ellipsis
                                                     )
+                                                }
+                                            }
+                                        }
+
+                                        sourceUrl?.let { url ->
+                                            item {
+                                                FilledTonalButton(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .heightIn(min = 66.dp),
+                                                    shape = CircleShape,
+                                                    onClick = { openSongSourceUrl(context, url) },
+                                                ) {
+                                                    Icon(Icons.Rounded.Link, contentDescription = null)
+                                                    Spacer(Modifier.width(8.dp))
+                                                    Text(stringResource(R.string.song_info_open_source))
                                                 }
                                             }
                                         }
@@ -1013,6 +1028,16 @@ fun SongInfoBottomSheet(
             }
         )
     }
+}
+
+private fun openSongSourceUrl(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addCategory(Intent.CATEGORY_BROWSABLE))
+        return
+    } catch (_: ActivityNotFoundException) {
+    } catch (_: SecurityException) {
+    }
+    Toast.makeText(context, R.string.song_info_open_source_failed, Toast.LENGTH_SHORT).show()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -444,5 +446,5 @@ private fun rememberDailyMixTitleStyle(): TextStyle {
             lineHeight = 22.sp,
             letterSpacing = (-0.35).sp
         )
-    }
+    }.withInterfaceFont()
 }

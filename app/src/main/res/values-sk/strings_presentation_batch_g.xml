@@ -1,0 +1,488 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_g_stats_range_today">Dnes</string>
+    <string name="presentation_batch_g_stats_range_week_to_date">Od začiatku týždňa</string>
+    <string name="presentation_batch_g_stats_week_label">Týždeň %1$d</string>
+    <string name="presentation_batch_g_stats_range_month_to_date">Od začiatku mesiaca</string>
+    <string name="presentation_batch_g_stats_range_year_to_date">Od začiatku roka</string>
+    <string name="presentation_batch_g_stats_range_all_time">Za celé obdobie</string>
+    <string name="presentation_batch_g_stats_title">Štatistiky počúvania</string>
+    <string name="presentation_batch_g_stats_cd_refresh">Obnoviť štatistiky počúvania</string>
+    <string name="presentation_batch_g_stats_hero_listening">Počúvanie</string>
+    <string name="presentation_batch_g_stats_hero_plays">Prehratia</string>
+    <string name="presentation_batch_g_stats_section_listening_habits">Návyky pri počúvaní</string>
+    <string name="presentation_batch_g_stats_habit_avg_session">Priemerná dĺžka relácie</string>
+    <string name="presentation_batch_g_stats_habit_longest_session">Najdlhšia relácia</string>
+    <string name="presentation_batch_g_stats_habit_sessions_per_day">Relácie za deň</string>
+    <string name="presentation_batch_g_stats_habit_most_active_day">Najaktívnejší deň</string>
+    <string name="presentation_batch_g_stats_habit_no_playback_yet">Zatiaľ sa nič neprehralo</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time">Čas počúvania</string>
+    <string name="presentation_batch_g_stats_timeline_metric_listening_time_desc">Celkový čas počúvania zaznamenaný vo vybranom období.</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count">Počet prehratí</string>
+    <string name="presentation_batch_g_stats_timeline_metric_play_count_desc">Počet dokončených relácií v jednotlivých úsekoch.</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session">Priemerná dĺžka relácie</string>
+    <string name="presentation_batch_g_stats_timeline_metric_avg_session_desc">Priemerná dĺžka počúvania v jednotlivých úsekoch.</string>
+    <string name="presentation_batch_g_stats_n_plays">Prehratia: %1$d</string>
+    <string name="presentation_batch_g_stats_section_listening_timeline">Časová os počúvania</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_title">Zatiaľ žiadne údaje o počúvaní</string>
+    <string name="presentation_batch_g_stats_empty_no_timeline_subtitle">Spustite hudbu a začnite si vytvárať časovú os počúvania</string>
+    <string name="presentation_batch_g_stats_rhythm_daily">Denný rytmus</string>
+    <string name="presentation_batch_g_stats_rhythm_weekly">Týždenný rytmus</string>
+    <string name="presentation_batch_g_stats_rhythm_monthly">Mesačný rytmus</string>
+    <string name="presentation_batch_g_stats_rhythm_year">Rok v skratke</string>
+    <string name="presentation_batch_g_stats_rhythm_all_time">Vývoj za celé obdobie</string>
+    <string name="presentation_batch_g_stats_grouped_4h">Rozdelené do štvorhodinových úsekov</string>
+    <string name="presentation_batch_g_stats_grouped_dow">Zoskupené podľa dňa v týždni</string>
+    <string name="presentation_batch_g_stats_grouped_week_of_month">Zoskupené podľa týždňa v mesiaci</string>
+    <string name="presentation_batch_g_stats_grouped_by_month">Zoskupené podľa mesiaca</string>
+    <string name="presentation_batch_g_stats_grouped_by_year">Zoskupené podľa roka</string>
+    <string name="presentation_batch_g_stats_peak_segment">Najaktívnejší úsek</string>
+    <string name="presentation_batch_g_stats_timeline_support_day">Štvorhodinové úseky ukazujú, kedy počas dňa najviac počúvate.</string>
+    <string name="presentation_batch_g_stats_timeline_support_week">Denné stĺpce uľahčujú porovnanie návykov medzi týždňami.</string>
+    <string name="presentation_batch_g_stats_timeline_support_month">Týždenné stĺpce ukazujú vývoj počúvania v priebehu mesiaca.</string>
+    <string name="presentation_batch_g_stats_timeline_support_year">Mesačné stĺpce ukazujú, ako sa počúvanie mení počas roka.</string>
+    <string name="presentation_batch_g_stats_timeline_support_all">Ročné stĺpce zhŕňajú celú históriu počúvania.</string>
+    <string name="presentation_batch_g_stats_empty_no_category_title">Zatiaľ žiadne údaje o kategóriách</string>
+    <string name="presentation_batch_g_stats_empty_no_category_subtitle">Po spustení prehrávania sa tu zobrazia najpočúvanejšie položky</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_title">Zatiaľ žiadni najpočúvanejší interpreti</string>
+    <string name="presentation_batch_g_stats_empty_no_artists_subtitle">Počúvajte ďalej a vaši obľúbení interpreti sa tu zobrazia.</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_title">Zatiaľ žiadne najpočúvanejšie albumy</string>
+    <string name="presentation_batch_g_stats_empty_no_albums_subtitle">Zobrazia sa tu albumy, ku ktorým sa často vraciate.</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_title">Zatiaľ žiadne najpočúvanejšie skladby</string>
+    <string name="presentation_batch_g_stats_empty_no_tracks_subtitle">Počúvajte obľúbené skladby a zobrazia sa tu.</string>
+    <string name="presentation_batch_g_stats_track_concentration_subtitle">Ako sa váš čas počúvania rozdeľuje medzi najpočúvanejšie skladby.</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_title">Zatiaľ žiadne údaje o rozložení počúvania</string>
+    <string name="presentation_batch_g_stats_empty_no_concentration_subtitle">Prehrajte viac skladieb a zistite, nakoľko sa vraciate k tým istým.</string>
+    <string name="presentation_batch_g_stats_slice_top_1">1. miesto</string>
+    <string name="presentation_batch_g_stats_slice_top_2_3">2. a 3. miesto</string>
+    <string name="presentation_batch_g_stats_slice_others">Ostatné</string>
+    <string name="presentation_batch_g_stats_percent">%1$d %%</string>
+    <string name="presentation_batch_g_stats_avg_plays_per_track">Priemer prehratí na skladbu</string>
+    <string name="presentation_batch_g_stats_top_three_share_label">Podiel troch najhranejších</string>
+    <string name="presentation_batch_g_stats_hero_per_day">%1$s za deň</string>
+    <string name="presentation_batch_g_stats_section_heavy_rotation">Najčastejšie prehrávané</string>
+    <string name="presentation_batch_g_stats_heavy_rotation_subtitle">K čomu ste sa v tomto období najčastejšie vracali.</string>
+    <string name="presentation_batch_g_stats_tab_tracks">Skladby</string>
+    <string name="presentation_batch_g_stats_tab_artists">Interpreti</string>
+    <string name="presentation_batch_g_stats_tab_albums">Albumy</string>
+    <string name="presentation_batch_g_stats_tab_genres">Žánre</string>
+    <string name="presentation_batch_g_stats_top_pick">Najpočúvanejšie</string>
+    <string name="presentation_batch_g_stats_section_listening_variety">Pestrosť počúvania</string>
+    <string name="presentation_batch_g_stats_habit_longest_streak">Najdlhšie obdobie bez vynechania</string>
+    <string name="presentation_batch_g_device_info_title">Informácie o zariadení</string>
+    <string name="presentation_batch_g_device_section_exoplayer">Prehrávací modul ExoPlayer</string>
+    <string name="presentation_batch_g_device_label_sample_rate">Vzorkovacia frekvencia</string>
+    <string name="presentation_batch_g_device_label_low_latency">Podpora nízkej latencie</string>
+    <string name="presentation_batch_g_device_label_pro_audio">Podpora profesionálneho zvuku</string>
+    <string name="presentation_batch_g_yes">Áno</string>
+    <string name="presentation_batch_g_no">Nie</string>
+    <string name="presentation_batch_g_device_key_manufacturer">Výrobca</string>
+    <string name="presentation_batch_g_device_key_brand">Značka</string>
+    <string name="presentation_batch_g_device_key_device">Zariadenie</string>
+    <string name="presentation_batch_g_device_key_android_version">Verzia Androidu</string>
+    <string name="presentation_batch_g_device_key_sdk_version">Verzia SDK</string>
+    <string name="presentation_batch_g_device_key_hardware">Hardvér</string>
+    <string name="device_capabilities_ready_title">Pripravené na prehrávanie</string>
+    <string name="device_capabilities_review_title">Prehrávanie si vyžaduje kontrolu</string>
+    <string name="device_capabilities_metric_formats">Formáty</string>
+    <string name="device_capabilities_metric_hw_decoders">Hardvérové dekodéry</string>
+    <string name="device_capabilities_metric_local_music">Skladby v zariadení</string>
+    <string name="device_capabilities_storage_title">Úložisko hudby v zariadení</string>
+    <string name="device_capabilities_storage_music_size">Veľkosť hudby</string>
+    <string name="device_capabilities_storage_music_count">Skladby v zariadení: %1$d</string>
+    <string name="device_capabilities_storage_available">Dostupné</string>
+    <string name="device_capabilities_storage_total">Celkovo: %1$s</string>
+    <string name="device_capabilities_storage_music_footprint">Miesto využité hudbou</string>
+    <string name="device_capabilities_storage_device_used">Využité miesto v zariadení</string>
+    <string name="device_capabilities_storage_percent">%1$d %%</string>
+    <string name="device_capabilities_storage_less_than_one_percent">Menej než 1 %</string>
+    <string name="device_capabilities_storage_cloud_count">Skladby z cloudu: %1$d</string>
+    <string name="device_capabilities_storage_unavailable_count">Nečitateľné súbory: %1$d</string>
+    <string name="device_capabilities_playback_path_title">Spracovanie zvuku</string>
+    <string name="device_capabilities_buffer_frames">Snímky na vyrovnávaciu pamäť: %1$d</string>
+    <string name="device_capabilities_hifi_pcm_float">Hi-Fi PCM s pohyblivou desatinnou čiarkou</string>
+    <string name="device_capabilities_hifi_pcm_float_supporting">32-bitový výstup s pohyblivou desatinnou čiarkou</string>
+    <string name="device_capabilities_memory_title">Pamäť</string>
+    <string name="device_capabilities_memory_available_of">dostupné z %1$s</string>
+    <string name="device_capabilities_offload_title">Formáty s hardvérovým spracovaním</string>
+    <string name="device_capabilities_offload_empty">Pri žiadnom komprimovanom formáte nebola hlásená podpora priameho hardvérového spracovania.</string>
+    <string name="device_capabilities_outputs_title">Rozpoznané výstupy</string>
+    <string name="device_capabilities_outputs_empty">Android nenahlásil žiadne zvukové výstupy.</string>
+    <string name="device_capabilities_renderers_count">Počet výstupných modulov: %1$s</string>
+    <string name="device_capabilities_formats_title">Kompatibilita formátov</string>
+    <string name="device_capabilities_formats_supported_count">Podporované skladby: %1$d</string>
+    <string name="device_capabilities_formats_unknown_count">Skladby v neznámom formáte: %1$d</string>
+    <string name="device_capabilities_format_unsupported">Nebol hlásený žiadny dekodér</string>
+    <string name="device_capabilities_format_hardware">Hardvérový dekodér</string>
+    <string name="device_capabilities_format_software">Softvérový dekodér</string>
+    <string name="device_capabilities_format_offload">Hardvérové spracovanie</string>
+    <string name="device_capabilities_format_library_count">Počet skladieb v knižnici: %1$d</string>
+    <string name="device_capabilities_findings_title">Výsledky kontroly kompatibility</string>
+    <string name="device_capabilities_finding_clear_title">Žiadne závažné problémy s kompatibilitou</string>
+    <string name="device_capabilities_finding_clear_body">Skladby v knižnici zodpovedajú dekodérom, ktoré Android na tomto zariadení hlási.</string>
+    <string name="device_capabilities_finding_unsupported_title">Skladby, pri ktorých nemusí fungovať natívne dekódovanie: %1$d</string>
+    <string name="device_capabilities_finding_unsupported_body">Skontrolujte tieto formáty: %1$s.</string>
+    <string name="device_capabilities_finding_resample_title">Skladby v zariadení, ktoré sa môžu prevzorkovať: %1$d</string>
+    <string name="device_capabilities_finding_resample_body">Knižnica obsahuje skladby so vzorkovacou frekvenciou až %1$d Hz, čo je viac než aktuálna frekvencia výstupu.</string>
+    <string name="device_capabilities_finding_unknown_title">Skladby s neznámymi metadátami: %1$d</string>
+    <string name="device_capabilities_finding_unknown_body">Úplné prehľadanie knižnice môže doplniť chýbajúce typy MIME, dátové toky a vzorkovacie frekvencie.</string>
+    <string name="device_capabilities_more_count">Ďalšie: +%1$d</string>
+    <string name="device_capabilities_output_builtin">Vstavaný výstup</string>
+    <string name="device_capabilities_output_bluetooth">Zvuk cez Bluetooth</string>
+    <string name="device_capabilities_output_usb">Zvuk cez USB</string>
+    <string name="device_capabilities_output_wired">Káblový výstup</string>
+    <string name="device_capabilities_output_digital">Digitálny výstup</string>
+    <string name="device_capabilities_output_other">Iný výstup</string>
+    <string name="device_capabilities_report_title">Správa o výkone</string>
+    <string name="device_capabilities_report_description">Vytvorte diagnostickú správu, ktorú môžete zdieľať, aby sme ľahšie zistili príčinu oneskorení pri prehrávaní alebo prehľadávaní. Obsahuje len údaje o zariadení, knižnici a trvaní operácií, nie cesty k súborom, názvy skladieb ani interpretov.</string>
+    <string name="device_capabilities_report_generate">Vytvoriť správu</string>
+    <string name="device_capabilities_report_regenerate">Vytvoriť znova</string>
+    <string name="device_capabilities_report_copy">Kopírovať</string>
+    <string name="device_capabilities_report_share">Zdieľať</string>
+    <string name="device_capabilities_report_copied">Správa je skopírovaná do schránky</string>
+    <string name="device_capabilities_report_share_title">Správa o výkone prehrávača PixelPlayer</string>
+    <string name="device_capabilities_advanced_diagnostics_title">Rozšírená diagnostika výkonu</string>
+    <string name="device_capabilities_advanced_diagnostics_description">Predvolene vypnuté. Zaznamenáva krátky priebeh oneskorení na riešenie problémov vo verzii beta.</string>
+    <string name="device_capabilities_advanced_diagnostics_expires">Aktívne do %1$s</string>
+    <string name="device_capabilities_advanced_diagnostics_mark_lag">Označiť oneskorenie</string>
+    <string name="device_capabilities_advanced_diagnostics_marked">Okamih oneskorenia bol označený</string>
+    <string name="presentation_batch_g_artist_section_multi_parsing">Rozpoznávanie viacerých interpretov</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters">Znakové oddeľovače</string>
+    <string name="presentation_batch_g_artist_item_char_delimiters_current">Aktuálne: %1$s</string>
+    <string name="presentation_batch_g_artist_item_word_delimiters">Slovné oddeľovače</string>
+    <string name="presentation_batch_g_artist_word_none">Žiadne</string>
+    <string name="presentation_batch_g_artist_word_current_prefix">Aktuálne: %1$s</string>
+    <string name="presentation_batch_g_artist_cd_configure">Nastaviť</string>
+    <string name="presentation_batch_g_artist_extract_from_title">Získať mená interpretov z názvu</string>
+    <string name="presentation_batch_g_artist_extract_from_title_sub">Rozpoznať feat., ft. a with v názvoch skladieb</string>
+    <string name="presentation_batch_g_artist_section_library_org">Usporiadanie knižnice</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist">Zoskupiť podľa interpreta albumu</string>
+    <string name="presentation_batch_g_artist_group_by_album_artist_sub">Kartu Interpreti aj albumy zoskupiť podľa interpreta albumu, aby v zozname nepribúdali hosťujúci interpreti a interpreti z kompilácií.</string>
+    <string name="presentation_batch_g_artist_info_title">Ako sa rozpoznávajú viacerí interpreti</string>
+    <string name="presentation_batch_g_artist_info_body">PixelPlayerOSS rozdeľuje mená interpretov v metadátach podľa znakových (/, ;, &amp;) a slovných oddeľovačov (feat., ft., vs., x). Pri slovných oddeľovačoch nezáleží na veľkosti písmen.\n\nMožnosť „Získať mená interpretov z názvu“ hľadá v názvoch skladieb výrazy ako (feat. Interpret).\n\nSpätnou lomkou (\\) možno označiť, že nasledujúci znak sa nemá použiť ako oddeľovač.</string>
+    <string name="presentation_batch_g_artist_examples_title">Príklady</string>
+    <string name="presentation_batch_g_artist_ex_1_in">„Interpret1/Interpret2“</string>
+    <string name="presentation_batch_g_artist_ex_1_out">Interpret1, Interpret2</string>
+    <string name="presentation_batch_g_artist_ex_2_in">„Drake feat. Rihanna“</string>
+    <string name="presentation_batch_g_artist_ex_3_in">„Marshmello x Bastille“</string>
+    <string name="presentation_batch_g_artist_ex_4_in">„Skladba (ft. B)“ od A</string>
+    <string name="presentation_batch_g_artist_ex_5_in">„AC\\DC“</string>
+    <string name="presentation_batch_g_artist_ex_5_out">AC/DC (lomka sa zachovala)</string>
+    <string name="presentation_batch_g_artist_rescan_banner_title">Vyžaduje sa nové prehľadanie</string>
+    <string name="presentation_batch_g_artist_rescan_banner_body">Nastavenia interpretov sa zmenili. Znova prehľadajte knižnicu, aby sa zmeny prejavili.</string>
+    <string name="presentation_batch_g_artist_rescan_scanning">Prehľadáva sa…</string>
+    <string name="presentation_batch_g_artist_rescan">Znova prehľadať</string>
+    <string name="presentation_batch_g_topbar_build_stable">Stabilná</string>
+    <string name="presentation_batch_g_topbar_build_debug">Ladiaca</string>
+    <string name="presentation_batch_g_topbar_cd_changelog">Zmeny vo verziách</string>
+    <string name="presentation_batch_g_lyrics_mode_synced">Synchronizované</string>
+    <string name="presentation_batch_g_lyrics_mode_static">Bez časovania</string>
+    <string name="presentation_batch_g_lyrics_cd_options">Možnosti textu skladby</string>
+    <string name="presentation_batch_g_streaming_title">Streamovanie z cloudu</string>
+    <string name="presentation_batch_g_streaming_subtitle">Prehrávajte hudbu zo svojich cloudových účtov</string>
+    <string name="presentation_batch_g_sort_source">Zdroj</string>
+    <string name="presentation_batch_g_sort_order">Poradie</string>
+    <string name="presentation_batch_g_sort_descending">Zostupne</string>
+    <string name="presentation_batch_g_sort_ascending">Vzostupne</string>
+    <string name="presentation_batch_g_sort_original_order">Pôvodné poradie</string>
+    <string name="presentation_batch_g_cd_switch_on">Prepínač je zapnutý</string>
+    <string name="presentation_batch_g_file_explorer_cd_close">Zavrieť</string>
+    <string name="presentation_batch_g_file_explorer_cd_refresh">Obnoviť</string>
+    <string name="presentation_batch_g_file_explorer_cd_done">Hotovo</string>
+    <string name="presentation_batch_g_file_explorer_done">Hotovo</string>
+    <string name="presentation_batch_g_file_explorer_hint">Predvolene sú zahrnuté všetky priečinky. Priečinok môžete vylúčiť alebo ho otvoriť a zahrnúť jednotlivé podpriečinky.</string>
+    <string name="presentation_batch_g_file_explorer_empty_folders">Nie sú tu žiadne podpriečinky</string>
+    <string name="presentation_batch_g_file_explorer_cd_navigate_up">Prejsť o úroveň vyššie</string>
+    <string name="presentation_batch_g_file_explorer_cd_go_root">Prejsť do koreňového priečinka</string>
+    <string name="presentation_batch_g_file_explorer_mode_folders">Priečinky</string>
+    <string name="presentation_batch_g_file_explorer_mode_all_subfolders">Všetky podpriečinky</string>
+    <string name="presentation_batch_g_file_explorer_loading_all_subfolders">Vyhľadávajú sa všetky priečinky s hudbou…</string>
+    <string name="presentation_batch_g_daily_mix_queue_name">Denný mix</string>
+    <string name="presentation_batch_g_daily_mix_heading">DENNÝ MIX</string>
+    <string name="presentation_batch_g_daily_mix_based_on_history">Podľa histórie počúvania</string>
+    <string name="presentation_batch_g_daily_mix_see_all">Zobraziť celý denný mix</string>
+    <string name="presentation_batch_g_selection_one_song">Vybraná skladba</string>
+    <string name="presentation_batch_g_selection_n_songs">Vybrané skladby</string>
+    <string name="presentation_batch_g_selection_cd_share">Zdieľať vybrané</string>
+    <string name="presentation_batch_g_selection_cd_like">Pridať vybrané do obľúbených</string>
+    <string name="presentation_batch_g_selection_play">Prehrať</string>
+    <string name="presentation_batch_g_selection_all">Všetko</string>
+    <string name="selection_select_between">Vybrať všetky skladby medzi vybranými</string>
+    <string name="presentation_batch_g_selection_deselect">Zrušiť výber</string>
+    <string name="presentation_batch_g_selection_cd_more">Ďalšie možnosti</string>
+    <string name="presentation_batch_g_list_cd_selected">Vybrané</string>
+    <string name="presentation_batch_g_list_cd_more_for_title">Ďalšie možnosti pre %1$s</string>
+    <string name="presentation_batch_g_list_cd_album_art_for">Obal albumu %1$s</string>
+    <string name="presentation_batch_g_list_cd_playing">Prehráva sa</string>
+    <string name="presentation_batch_g_sync_percent">%1$d %%</string>
+    <string name="presentation_batch_g_stats_overview_title">Štatistiky počúvania</string>
+    <string name="presentation_batch_g_stats_overview_total_plays">Celkový počet prehratí</string>
+    <string name="presentation_batch_g_stats_overview_avg_per_day">Denný priemer</string>
+    <string name="presentation_batch_g_stats_overview_top_track">Najhranejšia skladba</string>
+    <string name="presentation_batch_g_stats_overview_top_track_line">%1$s • Prehratia: %2$d</string>
+    <string name="presentation_batch_g_recently_played_title">Nedávno prehrané</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_half">−0,5</string>
+    <string name="presentation_batch_g_lyrics_offset_minus_point_one">−0,1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_point_one">+0,1</string>
+    <string name="presentation_batch_g_lyrics_offset_plus_half">+0,5</string>
+    <string name="presentation_batch_g_lyrics_offset_zero">0 s</string>
+    <string name="presentation_batch_g_lyrics_offset_seconds_fmt">%1$+.1f s</string>
+    <string name="presentation_batch_g_genre_sort_title">Zoradiť a prehrať</string>
+    <string name="presentation_batch_g_genre_sort_shuffle">Náhodne</string>
+    <string name="presentation_batch_g_genre_sort_by">Zoradiť podľa</string>
+    <string name="presentation_batch_g_genre_sort_artist">Interpret</string>
+    <string name="presentation_batch_g_genre_sort_title_opt">Názov</string>
+    <string name="presentation_batch_g_cd_selected">Vybrané</string>
+    <string name="presentation_batch_g_changelog_title">Zmeny vo verziách</string>
+    <string name="presentation_batch_g_changelog_view_github">Zobraziť na GitHube</string>
+    <string name="presentation_batch_g_presets_saved_title">Uložené predvoľby</string>
+    <string name="presentation_batch_g_presets_empty">Zatiaľ nie sú uložené žiadne vlastné predvoľby.</string>
+    <string name="presentation_batch_g_presets_cd_unpin">Odopnúť</string>
+    <string name="presentation_batch_g_presets_cd_pin">Pripnúť</string>
+    <string name="presentation_batch_g_presets_cd_rename">Premenovať</string>
+    <string name="presentation_batch_g_presets_cd_delete">Odstrániť</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_title">Vitajte v aplikácii PixelPlayerOSS %1$s</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_body">Používate skúšobnú verziu, ktorá môže obsahovať chyby a experimentálne funkcie alebo sa nečakane ukončiť. Pomôžte nám ju zlepšiť hlásením problémov.</string>
+    <string name="presentation_batch_g_beta_sheet_welcome_body_stable">Používate stabilné vydanie. Pozrite si novinky v prehľade zmien a nahláste, ak niečo nefunguje správne.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_title">Čo môžete očakávať</string>
+    <string name="presentation_batch_g_beta_sheet_expect_1">Môžu sa vyskytnúť chyby, pády alebo neúplné funkcie.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_2">Niektoré funkcie sa môžu zmeniť alebo zmiznúť bez upozornenia.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_3">Skúšobné verzie môžu byť menej stabilné než bežné vydania.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_4">Pred nahlásením známeho problému vždy skontrolujte aktualizácie.</string>
+    <string name="presentation_batch_g_beta_sheet_expect_summary">Čo sa môže v skúšobných zostavách zmeniť, pokaziť alebo zlepšiť.</string>
+    <string name="presentation_batch_g_beta_sheet_github_title">Hlásenia na GitHube</string>
+    <string name="presentation_batch_g_beta_sheet_github_body">Najprv vyhľadajte existujúce hlásenia. Potom založte samostatné hlásenie chyby, pádu, návrhu alebo otázky.</string>
+    <string name="presentation_batch_g_beta_sheet_open_issues">Otvoriť existujúce hlásenia</string>
+    <string name="presentation_batch_g_beta_sheet_report_bug">Nahlásiť problém alebo pád</string>
+    <string name="presentation_batch_g_beta_sheet_report_title">Ako nahlásiť problém</string>
+    <string name="presentation_batch_g_beta_sheet_report_summary">Čo skontrolovať pred vytvorením hlásenia.</string>
+    <string name="presentation_batch_g_beta_sheet_before_title">Pred vytvorením hlásenia</string>
+    <string name="presentation_batch_g_beta_sheet_before_1">Prehľadajte otvorené aj uzavreté hlásenia, aby ste predišli duplicitám.</string>
+    <string name="presentation_batch_g_beta_sheet_before_2">Aktualizujte PixelPlayerOSS na najnovšiu verziu a overte, či problém stále pretrváva.</string>
+    <string name="presentation_batch_g_beta_sheet_before_3">Spustite aplikáciu znova a overte, či problém pretrváva.</string>
+    <string name="presentation_batch_g_beta_sheet_before_4">Pokúste sa problém zopakovať a zapíšte presné kroky.</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_title">Aký typ hlásenia vybrať?</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_bug">Hlásenie chyby: Niečo nefunguje správne.</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_feature">Návrh funkcie: Pridanie novej funkcie alebo vylepšenia.</string>
+    <string name="presentation_batch_g_beta_sheet_issue_type_question">Otázka: Ak sú diskusie povolené, použite ich. Inak vytvorte hlásenie so štítkom pre otázky.</string>
+    <string name="presentation_batch_g_beta_sheet_bug_title">Hlásenie chyby</string>
+    <string name="presentation_batch_g_beta_sheet_bug_summary_text">Ak niečo nefunguje správne alebo aplikácia spadne, skopírujte tieto polia.</string>
+    <string name="presentation_batch_g_beta_sheet_bug_template_title">Hlásenie chyby</string>
+    <string name="presentation_batch_g_beta_sheet_bug_summary">Stručný opis:</string>
+    <string name="presentation_batch_g_beta_sheet_bug_expected">Očakávané správanie:</string>
+    <string name="presentation_batch_g_beta_sheet_bug_actual">Aktuálne správanie:</string>
+    <string name="presentation_batch_g_beta_sheet_bug_steps">Kroky na zopakovanie problému: 1. 2. 3.</string>
+    <string name="presentation_batch_g_beta_sheet_bug_frequency">Ako často sa to stáva? Vždy / Niekedy / Zriedka.</string>
+    <string name="presentation_batch_g_beta_sheet_bug_screenshot">Snímka obrazovky alebo video, ak je k dispozícii:</string>
+    <string name="presentation_batch_g_beta_sheet_bug_logs">Záznamy alebo zásobník volaní, ak sú k dispozícii:</string>
+    <string name="presentation_batch_g_beta_sheet_env_title">Prostredie</string>
+    <string name="presentation_batch_g_beta_sheet_env_version">Verzia PixelPlayerOSS:</string>
+    <string name="presentation_batch_g_beta_sheet_env_source">Zdroj inštalácie: vydanie z GitHubu, ladiaca zostava, nočná zostava atď.</string>
+    <string name="presentation_batch_g_beta_sheet_env_android">Verzia Androidu:</string>
+    <string name="presentation_batch_g_beta_sheet_env_device">Model zariadenia:</string>
+    <string name="presentation_batch_g_beta_sheet_env_extra">Ďalšie okolnosti: použitie karty SD, osobitné nastavenia, povolenia atď.</string>
+    <string name="presentation_batch_g_beta_sheet_feature_title">Návrh funkcie</string>
+    <string name="presentation_batch_g_beta_sheet_feature_summary">Ak chcete novú funkciu alebo vylepšenie, skopírujte tieto polia.</string>
+    <string name="presentation_batch_g_beta_sheet_feature_problem">Opis problému: Aký problém chcete vyriešiť?</string>
+    <string name="presentation_batch_g_beta_sheet_feature_solution">Navrhované riešenie: Ako by to malo fungovať?</string>
+    <string name="presentation_batch_g_beta_sheet_feature_alternatives">Zvážené alternatívy: Existujú aj iné spôsoby?</string>
+    <string name="presentation_batch_g_beta_sheet_feature_scope">Rozsah: Ktorých obrazoviek alebo postupov sa to týka?</string>
+    <string name="presentation_batch_g_beta_sheet_feature_mockup">Návrh vzhľadu alebo referenčný obrázok, ak existuje.</string>
+    <string name="presentation_batch_g_beta_sheet_quality_title">Názvy, súkromie a rozsah</string>
+    <string name="presentation_batch_g_beta_sheet_quality_summary">Pripravte hlásenie tak, aby sa dalo ľahko posúdiť a bezpečne zdieľať.</string>
+    <string name="presentation_batch_g_beta_sheet_title_examples_title">Vhodné názvy hlásení</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_1">Ekvalizér: Ukazovateľ sa pri prepínaní kariet predvolieb posúva</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_2">Vyhľadávanie: Pri prázdnom hľadanom výraze sa nezobrazuje história</string>
+    <string name="presentation_batch_g_beta_sheet_title_example_3">Návrh: Pridať možnosť zoradenia zoznamov skladieb podľa dátumu pridania</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_title">Čomu sa vyhnúť</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_1">Všeobecným hláseniam typu „Nefunguje to“.</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_2">Viacerým nesúvisiacim problémom v jednom hlásení.</string>
+    <string name="presentation_batch_g_beta_sheet_avoid_3">Záznamom či snímkam obrazovky so súkromnými údajmi.</string>
+    <string name="presentation_batch_g_beta_sheet_privacy_title">Ochrana súkromia</string>
+    <string name="presentation_batch_g_beta_sheet_privacy_body">Pred zverejnením záznamov, snímok obrazovky alebo videí odstráňte osobné a súkromné údaje.</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_title">Nočné zostavy</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_summary">Ako sa nočné zostavy líšia od vydaní a čo uviesť pri hlásení problémov.</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_body">Nočné zostavy sa vytvárajú z poslednej zmeny v kóde a môžu obsahovať nedokončené úpravy, dočasné chyby alebo nové problémy v predtým funkčných častiach. Sú experimentálnejšie než oficiálne vydania.</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_access">Ak sú dostupné, nájdete ich medzi výstupmi pracovného postupu GitHub Actions v repozitári.</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_report_title">Hlásenie problémov v nočných zostavách</string>
+    <string name="presentation_batch_g_beta_sheet_nightly_report_body">Pri hlásení vždy uveďte, že problém nastal v nočnej zostave, nie v oficiálnom vydaní. Ak je to možné, doplňte dátum zostavy, názov či číslo behu pracovného postupu alebo identifikátor zmeny (SHA). Overte tiež, či sa problém vyskytuje aj v najnovšom oficiálnom vydaní.</string>
+    <string name="presentation_batch_g_album_sel_count">ALBUMY: %1$d</string>
+    <string name="presentation_batch_g_album_sel_selected">vybrané</string>
+    <string name="presentation_batch_g_album_sel_queue_hint">Pri pridaní do frontu a prehrávaní sa zachová poradie výberu.</string>
+    <string name="presentation_batch_g_album_sel_limit">Maximálny počet albumov na výber: %1$d.</string>
+    <string name="presentation_batch_g_app_tagline">Hudobný prehrávač</string>
+    <string name="sidebar_edit_shortcuts">Upraviť skratky</string>
+    <string name="sidebar_shortcuts_dialog_title">Skratky bočného panela</string>
+    <string name="sidebar_open">Otvoriť ponuku</string>
+    <string name="presentation_batch_g_brick_high">REKORD %1$d</string>
+    <string name="presentation_batch_g_brick_cd_close">Zavrieť</string>
+    <string name="presentation_batch_g_brick_stat_score">SKÓRE</string>
+    <string name="presentation_batch_g_brick_stat_lvl">ÚROVEŇ %1$d</string>
+    <string name="presentation_batch_g_brick_stat_lives">ŽIVOTY</string>
+    <string name="presentation_batch_g_brick_level_complete">ÚROVEŇ SPLNENÁ!</string>
+    <string name="presentation_batch_g_brick_game_over">KONIEC HRY</string>
+    <string name="presentation_batch_g_brick_score_line">Skóre: %1$d</string>
+    <string name="presentation_batch_g_brick_try_again">Skúsiť znova?</string>
+    <string name="presentation_batch_g_brick_next_level">Ďalšia úroveň</string>
+    <string name="presentation_batch_g_brick_restart">Spustiť hru odznova</string>
+    <string name="presentation_batch_g_brick_tap_relaunch">ŤUKNUTÍM SPUSTÍTE HRU ZNOVA</string>
+    <string name="presentation_batch_g_brick_play_random">Prehrať hudbu v náhodnom poradí</string>
+    <string name="presentation_batch_g_brick_title">Rozbíjanie tehličiek</string>
+    <string name="presentation_batch_g_brick_high_score">NAJVYŠŠIE SKÓRE: %1$d</string>
+    <string name="presentation_batch_g_brick_play">Hrať</string>
+    <string name="presentation_batch_g_brick_drag_paddle">Ťahaním posúvajte plošinu</string>
+    <string name="presentation_batch_g_backup_restore_modules">Obnoviť moduly</string>
+    <string name="presentation_batch_g_backup_restoring">Obnovuje sa</string>
+    <string name="presentation_batch_g_backup_restore_selected">Obnoviť vybrané</string>
+    <string name="presentation_batch_g_backup_details">Podrobnosti zálohy</string>
+    <string name="presentation_batch_g_backup_created">Vytvorené</string>
+    <string name="presentation_batch_g_backup_app_version">Verzia aplikácie</string>
+    <string name="presentation_batch_g_backup_schema">Schéma</string>
+    <string name="presentation_batch_g_backup_device">Zariadenie</string>
+    <string name="presentation_batch_g_backup_unknown">Neznáme</string>
+    <string name="presentation_batch_g_backup_modules_selected">Vybrané moduly: %1$d z %2$d</string>
+    <string name="presentation_batch_g_backup_transfer_progress">Prebieha prenos…</string>
+    <string name="presentation_batch_g_backup_cd_select_all">Vybrať všetko</string>
+    <string name="presentation_batch_g_backup_cd_clear_selection">Zrušiť výber</string>
+    <string name="presentation_batch_g_backup_entries_will_replace">Počet položiek: %1$d · Nahradia aktuálne údaje</string>
+    <string name="presentation_batch_g_player_cd_cloud_stream">Prehrávanie z cloudu</string>
+    <string name="presentation_batch_g_player_cd_collapse">Zbaliť prehrávač</string>
+    <string name="presentation_batch_g_player_cd_queue">Front</string>
+    <string name="presentation_batch_g_player_cd_lyrics">Text skladby</string>
+    <string name="presentation_batch_g_changelog_sec_initial_release">Prvé vydanie</string>
+    <string name="presentation_batch_g_changelog_sec_removed_for_foss">Odstránené z otvorenej verzie</string>
+    <string name="presentation_batch_g_changelog_sec_release_readiness">Príprava vydania</string>
+    <string name="presentation_batch_g_changelog_sec_security_privacy">Bezpečnosť a súkromie</string>
+    <string name="presentation_batch_g_changelog_sec_whats_new">Novinky</string>
+    <string name="presentation_batch_g_changelog_sec_improvements">Vylepšenia</string>
+    <string name="presentation_batch_g_changelog_sec_under_the_hood">Technické zmeny</string>
+
+    <string-array name="presentation_batch_g_changelog_060_whats_new">
+        <item>Nedávno prehrané skladby a obnovenie uloženého frontu vám umožnia pokračovať v počúvaní tam, kde ste prestali.</item>
+        <item>Pribudlo zálohovanie a obnovenie vo verzii 3 a nástroje na správu účtov.</item>
+        <item>Pribudlo ručné vyhľadávanie textov, keď automatické zlyhá, a zlepšilo sa ich ukladanie.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_improvements">
+        <item>Zrýchlilo sa spúšťanie aplikácie aj práca s knižnicou, frontom a prehrávačom.</item>
+        <item>Navigácia a vyhľadávanie sú spoľahlivejšie vďaka bezpečnejšiemu otváraniu obrazoviek.</item>
+        <item>Prehrávanie zvuku funguje na väčšom počte zariadení a s viacerými formátmi.</item>
+        <item>Rozšírili sa možnosti výberu viacerých skladieb, albumov a zoznamov skladieb.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_060_fixes">
+        <item>Front a náhodné prehrávanie fungujú stabilnejšie a predvídateľnejšie.</item>
+        <item>Opravili sa problémy s časovačom vypnutia, navigáciou na karte Súbory a pádmi pri zobrazení interpreta albumu.</item>
+        <item>Načítanie miniaplikácií a stabilita služieb sa zlepšili, aby sa obmedzili problémy s prehrievaním a pamäťou.</item>
+        <item>Opravili sa ďalšie chyby a vyladilo sa rozhranie v celej aplikácii.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_highlights">
+        <item>Nové rozhranie v štýle Material 3 Expressive</item>
+        <item>10-pásmový ekvalizér a efekty</item>
+        <item>Nový spôsob synchronizácie knižnice</item>
+        <item>Import a export zoznamov skladieb M3U</item>
+        <item>Fotografie interpretov zo služby Deezer</item>
+        <item>Vlastné obaly zoznamov skladieb</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_improvements">
+        <item>Prepracovaná štruktúra nastavení</item>
+        <item>Animácie frontu a prehrávača</item>
+        <item>Profily Baseline a lepší výkon</item>
+        <item>Vylepšené texty skladieb s nastaviteľným časovým posunom</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_050_fixes">
+        <item>Stabilnejší panel prehrávača</item>
+        <item>Opravy chýb a vyčistenie kódu</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_040_highlights">
+        <item>Výrazne prepracovaná navigácia</item>
+        <item>Nový prehliadač súborov na výber zdrojových priečinkov</item>
+        <item>Plynulé pokračovanie medzi vzdialenými zariadeniami</item>
+        <item>Prechody medzi skladbami bez medzier</item>
+        <item>Ovládanie prelínania</item>
+        <item>Vlastné prechody pri zoznamoch skladieb</item>
+        <item>Pokračovanie v prehrávaní po zatvorení aplikácie</item>
+        <item>Optimalizácia rozhrania</item>
+        <item>Vylepšené štatistiky</item>
+        <item>Prepracované ovládanie frontu s ďalšími funkciami</item>
+        <item>Lepšia podpora rôznych typov súborov pri prehrávaní a úprave metadát</item>
+        <item>Lepšia správa povolení</item>
+        <item>Opravy menších chýb</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_whats_new">
+        <item>Podrobnejšie štatistiky počúvania s lepším prehľadom jednotlivých relácií.</item>
+        <item>Plávajúci rýchly prehrávač na okamžité otvorenie a vypočutie miestnych súborov.</item>
+        <item>Karta Priečinky so stromovým prehľadom a zobrazením vhodným na tvorbu zoznamov skladieb.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_improvements">
+        <item>Rozhranie Material 3 je prehľadnejšie a jednotnejšie.</item>
+        <item>Pri úprave metadát možno zmeniť aj obal.</item>
+        <item>Plynulejšie animácie a prechody uľahčujú navigáciu v celej aplikácii.</item>
+        <item>Prepracovaná stránka interpreta zobrazuje podrobnejšie údaje.</item>
+        <item>Denný mix a Váš mix vyberajú skladby presnejšie a pestrejšie.</item>
+        <item>Presnejšie a prehľadnejšie vyhľadávanie pomáha rýchlejšie nájsť hudbu.</item>
+        <item>Rozšírila sa podpora zvukových formátov.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_030_fixes">
+        <item>Opravili sa nezrovnalosti v metadátach, aby boli údaje o skladbách všade správne.</item>
+        <item>Skratky v upozorneniach opäť spoľahlivo otvárajú prehrávač.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_added">
+        <item>Prehľad zmien v aplikácii s najnovšími funkciami.</item>
+        <item>Podpora vložených aj samostatných súborov .LRC.</item>
+        <item>Texty skladieb dostupné offline.</item>
+        <item>Texty synchronizované s prehrávaním skladby.</item>
+        <item>Nová obrazovka s celým frontom.</item>
+        <item>Zmena poradia a odstraňovanie skladieb z frontu.</item>
+        <item>Gestá miniprehrávača: potiahnutím nadol ho zavriete.</item>
+        <item>Ďalšie animácie v štýle Material.</item>
+        <item>Nové možnosti prispôsobenia vzhľadu a správania.</item>
+        <item>Nové nastavenia na vymazanie vyrovnávacej pamäte.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_changed">
+        <item>Úplne prepracované používateľské rozhranie.</item>
+        <item>Úplne prepracovaný prehrávač.</item>
+        <item>Lepší výkon knižnice.</item>
+        <item>Rýchlejšie spustenie aplikácie.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_020_fixed">
+        <item>Opravené rôzne chyby v editore metadát.</item>
+        <item>Opravené upozornenie na prehrávanie, ktoré sa nedalo zavrieť.</item>
+        <item>Opravené viaceré chyby spôsobujúce pády aplikácie.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_whats_new">
+        <item>Prvé verejné vydanie PixelPlayerOSS s otvoreným zdrojovým kódom.</item>
+        <item>Obsahuje miestne prehrávanie, zoznamy skladieb, obľúbené, texty, štatistiky počúvania, dynamické motívy Material 3, miniaplikácie, zálohovanie a obnovenie.</item>
+        <item>Naďalej podporuje vlastné servery Navidrome, Subsonic a Jellyfin, ako aj voliteľné vyhľadávanie textov cez LRCLIB a fotografií interpretov cez Deezer.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_improvements">
+        <item>Odstránili sa závislosti od služieb Telegram, NetEase, QQ Music, Google Drive, Gemini, Cast, Wear OS, fakturácie Obchodu Play, Firebase, Crashlytics a Služieb Google Play.</item>
+        <item>Odstránilo sa odosielanie záznamov počúvania do verejných služieb Last.fm a ListenBrainz. Pri vlastnom serveri Navidrome alebo Subsonic sa záznamy naďalej posielajú len na tento server.</item>
+        <item>V prvom otvorenom vydaní sa odstránili priložené preklady aj výber jazyka v aplikácii. Najskôr boli dostupné iba anglické texty.</item>
+        <item>Odstránili sa postupy vydávania závislé od miestnych či súkromných podpisových súborov, zástupných podpisových údajov alebo konkrétneho obchodu s aplikáciami.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_fixes">
+        <item>Pribudli metadáta pre F-Droid a Fastlane, poznámky o súkromí a bezpečnosti, dokumentácia závislostí a licencií aj pokyny pre prispievateľov.</item>
+        <item>Zostavy vydania zostávajú nepodpísané, ak miestne podpisové kľúče nie sú k dispozícii.</item>
+        <item>Pribudla voľba pixelplayer.disableReleaseSigning=true na reprodukovateľné overovanie nepodpísaných zostáv.</item>
+        <item>Zdokumentovali sa licencie súborov a závislostí vrátane natívnych a binárnych balíkov Maven a závislostí JitPack.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_070_added">
+        <item>Cloudové streamovanie cez spätnú slučku teraz vyžaduje token pre každú reláciu.</item>
+        <item>Pri obnove zálohy sa vynechávajú kľúče nastavení spravované samostatnými modulmi.</item>
+        <item>Sprísnilo sa zapisovanie protokolov vo vydaniach, aby hlavičky požiadaviek HTTP ani surové záznamy Androidu nemohli obísť filter Timber.</item>
+        <item>Pribudlo ukladanie inteligentných zoznamov skladieb, vyhľadávanie duplicít a ovládanie rýchlosti prehrávania. Hlásenia o zlyhaní prehrávania či synchronizácie sú zrozumiteľnejšie a zlepšila sa prístupnosť.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_v020_whats_new">
+        <item>Vzhľad Material 3 Expressive prináša nové animácie pohybu, zvlnené ukazovatele priebehu a zmeny tvarov v celej aplikácii.</item>
+        <item>K serverom Jellyfin vo VPN alebo miestnej sieti sa teraz dá pripojiť aj cez obyčajné HTTP.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_v020_improvements">
+        <item>Menšia aplikácia: úspornejšie pravidlá zmenšovania kódu znižujú veľkosť inštalácie približne o 1,5 MB.</item>
+        <item>Rýchlejšie a plynulejšie spustenie: profily Baseline boli vytvorené odznova, aby zodpovedali novému rozhraniu a spôsobu vykonávania kódu.</item>
+        <item>Zoznamy, panely a ekvalizér reagujú rýchlejšie vďaka optimalizácii rozhrania Compose.</item>
+    </string-array>
+    <string-array name="presentation_batch_g_changelog_v020_under_the_hood">
+        <item>Spoľahlivejšie prehrávanie z cloudu: zrušené požiadavky Navidrome alebo Jellyfinu sa pri rýchlom preskakovaní skladieb už nehlásia ako chyby siete.</item>
+        <item>Pri otočení obrazovky sa už nestrácajú udalosti zálohovania, obnovy ani úvodného nastavenia.</item>
+        <item>Odstránil sa nepoužívaný kód, zastarané rozhrania sa nahradili a závislosti sa aktualizovali.</item>
+    </string-array>
+</resources>

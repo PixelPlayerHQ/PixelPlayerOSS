@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 
@@ -570,5 +572,5 @@ private fun rememberDailyMixTitleStyle(): TextStyle {
             fontWeight = FontWeight(760),
             fontSize = 44.sp,
         )
-    }
+    }.withInterfaceFont()
 }

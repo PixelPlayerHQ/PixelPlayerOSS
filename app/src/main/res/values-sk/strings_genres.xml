@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Žánre</string>
+    <string name="lib_empty_genres_title">Nenašli sa žiadne žánre</string>
+    <string name="lib_empty_genres_subtitle">Tu sa zobrazia žánre z metadát vašich skladieb.</string>
+</resources>

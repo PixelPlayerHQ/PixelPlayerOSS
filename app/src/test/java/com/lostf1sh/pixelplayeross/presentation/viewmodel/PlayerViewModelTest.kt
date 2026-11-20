@@ -136,6 +136,7 @@ class PlayerViewModelTest {
         every { ContextCompat.getMainExecutor(any()) } returns directExecutor
         coEvery { mockUserPreferencesRepository.favoriteSongIdsFlow } returns flowOf(emptySet())
         coEvery { mockUserPreferencesRepository.songsSortOptionFlow } returns flowOf("SongTitleAZ")
+        every { mockUserPreferencesRepository.songsSecondarySortOptionFlow } returns flowOf(null)
         coEvery { mockUserPreferencesRepository.albumsSortOptionFlow } returns flowOf("AlbumTitleAZ")
         coEvery { mockUserPreferencesRepository.artistsSortOptionFlow } returns flowOf("ArtistNameAZ")
         coEvery { mockUserPreferencesRepository.likedSongsSortOptionFlow } returns flowOf("LikedSongTitleAZ")

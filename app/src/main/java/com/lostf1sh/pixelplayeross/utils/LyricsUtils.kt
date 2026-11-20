@@ -1237,7 +1237,7 @@ object LyricsUtils {
 private fun String.toNfc(): String =
     if (Normalizer.isNormalized(this, Normalizer.Form.NFC)) this else Normalizer.normalize(this, Normalizer.Form.NFC)
 
-private fun stripLeadingLyricsDocumentNoise(value: String): String {
+internal fun stripLeadingLyricsDocumentNoise(value: String): String {
     return value.trimStart { char ->
         char.isWhitespace() ||
             char == '\uFEFF' ||
@@ -1245,7 +1245,7 @@ private fun stripLeadingLyricsDocumentNoise(value: String): String {
     }
 }
 
-private fun looksLikeTtmlDocument(value: String): Boolean {
+internal fun looksLikeTtmlDocument(value: String): Boolean {
     // Match bare <tt>, namespaced <tt:tt>, and SMIL wrappers (<smil>) used
     // by some Apple Music and broadcast TTML variants.
     fun String.startsWithTtmlRoot(): Boolean =

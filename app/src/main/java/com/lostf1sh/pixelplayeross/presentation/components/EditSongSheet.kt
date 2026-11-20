@@ -43,13 +43,6 @@ import android.content.Intent
 import android.net.Uri
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.automirrored.rounded.Notes
 import androidx.compose.material.icons.rounded.Delete
@@ -81,8 +74,6 @@ import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.text.font.FontWeight
 import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.Player
 import com.lostf1sh.pixelplayeross.data.media.AudioMetadataReader
 import com.lostf1sh.pixelplayeross.data.media.CoverArtUpdate
@@ -121,29 +112,12 @@ fun EditSongSheet(
         customMetadataChanges: CustomMetadataChanges
     ) -> Unit
 ) {
-    val transitionState = remember { MutableTransitionState(false) }
-    transitionState.targetState = visible
-
-    if (transitionState.currentState || transitionState.targetState) {
-        Dialog(
-            onDismissRequest = onDismiss,
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
-            )
-        ) {
-            AnimatedVisibility(
-                visibleState = transitionState,
-                enter = slideInVertically(initialOffsetY = { it / 6 }) + fadeIn(animationSpec = tween(220)),
-                exit = slideOutVertically(targetOffsetY = { it / 6 }) + fadeOut(animationSpec = tween(200))
-            ) {
-                EditSongContent(
-                    song = song,
-                    onDismiss = onDismiss,
-                    onSave = onSave
-                )
-            }
-        }
+    MetadataEditorDialog(visible, onDismiss) {
+        EditSongContent(
+            song = song,
+            onDismiss = onDismiss,
+            onSave = onSave
+        )
     }
 }
 
@@ -313,10 +287,6 @@ private fun EditSongContent(
         )
     }
 
-    val density = LocalDensity.current
-    val imeInsets = WindowInsets.ime
-    val isKeyboardVisible by remember { derivedStateOf { imeInsets.getBottom(density) > 0 } }
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -343,15 +313,18 @@ private fun EditSongContent(
         modifier = Modifier.fillMaxSize(),
         contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
-        val navBarBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-        Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
+        ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .imePadding(),
+                    .weight(1f)
+                    .fillMaxWidth(),
                 contentPadding = PaddingValues(
                     top = innerPadding.calculateTopPadding() + 8.dp,
-                    bottom = if (isKeyboardVisible) 8.dp else (navBarBottom + 100.dp),
+                    bottom = 8.dp,
                     start = 16.dp,
                     end = 16.dp
                 ),
@@ -797,74 +770,68 @@ private fun EditSongContent(
             }
         }
 
-            AnimatedVisibility(
-                visible = !isKeyboardVisible,
-                enter = slideInVertically { it } + fadeIn(),
-                exit = slideOutVertically { it } + fadeOut(),
+            HorizontalFloatingToolbar(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = innerPadding.calculateBottomPadding() + 24.dp)
-            ) {
-                HorizontalFloatingToolbar(
-                    expandedShadowElevation = 0.dp,
-                    colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
-                        toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
-                    ),
-                    expanded = true,
-                    scrollBehavior = scrollBehavior,
-                    content = {
-                        FilledTonalButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.height(48.dp),
-                            colors = ButtonDefaults.filledTonalButtonColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        ) {
-                            Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                        }
-                        Spacer(
-                            modifier = Modifier.width(8.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 8.dp, bottom = 24.dp),
+                expandedShadowElevation = 0.dp,
+                colors = FloatingToolbarDefaults.standardFloatingToolbarColors(
+                    toolbarContainerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                expanded = true,
+                scrollBehavior = scrollBehavior,
+                content = {
+                    FilledTonalButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.height(48.dp),
+                        colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
-                        Button(
-                            onClick = {
-                                val resolvedTrackNumber = trackNumber.toIntOrNull() ?: song.trackNumber
-                                val resolvedDiscNumber = discNumber.toIntOrNull()
-                                buildCustomMetadataChanges(
-                                    metadataWasRead = metadataWasRead,
-                                    originalRating = originalRating,
-                                    editedRating = rating,
-                                    originalFields = originalCustomFields,
-                                    editedFields = customFields
-                                ).onSuccess { customMetadataChanges ->
-                                    customMetadataError = null
-                                    onSave(
-                                        title.trim(),
-                                        artist.trim(),
-                                        album.trim(),
-                                        albumArtist.trim(),
-                                        composer.trim(),
-                                        genre.trim(),
-                                        lyrics,
-                                        resolvedTrackNumber,
-                                        resolvedDiscNumber,
-                                        replayGainTrackGainDb.trim(),
-                                        replayGainAlbumGainDb.trim(),
-                                        editedCoverArt,
-                                        customMetadataChanges
-                                    )
-                                }.onFailure { error ->
-                                    customMetadataError = error.message
-                                        ?: context.getString(R.string.edit_song_custom_metadata_invalid)
-                                }
-                            },
-                            modifier = Modifier.height(48.dp)
-                        ) {
-                            Text(stringResource(R.string.action_save))
-                        }
+                    ) {
+                        Text(stringResource(R.string.cancel), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                )
-            }
+                    Spacer(
+                        modifier = Modifier.width(8.dp)
+                    )
+                    Button(
+                        onClick = {
+                            val resolvedTrackNumber = trackNumber.toIntOrNull() ?: song.trackNumber
+                            val resolvedDiscNumber = discNumber.toIntOrNull()
+                            buildCustomMetadataChanges(
+                                metadataWasRead = metadataWasRead,
+                                originalRating = originalRating,
+                                editedRating = rating,
+                                originalFields = originalCustomFields,
+                                editedFields = customFields
+                            ).onSuccess { customMetadataChanges ->
+                                customMetadataError = null
+                                onSave(
+                                    title.trim(),
+                                    artist.trim(),
+                                    album.trim(),
+                                    albumArtist.trim(),
+                                    composer.trim(),
+                                    genre.trim(),
+                                    lyrics,
+                                    resolvedTrackNumber,
+                                    resolvedDiscNumber,
+                                    replayGainTrackGainDb.trim(),
+                                    replayGainAlbumGainDb.trim(),
+                                    editedCoverArt,
+                                    customMetadataChanges
+                                )
+                            }.onFailure { error ->
+                                customMetadataError = error.message
+                                    ?: context.getString(R.string.edit_song_custom_metadata_invalid)
+                            }
+                        },
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        Text(stringResource(R.string.action_save))
+                    }
+                }
+            )
 
         }
     }

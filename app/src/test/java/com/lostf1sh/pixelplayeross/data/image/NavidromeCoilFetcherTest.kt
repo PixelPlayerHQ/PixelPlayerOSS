@@ -65,6 +65,38 @@ class NavidromeCoilFetcherTest {
     }
 
     @Test
+    fun `now playing uses separate cached variants for requested sizes`() = runTest {
+        val rawUri = "navidrome_cover://al-12"
+        val originalUri = rawUri.withNavidromeCoverSize(0)
+        val highUri = rawUri.withNavidromeCoverSize(800)
+        val highCache = RemoteArtworkCache.cacheFileFor(cacheDir, highUri)!!
+        val originalCache = RemoteArtworkCache.cacheFileFor(cacheDir, originalUri)!!
+        assertThat(highCache).isNotEqualTo(originalCache)
+        assertThat(highCache).isNotEqualTo(RemoteArtworkCache.cacheFileFor(cacheDir, rawUri))
+
+        highCache.writeBytes(byteArrayOf(0x89.toByte(), 0x50, 0x4E, 0x47))
+        val sizedCoverUri = mockk<Uri> {
+            every { host } returns "al-12"
+            every { getQueryParameter("size") } returns "800"
+        }
+        val unavailable = OkHttpClient.Builder()
+            .addInterceptor { throw IOException("The server must not be contacted") }
+            .build()
+
+        val result = NavidromeCoilFetcher(sizedCoverUri, repository, unavailable, cacheDir).fetch()
+        assertThat((result as SourceResult).dataSource).isEqualTo(DataSource.DISK)
+    }
+
+    @Test
+    fun `size override preserves other options and leaves other sources alone`() {
+        val rawUri = "navidrome_cover://al-12?size=500&other=yes#fragment"
+        assertThat(rawUri.withNavidromeCoverSize(800))
+            .isEqualTo("navidrome_cover://al-12?other=yes&size=800#fragment")
+        val jellyfinUri = "jellyfin_cover://al-12"
+        assertThat(jellyfinUri.withNavidromeCoverSize(800)).isEqualTo(jellyfinUri)
+    }
+
+    @Test
     fun `failed download leaves the cover unresolved`() = runTest {
         val failing = OkHttpClient.Builder()
             .addInterceptor { throw IOException("Connection refused") }

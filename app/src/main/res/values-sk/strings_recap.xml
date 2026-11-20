@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="recap_card_title">Váš hudobný rok %1$d</string>
+    <string name="recap_card_title_so_far">Váš rok %1$d doteraz</string>
+    <string name="recap_card_subtitle">Prežite svoj rok v hudbe ešte raz</string>
+    <string name="recap_card_subtitle_so_far">Pozrite sa, aký je zatiaľ váš hudobný rok</string>
+    <string name="recap_home_card_title">Váš prehľad roka %1$d je tu</string>
+    <string name="recap_home_card_subtitle">Pripomeňte si skladby, interpretov a chvíle, ktoré sprevádzali váš rok.</string>
+    <string name="recap_home_card_open">Otvoriť prehľad</string>
+    <string name="recap_home_card_dismiss">Zavrieť</string>
+    <string name="recap_cd_close">Zavrieť prehľad</string>
+    <string name="recap_cd_pause">Pozastaviť</string>
+    <string name="recap_cd_resume">Pokračovať</string>
+    <string name="recap_cd_slide_progress">Snímka %1$d z %2$d</string>
+    <string name="recap_action_next_slide">Nasledujúca snímka</string>
+    <string name="recap_action_previous_slide">Predchádzajúca snímka</string>
+    <string name="recap_close">Zavrieť</string>
+    <string name="recap_not_enough_title">Zatiaľ málo počúvania</string>
+    <string name="recap_not_enough_subtitle">Počúvajte ďalej a váš prehľad za rok %1$d sa postupne naplní.</string>
+    <string name="recap_intro_kicker">Prehľad PixelPlayerOSS</string>
+    <string name="recap_intro_title">Váš rok v hudbe</string>
+    <string name="recap_intro_title_so_far">Váš rok doteraz</string>
+    <string name="recap_intro_subtitle">Obzrite sa za skladbami, interpretmi a chvíľami, ktoré tvorili kulisu vášho roka.</string>
+    <string name="recap_tap_hint">Ťuknutím pokračujete</string>
+    <string name="recap_minutes_kicker">V roku %1$d ste počúvali</string>
+    <string name="recap_minutes_daily_average">Denný priemer</string>
+    <string name="recap_minutes_active_days">Dni s hudbou</string>
+    <string name="recap_months_kicker">Najviac hudby za mesiac</string>
+    <string name="recap_months_detail">Čas počúvania: %1$s</string>
+    <string name="recap_clock_kicker">Kedy ste počúvali</string>
+    <string name="recap_personality_early_bird">Ranné vtáča</string>
+    <string name="recap_personality_early_bird_desc">Deň ste začínali s hudbou. Najviac ste ju počúvali ráno.</string>
+    <string name="recap_personality_daytime">Hudba cez deň</string>
+    <string name="recap_personality_daytime_desc">Hudba vám robila spoločnosť od neskorého rána až do popoludnia.</string>
+    <string name="recap_personality_evening">Večerný oddych</string>
+    <string name="recap_personality_evening_desc">Keď sa deň končil, hudba sa naplno rozozvučala.</string>
+    <string name="recap_personality_night_owl">Nočná sova</string>
+    <string name="recap_personality_night_owl_desc">Čím neskoršia bola hodina, tým viac ste počúvali.</string>
+    <string name="recap_clock_favorite_day">Obľúbený deň: %1$s</string>
+    <string name="recap_cd_months_chart">Počúvanie podľa mesiacov: %1$s</string>
+    <string name="recap_cd_clock_chart">Počúvanie podľa hodín: %1$s</string>
+    <string name="recap_dedication_kicker">Najdlhšie obdobie bez vynechania</string>
+    <string name="recap_dedication_longest_session">Najdlhšie počúvanie</string>
+    <string name="recap_dedication_biggest_day">Deň s najdlhším počúvaním</string>
+    <string name="recap_dedication_first_song">Prvá skladba roka</string>
+    <string name="recap_genres_kicker">Vaše najpočúvanejšie žánre</string>
+    <string name="recap_genres_share">%1$s z celkového času počúvania</string>
+    <string name="recap_decade_kicker">Vaša éra</string>
+    <string name="recap_decade_value">Dekáda od roku %1$d</string>
+    <string name="recap_decade_detail">Hudba vydaná v tejto dekáde tvorila %1$s z vášho času počúvania.</string>
+    <string name="recap_albums_kicker">Vaše najpočúvanejšie albumy</string>
+    <string name="recap_artists_kicker">Váš najpočúvanejší interpret</string>
+    <string name="recap_songs_kicker">Vaša najpočúvanejšia skladba</string>
+    <string name="recap_summary_kicker">Váš rok v skratke</string>
+    <string name="recap_summary_title">Môj rok %1$d v hudbe</string>
+    <string name="recap_summary_title_so_far">Môj rok %1$d doteraz</string>
+    <string name="recap_summary_minutes">Minúty počúvania</string>
+    <string name="recap_summary_top_artist">Najpočúvanejší interpret</string>
+    <string name="recap_summary_top_song">Najpočúvanejšia skladba</string>
+    <string name="recap_summary_top_genre">Najpočúvanejší žáner</string>
+    <string name="recap_summary_top_album">Najpočúvanejší album</string>
+    <string name="recap_summary_listening_style">Štýl počúvania</string>
+    <string name="recap_share">Zdieľať</string>
+    <string name="recap_share_chooser_title">Zdieľať svoj prehľad</string>
+    <string name="recap_share_text">Môj rok %1$d v hudbe, vytvorené v PixelPlayerOSS</string>
+    <string name="recap_share_failed">Obrázok prehľadu sa nepodarilo vytvoriť</string>
+    <string name="recap_play_top_songs">Prehrať najpočúvanejšie skladby</string>
+    <string name="recap_top_songs_queue_name">Najpočúvanejšie skladby roka %1$d</string>
+    <string name="recap_replay">Pozrieť znova</string>
+
+    <plurals name="recap_minutes_unit" xmlns:tools="http://schemas.android.com/tools" tools:ignore="ImpliedQuantity">
+        <item quantity="one">minúta</item>
+        <item quantity="few">minúty</item>
+        <item quantity="many">minúty</item>
+        <item quantity="other">minút</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="one">To je asi %d deň hudby bez prestávky.</item>
+        <item quantity="few">To sú asi %d dni hudby bez prestávky.</item>
+        <item quantity="many">To je asi %d dňa hudby bez prestávky.</item>
+        <item quantity="other">To je asi %d dní hudby bez prestávky.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="one">To je asi %d hodina hudby bez prestávky.</item>
+        <item quantity="few">To sú asi %d hodiny hudby bez prestávky.</item>
+        <item quantity="many">To je asi %d hodiny hudby bez prestávky.</item>
+        <item quantity="other">To je asi %d hodín hudby bez prestávky.</item>
+    </plurals>
+    <plurals name="recap_streak_unit" xmlns:tools="http://schemas.android.com/tools" tools:ignore="ImpliedQuantity">
+        <item quantity="one">deň za sebou</item>
+        <item quantity="few">dni za sebou</item>
+        <item quantity="many">dňa za sebou</item>
+        <item quantity="other">dní za sebou</item>
+    </plurals>
+    <plurals name="recap_unique_albums">
+        <item quantity="one">Počúvali ste %d album</item>
+        <item quantity="few">Počúvali ste %d albumy</item>
+        <item quantity="many">Počúvali ste %d albumu</item>
+        <item quantity="other">Počúvali ste %d albumov</item>
+    </plurals>
+    <plurals name="recap_unique_artists">
+        <item quantity="one">Počúvali ste %d interpreta</item>
+        <item quantity="few">Počúvali ste %d rôznych interpretov</item>
+        <item quantity="many">Počúvali ste %d interpreta</item>
+        <item quantity="other">Počúvali ste %d rôznych interpretov</item>
+    </plurals>
+    <plurals name="recap_unique_songs">
+        <item quantity="one">Prehrali ste %d skladbu</item>
+        <item quantity="few">Prehrali ste %d rôzne skladby</item>
+        <item quantity="many">Prehrali ste %d skladby</item>
+        <item quantity="other">Prehrali ste %d rôznych skladieb</item>
+    </plurals>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Zoznamy skladieb</string>
+    <string name="setcat_swipe_to_queue_title">Potiahnutie skladby</string>
+    <string name="setcat_swipe_to_queue_description">Potiahnite riadok skladby k okraju obrazovky v zoznamoch skladieb, albumoch, interpretoch, žánroch alebo mixoch.</string>
+    <string name="setcat_swipe_to_queue_add">Pridať do frontu</string>
+    <string name="setcat_swipe_to_queue_add_description">Pridá skladbu na koniec frontu.</string>
+    <string name="setcat_swipe_to_queue_next">Prehrať ako nasledujúcu</string>
+    <string name="setcat_swipe_to_queue_next_description">Pridá skladbu hneď za práve prehrávanú skladbu.</string>
+    <string name="setcat_swipe_to_queue_off">Vypnuté</string>
+    <string name="setcat_swipe_to_queue_off_description">Potiahnutie skladby nevykoná žiadnu akciu.</string>
+</resources>

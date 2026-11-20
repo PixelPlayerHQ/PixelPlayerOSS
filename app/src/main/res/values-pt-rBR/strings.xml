@@ -34,7 +34,9 @@
     <string name="accounts_listenbrainz_now_playing_idle">Nenhuma música em reprodução no momento</string>
     <string name="accounts_available_services">Serviços disponíveis</string>
     <string name="import_file">Importar</string>
+    <string name="tab_home">Início</string>
     <string name="search">Pesquisar</string>
+    <string name="tab_library">Biblioteca</string>
 
     <string name="lyrics">Letras</string>
     <string name="loading_lyrics">Carregando letras…</string>
@@ -287,6 +289,42 @@
     <string name="musicbrainz_no_results">Nenhuma gravação adequada foi encontrada.</string>
     <string name="musicbrainz_match_score">Confiabilidade da correspondência: %1$d%%</string>
     <string name="musicbrainz_applied">Identificadores do MusicBrainz salvos. O ano que faltava e os nomes genéricos foram preenchidos.</string>
+
+    <string name="setup_gate_preparing">Preparando a configuração…</string>
+    <string name="song_info_label_provider">Provedor</string>
+    <string name="song_info_label_path">Caminho</string>
+    <string name="cd_playlist_artwork">Capa da playlist</string>
+    <string name="home_your_mix_subtitle">Seu mix de hoje</string>
+    <string name="home_your_mix_queue_name">Seu mix</string>
+    <string name="queue_name_liked_songs">Músicas favoritas</string>
+    <string name="queue_name_all_songs_shuffled">Todas as músicas (ordem aleatória)</string>
+    <string name="queue_name_liked_songs_shuffled">Músicas favoritas (ordem aleatória)</string>
+    <string name="queue_name_selected_songs">Músicas selecionadas</string>
+
+    <string name="cd_player_sheet_collapsed">Painel do reprodutor do PixelPlayer recolhido, %1$s</string>
+    <string name="cd_player_sheet_expanded">Painel do reprodutor do PixelPlayer expandido, %1$s</string>
+    <string name="cd_player_sheet_collapsed_no_track">Painel do reprodutor do PixelPlayer recolhido</string>
+    <string name="cd_player_sheet_expanded_no_track">Painel do reprodutor do PixelPlayer expandido</string>
+    <string name="mini_player_connecting_device">Conectando ao dispositivo…</string>
+    <string name="mini_player_preparing_playback">Preparando a reprodução…</string>
+    <string name="mini_player_loading_audio">Carregando áudio…</string>
+    <string name="cd_shuffle">Reprodução aleatória</string>
+    <string name="cd_playback_position">Posição de reprodução</string>
+    <string name="add_bookmark_title">Salvar marcador</string>
+    <string name="add_bookmark_saved_point">Ponto de reprodução salvo</string>
+    <string name="add_bookmark_use_lyric_line">Usar linha da letra</string>
+    <string name="add_bookmark_default_name">Marcador @ %1$s</string>
+
+    <string name="collage_pattern_cosmic_swirl">Redemoinho cósmico</string>
+    <string name="collage_pattern_honeycomb_groove">Ritmo em colmeia</string>
+    <string name="collage_pattern_vinyl_stack">Pilha de vinis</string>
+    <string name="collage_pattern_pixel_mosaic">Mosaico de pixels</string>
+    <string name="collage_pattern_stardust_scatter">Chuva de poeira estelar</string>
+    <string name="collage_pattern_soft_orbit">Órbita suave</string>
+    <string name="collage_pattern_arrow_fanfare">Fanfara de setas</string>
+    <string name="collage_pattern_sunny_bloom">Flor ao sol</string>
+    <string name="collage_pattern_pixel_cookie">Biscoito pixelado</string>
+    <string name="collage_pattern_heart_garden">Jardim de corações</string>
 
 </resources>
 

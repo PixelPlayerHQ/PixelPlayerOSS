@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens.search.components
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
 import androidx.annotation.OptIn
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.animation.core.animateDpAsState
@@ -305,7 +307,7 @@ private fun GenreCard(
                 // only when the name still does not fit at the smallest size.
                 Text(
                     text = titlePresentation.text,
-                    style = titlePresentation.style,
+                    style = titlePresentation.style.withInterfaceFont(),
                     color = onBackgroundColor,
                     autoSize = titlePresentation.autoSize,
                     maxLines = titlePresentation.maxLines,

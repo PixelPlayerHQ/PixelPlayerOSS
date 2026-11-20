@@ -12,6 +12,18 @@ import com.lostf1sh.pixelplayeross.data.model.Song
  */
 internal fun sortFolderSongs(songs: List<Song>, option: SortOption): List<Song> {
     if (songs.size < 2) return songs
+    if (option == SortOption.FolderSongFilenameAZ || option == SortOption.FolderSongFilenameZA) {
+        val order = if (option == SortOption.FolderSongFilenameAZ) {
+            compareBy<Pair<Song, String>> { it.second }
+        } else {
+            compareByDescending<Pair<Song, String>> { it.second }
+        }
+        return songs.map { song ->
+            val filename = song.path.substringAfterLast('/').substringAfterLast('\\')
+            song to filename.ifBlank { song.title }.lowercase()
+        }.sortedWith(order.then { a, b -> titleAscending.compare(a.first, b.first) })
+            .map { it.first }
+    }
     return songs.sortedWith(folderSongComparator(option))
 }
 

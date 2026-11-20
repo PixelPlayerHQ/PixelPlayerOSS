@@ -464,7 +464,7 @@ class NavidromeApiService @Inject constructor(
      * Build a cover art URL.
      *
      * @param coverArtId The cover art ID (usually same as song/album ID)
-     * @param size Desired size in pixels
+     * @param size Desired size in pixels, or 0 to leave the artwork at its original size
      */
     fun getCoverArtUrl(coverArtId: String, size: Int = 500): String {
         val cred = credentials ?: throw IllegalStateException("No credentials configured")
@@ -481,7 +481,9 @@ class NavidromeApiService @Inject constructor(
             .addQueryParameter("v", API_VERSION)
             .addQueryParameter("c", cred.clientId.ifBlank { DEFAULT_CLIENT_ID })
             .addQueryParameter("id", coverArtId)
-            .addQueryParameter("size", size.toString())
+            .apply {
+                if (size > 0) addQueryParameter("size", size.toString())
+            }
             .build()
             .toString()
     }

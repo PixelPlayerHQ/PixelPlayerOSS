@@ -58,6 +58,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -69,6 +70,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -86,9 +88,12 @@ import androidx.navigation.NavController
 import com.lostf1sh.pixelplayeross.data.model.Artist
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.presentation.components.CollapsibleCommonTopBar
+import com.lostf1sh.pixelplayeross.presentation.components.DetailSongSelectionControls
+import com.lostf1sh.pixelplayeross.presentation.components.DetailSongSelectionControlsHeight
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.PlayerSheetAwareBackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImageCompactListTargetSize
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
@@ -96,6 +101,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupied
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.window.core.layout.WindowSizeClass
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
+import com.lostf1sh.pixelplayeross.presentation.selection.DetailSongSelection
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistDetailViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.ArtistAlbumSection
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
@@ -141,6 +147,17 @@ fun ArtistDetailScreen(
     // does not recompose the whole screen.
     val albumExpansionOverrides = viewModel.albumExpansionOverrides.collectAsStateWithLifecycle()
     val stablePlayerState by playerViewModel.stablePlayerState.collectAsStateWithLifecycle()
+    val selection = remember(artistId) { DetailSongSelection<String>() }
+    val isSelectionMode = selection.isActive
+    val haptic = LocalHapticFeedback.current
+    val onBack: () -> Unit = {
+        if (selection.isActive) selection.clear() else navController.popBackStack()
+    }
+    PlayerSheetAwareBackHandler(
+        coordinator = playerViewModel.playerSheetBackCoordinator,
+        enabled = isSelectionMode,
+        onBack = selection::clear
+    )
     
     var isTransitionFinished by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -155,6 +172,12 @@ fun ArtistDetailScreen(
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val listBottomPadding = MiniPlayerHeight + systemNavBarInset + 8.dp
+    val selectionBottomPadding = if (stablePlayerState.currentSong != null) {
+        listBottomPadding
+    } else {
+        systemNavBarInset + 8.dp
+    }
     val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
         .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
     val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
@@ -377,13 +400,33 @@ fun ArtistDetailScreen(
                         stringResource(R.string.detail_hero_album_count_many, albumCount)
                     }
                     val albumsCollapsedByDefault = uiState.albumsCollapsedByDefault
-                    val isSectionExpanded: (String) -> Boolean = { sectionKey ->
-                        isAlbumSectionExpanded(
-                            key = sectionKey,
-                            overrides = albumExpansionOverrides.value,
-                            collapsedByDefault = albumsCollapsedByDefault,
-                            sectionCount = albumCount
-                        )
+                    val isSectionExpanded: (String) -> Boolean = remember(
+                        albumExpansionOverrides, albumsCollapsedByDefault, albumCount
+                    ) {
+                        { sectionKey ->
+                            isAlbumSectionExpanded(
+                                key = sectionKey,
+                                overrides = albumExpansionOverrides.value,
+                                collapsedByDefault = albumsCollapsedByDefault,
+                                sectionCount = albumCount
+                            )
+                        }
+                    }
+                    val displayedSongs = remember(isTransitionFinished) {
+                        { section: ArtistAlbumSection ->
+                            if (isTransitionFinished) section.songs else section.songs.take(5)
+                        }
+                    }
+                    val visibleSongs = remember(visibleSections, visibleSectionKeys, isSectionExpanded, displayedSongs) {
+                        derivedStateOf {
+                            buildMap {
+                                visibleSections.forEachIndexed { index, section ->
+                                    if (isSectionExpanded(visibleSectionKeys[index])) {
+                                        displayedSongs(section).forEach { song -> put(song.id, song) }
+                                    }
+                                }
+                            }
+                        }
                     }
                     // Derived and read only by the summary row: this scope recomposes on every
                     // frame of the header collapse, which should not re-check every album.
@@ -436,7 +479,8 @@ fun ArtistDetailScreen(
                             // Fixed, so the hero never shifts; only album cards make room for
                             // the scrollbar (scrollbarInset).
                             end = 16.dp,
-                            bottom = MiniPlayerHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 8.dp
+                            bottom = listBottomPadding +
+                                if (isSelectionMode) DetailSongSelectionControlsHeight else 0.dp
                         )
                     ) {
                         item(key = "artist_hero", contentType = "artist_hero") {
@@ -482,7 +526,7 @@ fun ArtistDetailScreen(
                             val isFirstSection = index == 0
                             val isLastSection = index == visibleSections.lastIndex
                             val isExpanded = isSectionExpanded(sectionKey)
-                            val sectionSongs = if (isTransitionFinished) section.songs else section.songs.take(5)
+                            val sectionSongs = displayedSongs(section)
 
                             item(
                                 key = "${sectionKey}_header",
@@ -543,6 +587,12 @@ fun ArtistDetailScreen(
                                         isLastSection = isLastSection,
                                         isCurrentSong = stablePlayerState.currentSong?.id == song.id,
                                         isPlaying = stablePlayerState.isPlaying,
+                                        isSelected = song.id in selection.keys,
+                                        isSelectionMode = isSelectionMode,
+                                        onSelectSong = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            selection.toggle(song.id)
+                                        },
                                         onSongClick = {
                                             playerViewModel.showAndPlaySong(song, section.songs)
                                         },
@@ -572,7 +622,8 @@ fun ArtistDetailScreen(
                                 .align(Alignment.CenterEnd)
                                 .padding(
                                     top = minTopBarHeight + DetailHeroPinnedActionsHeight + 4.dp,
-                                    bottom = MiniPlayerHeight + systemNavBarInset + 8.dp
+                                    bottom = listBottomPadding +
+                                        if (isSelectionMode) DetailSongSelectionControlsHeight else 0.dp
                                 )
                         )
                     }
@@ -587,7 +638,7 @@ fun ArtistDetailScreen(
                             containerAlpha = maxOf(barContainerAlpha, heroDock.barContainerAlpha),
                             headerHeight = currentTopBarHeightDp,
                             hasCustomImage = !artist.customImageUri.isNullOrBlank(),
-                            onBackPressed = { navController.popBackStack() },
+                            onBackPressed = onBack,
                             onChangeImage = { imagePickerLauncher.launch("image/*") },
                             onClearCustomImage = { viewModel.clearCustomImage() }
                         )
@@ -600,7 +651,7 @@ fun ArtistDetailScreen(
                             collapseFraction = collapseFraction,
                             headerHeight = currentTopBarHeightDp,
                             headerImageRequestSize = headerImageRequestSize,
-                            onBackPressed = { navController.popBackStack() },
+                            onBackPressed = onBack,
                             onPlayClick = {
                                 if (songs.isNotEmpty()) {
                                     playerViewModel.playSongsShuffled(
@@ -625,6 +676,17 @@ fun ArtistDetailScreen(
                         playState = heroPlayState,
                         enabled = songs.isNotEmpty(),
                         metaLine = albumCountLabel.takeIf { albumCount > 0 }
+                    )
+                    DetailSongSelectionControls(
+                        selection = selection,
+                        visibleSongs = { visibleSongs.value },
+                        favoriteSongIds = favoriteIds,
+                        playerViewModel = playerViewModel,
+                        playlistViewModel = playlistViewModel,
+                        bottomBarHeight = bottomBarHeightDp,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = selectionBottomPadding)
                     )
                 }
             }
@@ -892,6 +954,9 @@ private fun ArtistAlbumSectionSongItem(
     isLastSection: Boolean,
     isCurrentSong: Boolean,
     isPlaying: Boolean,
+    isSelected: Boolean,
+    isSelectionMode: Boolean,
+    onSelectSong: () -> Unit,
     onSongClick: () -> Unit,
     onSwipeToQueue: (() -> Unit)?,
     onMoreOptionsClick: () -> Unit
@@ -934,6 +999,9 @@ private fun ArtistAlbumSectionSongItem(
                 song = song,
                 isCurrentSong = isCurrentSong,
                 isPlaying = isPlaying,
+                isSelected = isSelected,
+                isSelectionMode = isSelectionMode,
+                onLongPress = onSelectSong,
                 showAlbumArt = false,
                 customShape = songItemShape,
                 onSwipeToQueue = onSwipeToQueue,

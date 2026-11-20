@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Zvýraznění slov</string>
+    <string name="lyrics_highlight_style_subtitle">Jak se slova postupně zvýrazňují podle zpěvu</string>
+    <string name="lyrics_highlight_style_wipe">Plynulý přechod</string>
+    <string name="lyrics_highlight_style_wipe_desc">Zvýraznění s měkkým okrajem postupuje slovem podle zpěvu</string>
+    <string name="lyrics_highlight_style_fade">Postupné zvýraznění</string>
+    <string name="lyrics_highlight_style_fade_desc">Každá slabika se zvýrazňuje postupně, jak zaznívá</string>
+    <string name="lyrics_highlight_style_classic">Okamžité zvýraznění</string>
+    <string name="lyrics_highlight_style_classic_desc">Každá slabika se zvýrazní hned, jak začne znít</string>
+    <string name="lyrics_duet_layout_title">Rozložení pro duet</string>
+    <string name="lyrics_duet_layout_subtitle">Každý zpěvák má vlastní stranu, pokud text označuje jednotlivé hlasy (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Doprovodné vokály</string>
+    <string name="lyrics_background_vocals_subtitle">Zobrazí doprovodné vokály menším písmem pod hlavním řádkem</string>
+</resources>

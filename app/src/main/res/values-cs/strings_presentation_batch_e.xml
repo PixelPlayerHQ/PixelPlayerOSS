@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_queue_empty">Fronta je prázdná.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Akce fronty</string>
+    <string name="presentation_batch_e_action_clear_queue">Vyprázdnit frontu</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Uložit jako playlist</string>
+    <string name="presentation_batch_e_action_locate_current_song">Najít aktuální skladbu</string>
+    <string name="presentation_batch_e_queue_named_suffix">Fronta: %1$s</string>
+    <string name="presentation_batch_e_queue_current">Aktuální fronta</string>
+    <string name="presentation_batch_e_removed">odebráno</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Vyprázdnit frontu</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Opravdu chcete z fronty odebrat všechny skladby kromě aktuální?</string>
+    <string name="presentation_batch_e_next_up">Přehraje se jako další</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Fronta je zatím prázdná.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Fronta</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Přepnout náhodné přehrávání</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Přepnout opakování</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Časovač vypnutí</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Uložit jako playlist</string>
+    <string name="presentation_batch_e_deselect_all">Zrušit výběr</string>
+    <string name="presentation_batch_e_playlist_name_label">Název playlistu</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Hledat skladby k přidání…</string>
+    <string name="presentation_batch_e_save_as_format">Uložit jako: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Zadejte název playlistu</string>
+    <string name="presentation_batch_e_no_songs_match_query">Výrazu „%1$s“ neodpovídá žádná skladba</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Odebrat skladbu</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Odebrat z playlistu</string>
+    <string name="presentation_batch_e_more_options_for_song">Další možnosti pro %1$s</string>
+    <string name="presentation_batch_e_no_playlist_created">Zatím nebyl vytvořen žádný playlist.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Začněte klepnutím na tlačítko „Nový playlist“.</string>
+    <string name="presentation_batch_e_create_playlist_title">Vytvořit playlist</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Vyberte způsob vytvoření playlistu.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Ručně</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Navrhněte obal, ikonu i tvar a sami vyberte skladby.</string>
+    <string name="presentation_batch_e_reset_presets_title">Obnovit předvolby</string>
+    <string name="presentation_batch_e_reset_presets_message">Obnoví se výchozí pořadí a viditelnost předvoleb. Pokračovat?</string>
+    <string name="presentation_batch_e_manage_presets_title">Spravovat předvolby</string>
+    <string name="presentation_batch_e_presets_drag_hint">Pořadí změňte tažením • Klepnutím na oko předvolbu zobrazíte nebo skryjete</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Obnovit výchozí nastavení</string>
+    <string name="presentation_batch_e_cd_visible">Zobrazeno</string>
+    <string name="presentation_batch_e_cd_hidden">Skryto</string>
+</resources>

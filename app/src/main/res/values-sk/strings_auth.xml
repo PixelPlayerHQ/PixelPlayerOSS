@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="auth_cd_back">Späť</string>
+    <string name="auth_show_password">Zobraziť heslo</string>
+    <string name="auth_hide_password">Skryť heslo</string>
+    <string name="auth_connecting">Pripája sa…</string>
+    <string name="auth_connect">Pripojiť</string>
+    <string name="auth_connection_details">Údaje o pripojení</string>
+    <string name="auth_connection_details_subtitle">Zadajte adresu URL servera a prihlasovacie údaje.</string>
+    <string name="auth_server_url">Adresa URL servera</string>
+    <string name="auth_username">Používateľské meno</string>
+    <string name="auth_password">Heslo</string>
+    <string name="auth_password_placeholder">Zadajte heslo</string>
+    <string name="toast_welcome_user">Vitajte, %1$s!</string>
+    <string name="auth_local_network_permission_denied">Povoľte prístup k zariadeniam v okolí, aby sa aplikácia mohla pripojiť k serveru v miestnej sieti.</string>
+    <string name="auth_select_libraries_title">Vyberte knižnice na synchronizáciu</string>
+    <string name="auth_select_libraries_subtitle">Tento server obsahuje viacero hudobných knižníc. Vyberte tie, ktoré chcete synchronizovať. Výber môžete neskôr zmeniť na obrazovke servera.</string>
+    <string name="auth_select_libraries_confirm">Uložiť a synchronizovať</string>
+    <string name="auth_navidrome_subtitle">Pripojte sa k vlastnému hudobnému serveru</string>
+    <string name="auth_navidrome_info_card">Podporuje Navidrome, Airsonic, Gonic, Ampache a ďalšie servery kompatibilné s rozhraním API Subsonic.</string>
+    <string name="auth_navidrome_server_url_hint">Použite úplnú adresu URL servera vrátane http:// pre miestne servery alebo https:// pre vzdialené servery.</string>
+    <string name="auth_navidrome_username_hint">Používateľské meno účtu Subsonic alebo Navidrome.</string>
+    <string name="auth_navidrome_password_hint">Ak to server podporuje, môžete použiť aj heslo aplikácie.</string>
+    <string name="auth_prefill_http">Predvyplniť http://</string>
+    <string name="auth_use_http">Použiť HTTP alebo VPN</string>
+    <string name="auth_navidrome_footer">Kompatibilné s Navidrome, Gonic, Airsonic a ďalšími servermi podporujúcimi Subsonic</string>
+    <string name="auth_jellyfin_info_card">Pripojí sa k serverom Jellyfin. V miestnej sieti podporuje pripojenie cez HTTP aj HTTPS.</string>
+    <string name="auth_jellyfin_subtitle">Pripojte sa k serveru Jellyfin</string>
+    <string name="auth_jellyfin_connection_subtitle">Zadajte adresu URL servera Jellyfin a prihlasovacie údaje.</string>
+    <string name="auth_jellyfin_server_url_hint">Úplná adresa URL vrátane portu. Miestne adresy, adresy Tailscale a adresy s príponou .local alebo .lan môžu používať HTTP.</string>
+    <string name="auth_jellyfin_username_hint">Používateľské meno účtu Jellyfin.</string>
+    <string name="auth_jellyfin_password_hint">Heslo účtu Jellyfin.</string>
+    <string name="auth_jellyfin_footer">Pripojí sa k serverom Jellyfin na streamovanie hudobnej knižnice</string>
+    <string name="auth_web_retry">Skúsiť znova</string>
+</resources>

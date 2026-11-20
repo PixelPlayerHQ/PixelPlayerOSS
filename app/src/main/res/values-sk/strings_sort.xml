@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sort_method_default_order">Predvolené poradie</string>
+    <string name="sort_method_title">Názov</string>
+    <string name="sort_method_filename">Názov súboru</string>
+    <string name="sort_method_artist">Interpret</string>
+    <string name="sort_method_date_added">Dátum pridania</string>
+    <string name="sort_method_date_modified">Dátum úpravy</string>
+    <string name="sort_method_duration">Trvanie</string>
+    <string name="sort_method_release_year">Rok vydania</string>
+    <string name="sort_method_song_count">Počet skladieb</string>
+    <string name="sort_method_name">Názov</string>
+    <string name="sort_method_num_songs">Počet skladieb</string>
+    <string name="sort_method_date_created">Dátum vytvorenia</string>
+    <string name="sort_method_date_liked">Dátum pridania do obľúbených</string>
+    <string name="sort_method_subfolder_count">Počet podpriečinkov</string>
+    <string name="sort_advanced_sorting">Rozšírené zoradenie</string>
+    <string name="sort_primary">Hlavné</string>
+    <string name="sort_secondary">Vedľajšie</string>
+</resources>

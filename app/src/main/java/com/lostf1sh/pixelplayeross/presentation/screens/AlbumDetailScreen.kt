@@ -845,6 +845,7 @@ private fun SharedAlbumTopBarProbe(
             subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = subtitleAlpha),
             fadeSubtitleOnCollapse = false,
             syncStatusBarWithContainer = false,
+            marqueeCollapsedTitle = true,
             actions = {
                 if (showDownloadAction) {
                     Box(modifier = Modifier.padding(end = 12.dp, top = 4.dp)) {

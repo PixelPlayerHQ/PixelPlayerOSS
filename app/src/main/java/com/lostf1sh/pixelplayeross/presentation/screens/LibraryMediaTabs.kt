@@ -90,6 +90,7 @@ private val AlbumGridOuterCornerRadius = SegmentedItemShapeDefaults.LibraryOuter
 @Composable
 fun LibraryAlbumsTab(
     albums: LazyPagingItems<Album>,
+    isActivePage: Boolean,
     isLoading: Boolean,
     playerViewModel: PlayerViewModel,
     bottomBarHeight: Dp,
@@ -347,7 +348,8 @@ fun LibraryAlbumsTab(
                                             selectionIndex = getSelectionIndex(album.id),
                                             onLongPress = rememberedOnLongPress,
                                             onSelectionToggle = rememberedOnSelectionToggle,
-                                            customShape = itemShape
+                                            customShape = itemShape,
+                                            animateTitle = isActivePage
                                         )
                                     } else {
                                         AlbumListItem(
@@ -426,7 +428,8 @@ fun LibraryAlbumsTab(
                                             selectionIndex = getSelectionIndex(album.id),
                                             onLongPress = rememberedOnLongPress,
                                             onSelectionToggle = rememberedOnSelectionToggle,
-                                            customShape = itemShape
+                                            customShape = itemShape,
+                                            animateTitle = isActivePage
                                         )
                                     } else {
                                         AlbumGridItemRedesigned(

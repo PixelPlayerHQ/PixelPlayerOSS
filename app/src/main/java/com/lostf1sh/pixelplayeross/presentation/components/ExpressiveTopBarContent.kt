@@ -68,9 +68,12 @@ fun ExpressiveTopBarContent(
     enableExpandedTitleWidthCompression: Boolean = true,
     titleWidthCompressionThreshold: Dp? = null,
     titleMinWidthAxis: Float = DefaultTopBarTitleCompressedWidthAxis,
+    marqueeCollapsedTitle: Boolean = false,
     supportingContent: (@Composable () -> Unit)? = null
 ) {
     val clampedFraction = collapseFraction.coerceIn(0f, 1f)
+    val marqueeTitle = marqueeCollapsedTitle && maxLines == 1 && clampedFraction == 1f &&
+        contentColor.alpha > 0f
     val titleScale = lerp(titleScaleRange.first, titleScaleRange.second, clampedFraction)
     val titlePaddingStart = lerp(expandedTitleStartPadding, collapsedTitleStartPadding, clampedFraction)
     val titlePaddingEnd = lerp(expandedTitleEndPadding, collapsedTitleEndPadding, clampedFraction)
@@ -149,10 +152,11 @@ fun ExpressiveTopBarContent(
                     style = resolvedTitleStyle,
                     color = contentColor,
                     maxLines = maxLines,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = if (marqueeTitle) TextOverflow.Clip else TextOverflow.Ellipsis,
+                    softWrap = !marqueeTitle,
                     modifier = Modifier.graphicsLayer {
                         transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0f, 0.5f)
-                    }
+                    }.albumTitleMarquee(marqueeTitle)
                 )
                 if (!subtitle.isNullOrEmpty()) {
                     Text(

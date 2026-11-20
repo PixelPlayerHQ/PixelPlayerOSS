@@ -46,6 +46,19 @@ class TransitionRepositoryImplTest {
     }
 
     @Test
+    fun `a pair that had its own crossfade setting gets it back when the mix is off`() = runTest {
+        // The row held a real setting (30 s) before a mix was authored on the same pair.
+        val mix = MixTransition(outPointMs = 1, windowMs = 8_000, keepsPairSettings = true)
+        val rule = pairRule(MixTransition.toJson(mix))
+        every { dao.getSpecificRule("p", "a", "b") } returns flowOf(rule)
+
+        val resolution = repository.resolveTransitionSettings("p", "a", "b").first()
+
+        assertEquals(TransitionSource.PLAYLIST_SPECIFIC, resolution.source)
+        assertEquals(rule.settings, resolution.settings)
+    }
+
+    @Test
     fun `a plain pair row still resolves as before`() = runTest {
         val rule = pairRule(mixJson = null)
         every { dao.getSpecificRule("p", "a", "b") } returns flowOf(rule)

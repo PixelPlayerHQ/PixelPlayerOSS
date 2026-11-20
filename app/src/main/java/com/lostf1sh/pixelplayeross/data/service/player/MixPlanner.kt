@@ -102,6 +102,92 @@ object MixPlanner {
         )
     }
 
+    /** Why [smart] chose the transition it did (shown in logs; handy when a pair sounds odd). */
+    enum class AutoReason { TEMPO_MATCHED, NATURAL_OUTRO, SOFT_INTRO, BOTH_PUNCHY, DEFAULT }
+
+    /** A transition picked by [smart] and the reason for it. */
+    data class AutoPlan(val mix: MixTransition, val reason: AutoReason)
+
+    /**
+     * The transition for a pair the user hasn't edited, chosen from how the two songs actually
+     * start and end instead of one fixed fade:
+     *  - tempos known and compatible: a whole number of bars, smooth crossfade;
+     *  - the outgoing song already fades out: a [AutoReason.NATURAL_OUTRO]-long window over that
+     *    fade, the incoming song building in (so the two fades don't double up);
+     *  - the incoming song has a long soft intro: a longer smooth crossfade over the intro;
+     *  - both songs hit hard at the join: a short fade down and up, rather than two loud songs
+     *    on top of each other;
+     *  - otherwise 8 seconds, smooth.
+     * The window always ends where the outgoing music really ends (its trailing silence is
+     * skipped) and the incoming song starts where its sound begins (its leading silence is too).
+     */
+    fun smart(
+        outgoing: MixProfile,
+        incoming: MixProfile,
+        outgoingBpm: Float?,
+        incomingBpm: Float?,
+    ): AutoPlan {
+        val compatibility = SmartCrossfadePlanner.compatibility(outgoingBpm, incomingBpm)
+        val tempoMatched = compatibility == BpmCompatibility.ALIGNED || compatibility == BpmCompatibility.COMPATIBLE
+
+        var bars: Int? = null
+        val windowMs: Long
+        val shape: MixPreset
+        val reason: AutoReason
+        when {
+            tempoMatched -> {
+                val barMs = BEATS_PER_BAR * 60_000.0 / outgoingBpm!!
+                bars = if (compatibility == BpmCompatibility.ALIGNED) 16 else 8
+                windowMs = (bars * barMs).roundToLong().coerceAtMost(MAX_AUTO_WINDOW_MS)
+                shape = MixPreset.AUTO
+                reason = AutoReason.TEMPO_MATCHED
+            }
+            outgoing.outroMs >= NATURAL_OUTRO_MS -> {
+                windowMs = outgoing.outroMs.coerceIn(NATURAL_OUTRO_MS, MAX_OUTRO_WINDOW_MS)
+                shape = MixPreset.RISE
+                reason = AutoReason.NATURAL_OUTRO
+            }
+            incoming.introMs >= SOFT_INTRO_MS -> {
+                windowMs = incoming.introMs.coerceIn(MIN_INTRO_WINDOW_MS, MAX_INTRO_WINDOW_MS)
+                shape = MixPreset.AUTO
+                reason = AutoReason.SOFT_INTRO
+            }
+            outgoing.outroMs < ABRUPT_END_MS && incoming.introMs < PUNCHY_INTRO_MS -> {
+                windowMs = PUNCHY_WINDOW_MS
+                shape = MixPreset.FADE
+                reason = AutoReason.BOTH_PUNCHY
+            }
+            else -> {
+                windowMs = FALLBACK_WINDOW_MS
+                shape = MixPreset.AUTO
+                reason = AutoReason.DEFAULT
+            }
+        }
+
+        val musicEnd = outgoing.musicEndMs
+        val window = windowMs.coerceAtMost((musicEnd - END_GUARD_MS).coerceAtLeast(MIN_WINDOW_MS))
+        val base = MixTransition(
+            outPointMs = (musicEnd - window).coerceAtLeast(0L),
+            inStartMs = incoming.leadSilenceMs.coerceAtMost(MAX_LEAD_SKIP_MS),
+            windowMs = window,
+            bars = bars,
+        )
+        // Shown as "Auto" in the editor whatever shape was picked: the user didn't choose it.
+        return AutoPlan(MixPresets.apply(base, shape).copy(preset = MixPreset.AUTO), reason)
+    }
+
+    private const val NATURAL_OUTRO_MS = 4_000L
+    private const val MAX_OUTRO_WINDOW_MS = 12_000L
+    private const val ABRUPT_END_MS = 1_500L
+    private const val SOFT_INTRO_MS = 5_000L
+    private const val MIN_INTRO_WINDOW_MS = 6_000L
+    private const val MAX_INTRO_WINDOW_MS = 14_000L
+    private const val PUNCHY_INTRO_MS = 2_000L
+    private const val PUNCHY_WINDOW_MS = 4_000L
+
+    /** Never skip more than this of an incoming song's leading silence: a long gap may be intentional. */
+    private const val MAX_LEAD_SKIP_MS = 8_000L
+
     /** A window length the bars chip offers: [bars] when tempo is known, otherwise plain seconds. */
     data class WindowOption(val windowMs: Long, val bars: Int?)
 

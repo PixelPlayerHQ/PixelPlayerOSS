@@ -30,6 +30,13 @@ data class MixTransition(
     val outVolume: List<VolumeKeyframe> = DEFAULT_OUT_VOLUME,
     val inVolume: List<VolumeKeyframe> = DEFAULT_IN_VOLUME,
     val preset: MixPreset = MixPreset.AUTO,
+    /**
+     * True when the pair's row also holds a genuine, separately chosen crossfade setting (it had
+     * one before the mix was authored). That setting is used again whenever the playlist is not a
+     * mix. False for a row made only for the mix, whose placeholder settings must never be used.
+     * Missing from older stored data, which reads as false.
+     */
+    val keepsPairSettings: Boolean = false,
 ) {
     /**
      * Returns this transition made safe to play: finite non-negative times, a window of at least

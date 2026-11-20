@@ -20,6 +20,8 @@ import com.lostf1sh.pixelplayeross.data.service.player.MixEditing
 import com.lostf1sh.pixelplayeross.data.service.player.MixPlanner
 import com.lostf1sh.pixelplayeross.data.service.player.MixPresets
 import com.lostf1sh.pixelplayeross.data.service.player.MixPreviewPlayer
+import com.lostf1sh.pixelplayeross.data.service.player.MixProfile
+import com.lostf1sh.pixelplayeross.data.service.player.TransitionAnalyzer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +64,7 @@ class MixEditorViewModel @Inject constructor(
     private val transitionRepository: TransitionRepository,
     private val waveformRepository: WaveformRepository,
     private val engine: DualPlayerEngine,
+    private val transitionAnalyzer: TransitionAnalyzer,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
@@ -84,8 +87,14 @@ class MixEditorViewModel @Inject constructor(
     private var baseline: MixTransition? = null
     private var existingRuleId: Long = 0L
 
+    /** The two songs' audio profiles once analyzed; the automatic mix is chosen from them. */
+    private var profiles: Pair<MixProfile, MixProfile>? = null
+
     /** The pair's ordinary crossfade settings, if the row had any; saving a mix must leave them alone. */
     private var existingSettings: TransitionSettings? = null
+
+    /** Whether the row already held a genuine crossfade setting for this pair (see [MixTransition.keepsPairSettings]). */
+    private var keepsPairSettings = false
 
     init {
         load()
@@ -111,6 +120,8 @@ class MixEditorViewModel @Inject constructor(
                 .firstOrNull { it.fromTrackId == fromId && it.toTrackId == toId }
             existingRuleId = existingRule?.id ?: 0L
             existingSettings = existingRule?.settings
+            keepsPairSettings = existingRule != null &&
+                (existingRule.mix == null || existingRule.mix.keepsPairSettings)
 
             val stored = existingRule?.mix
             val initial = MixPlanner.fit(
@@ -131,6 +142,8 @@ class MixEditorViewModel @Inject constructor(
                     canPreview = isLocal(from) && isLocal(to),
                 )
             }
+
+            if (stored == null) refineAutoMix(from, to, fromBpm, toBpm)
 
             val fromWave = waveformRepository.waveformForFile(from.path)
             _uiState.update { it.copy(fromWaveform = fromWave) }
@@ -183,7 +196,32 @@ class MixEditorViewModel @Inject constructor(
         val from = state.from ?: return
         val to = state.to ?: return
         editMix(markCustom = false) {
-            MixPlanner.fit(MixPlanner.auto(from.duration, state.fromBpm, state.toBpm), from.duration, to.duration) ?: it
+            MixPlanner.fit(autoMix(from, state.fromBpm, state.toBpm), from.duration, to.duration) ?: it
+        }
+    }
+
+    /** The automatic mix: chosen from the songs' audio once analyzed, from tempo alone until then. */
+    private fun autoMix(from: Song, fromBpm: Float?, toBpm: Float?): MixTransition =
+        profiles?.let { (outgoing, incoming) -> MixPlanner.smart(outgoing, incoming, fromBpm, toBpm).mix }
+            ?: MixPlanner.auto(from.duration, fromBpm, toBpm)
+
+    /**
+     * Listens to both songs and, if the user hasn't touched the mix meanwhile, swaps the plain
+     * automatic mix shown at first for the one suited to how these songs start and end.
+     */
+    private fun refineAutoMix(from: Song, to: Song, fromBpm: Float?, toBpm: Float?) {
+        viewModelScope.launch {
+            val outgoing = transitionAnalyzer.profileForFile(from.path) ?: return@launch
+            val incoming = transitionAnalyzer.profileForFile(to.path) ?: return@launch
+            profiles = outgoing to incoming
+            val smart = MixPlanner.fit(autoMix(from, fromBpm, toBpm), from.duration, to.duration) ?: return@launch
+            _uiState.update { state ->
+                if (state.isDirty || state.mix != baseline) state
+                else {
+                    baseline = smart
+                    state.copy(mix = smart)
+                }
+            }
         }
     }
 
@@ -210,7 +248,7 @@ class MixEditorViewModel @Inject constructor(
                     // The mix is kept apart from ordinary crossfade settings: a pair that has one is
                     // played by its mix only, and these settings stay as they were (or default).
                     settings = existingSettings ?: TransitionSettings(),
-                    mix = mix,
+                    mix = mix.copy(keepsPairSettings = keepsPairSettings),
                 )
             )
             // Saving again must update this row, not insert a second one: pick its id up.

@@ -33,9 +33,10 @@ class TransitionRepositoryImpl @Inject constructor(
         if (fromTrackId == null || toTrackId == null) return resolvePlaylistDefault(playlistId)
         return transitionDao.getSpecificRule(playlistId, fromTrackId, toTrackId)
             .flatMapLatest { specificRule ->
-                // A pair row that carries a mix belongs to the mix: it is played only while the
-                // playlist is a mix, and never stands in for an ordinary crossfade setting.
-                if (specificRule != null && specificRule.mixJson == null) {
+                // A pair row made for a mix holds only placeholder settings: it is played while the
+                // playlist is a mix and never stands in for a crossfade setting. A row that had a
+                // genuine setting before its mix was authored keeps it for when the mix is off.
+                if (specificRule != null && specificRule.holdsCrossfadeSetting()) {
                     flowOf(
                         TransitionResolution(
                             settings = specificRule.settings,
@@ -116,6 +117,9 @@ class TransitionRepositoryImpl @Inject constructor(
     override suspend fun saveGlobalSettings(settings: TransitionSettings) {
         userPreferences.saveGlobalTransitionSettings(settings)
     }
+
+    private fun TransitionRuleEntity.holdsCrossfadeSetting(): Boolean =
+        mixJson == null || MixTransition.fromJson(mixJson)?.keepsPairSettings == true
 
     private fun TransitionRuleEntity.toModel(): TransitionRule {
         return TransitionRule(

@@ -7,6 +7,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.media.TrackBpmRepository
+import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.TransitionMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionResolution
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
@@ -18,6 +19,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -30,6 +33,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -52,6 +56,7 @@ class TransitionController @Inject constructor(
     private val userPreferencesRepository: UserPreferencesRepository,
     private val trackBpmRepository: TrackBpmRepository,
     private val mixPlaybackState: MixPlaybackState,
+    private val transitionAnalyzer: TransitionAnalyzer,
 ) {
     private var scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var transitionListener: Player.Listener? = null
@@ -62,6 +67,9 @@ class TransitionController @Inject constructor(
     private companion object {
         /** Tries to publish the incoming song's mix point while waiting for the mix to start. */
         const val MAX_INCOMING_MIX_ATTEMPTS = 8
+
+        /** Listening to a pair's ends should take a second or two; past this the tempo-only mix is used. */
+        const val ANALYSIS_TIMEOUT_MS = 6_000L
     }
 
     private val swapListener: (Player) -> Unit = { newPlayer ->
@@ -473,12 +481,10 @@ class TransitionController @Inject constructor(
             }
             if (!currentCoroutineContext().isActive) return@collectLatest
 
-            val outgoingBpm = trackBpmRepository.bpmFor(currentMediaItem)
-            val incomingBpm = trackBpmRepository.bpmFor(nextMediaItem)
             // Fitted inside both songs: the incoming one must last the whole window from where it
             // starts, or its player would run on into the song after it while the lines still play.
             val mix = MixPlanner.fit(
-                stored ?: MixPlanner.auto(duration, outgoingBpm, incomingBpm),
+                stored ?: autoMixFor(currentMediaItem, nextMediaItem, duration),
                 duration,
                 durationHintOf(nextMediaItem),
             )
@@ -552,6 +558,36 @@ class TransitionController @Inject constructor(
         }
     }
 
+    /**
+     * The transition for a pair nobody has edited: chosen from how the two songs start and end
+     * (and their tempo tags). Falls back to the tempo-only automatic mix when a song can't be
+     * analyzed (cloud songs, undecodable files) or the analysis takes too long.
+     */
+    private suspend fun autoMixFor(outgoing: MediaItem, incoming: MediaItem, outgoingDurationMs: Long): MixTransition {
+        val outgoingBpm = trackBpmRepository.bpmFor(outgoing)
+        val incomingBpm = trackBpmRepository.bpmFor(incoming)
+        val profiles = withTimeoutOrNull(ANALYSIS_TIMEOUT_MS) {
+            coroutineScope {
+                val outgoingProfile = async { transitionAnalyzer.profileFor(outgoing) }
+                val incomingProfile = async { transitionAnalyzer.profileFor(incoming) }
+                outgoingProfile.await() to incomingProfile.await()
+            }
+        }
+        val outgoingProfile = profiles?.first
+        val incomingProfile = profiles?.second
+        if (outgoingProfile == null || incomingProfile == null) {
+            Timber.tag("TransitionDebug").d("Auto mix: no audio profile, using tempo only")
+            return MixPlanner.auto(outgoingDurationMs, outgoingBpm, incomingBpm)
+        }
+        val plan = MixPlanner.smart(outgoingProfile, incomingProfile, outgoingBpm, incomingBpm)
+        Timber.tag("TransitionDebug").d(
+            "Auto mix: reason=%s outro=%dms intro=%dms trail=%dms lead=%dms",
+            plan.reason, outgoingProfile.outroMs, incomingProfile.introMs,
+            outgoingProfile.trailSilenceMs, incomingProfile.leadSilenceMs,
+        )
+        return plan.mix
+    }
+
     /** The song's length as the library knows it, or null when the item doesn't carry one. */
     private fun durationHintOf(item: MediaItem): Long? =
         item.mediaMetadata.extras?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)?.takeIf { it > 0L }
@@ -576,11 +612,7 @@ class TransitionController @Inject constructor(
             null
         }
         val mix = MixPlanner.fit(
-            stored ?: MixPlanner.auto(
-                incomingDuration,
-                trackBpmRepository.bpmFor(incoming),
-                trackBpmRepository.bpmFor(followingItem),
-            ),
+            stored ?: autoMixFor(incoming, followingItem, incomingDuration),
             incomingDuration,
             durationHintOf(followingItem),
         ) ?: return true

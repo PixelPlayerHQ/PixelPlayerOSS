@@ -7,22 +7,28 @@ import kotlin.math.abs
 /**
  * A song's loudness envelope: one peak per [bucketMs] of audio, each 0..255
  * (255 = full-scale). Small enough to cache per song (about 20 bytes per second of audio).
+ *
+ * A waveform of only part of a song starts at [startMs] into it; [encode] keeps only whole-song
+ * waveforms' data, so a partial one is not meant for the disk cache.
  */
-class WaveformData(val bucketMs: Int, val peaks: ByteArray) {
+class WaveformData(val bucketMs: Int, val peaks: ByteArray, val startMs: Long = 0L) {
 
+    /** Length of the audio covered, from [startMs]. */
     val durationMs: Long get() = peaks.size.toLong() * bucketMs
 
-    /** Peak of bucket [index] as 0..1; 0 outside the song. */
+    /** Peak of bucket [index] (counted from [startMs]) as 0..1; 0 outside the waveform. */
     fun peakAt(index: Int): Float =
         if (index in peaks.indices) (peaks[index].toInt() and 0xFF) / 255f else 0f
 
-    /** Peak at a time in the song, 0..1. */
-    fun peakAtMs(positionMs: Long): Float = peakAt((positionMs / bucketMs).toInt())
+    /** Peak at a time in the song, 0..1; 0 outside the part covered. */
+    fun peakAtMs(positionMs: Long): Float =
+        if (positionMs < startMs) 0f else peakAt(((positionMs - startMs) / bucketMs).toInt())
 
     override fun equals(other: Any?): Boolean =
-        other is WaveformData && bucketMs == other.bucketMs && peaks.contentEquals(other.peaks)
+        other is WaveformData && bucketMs == other.bucketMs && startMs == other.startMs &&
+            peaks.contentEquals(other.peaks)
 
-    override fun hashCode(): Int = 31 * bucketMs + peaks.contentHashCode()
+    override fun hashCode(): Int = 31 * (31 * bucketMs + startMs.hashCode()) + peaks.contentHashCode()
 
     /** Compact binary form for the disk cache. */
     fun encode(): ByteArray =
@@ -82,10 +88,10 @@ class PeakAccumulator(
         }
     }
 
-    /** Ends the song; a final partial bucket still counts. */
-    fun finish(): WaveformData {
+    /** Ends the song; a final partial bucket still counts. [startMs] is where the first sample sits in the song. */
+    fun finish(startMs: Long = 0L): WaveformData {
         if (framesInBucket > 0) flushBucket()
-        return WaveformData(bucketMs, peaks.toByteArray())
+        return WaveformData(bucketMs, peaks.toByteArray(), startMs)
     }
 
     private fun flushBucket() {

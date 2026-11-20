@@ -18,7 +18,40 @@ internal object WaveformDecoder {
     private const val MAX_DURATION_US = 30L * 60 * 1_000_000
 
     /** Null when the file can't be decoded, is too long, or [isCancelled] turned true. */
-    fun decode(path: String, bucketMs: Int, isCancelled: () -> Boolean): WaveformData? {
+    fun decode(path: String, bucketMs: Int, isCancelled: () -> Boolean): WaveformData? =
+        decodeRange(path, bucketMs, startMs = 0L, endMs = Long.MAX_VALUE, isCancelled = isCancelled)
+
+    /** Length of the file's audio track in ms, or null when it can't be read. */
+    fun probeDurationMs(path: String): Long? {
+        val extractor = MediaExtractor()
+        return try {
+            extractor.setDataSource(path)
+            (0 until extractor.trackCount)
+                .map { extractor.getTrackFormat(it) }
+                .firstOrNull { it.getString(MediaFormat.KEY_MIME)?.startsWith("audio/") == true }
+                ?.takeIf { it.containsKey(MediaFormat.KEY_DURATION) }
+                ?.getLong(MediaFormat.KEY_DURATION)
+                ?.let { it / 1000 }
+                ?.takeIf { it > 0 }
+        } catch (e: Exception) {
+            null
+        } finally {
+            runCatching { extractor.release() }
+        }
+    }
+
+    /**
+     * Like [decode], but only the part of the song from [startMs] to [endMs]. Seeking lands on a
+     * sync point at or before [startMs], so the result's [WaveformData.startMs] is where its
+     * first peak really is. Much cheaper than a full decode for just the start or end of a song.
+     */
+    fun decodeRange(
+        path: String,
+        bucketMs: Int,
+        startMs: Long,
+        endMs: Long,
+        isCancelled: () -> Boolean,
+    ): WaveformData? {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
         try {
@@ -33,6 +66,9 @@ internal object WaveformDecoder {
             ) return null
 
             extractor.selectTrack(trackIndex)
+            if (startMs > 0L) extractor.seekTo(startMs * 1000, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
+            val endUs = if (endMs >= Long.MAX_VALUE / 1000) Long.MAX_VALUE else endMs * 1000
+            var firstPtsUs = -1L
             codec = MediaCodec.createDecoderByType(mime)
             codec.configure(format, null, null, 0)
             codec.start()
@@ -78,6 +114,7 @@ internal object WaveformDecoder {
                     outputIndex >= 0 -> {
                         val output = codec.getOutputBuffer(outputIndex)
                         if (output != null && info.size > 0) {
+                            if (firstPtsUs < 0L) firstPtsUs = info.presentationTimeUs
                             if (accumulator == null) readOutputFormat(codec.outputFormat)
                             output.position(info.offset)
                             output.limit(info.offset + info.size)
@@ -99,12 +136,15 @@ internal object WaveformDecoder {
                             accumulator?.add(scratch, count)
                         }
                         codec.releaseOutputBuffer(outputIndex, false)
-                        if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0) outputDone = true
+                        if (info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0 ||
+                            info.presentationTimeUs >= endUs
+                        ) outputDone = true
                     }
                 }
             }
 
-            return accumulator?.finish()?.takeIf { it.peaks.isNotEmpty() }
+            return accumulator?.finish(startMs = firstPtsUs.coerceAtLeast(0L) / 1000)
+                ?.takeIf { it.peaks.isNotEmpty() }
         } catch (e: Exception) {
             return null
         } finally {

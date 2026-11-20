@@ -195,6 +195,9 @@
     <string name="setcat_audio_output_mode_pcm_float">PCM float 32-bit</string>
     <string name="setcat_audio_output_mode_pcm_float_description">Ruang pemrosesan lebih besar untuk PCM resolusi tinggi. Android mungkin masih mengambil sampel ulang; ini bukan keluaran bit-perfect.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Tidak tersedia karena perangkat ini tidak dapat menginisialisasi AudioTrack PCM_FLOAT.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">USB bit-perfect (eksperimental)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Mengirim setiap lagu ke DAC USB tanpa perubahan, pada laju sampelnya sendiri. Ponsel dan DAC harus mendukung keluaran USB bit-perfect; jika tidak, jalur normal yang digunakan. Volume kemudian diatur oleh DAC, dan menyalakan equalizer akan mengubah sinyal.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Memerlukan Android 14 atau lebih baru dan dukungan keluaran PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Ingat pengaturan acak bahkan setelah menutup aplikasi.</string>
     <string name="setcat_persistent_shuffle_title">Acak Persisten</string>
     <string name="setcat_player_gestures">Gerakan Pemutar</string>

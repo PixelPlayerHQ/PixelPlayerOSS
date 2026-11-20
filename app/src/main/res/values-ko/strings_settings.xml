@@ -195,6 +195,9 @@
     <string name="setcat_audio_output_mode_pcm_float">32비트 부동 소수점 PCM</string>
     <string name="setcat_audio_output_mode_pcm_float_description">고해상도 PCM 처리에 더 많은 헤드룸을 제공합니다. Android에서 여전히 리샘플링할 수 있으며 비트 퍼펙트 출력을 의미하지 않습니다.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">이 기기에서 PCM_FLOAT AudioTrack을 초기화할 수 없어 사용할 수 없습니다.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">비트 퍼펙트 USB(실험적)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">각 트랙을 원래 샘플레이트 그대로 변경 없이 USB DAC로 보냅니다. 휴대전화와 DAC가 비트 퍼펙트 USB 출력을 지원해야 하며, 지원하지 않으면 일반 경로를 사용합니다. 이때 볼륨은 DAC가 조절하며, 이퀄라이저를 켜면 신호가 변경됩니다.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Android 14 이상과 PCM_FLOAT 출력 지원이 필요합니다.</string>
     <string name="setcat_persistent_shuffle_subtitle">앱을 닫은 후에도 셔플 설정을 기억합니다.</string>
     <string name="setcat_persistent_shuffle_title">셔플 상태 유지</string>
     <string name="setcat_player_gestures">플레이어 제스처</string>

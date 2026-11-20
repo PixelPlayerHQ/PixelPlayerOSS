@@ -195,6 +195,9 @@
     <string name="setcat_audio_output_mode_pcm_float">32-Bit-Gleitkomma-PCM</string>
     <string name="setcat_audio_output_mode_pcm_float_description">Mehr Verarbeitungsreserve für hochauflösendes PCM. Android kann es dennoch neu abtasten; dies ist keine bitgenaue Ausgabe.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Nicht verfügbar, da dieses Gerät keinen PCM_FLOAT-AudioTrack initialisieren konnte.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">Bit-perfektes USB (experimentell)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Sendet jeden Titel unverändert und mit seiner eigenen Abtastrate an einen USB-DAC. Smartphone und DAC müssen bit-perfekte USB-Ausgabe unterstützen, sonst wird der normale Pfad verwendet. Die Lautstärke regelt dann der DAC, und ein eingeschalteter Equalizer verändert das Signal.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Erfordert Android 14 oder neuer und Unterstützung für PCM_FLOAT-Ausgabe.</string>
     <string name="setcat_persistent_shuffle_subtitle">Shuffle bleibt aktiv, auch nachdem die App geschlossen wurde.</string>
     <string name="setcat_persistent_shuffle_title">Shuffle merken</string>
     <string name="setcat_player_gestures">Player-Gesten</string>

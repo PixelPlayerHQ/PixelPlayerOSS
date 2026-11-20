@@ -207,6 +207,9 @@
     <string name="setcat_audio_output_mode_pcm_float">32 bit kayan noktalı PCM</string>
     <string name="setcat_audio_output_mode_pcm_float_description">Yüksek çözünürlüklü PCM için daha fazla işleme payı sağlar. Android yine de yeniden örnekleyebilir; bu, bit-perfect çıkış garantisi vermez.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Bu cihaz PCM_FLOAT AudioTrack’i başlatamadığı için kullanılamıyor.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">Bit-perfect USB (deneysel)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Her parçayı kendi örnekleme hızında, değiştirmeden USB DAC’a gönderir. Telefonun ve DAC’ın bit-perfect USB çıkışını desteklemesi gerekir, aksi halde normal yol kullanılır. Bu durumda ses seviyesini DAC belirler ve ekolayzeri açmak sinyali değiştirir.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Android 14 veya üstü ve PCM_FLOAT çıkış desteği gerektirir.</string>
     <string name="setcat_persistent_shuffle_subtitle">Uygulama kapatıldıktan sonra bile karışık çalma ayarını hatırla.</string>
     <string name="setcat_persistent_shuffle_title">Kalıcı Karışık Çal</string>
     <string name="setcat_player_gestures">Oynatıcı Hareketleri</string>

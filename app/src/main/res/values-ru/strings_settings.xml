@@ -195,6 +195,9 @@
     <string name="setcat_audio_output_mode_pcm_float">32-битный PCM с плавающей точкой</string>
     <string name="setcat_audio_output_mode_pcm_float_description">Больше запаса для обработки PCM высокого разрешения. Android всё равно может выполнить передискретизацию; это не гарантирует побитовый вывод.</string>
     <string name="setcat_audio_output_mode_pcm_float_unsupported">Недоступно, поскольку устройство не смогло инициализировать PCM_FLOAT AudioTrack.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">Bit-perfect USB (экспериментальный)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Передаёт каждый трек на USB-ЦАП без изменений, с его собственной частотой дискретизации. Телефон и ЦАП должны поддерживать bit-perfect вывод по USB, иначе используется обычный путь. Громкость в этом режиме регулирует ЦАП, а включённый эквалайзер изменяет сигнал.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Требуется Android 14 или новее и поддержка вывода PCM_FLOAT.</string>
     <string name="setcat_persistent_shuffle_subtitle">Запоминать режим перемешивания даже после закрытия приложения.</string>
     <string name="setcat_persistent_shuffle_title">Сохранять перемешивание</string>
     <string name="setcat_player_gestures">Жесты плеера</string>

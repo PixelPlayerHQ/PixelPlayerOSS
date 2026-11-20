@@ -56,6 +56,7 @@ fun CollapsibleCommonTopBar(
     titleWidthCompressionThreshold: Dp? = null,
     titleMinWidthAxis: Float = 78f,
     syncStatusBarWithContainer: Boolean = true,
+    marqueeCollapsedTitle: Boolean = false,
     supportingContent: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -129,6 +130,7 @@ fun CollapsibleCommonTopBar(
                 enableExpandedTitleWidthCompression = enableExpandedTitleWidthCompression,
                 titleWidthCompressionThreshold = titleWidthCompressionThreshold,
                 titleMinWidthAxis = titleMinWidthAxis,
+                marqueeCollapsedTitle = marqueeCollapsedTitle,
                 supportingContent = supportingContent
             )
         }

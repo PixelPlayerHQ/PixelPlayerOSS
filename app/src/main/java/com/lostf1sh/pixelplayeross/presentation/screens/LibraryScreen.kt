@@ -220,7 +220,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -252,7 +251,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.lostf1sh.pixelplayeross.presentation.components.AutoScrollingTextOnDemand
+import com.lostf1sh.pixelplayeross.presentation.components.albumTitleMarquee
 import com.lostf1sh.pixelplayeross.presentation.screens.CreatePlaylistDialog
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistContainer
@@ -1589,6 +1588,7 @@ fun LibraryScreen(
                                         }
                                         LibraryAlbumsTab(
                                             albums = albumsLazyPagingItems,
+                                            isActivePage = pagerState.settledPage == page,
                                             isLoading = isLoading,
                                             playerViewModel = playerViewModel,
                                             bottomBarHeight = bottomBarHeightDp,
@@ -3460,7 +3460,8 @@ fun AlbumGridItemRedesigned(
     selectionIndex: Int? = null,
     onLongPress: () -> Unit = {},
     onSelectionToggle: () -> Unit = {},
-    customShape: androidx.compose.ui.graphics.Shape? = null
+    customShape: androidx.compose.ui.graphics.Shape? = null,
+    animateTitle: Boolean = false,
 ) {
     val albumColorSchemePair by albumColorSchemePairFlow.collectAsStateWithLifecycle()
     val systemIsDark = LocalPixelPlayerDarkTheme.current
@@ -3618,7 +3619,9 @@ fun AlbumGridItemRedesigned(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = onGradientColor,
+                            modifier = Modifier.albumTitleMarquee(animateTitle),
                             maxLines = 1,
+                            softWrap = false,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(album.artist, style = MaterialTheme.typography.bodySmall, color = onGradientColor.copy(alpha = 0.85f), maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -3806,7 +3809,8 @@ fun AlbumListItem(
     selectionIndex: Int? = null,
     onLongPress: () -> Unit = {},
     onSelectionToggle: () -> Unit = {},
-    customShape: androidx.compose.ui.graphics.Shape? = null
+    customShape: androidx.compose.ui.graphics.Shape? = null,
+    animateTitle: Boolean = false,
 ) {
     val albumColorSchemePair by albumColorSchemePairFlow.collectAsStateWithLifecycle()
     val systemIsDark = LocalPixelPlayerDarkTheme.current
@@ -3958,7 +3962,9 @@ fun AlbumListItem(
                                 album.title,
                                 style = variableTextStyle.copy(fontSize = 22.sp).withInterfaceFont(),
                                 color = onGradientColor,
+                                modifier = Modifier.albumTitleMarquee(animateTitle),
                                 maxLines = 1,
+                                softWrap = false,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Spacer(

@@ -31,6 +31,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Constraints
 
+internal fun Modifier.albumTitleMarquee(enabled: Boolean = true): Modifier =
+    if (enabled) basicMarquee(iterations = 1, velocity = 36.dp) else this
+
 @Composable
 fun AutoScrollingTextOnDemand(
     text: String,

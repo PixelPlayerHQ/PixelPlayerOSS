@@ -83,6 +83,7 @@ import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImageListTargetSize
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.albumTitleMarquee
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.sharedPlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.LocalPixelPlayerDarkTheme
@@ -1510,8 +1511,9 @@ fun SearchResultAlbumItem(
                         text = album.title,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        modifier = Modifier.albumTitleMarquee(),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        softWrap = false
                     )
                     Text(
                         text = album.artist,

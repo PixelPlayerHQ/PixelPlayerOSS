@@ -75,6 +75,7 @@ data class TransitionResolution(
  * @param fromTrackId The ID of the track to transition from. If null, this is a default rule for the playlist.
  * @param toTrackId The ID of the track to transition to. If null, this is a default rule for the playlist.
  * @param settings The transition settings to apply for this rule.
+ * @param mix The DJ-style mix transition for a pair rule in a mix playlist, if one was authored.
  */
 data class TransitionRule(
     val id: Long = 0,
@@ -82,4 +83,5 @@ data class TransitionRule(
     val fromTrackId: String? = null,
     val toTrackId: String? = null,
     @Embedded val settings: TransitionSettings,
+    val mix: MixTransition? = null,
 )

@@ -86,6 +86,7 @@ class PlaylistPreferencesRepository @Inject constructor(
         localPlaylistDao.deletePlaylist(playlistId)
         transitionDao.deleteRulesForPlaylist(playlistId)
         clearPlaylistSongOrderMode(playlistId)
+        userPreferencesRepository.setPlaylistMixEnabled(playlistId, false)
     }
 
     suspend fun renamePlaylist(playlistId: String, newName: String) {

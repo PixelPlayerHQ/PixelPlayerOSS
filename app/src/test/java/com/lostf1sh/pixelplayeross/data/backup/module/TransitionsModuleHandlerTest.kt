@@ -5,6 +5,7 @@ import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.SongSummary
 import com.lostf1sh.pixelplayeross.data.database.TransitionDao
 import com.lostf1sh.pixelplayeross.data.database.TransitionRuleEntity
+import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -45,6 +46,32 @@ class TransitionsModuleHandlerTest {
         assertEquals("41" to "42", pair.fromTrackId to pair.toTrackId)
         assertEquals(4000, pair.settings.durationMs)
         assertTrue(restored.captured.any { it.fromTrackId == null && it.toTrackId == null })
+    }
+
+    @Test
+    fun `mix data survives a backup round trip`() = runTest {
+        val mixJson = MixTransition.toJson(MixTransition(outPointMs = 90_000, windowMs = 16_000, bars = 8))
+        coEvery { sourceDao.getAllLocalSongSummaries() } returns listOf(summary(1, "One"), summary(2, "Two"))
+        coEvery { transitions.getAllRulesOnce() } returns listOf(
+            TransitionRuleEntity(10, "p", "1", "2", TransitionSettings(), mixJson),
+        )
+        val payload = TransitionsModuleHandler(transitions, BackupSongResolver(sourceDao), gson).export()
+
+        coEvery { targetDao.getAllLocalSongSummaries() } returns listOf(summary(1, "One"), summary(2, "Two"))
+        val restored = slot<List<TransitionRuleEntity>>()
+        coEvery { transitions.replaceAllRules(capture(restored)) } just Runs
+        TransitionsModuleHandler(transitions, BackupSongResolver(targetDao), gson).restore(payload)
+
+        assertEquals(mixJson, restored.captured.single().mixJson)
+    }
+
+    @Test
+    fun `a legacy payload without mix data restores with no mix`() = runTest {
+        val legacy = """[{"id":3,"playlistId":"p","fromTrackId":"7","toTrackId":"8","settings":{"mode":"OVERLAP","durationMs":6000,"curveIn":"LINEAR","curveOut":"LINEAR"}}]"""
+        val restored = slot<List<TransitionRuleEntity>>()
+        coEvery { transitions.replaceAllRules(capture(restored)) } just Runs
+        TransitionsModuleHandler(transitions, BackupSongResolver(targetDao), gson).restore(legacy)
+        assertEquals(null, restored.captured.single().mixJson)
     }
 
     @Test

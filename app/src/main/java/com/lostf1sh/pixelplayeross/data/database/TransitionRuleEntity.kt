@@ -23,5 +23,8 @@ data class TransitionRuleEntity(
     val toTrackId: String?,
     @Embedded
     @SerializedName("settings")
-    val settings: TransitionSettings
+    val settings: TransitionSettings,
+    /** Serialized [com.lostf1sh.pixelplayeross.data.model.MixTransition]; null = no mix authored. */
+    @SerializedName("mixJson")
+    val mixJson: String? = null
 )

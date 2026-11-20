@@ -1,5 +1,6 @@
 package com.lostf1sh.pixelplayeross.data.repository
 
+import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.TransitionResolution
 import com.lostf1sh.pixelplayeross.data.model.TransitionRule
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
@@ -26,6 +27,17 @@ interface TransitionRepository {
         fromTrackId: String?,
         toTrackId: String?
     ): Flow<TransitionResolution>
+
+    /** Whether the playlist is a DJ-style mix. */
+    fun isMixEnabled(playlistId: String): Flow<Boolean>
+
+    suspend fun setMixEnabled(playlistId: String, enabled: Boolean)
+
+    /**
+     * The authored mix transition for a pair in a playlist, or null when the pair has none
+     * (callers then build an Auto transition).
+     */
+    fun getMixTransition(playlistId: String, fromTrackId: String, toTrackId: String): Flow<MixTransition?>
 
     /**
      * Gets all rules defined for a specific playlist.

@@ -44,6 +44,7 @@ import com.lostf1sh.pixelplayeross.presentation.screens.ArtistDetailScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ArtistSettingsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.DailyMixScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.EditTransitionScreen
+import com.lostf1sh.pixelplayeross.presentation.screens.MixEditorScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.EasterEggScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.ExperimentalSettingsScreen
 import com.lostf1sh.pixelplayeross.presentation.screens.LyricsSettingsScreen
@@ -520,6 +521,23 @@ fun AppNavigation(
             ) {
                 ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
                     EditTransitionScreen(navController = navController)
+                }
+            }
+            composable(
+                route = Screen.MixEditor.route,
+                arguments = listOf("playlistId", "fromId", "toId").map { name ->
+                    navArgument(name) {
+                        type = NavType.StringType
+                        nullable = true
+                    }
+                },
+                enterTransition = { enterTransition() },
+                exitTransition = { exitTransition() },
+                popEnterTransition = { popEnterTransition() },
+                popExitTransition = { popExitTransition() },
+            ) {
+                ScreenWrapper(navController = navController, playerViewModel = playerViewModel) {
+                    MixEditorScreen(navController = navController, playerViewModel = playerViewModel)
                 }
             }
             composable(

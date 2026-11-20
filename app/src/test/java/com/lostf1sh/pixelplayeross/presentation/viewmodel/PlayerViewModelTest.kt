@@ -577,6 +577,52 @@ class PlayerViewModelTest {
         }
 
         @Test
+        fun `shuffle all publishes and plays every track in a large library`() = runTest {
+            val songs = List(2_048) { index ->
+                song1.copy(
+                    id = index.toString(),
+                    albumArtUriString = null,
+                    contentUriString = "content://media/external/audio/media/$index"
+                )
+            }
+            coEvery { mockMusicRepository.getRandomSongs(any()) } answers { songs.take(firstArg()) }
+            val queueStateHolder = QueueStateHolder()
+            coEvery { mockQueueStateHolder.prepareShuffledQueueSuspending(any(), any(), any()) } coAnswers {
+                queueStateHolder.prepareShuffledQueueSuspending(firstArg(), secondArg(), thirdArg())
+            }
+
+            mockkStatic(Uri::class)
+            val playbackUri = mockk<Uri>(relaxed = true)
+            every { Uri.parse(any()) } returns playbackUri
+            every { playbackUri.scheme } returns "content"
+            coEvery { mockDualPlayerEngine.resolveMediaItem(any()) } answers { firstArg() }
+
+            val player = mockk<Player>(relaxed = true)
+            val mediaItems = mutableListOf<MediaItem>()
+            val initialMediaItem = slot<MediaItem>()
+            every { mockDualPlayerEngine.masterPlayer } returns player
+            every { player.setMediaItem(capture(initialMediaItem), 0L) } answers { mediaItems.add(firstArg()) }
+            every { player.currentMediaItem } answers { initialMediaItem.captured }
+            every { player.mediaItemCount } answers { mediaItems.size }
+            every { player.getMediaItemAt(any()) } answers { mediaItems[firstArg<Int>()] }
+            every { player.addMediaItems(any(), any()) } answers { mediaItems.addAll(firstArg(), secondArg()) }
+
+            advanceUntilIdle()
+            playerViewModel.queueFlow.test {
+                assertTrue(awaitItem().isEmpty())
+
+                playerViewModel.shuffleAllSongs()
+                val displayedQueue = awaitItem()
+                advanceUntilIdle()
+
+                assertEquals(songs.size, displayedQueue.size)
+                assertEquals(songs.map { it.id }.toSet(), displayedQueue.map { it.id }.toSet())
+                assertEquals(initialMediaItem.captured.mediaId, displayedQueue.first().id)
+                assertEquals(displayedQueue.map { it.id }, mediaItems.map { it.mediaId })
+            }
+        }
+
+        @Test
         fun `playRandomSong calls prepareShuffledQueue with startAtZero`() = runTest {
             val randomSongs = listOf(song3, song1, song2)
             coEvery { mockMusicRepository.getRandomSongs(10_000) } returns randomSongs

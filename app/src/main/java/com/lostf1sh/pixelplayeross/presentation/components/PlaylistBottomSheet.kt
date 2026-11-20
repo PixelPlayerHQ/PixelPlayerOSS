@@ -36,6 +36,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -91,7 +92,7 @@ fun PlaylistBottomSheet(
             }
         }
     }
-    val selectionEdits = remember(songs) { mutableStateMapOf<String, Boolean>() }
+    val selectionEdits = rememberPlaylistPickerSelectionEdits(songs)
     val edits = selectionEdits.toMap()
     val selection = remember(initialPlaylistIds, edits, songs.size) {
         PlaylistPickerSelection(initialPlaylistIds, edits, songs.size)
@@ -263,6 +264,16 @@ fun PlaylistBottomSheet(
             }
         }
     }
+}
+
+@Composable
+internal fun rememberPlaylistPickerSelectionEdits(
+    songs: ImmutableList<Song>
+): SnapshotStateMap<String, Boolean> {
+    val songIds = remember(songs) {
+        buildSet(songs.size) { songs.forEach { add(it.id) } }
+    }
+    return remember(songIds) { mutableStateMapOf() }
 }
 
 internal class PlaylistPickerSelection(

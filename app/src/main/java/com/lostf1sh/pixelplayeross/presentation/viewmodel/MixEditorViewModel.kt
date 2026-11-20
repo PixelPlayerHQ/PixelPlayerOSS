@@ -143,7 +143,7 @@ class MixEditorViewModel @Inject constructor(
                 )
             }
 
-            if (stored == null) refineAutoMix(from, to, fromBpm, toBpm)
+            refineAutoMix(from, to, fromBpm, toBpm, replaceMix = stored == null)
 
             val fromWave = waveformRepository.waveformForFile(from.path)
             _uiState.update { it.copy(fromWaveform = fromWave) }
@@ -206,22 +206,26 @@ class MixEditorViewModel @Inject constructor(
             ?: MixPlanner.auto(from.duration, fromBpm, toBpm)
 
     /**
-     * Listens to both songs and, if the user hasn't touched the mix meanwhile, swaps the plain
-     * automatic mix shown at first for the one suited to how these songs start and end.
+     * Listens to both songs so the automatic mix (and "Reset to Auto") can be chosen from how they
+     * start and end. When [replaceMix] is true (the pair has no saved mix) and the user hasn't
+     * touched anything, the plain automatic mix shown at first is swapped for the refined one;
+     * a saved mix is left exactly as saved.
      */
-    private fun refineAutoMix(from: Song, to: Song, fromBpm: Float?, toBpm: Float?) {
+    private fun refineAutoMix(from: Song, to: Song, fromBpm: Float?, toBpm: Float?, replaceMix: Boolean) {
         viewModelScope.launch {
             val outgoing = transitionAnalyzer.profileForFile(from.path) ?: return@launch
             val incoming = transitionAnalyzer.profileForFile(to.path) ?: return@launch
             profiles = outgoing to incoming
+            if (!replaceMix) return@launch
+
             val smart = MixPlanner.fit(autoMix(from, fromBpm, toBpm), from.duration, to.duration) ?: return@launch
-            _uiState.update { state ->
-                if (state.isDirty || state.mix != baseline) state
-                else {
-                    baseline = smart
-                    state.copy(mix = smart)
-                }
-            }
+            val current = _uiState.value
+            if (current.isDirty || current.mix != baseline) return@launch
+            // A preview in progress plays the mix it was started with: end it, so what the timeline
+            // shows and what is heard can't differ.
+            stopPreview()
+            baseline = smart
+            _uiState.update { it.copy(mix = smart) }
         }
     }
 

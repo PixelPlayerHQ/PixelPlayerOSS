@@ -63,10 +63,12 @@ class TransitionController @Inject constructor(
     private var transitionSchedulerJob: Job? = null
     private var currentObservedPlayer: Player? = null
     private var needsDurationReschedule = false
+    private var incomingMixJob: Job? = null
 
     private companion object {
         /** Tries to publish the incoming song's mix point while waiting for the mix to start. */
         const val MAX_INCOMING_MIX_ATTEMPTS = 8
+        const val INCOMING_MIX_RETRY_MS = 1_000L
 
         /** Listening to a pair's ends should take a second or two; past this the tempo-only mix is used. */
         const val ANALYSIS_TIMEOUT_MS = 6_000L
@@ -196,6 +198,7 @@ class TransitionController @Inject constructor(
 
     private fun scheduleTransitionFor(currentMediaItem: MediaItem) {
         transitionSchedulerJob?.cancel()
+        incomingMixJob?.cancel()
         // Mixes announced for other songs are done with. The entry for this song stays: it was
         // published while the previous mix ran, so this song's seek bar is already the right
         // length (the schedule below replaces it with the final values).
@@ -519,16 +522,12 @@ class TransitionController @Inject constructor(
                 durationMs = mix.windowMs.toInt(),
             )
 
-            // The incoming song's own mix point, for its seek bar: needs its duration, which is
-            // known once the prepared player is ready. Try now and again just before the mix.
-            var incomingPublished = false
-            var incomingAttempts = 0
+            // The incoming song's own mix point, for its seek bar, is worked out on its own job:
+            // it may need to listen to a song that isn't analyzed yet, and that must never hold
+            // up (or make the current mix miss) its saved point.
+            startIncomingMixLookahead(nextMediaItem, playlistId)
 
             while (player.currentPosition < mix.outPointMs && currentCoroutineContext().isActive) {
-                if (!incomingPublished && incomingAttempts < MAX_INCOMING_MIX_ATTEMPTS) {
-                    incomingAttempts++
-                    incomingPublished = publishIncomingSongMix(nextMediaItem, playlistId)
-                }
                 val remaining = mix.outPointMs - player.currentPosition
                 val sleep = when {
                     remaining > 5000 -> 1000L
@@ -537,7 +536,6 @@ class TransitionController @Inject constructor(
                 }.coerceAtMost(remaining).coerceAtLeast(1L)
                 delay(sleep)
             }
-            if (!incomingPublished) publishIncomingSongMix(nextMediaItem, playlistId)
 
             if (!currentCoroutineContext().isActive) {
                 engine.setPauseAtEndOfMediaItems(shouldPause = false)
@@ -588,6 +586,21 @@ class TransitionController @Inject constructor(
         return plan.mix
     }
 
+    /**
+     * Publishes [incoming]'s own mix point in the background, retrying while its duration isn't
+     * known yet. Separate from the current song's countdown so it can never delay it; replaced
+     * (cancelled) whenever a schedule is rebuilt.
+     */
+    private fun startIncomingMixLookahead(incoming: MediaItem, playlistId: String) {
+        incomingMixJob?.cancel()
+        incomingMixJob = scope.launch {
+            repeat(MAX_INCOMING_MIX_ATTEMPTS) {
+                if (publishIncomingSongMix(incoming, playlistId)) return@launch
+                delay(INCOMING_MIX_RETRY_MS)
+            }
+        }
+    }
+
     /** The song's length as the library knows it, or null when the item doesn't carry one. */
     private fun durationHintOf(item: MediaItem): Long? =
         item.mediaMetadata.extras?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)?.takeIf { it > 0L }
@@ -635,6 +648,7 @@ class TransitionController @Inject constructor(
     fun release() {
         Timber.tag("TransitionDebug").d("Releasing controller.")
         transitionSchedulerJob?.cancel()
+        incomingMixJob?.cancel()
         mixPlaybackState.clear()
         engine.removePlayerSwapListener(swapListener)
         transitionListener?.let { currentObservedPlayer?.removeListener(it) }

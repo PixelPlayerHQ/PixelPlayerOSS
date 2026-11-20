@@ -41,6 +41,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -265,11 +266,13 @@ private fun MixEditorContent(
                 // Where a lane has no waveform, say so (cloud songs, unsupported files).
                 Column(Modifier.fillMaxSize()) {
                     WaveformPlaceholder(
-                        show = !state.waveformsLoading && state.fromWaveform == null,
+                        loading = state.fromWaveformLoading && state.fromWaveform == null,
+                        unavailable = !state.fromWaveformLoading && state.fromWaveform == null,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                     )
                     WaveformPlaceholder(
-                        show = !state.waveformsLoading && state.toWaveform == null,
+                        loading = state.toWaveformLoading && state.toWaveform == null,
+                        unavailable = !state.toWaveformLoading && state.toWaveform == null,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                     )
                 }
@@ -392,10 +395,14 @@ private fun SongHeader(song: Song, bpm: Float?, accent: Color) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WaveformPlaceholder(show: Boolean, modifier: Modifier = Modifier) {
+private fun WaveformPlaceholder(loading: Boolean, unavailable: Boolean, modifier: Modifier = Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
-        if (show) {
+        if (loading) {
+            // The waveform is being decoded; say so instead of leaving the lane blank.
+            LoadingIndicator(modifier = Modifier.size(32.dp))
+        } else if (unavailable) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f),

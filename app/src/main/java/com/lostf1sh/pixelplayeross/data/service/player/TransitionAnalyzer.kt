@@ -2,6 +2,7 @@ package com.lostf1sh.pixelplayeross.data.service.player
 
 import android.util.LruCache
 import androidx.media3.common.MediaItem
+import com.lostf1sh.pixelplayeross.data.media.WaveformData
 import com.lostf1sh.pixelplayeross.data.media.WaveformDecoder
 import com.lostf1sh.pixelplayeross.data.media.WaveformRepository
 import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
@@ -14,6 +15,13 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/**
+ * What listening to a song's ends found: its [profile], plus the loudness [head] (first 40 s) and
+ * [tail] (last 40 s) it was read from. The editor draws these straight away, while the whole-song
+ * waveform is still being decoded.
+ */
+class SongAnalysis(val profile: MixProfile, val head: WaveformData, val tail: WaveformData)
 
 /**
  * Listens to the start and end of a local song and describes them as a [MixProfile], which is what
@@ -30,7 +38,7 @@ class TransitionAnalyzer @Inject constructor() {
 
     private object Unavailable
 
-    // Values are MixProfile or Unavailable (a remembered failure, so a bad file is tried once).
+    // Values are SongAnalysis or Unavailable (a remembered failure, so a bad file is tried once).
     private val cache = LruCache<String, Any>(CACHE_SIZE)
 
     // Decoding is CPU-heavy; a pair needs two songs at a time, never more.
@@ -45,23 +53,26 @@ class TransitionAnalyzer @Inject constructor() {
         return profileForFile(path)
     }
 
-    suspend fun profileForFile(path: String): MixProfile? {
-        val key = withContext(Dispatchers.IO) { cacheKey(path) } ?: return null
-        cache.get(key)?.let { return it as? MixProfile }
+    suspend fun profileForFile(path: String): MixProfile? = analysisFor(path)?.profile
 
-        val profile = withContext(Dispatchers.IO) {
+    /** The full analysis of a local file, or null when there isn't one (cloud song, undecodable, silent). */
+    suspend fun analysisFor(path: String): SongAnalysis? {
+        val key = withContext(Dispatchers.IO) { cacheKey(path) } ?: return null
+        cache.get(key)?.let { return it as? SongAnalysis }
+
+        val analysis = withContext(Dispatchers.IO) {
             slots.withPermit { analyze(path) { !isActive } }
         }
         // A cancelled analysis also returns null; don't remember that as a real failure.
-        if (profile != null) {
-            cache.put(key, profile)
+        if (analysis != null) {
+            cache.put(key, analysis)
         } else if (currentCoroutineContext().isActive) {
             cache.put(key, Unavailable)
         }
-        return profile
+        return analysis
     }
 
-    private fun analyze(path: String, isCancelled: () -> Boolean): MixProfile? {
+    private fun analyze(path: String, isCancelled: () -> Boolean): SongAnalysis? {
         val durationMs = WaveformDecoder.probeDurationMs(path) ?: return null
         val head = WaveformDecoder.decodeRange(
             path, WaveformRepository.BUCKET_MS, startMs = 0L, endMs = HEAD_MS, isCancelled = isCancelled,
@@ -73,7 +84,8 @@ class TransitionAnalyzer @Inject constructor() {
             endMs = Long.MAX_VALUE,
             isCancelled = isCancelled,
         ) ?: return null
-        return MixProfileBuilder.build(durationMs, head, tail)
+        val profile = MixProfileBuilder.build(durationMs, head, tail) ?: return null
+        return SongAnalysis(profile, head, tail)
     }
 
     /** Null when [path] isn't a readable local file (e.g. a cloud stream). */

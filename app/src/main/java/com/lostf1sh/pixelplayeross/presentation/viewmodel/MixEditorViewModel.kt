@@ -49,7 +49,9 @@ data class MixEditorUiState(
     val toBpm: Float? = null,
     val fromWaveform: WaveformData? = null,
     val toWaveform: WaveformData? = null,
-    val waveformsLoading: Boolean = true,
+    /** Each lane's waveform is on its way (a first look is shown as soon as the songs are analyzed). */
+    val fromWaveformLoading: Boolean = true,
+    val toWaveformLoading: Boolean = true,
     val mix: MixTransition? = null,
     val isDirty: Boolean = false,
     val isSaved: Boolean = false,
@@ -157,10 +159,21 @@ class MixEditorViewModel @Inject constructor(
 
             refineAutoMix(from, to, fromBpm, toBpm, replaceMix = stored == null)
 
-            val fromWave = waveformRepository.waveformForFile(from.path)
-            _uiState.update { it.copy(fromWaveform = fromWave) }
-            val toWave = waveformRepository.waveformForFile(to.path)
-            _uiState.update { it.copy(toWaveform = toWave, waveformsLoading = false) }
+            // Both whole-song waveforms at once (decoding a song is slow the first time); each
+            // lane shows its first look from the analysis meanwhile.
+            loadFullWaveform(from.path, outgoing = true)
+            loadFullWaveform(to.path, outgoing = false)
+        }
+    }
+
+    private fun loadFullWaveform(path: String, outgoing: Boolean) {
+        viewModelScope.launch {
+            val full = waveformRepository.waveformForFile(path)
+            _uiState.update { s ->
+                // Keep the first look if the whole waveform could not be made.
+                if (outgoing) s.copy(fromWaveform = full ?: s.fromWaveform, fromWaveformLoading = false)
+                else s.copy(toWaveform = full ?: s.toWaveform, toWaveformLoading = false)
+            }
         }
     }
 
@@ -229,14 +242,23 @@ class MixEditorViewModel @Inject constructor(
             try {
                 val analyzed = withTimeoutOrNull(ANALYSIS_TIMEOUT_MS) {
                     coroutineScope {
-                        val outgoingProfile = async { transitionAnalyzer.profileForFile(from.path) }
-                        val incomingProfile = async { transitionAnalyzer.profileForFile(to.path) }
-                        outgoingProfile.await() to incomingProfile.await()
+                        val outgoingAnalysis = async { transitionAnalyzer.analysisFor(from.path) }
+                        val incomingAnalysis = async { transitionAnalyzer.analysisFor(to.path) }
+                        outgoingAnalysis.await() to incomingAnalysis.await()
                     }
                 }
-                val outgoing = analyzed?.first ?: return@launch
-                val incoming = analyzed.second ?: return@launch
-                profiles = outgoing to incoming
+                val outgoingAnalysis = analyzed?.first ?: return@launch
+                val incomingAnalysis = analyzed.second ?: return@launch
+                profiles = outgoingAnalysis.profile to incomingAnalysis.profile
+
+                // A first look at each lane while its whole-song waveform is still decoding: the
+                // end of the outgoing song and the start of the incoming one are what the window shows.
+                _uiState.update { s ->
+                    s.copy(
+                        fromWaveform = s.fromWaveform ?: outgoingAnalysis.tail,
+                        toWaveform = s.toWaveform ?: incomingAnalysis.head,
+                    )
+                }
                 if (!replaceMix) return@launch
 
                 val smart = MixPlanner.fit(autoMix(from, fromBpm, toBpm), from.duration, to.duration)

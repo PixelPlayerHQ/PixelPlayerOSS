@@ -172,6 +172,13 @@ data class DeviceCapabilitySongRow(
 
 data class SongLyricSearchRow(val id: Long, val content: String)
 
+data class LocalAlbumGroupingSource(
+    val albumId: Long,
+    val albumName: String,
+    val albumArtist: String?,
+    val parentDirectoryPath: String?,
+)
+
 /**
  * Single-pass audio aggregates for the diagnostic performance report.
  * Computed in one SQL pass so it stays cheap even on large libraries —
@@ -1301,36 +1308,23 @@ interface MusicDao {
     fun getAlbumCount(): Flow<Int>
 
     @Query("""
-        SELECT
-            albums.id AS id,
-            albums.title AS title,
-            albums.artist_name AS artist_name,
-            albums.artist_id AS artist_id,
-            albums.album_artist AS album_artist,
-            albums.album_art_uri_string AS album_art_uri_string,
-            COUNT(songs.id) AS song_count,
-            albums.date_added AS date_added,
-            albums.year AS year
-        FROM songs
-        INNER JOIN albums ON albums.id = songs.album_id
-        WHERE (:applyDirectoryFilter = 0 OR songs.id < 0 OR songs.parent_directory_path IN (:allowedParentDirs))
-        GROUP BY
-            albums.id,
-            albums.title,
-            albums.artist_name,
-            albums.artist_id,
-            albums.album_artist,
-            albums.album_art_uri_string,
-            albums.date_added,
-            albums.year
-        HAVING COUNT(songs.id) >= :minTracks
-        ORDER BY albums.title ASC
+        SELECT albums.* FROM albums
+        WHERE EXISTS (
+            SELECT 1 FROM songs WHERE songs.album_id = albums.id AND songs.source_type = 0
+        )
     """)
-    suspend fun getAllAlbumsList(
-        allowedParentDirs: List<String>,
-        applyDirectoryFilter: Boolean,
-        minTracks: Int
-    ): List<AlbumEntity>
+    suspend fun getLocalAlbumsForSync(): List<AlbumEntity>
+
+    @Query("""
+        SELECT DISTINCT album_id AS albumId, album_name AS albumName,
+            album_artist AS albumArtist, parent_directory_path AS parentDirectoryPath
+        FROM songs
+        WHERE source_type = 0 AND album_id IN (:albumIds)
+    """)
+    suspend fun getLocalAlbumGroupingSources(albumIds: List<Long>): List<LocalAlbumGroupingSource>
+
+    @Query("SELECT " + SONG_LIST_PROJECTION + " FROM songs WHERE source_type = 0 AND album_id IN (:albumIds)")
+    suspend fun getLocalSongsByAlbumIdsForSync(albumIds: List<Long>): List<SongEntity>
 
     @Query("""
         SELECT

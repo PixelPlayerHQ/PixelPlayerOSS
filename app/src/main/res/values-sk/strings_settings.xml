@@ -46,6 +46,8 @@
     <string name="setcat_excluded_directories_subtitle">Tieto priečinky sa pri prehľadávaní knižnice vynechajú.</string>
     <string name="setcat_artists_title">Interpreti</string>
     <string name="setcat_artists_subtitle">Možnosti rozpoznávania viacerých interpretov a ich usporiadania.</string>
+    <string name="setcat_group_local_albums_by_title">Zoskupovať miestne albumy podľa názvu</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Zlúči miestne skladby s rovnakým názvom albumu, aj keď sa líši interpret albumu. Môže to zlúčiť aj nesúvisiace albumy s rovnakým názvom.</string>
     <string name="setcat_filtering">Filtrovanie</string>
     <string name="setcat_min_song_duration">Minimálna dĺžka skladby</string>
     <string name="setcat_min_tracks_per_album">Najmenší počet skladieb na album</string>

@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">앱 테마</string>
     <string name="setcat_application">애플리케이션</string>
     <string name="setcat_artists_subtitle">멀티 아티스트 파싱 및 구성 옵션.</string>
+    <string name="setcat_group_local_albums_by_title">로컬 앨범을 제목으로 묶기</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">앨범 아티스트가 달라도 앨범 제목이 같은 로컬 트랙을 하나로 묶습니다. 제목이 같은 관련 없는 앨범도 함께 묶일 수 있습니다.</string>
     <string name="setcat_artists_title">아티스트</string>
     <string name="setcat_auto_hide_delay_desc">컨트롤이 숨겨지기 전까지의 시간입니다.</string>
     <string name="setcat_auto_hide_delay_label">자동 숨김 지연 시간</string>

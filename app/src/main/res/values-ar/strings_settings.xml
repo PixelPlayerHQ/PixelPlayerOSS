@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">مظهر التطبيق</string>
     <string name="setcat_application">التطبيق</string>
     <string name="setcat_artists_subtitle">خيارات تنظيم وتحليل البيانات للفنانين المتعددين.</string>
+    <string name="setcat_group_local_albums_by_title">تجميع الألبومات المحلية حسب العنوان</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">دمج المقاطع المحلية التي تحمل عنوان الألبوم نفسه حتى إذا اختلف فنانو الألبوم. قد يؤدي هذا أيضًا إلى دمج ألبومات غير مرتبطة تحمل العنوان نفسه.</string>
     <string name="setcat_artists_title">الفنانون</string>
     <string name="setcat_auto_hide_delay_desc">الوقت المستغرق قبل إخفاء عناصر التحكم.</string>
     <string name="setcat_auto_hide_delay_label">مهلة الإخفاء التلقائي</string>

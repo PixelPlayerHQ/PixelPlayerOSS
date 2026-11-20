@@ -65,6 +65,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Album
 import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Image
@@ -478,6 +479,14 @@ fun SettingsCategoryScreen(
                                     trailingIcon = { Icon(Icons.Rounded.ChevronRight, stringResource(R.string.cd_open), tint = MaterialTheme.colorScheme.onSurfaceVariant) },
                                     modifier = Modifier.settingHighlight("item_library_artists", highlightKey),
                                     onClick = { navController.navigateSafely(Screen.ArtistSettings.createRoute()) }
+                                )
+                                SwitchSettingItem(
+                                    title = stringResource(R.string.setcat_group_local_albums_by_title),
+                                    subtitle = stringResource(R.string.setcat_group_local_albums_by_title_subtitle),
+                                    checked = uiState.groupLocalAlbumsByTitle,
+                                    onCheckedChange = settingsViewModel::setGroupLocalAlbumsByTitle,
+                                    leadingIcon = { Icon(Icons.Outlined.Album, null, tint = MaterialTheme.colorScheme.secondary) },
+                                    modifier = Modifier.settingHighlight("item_library_group_local_albums_by_title", highlightKey)
                                 )
                             }
 

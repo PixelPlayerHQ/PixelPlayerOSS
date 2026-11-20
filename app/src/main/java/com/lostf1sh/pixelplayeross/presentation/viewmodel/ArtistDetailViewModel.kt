@@ -13,6 +13,7 @@ import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.ArtistImageRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
 import com.lostf1sh.pixelplayeross.utils.GenreParser
+import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
@@ -127,9 +128,13 @@ class ArtistDetailViewModel @Inject constructor(
                 val artistDetailsFlow = musicRepository.getArtistById(id)
                 val artistSongsFlow = musicRepository.getSongsForArtist(id)
 
-                combine(artistDetailsFlow, artistSongsFlow) { artist, songs ->
+                combine(
+                    artistDetailsFlow,
+                    artistSongsFlow,
+                    userPreferencesRepository.groupLocalAlbumsByTitleFlow
+                ) { artist, songs, groupLocalAlbumsByTitle ->
                     Timber.tag("ArtistDebug").d("loadArtistData: id=$id found=${artist != null} songs=${songs.size}")
-                    artist to songs
+                    Triple(artist, songs, groupLocalAlbumsByTitle)
                 }
                     .catch { e ->
                         _uiState.update {
@@ -139,7 +144,7 @@ class ArtistDetailViewModel @Inject constructor(
                             )
                         }
                     }
-                    .collect { (artist, songs) ->
+                    .collect { (artist, songs, groupLocalAlbumsByTitle) ->
                         if (artist == null) {
                             _uiState.update {
                                 it.copy(error = context.getString(R.string.could_not_find_artist), isLoading = false)
@@ -147,7 +152,7 @@ class ArtistDetailViewModel @Inject constructor(
                             return@collect
                         }
 
-                        val albumSections = buildAlbumSections(songs)
+                        val albumSections = buildAlbumSections(songs, groupLocalAlbumsByTitle)
                         val orderedSongs = albumSections.flatMap { it.songs }
 
                         val effectiveUrl = try {
@@ -315,18 +320,28 @@ private val songDisplayComparator = compareBy<Song> { it.discNumber ?: 1 }
     .thenBy { if (it.trackNumber > 0) it.trackNumber else Int.MAX_VALUE }
     .thenBy { it.title.lowercase() }
 
-internal fun buildAlbumSections(songs: List<Song>): List<ArtistAlbumSection> {
+internal fun buildAlbumSections(
+    songs: List<Song>,
+    groupLocalAlbumsByTitle: Boolean = false
+): List<ArtistAlbumSection> {
     if (songs.isEmpty()) return emptyList()
 
     val sections = songs
-        .groupBy { it.albumId to it.album }
+        .groupBy { song ->
+            val title = if (groupLocalAlbumsByTitle && LocalArtworkUri.isLikelyLocalMedia(song.contentUriString)) {
+                song.album.trim().lowercase()
+            } else {
+                song.album
+            }
+            song.albumId to title
+        }
         .map { (key, albumSongs) ->
             val sortedSongs = albumSongs.sortedWith(songDisplayComparator)
             val albumYear = albumSongs.mapNotNull { song -> song.year.takeIf { it > 0 } }.maxOrNull()
             val albumArtUri = albumSongs.firstNotNullOfOrNull { it.albumArtUriString }
             ArtistAlbumSection(
                 albumId = key.first,
-                title = (key.second.takeIf { it.isNotBlank() } ?: "Unknown Album"),
+                title = albumSongs.first().album.ifBlank { "Unknown Album" },
                 year = albumYear,
                 albumArtUriString = albumArtUri,
                 songs = sortedSongs,

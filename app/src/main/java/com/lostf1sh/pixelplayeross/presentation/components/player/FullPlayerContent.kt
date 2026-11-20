@@ -569,7 +569,7 @@ fun FullPlayerContent(
             requestedScrollIndex = pendingCarouselIndex,
             onSongSelected = onAlbumSongSelected,
             onAlbumClick = { albumSong ->
-                playerViewModel.triggerAlbumNavigationFromPlayer(albumSong.albumId)
+                playerViewModel.triggerAlbumNavigationFromPlayer(albumSong.albumId, albumSong.id)
             },
             modifier = modifier
         )

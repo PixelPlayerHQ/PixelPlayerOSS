@@ -17,8 +17,12 @@ import androidx.work.WorkerParameters
 import androidx.work.testing.TestListenableWorkerBuilder
 import androidx.work.workDataOf
 import com.google.common.truth.Truth.assertThat
+import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
+import com.lostf1sh.pixelplayeross.data.database.ArtistEntity
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
+import com.lostf1sh.pixelplayeross.data.database.SourceType
+import com.lostf1sh.pixelplayeross.data.preferences.LocalAlbumGroupingSettings
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.service.PlaybackActivityTracker
 import io.mockk.coEvery
@@ -196,6 +200,100 @@ class SyncWorkerTest {
         assertThat(musicDao.getSongCount().first()).isEqualTo(0)
         assertThat(musicDao.getAlbumCount().first()).isEqualTo(0)
         assertThat(musicDao.getArtistCount().first()).isEqualTo(0)
+    }
+
+    @Test
+    fun localAlbumTitleGroupingMergesAndSplitsExistingTracksWithoutChangingRemoteAlbums() = runBlocking {
+        val preferences = createTestPreferencesRepository()
+        var grouping = LocalAlbumGroupingSettings()
+        coEvery { preferences.getLocalAlbumGroupingSettings() } answers { grouping }
+        coEvery { preferences.markLocalAlbumGroupingApplied(any()) } answers {
+            assertThat(firstArg<String>()).isEqualTo(grouping.indexVersion)
+            grouping = grouping.copy(requiresReindex = false)
+        }
+        var lastSyncTimestamp = 0L
+        coEvery { preferences.getLastSyncTimestamp() } answers { lastSyncTimestamp }
+        coEvery { preferences.setLastSyncTimestamp(any()) } answers { lastSyncTimestamp = firstArg() }
+
+        every { mockContentResolver.query(any(), any(), any(), any(), any()) } answers {
+            val projection = secondArg<Array<String>>()
+            val selection = thirdArg<String>()
+            val cursor = MatrixCursor(projection)
+            if (firstArg<Uri>() == MediaStore.Audio.Media.EXTERNAL_CONTENT_URI &&
+                "${MediaStore.Audio.Media.DATE_MODIFIED} > ?" !in selection
+            ) {
+                listOf("Main Artist", "Main Artist & Guest").forEachIndexed { index, albumArtist ->
+                    val values = mapOf(
+                        MediaStore.Audio.Media._ID to index + 1L,
+                        MediaStore.Audio.Media.TITLE to "Track ${index + 1}",
+                        MediaStore.Audio.Media.ARTIST to "Main Artist",
+                        MediaStore.Audio.Media.ARTIST_ID to 101L,
+                        MediaStore.Audio.Media.ALBUM to "Same Title",
+                        MediaStore.Audio.Media.ALBUM_ID to index + 201L,
+                        MediaStore.Audio.Media.ALBUM_ARTIST to albumArtist,
+                        MediaStore.Audio.Media.DURATION to 180_000L,
+                        MediaStore.Audio.Media.DATA to "/sdcard/Music/same-title/${index + 1}.m4a",
+                        MediaStore.Audio.Media.MIME_TYPE to "audio/mp4",
+                        MediaStore.Audio.Media.TRACK to index + 1,
+                        MediaStore.Audio.Media.YEAR to 2026,
+                        MediaStore.Audio.Media.DATE_ADDED to 100L,
+                        MediaStore.Audio.Media.DATE_MODIFIED to 100L
+                    )
+                    cursor.addRow(projection.map { values[it] })
+                }
+            }
+            cursor
+        }
+
+        val testContext = object : ContextWrapper(context) {
+            override fun getContentResolver() = mockContentResolver
+        }
+        suspend fun sync(): ListenableWorker.Result =
+            TestListenableWorkerBuilder<SyncWorker>(testContext)
+                .setWorkerFactory(TestSyncWorkerFactory(musicDao, preferences))
+                .setInputData(workDataOf(SyncWorker.INPUT_RUN_MAINTENANCE to false))
+                .build()
+                .doWork()
+
+        assertSuccessfulSongCount(sync(), expectedCount = 2)
+        assertThat(musicDao.getSongsByAlbumId(201L).first().map { it.id }).containsExactly(1L)
+        assertThat(musicDao.getSongsByAlbumId(202L).first().map { it.id }).containsExactly(2L)
+        assertThat(lastSyncTimestamp).isGreaterThan(100_000L)
+
+        val firstTrack = requireNotNull(musicDao.getSongByIdOnce(1L))
+        musicDao.updateSongs(listOf(firstTrack.copy(title = "Edited title", titleUserEdited = true, isFavorite = true)))
+
+        val remote = firstTrack.copy(
+            id = -1L, artistName = "Cloud Artist", artistId = -101L, albumArtistId = -101L,
+            albumId = -201L, contentUriString = "jellyfin://remote", sourceType = SourceType.JELLYFIN
+        )
+        val remoteAlbum = AlbumEntity(-201L, "Same Title", "Main Artist", -101L, null, 1, 0L, 2026)
+        musicDao.incrementalSyncMusicData(
+            songs = listOf(remote),
+            albums = listOf(remoteAlbum),
+            artists = listOf(ArtistEntity(id = -101L, name = "Cloud Artist", trackCount = 1)),
+            crossRefs = emptyList(),
+            deletedSongIds = emptyList()
+        )
+
+        grouping = LocalAlbumGroupingSettings(byTitle = true, indexVersion = "true:1", requiresReindex = true)
+        assertSuccessfulSongCount(sync(), expectedCount = 3)
+        assertThat(grouping.requiresReindex).isFalse()
+        assertThat(musicDao.getAlbumById(201L).first()?.songCount).isEqualTo(2)
+        assertThat(musicDao.getAlbumById(202L).first()).isNull()
+        assertThat(musicDao.getSongsByAlbumId(201L).first().map { it.id }).containsExactly(1L, 2L).inOrder()
+
+        grouping = LocalAlbumGroupingSettings(byTitle = false, indexVersion = "false:2", requiresReindex = true)
+        assertSuccessfulSongCount(sync(), expectedCount = 3)
+        assertThat(grouping.requiresReindex).isFalse()
+        assertThat(musicDao.getAlbumById(201L).first()?.songCount).isEqualTo(1)
+        assertThat(musicDao.getAlbumById(202L).first()?.songCount).isEqualTo(1)
+        assertThat(musicDao.getSongsByAlbumId(201L).first().map { it.id }).containsExactly(1L)
+        assertThat(musicDao.getSongsByAlbumId(202L).first().map { it.id }).containsExactly(2L)
+        assertThat(musicDao.getAlbumById(-201L).first()).isEqualTo(remoteAlbum)
+        assertThat(musicDao.getSongsByAlbumId(-201L).first().map { it.id }).containsExactly(-1L)
+        assertThat(musicDao.getSongByIdOnce(1L)?.title).isEqualTo("Edited title")
+        assertThat(musicDao.getFavoriteStatus(1L)).isTrue()
     }
 
     @Test
@@ -498,6 +596,7 @@ private fun createTestPreferencesRepository(): UserPreferencesRepository {
         flowOf(UserPreferencesRepository.DEFAULT_ARTIST_WORD_DELIMITERS)
     every { repository.extractArtistsFromTitleFlow } returns flowOf(false)
     every { repository.groupByAlbumArtistFlow } returns flowOf(false)
+    coEvery { repository.getLocalAlbumGroupingSettings() } returns LocalAlbumGroupingSettings()
     every { repository.artistSettingsRescanRequiredFlow } returns flowOf(false)
     every { repository.allowedDirectoriesFlow } returns flowOf(emptySet())
     every { repository.blockedDirectoriesFlow } returns flowOf(emptySet())

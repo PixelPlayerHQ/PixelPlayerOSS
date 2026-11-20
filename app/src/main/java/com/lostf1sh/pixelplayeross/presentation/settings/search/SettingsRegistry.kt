@@ -30,6 +30,18 @@ object SettingsRegistry {
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("artist", "delimiters", "split", "multi artist", "parsing", "separator")
             ),
+            SettingSpec(
+                id = "library_group_local_albums_by_title",
+                itemKey = "item_library_group_local_albums_by_title",
+                titleRes = R.string.setcat_group_local_albums_by_title,
+                subtitleRes = R.string.setcat_group_local_albums_by_title_subtitle,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("album artist", "album title", "merge albums", "split albums", "compilation"),
+                getValue = { it.groupLocalAlbumsByTitle },
+                onToggle = { viewModel, checked -> viewModel.setGroupLocalAlbumsByTitle(checked) }
+            ),
             // Rows of the artist settings page. createRoute(), not .route: the raw route
             // already ends in "?highlightKey={highlightKey}".
             SettingSpec(

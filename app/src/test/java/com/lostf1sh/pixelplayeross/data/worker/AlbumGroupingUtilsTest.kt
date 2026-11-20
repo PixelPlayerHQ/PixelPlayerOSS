@@ -1,10 +1,49 @@
 package com.lostf1sh.pixelplayeross.data.worker
 
 import com.google.common.truth.Truth.assertThat
+import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import org.junit.Test
 
 class AlbumGroupingUtilsTest {
+
+    @Test
+    fun `title grouping reuses the existing local album id across differing album artists`() {
+        val firstTrack = testSong("Artist", "Artist", albumId = 21L)
+        val guestTrack = testSong("Artist", "Artist & Guest", albumId = 22L, albumName = " HURRY UP TOMORROW ")
+        val existingAlbum = AlbumEntity(21L, firstTrack.albumName, "Artist", 1L, null, 1, 0L, 0)
+
+        val titleIndex = LocalAlbumIndex(listOf(existingAlbum), groupByTitle = true)
+        assertThat(titleIndex.idFor(guestTrack)).isEqualTo(21L)
+        assertThat(titleIndex.idFor(firstTrack)).isEqualTo(21L)
+
+        val defaultIndex = LocalAlbumIndex(listOf(existingAlbum), groupByTitle = false)
+        assertThat(defaultIndex.idFor(guestTrack)).isEqualTo(22L)
+        assertThat(defaultIndex.idFor(firstTrack)).isEqualTo(21L)
+    }
+
+    @Test
+    fun `different titles stay separate even when MediaStore reuses an album id`() {
+        val first = testSong("Artist", "Artist", albumId = 21L)
+        val second = first.copy(albumName = "Dawn FM")
+        val albumIndex = LocalAlbumIndex(emptyList(), groupByTitle = true)
+
+        assertThat(albumIndex.idFor(first)).isEqualTo(21L)
+        assertThat(albumIndex.idFor(second)).isNotEqualTo(21L)
+        assertThat(albumIndex.idFor(second.copy(albumArtist = "Different Artist")))
+            .isEqualTo(albumIndex.idFor(second))
+    }
+
+    @Test
+    fun `title grouping does not merge unknown albums or group remote tracks by title`() {
+        val first = testSong("Artist A", "Artist A", albumId = 21L)
+        val second = testSong("Artist B", "Artist B", albumId = 22L)
+
+        assertThat(buildAlbumGroupingKey(first.copy(albumName = "Unknown Album"), groupByTitle = true))
+            .isNotEqualTo(buildAlbumGroupingKey(second.copy(albumName = "Unknown Album"), groupByTitle = true))
+        assertThat(buildAlbumGroupingKey(first.copy(contentUriString = "navidrome://123"), groupByTitle = true))
+            .isNotEqualTo(buildAlbumGroupingKey(second, groupByTitle = true))
+    }
 
     @Test
     fun `resolveAlbumArtist prefers embedded album artist`() {
@@ -76,7 +115,7 @@ class AlbumGroupingUtilsTest {
 
     @Test
     fun `buildAlbumGroupingKeys keeps media fallback even when artwork exists`() {
-        val album = com.lostf1sh.pixelplayeross.data.database.AlbumEntity(
+        val album = AlbumEntity(
             id = 77L,
             title = "Unknown Album",
             artistName = "",

@@ -74,7 +74,7 @@ internal fun rememberSheetActionHandlers(
             )
         }
     }
-    val onNavigateToAlbum = remember(scope, navController) {
+    val onNavigateToAlbum: (Song) -> Unit = remember(scope, navController) {
         { song: Song ->
             scope.launch {
                 sheetMotionControllerState.value.snapCollapsed(sheetCollapsedTargetYState.value)
@@ -82,11 +82,14 @@ internal fun rememberSheetActionHandlers(
             playerViewModelState.value.collapsePlayerSheet()
             queueSheetControllerState.value.animate(false)
             sheetModalOverlayControllerState.value.updateSelectedSongForInfo(null)
-            if (song.albumId != -1L) {
-                navController.navigateSafelyReplacing(
-                    route = Screen.AlbumDetail.createRoute(song.albumId),
-                    patternToPop = Screen.AlbumDetail.route
-                )
+            scope.launch {
+                val albumId = playerViewModelState.value.resolveIndexedAlbumId(song.albumId, song.id)
+                if (albumId != -1L) {
+                    navController.navigateSafelyReplacing(
+                        route = Screen.AlbumDetail.createRoute(albumId),
+                        patternToPop = Screen.AlbumDetail.route
+                    )
+                }
             }
         }
     }

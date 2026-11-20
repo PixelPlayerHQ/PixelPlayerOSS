@@ -2232,7 +2232,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun triggerAlbumNavigationFromPlayer(albumId: Long) {
+    internal suspend fun resolveIndexedAlbumId(albumId: Long, songId: String?): Long {
+        if (songId == null || (songId.toLongOrNull() ?: 0L) <= 0L) return albumId
+        return musicRepository.getSongsByIdsOnce(listOf(songId)).firstOrNull()?.albumId ?: albumId
+    }
+
+    fun triggerAlbumNavigationFromPlayer(albumId: Long, songId: String? = null) {
         if (albumId == -1L) {
             Timber.tag("AlbumDebug").d("triggerAlbumNavigationFromPlayer ignored invalid albumId=$albumId")
             return
@@ -2246,9 +2251,11 @@ class PlayerViewModel @Inject constructor(
 
         albumNavigationJob?.cancel()
         albumNavigationJob = viewModelScope.launch {
+            val indexedAlbumId = resolveIndexedAlbumId(albumId, songId)
+            if (indexedAlbumId == -1L) return@launch
             val currentSong = playbackStateHolder.stablePlayerState.value.currentSong
             Timber.tag("AlbumDebug").d(
-                "triggerAlbumNavigationFromPlayer: albumId=$albumId, songId=${currentSong?.id}, title=${currentSong?.title}"
+                "triggerAlbumNavigationFromPlayer: albumId=$indexedAlbumId, songId=${currentSong?.id}, title=${currentSong?.title}"
             )
             collapsePlayerSheet()
 
@@ -2257,7 +2264,7 @@ class PlayerViewModel @Inject constructor(
                 awaitPlayerCollapse()
             }
 
-            _albumNavigationRequests.emit(albumId)
+            _albumNavigationRequests.emit(indexedAlbumId)
         }
     }
 

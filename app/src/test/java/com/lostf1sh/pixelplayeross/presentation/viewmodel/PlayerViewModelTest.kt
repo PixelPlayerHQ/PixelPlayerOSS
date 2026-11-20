@@ -436,6 +436,20 @@ class PlayerViewModelTest {
     }
 
     @Test
+    fun `album navigation from player uses the reindexed album for a queued local track`() = runTest {
+        val queuedSong = Song.emptySong().copy(id = "10", albumId = 201L)
+        coEvery { mockMusicRepository.getSongsByIdsOnce(listOf(queuedSong.id)) } returns
+            listOf(queuedSong.copy(albumId = 202L))
+
+        playerViewModel.albumNavigationRequests.test {
+            playerViewModel.triggerAlbumNavigationFromPlayer(queuedSong.albumId, queuedSong.id)
+            advanceUntilIdle()
+
+            assertEquals(202L, awaitItem())
+        }
+    }
+
+    @Test
     fun `playlist playback keeps playlist id on the initial media item and the original order`() = runTest {
         mockkStatic(Uri::class)
         mockkConstructor(Bundle::class)

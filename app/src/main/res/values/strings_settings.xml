@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="setcat_m3u_sync_section">Playlist synchronization</string>
     <string name="setcat_m3u_sync_title">Automatic M3U sync</string>
     <string name="setcat_m3u_sync_disabled_subtitle">Choose an external folder to keep local playlists in sync both ways</string>
@@ -50,6 +50,8 @@
     <string name="setcat_excluded_directories_subtitle">Folders here will be skipped when scanning your library.</string>
     <string name="setcat_artists_title">Artists</string>
     <string name="setcat_artists_subtitle">Multi-artist parsing and organization options.</string>
+    <string name="setcat_group_local_albums_by_title" tools:ignore="MissingTranslation">Group local albums by title</string>
+    <string name="setcat_group_local_albums_by_title_subtitle" tools:ignore="MissingTranslation">Combine local tracks with the same album title, even when their album artists differ. This can also combine unrelated albums with the same title.</string>
     <string name="setcat_filtering">Filtering</string>
     <string name="setcat_min_song_duration">Minimum Song Duration</string>
     <string name="setcat_min_tracks_per_album">Minimum Tracks per Album</string>

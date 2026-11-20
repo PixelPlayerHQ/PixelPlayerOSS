@@ -82,6 +82,12 @@ data class AdvancedPerformanceDiagnosticsSettings(
         enabled && expiresAtEpochMs?.let { nowEpochMs < it } == true
 }
 
+internal data class LocalAlbumGroupingSettings(
+    val byTitle: Boolean = false,
+    val indexVersion: String = "false:0",
+    val requiresReindex: Boolean = false
+)
+
 @Singleton
 class UserPreferencesRepository
 @Inject
@@ -99,6 +105,8 @@ constructor(
         // choice — restoring another device's value could skip or repeat the repair here.
         PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION.name,
         PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION.name,
+        PreferencesKeys.LOCAL_ALBUM_GROUPING_REVISION.name,
+        PreferencesKeys.APPLIED_LOCAL_ALBUM_GROUPING_VERSION.name,
         "cloud_download_export_tree_uri",
         "cloud_download_export_tree_name",
         "listenbrainz_token",
@@ -198,6 +206,10 @@ constructor(
         val ARTIST_WORD_DELIMITERS = stringPreferencesKey("artist_word_delimiters")
         val EXTRACT_ARTISTS_FROM_TITLE = booleanPreferencesKey("extract_artists_from_title")
         val GROUP_BY_ALBUM_ARTIST = booleanPreferencesKey("group_by_album_artist")
+        val GROUP_LOCAL_ALBUMS_BY_TITLE = booleanPreferencesKey("group_local_albums_by_title")
+        val LOCAL_ALBUM_GROUPING_REVISION = longPreferencesKey("local_album_grouping_revision")
+        val APPLIED_LOCAL_ALBUM_GROUPING_VERSION =
+            stringPreferencesKey("applied_local_album_grouping_version")
         val ARTIST_ALBUMS_COLLAPSED_BY_DEFAULT =
                 booleanPreferencesKey("artist_albums_collapsed_by_default")
         val ARTIST_SETTINGS_RESCAN_REQUIRED =
@@ -939,6 +951,40 @@ constructor(
     suspend fun setMinTracksPerAlbum(minTracks: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_TRACKS_PER_ALBUM] = minTracks
+        }
+    }
+
+    val groupLocalAlbumsByTitleFlow: Flow<Boolean> = dataStore.data.map {
+        it[PreferencesKeys.GROUP_LOCAL_ALBUMS_BY_TITLE] ?: false
+    }.distinctUntilChanged()
+
+    suspend fun setGroupLocalAlbumsByTitle(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            if (enabled == (preferences[PreferencesKeys.GROUP_LOCAL_ALBUMS_BY_TITLE] ?: false)) {
+                return@edit
+            }
+            preferences[PreferencesKeys.GROUP_LOCAL_ALBUMS_BY_TITLE] = enabled
+            preferences[PreferencesKeys.LOCAL_ALBUM_GROUPING_REVISION] =
+                (preferences[PreferencesKeys.LOCAL_ALBUM_GROUPING_REVISION] ?: 0L) + 1L
+        }
+    }
+
+    internal suspend fun getLocalAlbumGroupingSettings(): LocalAlbumGroupingSettings =
+        dataStore.data.first().let { preferences ->
+            val byTitle = preferences[PreferencesKeys.GROUP_LOCAL_ALBUMS_BY_TITLE] ?: false
+            val revision = preferences[PreferencesKeys.LOCAL_ALBUM_GROUPING_REVISION] ?: 0L
+            val indexVersion = "$byTitle:$revision"
+            LocalAlbumGroupingSettings(
+                byTitle = byTitle,
+                indexVersion = indexVersion,
+                requiresReindex = indexVersion !=
+                    (preferences[PreferencesKeys.APPLIED_LOCAL_ALBUM_GROUPING_VERSION] ?: "false:0")
+            )
+        }
+
+    internal suspend fun markLocalAlbumGroupingApplied(indexVersion: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.APPLIED_LOCAL_ALBUM_GROUPING_VERSION] = indexVersion
         }
     }
 

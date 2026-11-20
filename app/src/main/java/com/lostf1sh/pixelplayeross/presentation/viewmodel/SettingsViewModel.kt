@@ -132,6 +132,7 @@ data class SettingsUiState(
     val collageAutoRotate: Boolean = false,
     val minSongDuration: Int = 10000,
     val minTracksPerAlbum: Int = 1,
+    val groupLocalAlbumsByTitle: Boolean = false,
     val minTracksPerArtist: Int = 1,
     val replayGainEnabled: Boolean = false,
     val replayGainUseAlbumGain: Boolean = false
@@ -536,6 +537,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.minTracksPerAlbumFlow.collect { minTracks ->
                 _uiState.update { it.copy(minTracksPerAlbum = minTracks) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.groupLocalAlbumsByTitleFlow.collect { enabled ->
+                _uiState.update { it.copy(groupLocalAlbumsByTitle = enabled) }
             }
         }
 
@@ -996,6 +1003,13 @@ class SettingsViewModel @Inject constructor(
     fun setMinTracksPerAlbum(minTracks: Int) {
         viewModelScope.launch {
             userPreferencesRepository.setMinTracksPerAlbum(minTracks)
+        }
+    }
+
+    fun setGroupLocalAlbumsByTitle(enabled: Boolean) {
+        appScope.launch(Dispatchers.Main.immediate) {
+            userPreferencesRepository.setGroupLocalAlbumsByTitle(enabled)
+            syncManager.forceRefresh()
         }
     }
 

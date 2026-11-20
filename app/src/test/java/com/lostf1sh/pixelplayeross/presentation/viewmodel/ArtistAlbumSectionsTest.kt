@@ -8,6 +8,21 @@ import org.junit.jupiter.api.Test
 class ArtistAlbumSectionsTest {
 
     @Test
+    fun `grouped local tracks link to one album section despite title capitalization differences`() {
+        val local = listOf(
+            song("1", albumId = 10L, album = "Glad EP", year = 2016, genre = "House"),
+            song("2", albumId = 10L, album = "GLAD EP", year = 2016, genre = "House")
+        )
+        val remote = local.map { it.copy(albumId = -10L, contentUriString = "jellyfin://${it.id}") }
+
+        assertEquals(2, buildAlbumSections(local).size)
+        assertEquals(2, buildAlbumSections(remote, groupLocalAlbumsByTitle = true).size)
+        val section = buildAlbumSections(local, groupLocalAlbumsByTitle = true).single()
+        assertEquals(10L, section.albumId)
+        assertEquals(local, section.songs)
+    }
+
+    @Test
     fun `each album section shows the genre most of its tracks share`() {
         val sections = buildAlbumSections(
             listOf(

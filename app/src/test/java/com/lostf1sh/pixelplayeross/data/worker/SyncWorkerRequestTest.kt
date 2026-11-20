@@ -140,6 +140,24 @@ class SyncWorkerRequestTest {
     }
 
     @Test
+    fun `tag backfill revisits unchanged tracks without enabling deep audio analysis or clearing the library`() {
+        val plan = buildSyncExecutionPlan(
+            requestedMode = SyncMode.INCREMENTAL,
+            requestedForceMetadata = false,
+            requestedRunMaintenance = false,
+            rescanRequired = false,
+            directoryRulesChanged = false,
+            isFreshInstall = false,
+            embeddedTagScanRequired = true
+        )
+
+        assertEquals(LocalScanMode.LOCAL_RESCAN, plan.localScanMode)
+        assertTrue(plan.forceProcessAll)
+        assertFalse(plan.forceMetadata)
+        assertFalse(plan.resetExistingLocalData)
+    }
+
+    @Test
     fun `rebuild resets existing local data and deep scans metadata`() {
         val plan = buildSyncExecutionPlan(
             requestedMode = SyncMode.REBUILD,

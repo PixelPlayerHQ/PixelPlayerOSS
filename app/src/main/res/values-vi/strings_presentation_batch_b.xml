@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_b_accounts_linked_services">Dịch vụ đã liên kết</string>
+    <string name="presentation_batch_b_accounts_status_connected">Đã kết nối</string>
+    <string name="presentation_batch_b_accounts_open_service">Mở dịch vụ</string>
+    <string name="presentation_batch_b_accounts_logging_out">Đang đăng xuất…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Chưa có tài khoản liên kết nào</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Kết nối nhà cung cấp dịch vụ để quản lý từ màn hình này.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Kết nối %1$s</string>
+
+    <string name="presentation_batch_b_sort_songs">Sắp xếp bài hát</string>
+    <string name="presentation_batch_b_more_options">Tùy chọn khác</string>
+    <string name="presentation_batch_b_play_it">Phát bài này</string>
+    <string name="presentation_batch_b_add_songs">Thêm bài hát</string>
+    <string name="presentation_batch_b_add">Thêm</string>
+    <string name="presentation_batch_b_remove_songs">Xóa bài hát</string>
+    <string name="presentation_batch_b_reorder_songs">Sắp xếp lại bài hát</string>
+    <string name="presentation_batch_b_reorder">Sắp xếp lại</string>
+    <string name="presentation_batch_b_reorder_song">Sắp xếp lại bài hát</string>
+    <string name="presentation_batch_b_playlist_empty_title">Danh sách phát này đang trống.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">Thư mục này không chứa bài hát nào.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Chạm vào \'Thêm bài hát\' để bắt đầu.</string>
+    <string name="presentation_batch_b_playlist_empty_smart_body">Chưa có bài hát nào khớp với quy tắc thông minh này.</string>
+    <string name="presentation_batch_b_playlist_options_title">Tùy chọn danh sách phát</string>
+    <string name="presentation_batch_b_edit_playlist">Chỉnh sửa danh sách phát</string>
+    <string name="presentation_batch_b_delete_playlist">Xóa danh sách phát</string>
+    <string name="presentation_batch_b_set_default_transition">Đặt hiệu ứng chuyển bài mặc định</string>
+    <string name="presentation_batch_b_export_playlist">Xuất danh sách phát</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Xóa danh sách phát?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Bạn có chắc chắn muốn xóa danh sách phát này?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Đổi tên danh sách phát</string>
+    <string name="presentation_batch_b_new_name">Tên mới</string>
+
+    <string name="presentation_batch_b_daily_mix_title">Bản phối hàng ngày</string>
+
+    <string name="presentation_batch_b_quick_fill_select_songs">Chọn bài hát</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Chọn thể loại</string>
+    <string name="presentation_batch_b_search_songs_label">Tìm bài hát</string>
+    <string name="presentation_batch_b_select_all">Chọn tất cả</string>
+    <string name="presentation_batch_b_clear">Xóa</string>
+    <string name="presentation_batch_b_genre_label_format">Thể loại: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Chọn một thể loại</string>
+    <string name="presentation_batch_b_quick_fill">Điền nhanh</string>
+    <string name="presentation_batch_b_add_custom_genre">Thêm tùy chỉnh</string>
+    <string name="presentation_batch_b_new_genre">Thể loại mới</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Thêm thể loại tùy chỉnh</string>
+    <string name="presentation_batch_b_genre_name_label">Tên thể loại</string>
+    <string name="presentation_batch_b_select_icon">Chọn biểu tượng</string>
+
+    <string name="presentation_batch_b_recently_played_title">Đã phát gần đây</string>
+    <string name="presentation_batch_b_play_latest">Phát gần đây nhất</string>
+    <string name="presentation_batch_b_recent_empty_title">Không có lượt phát gần đây nào trong %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Thay đổi khoảng thời gian hoặc nghe thêm bài hát để làm đầy dòng thời gian này.</string>
+    <string name="presentation_batch_b_queue_recently_played">Đã phát gần đây</string>
+    <string name="presentation_batch_b_date_today">Hôm nay</string>
+    <string name="presentation_batch_b_date_yesterday">Hôm qua</string>
+
+    <string name="presentation_batch_b_navbar_adjust_title">Điều chỉnh bán kính góc</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Khớp các góc của thanh điều hướng với các góc bo của thiết bị để tạo cảm giác liền mạch.</string>
+    <string name="presentation_batch_b_corner_radius_label">Bán kính góc</string>
+    <string name="presentation_batch_b_corner_dp_format">%1$d dp</string>
+
+    <string name="presentation_batch_b_genre_shuffle_label">Xáo trộn %1$s</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="other">%1$d bài hát • %2$s</item>
+    </plurals>
+</resources>

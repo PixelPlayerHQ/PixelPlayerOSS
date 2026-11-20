@@ -511,6 +511,7 @@ private fun createTestPreferencesRepository(): UserPreferencesRepository {
     // what the timestamp-based tests check. Tests that cover the repair override this.
     coEvery { repository.getMetadataCharsetRepairVersion() } returns
         SyncWorker.CURRENT_METADATA_CHARSET_REPAIR_VERSION
+    coEvery { repository.getEmbeddedTagScanVersion() } returns SyncWorker.CURRENT_EMBEDDED_TAG_SCAN_VERSION
     return repository
 }
 

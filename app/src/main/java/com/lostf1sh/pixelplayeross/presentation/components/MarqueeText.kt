@@ -181,7 +181,7 @@ fun AutoScrollingText(
         val targetWidth = constraints.maxWidth.takeIf { it != Constraints.Infinity } ?: contentPlaceable.width
 
         layout(targetWidth, contentPlaceable.height) {
-            contentPlaceable.place(0, 0)
+            contentPlaceable.placeRelative(0, 0)
         }
     }
 }

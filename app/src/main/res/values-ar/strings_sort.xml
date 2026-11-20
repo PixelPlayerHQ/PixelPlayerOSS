@@ -6,6 +6,7 @@
     <string name="sort_method_artist">الفنان</string>
     <string name="sort_method_album">الألبوم</string>
     <string name="sort_method_date_added">تاريخ الإضافة</string>
+    <string name="sort_method_date_modified">تاريخ التعديل</string>
     <string name="sort_method_duration">المدة</string>
     <string name="sort_method_release_year">سنة الإصدار</string>
     <string name="sort_method_song_count">عدد الأغاني</string>

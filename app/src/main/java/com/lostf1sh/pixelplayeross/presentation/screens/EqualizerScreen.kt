@@ -322,6 +322,7 @@ fun EqualizerScreen(
                     isEnabled = uiState.isEnabled,
                     currentPreset = uiState.currentPreset,
                     editingPresetName = uiState.editingPresetName,
+                    onEnableEqualizer = { equalizerViewModel.setEnabled(true) },
                     onBandLevelChanged = { bandId, level ->
                         equalizerViewModel.setBandLevel(bandId, level)
                     },
@@ -518,6 +519,7 @@ private fun BandSlidersSection(
     isEnabled: Boolean,
     currentPreset: EqualizerPreset,
     editingPresetName: String?,
+    onEnableEqualizer: () -> Unit,
     onBandLevelChanged: (Int, Int) -> Unit,
     viewMode: EqualizerViewMode,
     onSaveClick: () -> Unit,
@@ -656,6 +658,12 @@ private fun BandSlidersSection(
             }
             
             Spacer(modifier = Modifier.height(10.dp))
+
+            if (!isEnabled) {
+                TextButton(onClick = onEnableEqualizer) {
+                    Text(stringResource(R.string.presentation_batch_d_eq_enable_cd))
+                }
+            }
 
             when (viewMode) {
                 EqualizerViewMode.GRAPH -> {

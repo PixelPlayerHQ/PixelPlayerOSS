@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="recap_card_title">Nhìn lại năm %1$d của bạn</string>
+    <string name="recap_card_title_so_far">Năm %1$d của bạn đến nay</string>
+    <string name="recap_card_subtitle">Sống lại một năm âm nhạc của bạn</string>
+    <string name="recap_card_subtitle_so_far">Xem năm âm nhạc của bạn đang định hình thế nào</string>
+    <string name="recap_home_card_title">Bản nhìn lại %1$d của bạn đã sẵn sàng</string>
+    <string name="recap_home_card_subtitle">Cùng thưởng thức lại những bài hát, nghệ sĩ và khoảnh khắc đã tạo nên năm nay của bạn.</string>
+    <string name="recap_home_card_open">Mở bản nhìn lại</string>
+    <string name="recap_home_card_dismiss">Đóng</string>
+    <string name="recap_cd_close">Đóng bản nhìn lại</string>
+    <string name="recap_cd_pause">Tạm dừng</string>
+    <string name="recap_cd_resume">Tiếp tục</string>
+    <string name="recap_cd_slide_progress">Trang %1$d trên %2$d</string>
+    <string name="recap_action_next_slide">Trang tiếp theo</string>
+    <string name="recap_action_previous_slide">Trang trước</string>
+    <string name="recap_close">Đóng</string>
+    <string name="recap_not_enough_title">Chưa đủ dữ liệu nghe nhạc</string>
+    <string name="recap_not_enough_subtitle">Tiếp tục nghe nhạc và bản nhìn lại năm %1$d của bạn sẽ được hoàn thiện.</string>
+    <string name="recap_intro_kicker">PixelPlayerOSS Recap</string>
+    <string name="recap_intro_title">Năm âm nhạc của bạn</string>
+    <string name="recap_intro_title_so_far">Năm nay của bạn đến nay</string>
+    <string name="recap_intro_subtitle">Nhìn lại những giai điệu, nghệ sĩ và khoảnh khắc đồng hành cùng bạn suốt cả năm.</string>
+    <string name="recap_tap_hint">Chạm để tiếp tục</string>
+    <string name="recap_minutes_kicker">Trong năm %1$d bạn đã nghe</string>
+    <plurals name="recap_minutes_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">phút</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="other">Tương đương khoảng %d ngày nghe nhạc không ngừng nghỉ.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="other">Tương đương khoảng %d giờ nghe nhạc liên tục.</item>
+    </plurals>
+    <string name="recap_minutes_daily_average">Trung bình mỗi ngày</string>
+    <string name="recap_minutes_active_days">Số ngày có nghe nhạc</string>
+    <string name="recap_months_kicker">Tháng nghe nhạc nhiều nhất</string>
+    <string name="recap_months_detail">%1$s nghe nhạc</string>
+    <string name="recap_clock_kicker">Đồng hồ nghe nhạc của bạn</string>
+    <string name="recap_personality_early_bird">Chú chim sớm</string>
+    <string name="recap_personality_early_bird_desc">Bạn bắt đầu ngày mới với âm nhạc. Buổi sáng là thời gian nghe nhạc chủ yếu của bạn.</string>
+    <string name="recap_personality_daytime">Người nghe ban ngày</string>
+    <string name="recap_personality_daytime_desc">Âm nhạc đồng hành cùng bạn suốt cả ngày, từ cuối buổi sáng đến tận chiều muộn.</string>
+    <string name="recap_personality_evening">Thư giãn buổi tối</string>
+    <string name="recap_personality_evening_desc">Khi ngày dần khép lại, âm nhạc lại vang lên rộn rã.</string>
+    <string name="recap_personality_night_owl">Cú đêm</string>
+    <string name="recap_personality_night_owl_desc">Càng về khuya, bạn nghe nhạc càng nhiều.</string>
+    <string name="recap_clock_favorite_day">Ngày yêu thích: %1$s</string>
+    <string name="recap_cd_chart_entry">%1$s: %2$s</string>
+    <string name="recap_cd_months_chart">Thời gian nghe theo tháng: %1$s</string>
+    <string name="recap_cd_clock_chart">Thời gian nghe theo giờ: %1$s</string>
+    <string name="recap_dedication_kicker">Chuỗi ngày dài nhất</string>
+    <plurals name="recap_streak_unit" tools:ignore="ImpliedQuantity">
+        <item quantity="other">ngày liên tiếp</item>
+    </plurals>
+    <string name="recap_dedication_longest_session">Phiên nghe dài nhất</string>
+    <string name="recap_dedication_biggest_day">Ngày nghe nhiều nhất</string>
+    <string name="recap_dedication_first_song">Bài hát đầu tiên trong năm</string>
+    <string name="recap_genres_kicker">Thể loại hàng đầu của bạn</string>
+    <string name="recap_genres_share">%1$s tổng thời gian nghe của bạn</string>
+    <string name="recap_decade_kicker">Kỷ nguyên của bạn</string>
+    <string name="recap_decade_value">Những năm %1$d</string>
+    <string name="recap_decade_detail">%1$s thời gian nghe của bạn đến từ âm nhạc phát hành trong thập kỷ này.</string>
+    <string name="recap_albums_kicker">Album hàng đầu</string>
+    <plurals name="recap_unique_albums">
+        <item quantity="other">%d album trong danh sách nghe thường xuyên của bạn</item>
+    </plurals>
+    <string name="recap_artists_kicker">Nghệ sĩ hàng đầu</string>
+    <plurals name="recap_unique_artists">
+        <item quantity="other">Bạn đã nghe %d nghệ sĩ khác nhau</item>
+    </plurals>
+    <string name="recap_songs_kicker">Bài hát hàng đầu</string>
+    <plurals name="recap_unique_songs">
+        <item quantity="other">Bạn đã phát %d bài hát khác nhau</item>
+    </plurals>
+    <string name="recap_summary_kicker">Nhìn lại cả năm của bạn</string>
+    <string name="recap_summary_title">Âm nhạc năm %1$d của tôi</string>
+    <string name="recap_summary_title_so_far">Năm %1$d của tôi đến nay</string>
+    <string name="recap_summary_minutes">Số phút đã nghe</string>
+    <string name="recap_summary_top_artist">Nghệ sĩ hàng đầu</string>
+    <string name="recap_summary_top_song">Bài hát hàng đầu</string>
+    <string name="recap_summary_top_genre">Thể loại hàng đầu</string>
+    <string name="recap_summary_top_album">Album hàng đầu</string>
+    <string name="recap_summary_listening_style">Phong cách nghe nhạc</string>
+    <string name="recap_share">Chia sẻ</string>
+    <string name="recap_share_chooser_title">Chia sẻ bản nhìn lại của bạn</string>
+    <string name="recap_share_text">Âm nhạc năm %1$d của tôi, tạo với PixelPlayerOSS</string>
+    <string name="recap_share_failed">Không thể tạo ảnh chia sẻ bản nhìn lại</string>
+    <string name="recap_play_top_songs">Phát các bài hát hàng đầu</string>
+    <string name="recap_top_songs_queue_name">Các bài hát hàng đầu năm %1$d</string>
+    <string name="recap_replay">Xem lại</string>
+</resources>

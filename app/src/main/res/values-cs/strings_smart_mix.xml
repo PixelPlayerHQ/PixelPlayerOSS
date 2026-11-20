@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mix_title">Chytrý mix</string>
+    <string name="mix_tune_today">Upravit dnešní mix</string>
+    <string name="mix_daily_subtitle">Než změnu použijete v dnešním mixu, poslechněte si náhled</string>
+    <string name="mix_library_subtitle">Vytvořte mix ze své hudební knihovny</string>
+    <string name="mix_close">Zavřít mix</string>
+    <string name="mix_request_label">Na co máte chuť?</string>
+    <string name="mix_request_placeholder">Interpret, žánr, nálada nebo činnost</string>
+    <string name="mix_suggest_recent">Nedávné zadání: %1$s</string>
+    <string name="mix_suggest_rediscover">Znovu objevit: %1$s</string>
+    <string name="mix_back">Zpět k zadání</string>
+    <string name="mix_done">Hotovo</string>
+    <string name="mix_thinking">Příprava mixu…</string>
+    <string name="mix_refine">Doladit mix</string>
+    <string name="mix_length">Délka playlistu</string>
+    <string name="mix_auto">Automaticky</string>
+    <string name="mix_up_to">Až %1$d</string>
+    <string name="mix_energy">Energie</string>
+    <string name="mix_energy_calm">Klidná</string>
+    <string name="mix_energy_steady">Vyrovnaná</string>
+    <string name="mix_energy_energetic">Energická</string>
+    <string name="mix_refine_hint">Automatický výběr se řídí vaším zadáním. Pokud energii určíte ručně, může vyhovovat méně skladeb.</string>
+    <string name="mix_selection_summary">Délka: %1$s · energie: %2$s</string>
+    <string name="mix_edit_request">Upravit zadání</string>
+    <string name="mix_playlist_name">Název playlistu</string>
+    <string name="mix_short_result">V knihovně je méně odpovídajících skladeb, než požadujete. Vaše požadavky jsme neměnili.</string>
+    <string name="mix_preview_action">Poslechnout si náhled mixu</string>
+    <string name="mix_play">Přehrát</string>
+    <string name="mix_use_today">Použít pro dnešek</string>
+    <string name="mix_save">Uložit playlist</string>
+    <string name="mix_saved_action">Uloženo</string>
+    <string name="mix_saved">Uloženo jako %1$s</string>
+    <string name="mix_save_failed">Playlist se nepodařilo uložit. Náhled zůstává k dispozici, zkuste uložení znovu.</string>
+    <string name="mix_no_matches">Nenašly se žádné odpovídající skladby. Upravte zadání nebo nastavte energii na Automaticky.</string>
+    <string name="mix_daily_updated">Denní mix byl aktualizován</string>
+    <string name="mix_undo">Zpět</string>
+</resources>

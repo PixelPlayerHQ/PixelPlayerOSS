@@ -12,6 +12,7 @@ class AppLanguageTest {
         AppLanguage.SYSTEM to "System default",
         AppLanguage.ENGLISH to "English",
         AppLanguage.ARABIC to "العربية",
+        AppLanguage.CZECH to "Čeština",
         AppLanguage.GERMAN to "Deutsch",
         AppLanguage.SPANISH to "Español",
         AppLanguage.FRENCH to "Français",
@@ -20,8 +21,11 @@ class AppLanguageTest {
         AppLanguage.KOREAN to "한국어",
         AppLanguage.NORWEGIAN_BOKMAL to "Norsk bokmål",
         AppLanguage.RUSSIAN to "Русский",
+        AppLanguage.SLOVAK to "Slovenčina",
         AppLanguage.TURKISH to "Türkçe",
-        AppLanguage.ZH_RCN to "简体中文"
+        AppLanguage.ZH_RCN to "简体中文",
+        AppLanguage.VIETNAMESE to "Tiếng Việt",
+        AppLanguage.PORTUGUESE_BR to "Português (Brasil)"
     )
 
     private val context = mockk<Context> {
@@ -36,7 +40,6 @@ class AppLanguageTest {
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize(null))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize(""))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("   "))
-        assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("pt-BR"))
         assertEquals(AppLanguage.SYSTEM.tag, AppLanguage.normalize("klingon"))
     }
 

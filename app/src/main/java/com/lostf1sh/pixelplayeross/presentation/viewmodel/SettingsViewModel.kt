@@ -20,12 +20,14 @@ import com.lostf1sh.pixelplayeross.data.preferences.AppThemeMode
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.data.preferences.LibraryNavigationMode
 import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
+import com.lostf1sh.pixelplayeross.data.preferences.SwipeToQueueAction
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_DUET_LAYOUT_ENABLED
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_LYRICS_FONT_SIZE_SP
 import com.lostf1sh.pixelplayeross.data.preferences.DEFAULT_SHOW_LYRICS_BACKGROUND_VOCALS
 import com.lostf1sh.pixelplayeross.data.preferences.LyricsWordHighlightStyle
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreference
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreset
+import com.lostf1sh.pixelplayeross.data.preferences.InterfaceAppearance
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.utils.FolderArtworkSettingsCoordinator
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtQuality
@@ -69,6 +71,7 @@ data class SettingsUiState(
     val appThemeMode: String = AppThemeMode.FOLLOW_SYSTEM,
     val globalNowPlayingThemeEnabled: Boolean = false,
     val themePreset: String = ThemePreset.DEFAULT,
+    val interfaceAppearance: InterfaceAppearance = InterfaceAppearance(),
     val playerThemePreference: String = ThemePreference.ALBUM_ART,
     val albumArtPaletteStyle: AlbumArtPaletteStyle = AlbumArtPaletteStyle.default,
     val albumArtColorAccuracy: Int = AlbumArtColorAccuracy.DEFAULT,
@@ -106,6 +109,7 @@ data class SettingsUiState(
     val miniPlayerSwipeToSkip: Boolean = false,
     val autoplayOnSkip: Boolean = true,
     val previousButtonBehavior: PreviousButtonBehavior = PreviousButtonBehavior.DEFAULT,
+    val swipeToQueueAction: SwipeToQueueAction = SwipeToQueueAction.DEFAULT,
     val hapticsEnabled: Boolean = true,
     val immersiveLyricsEnabled: Boolean = false,
     val immersiveLyricsTimeout: Long = 4000L,
@@ -129,6 +133,7 @@ data class SettingsUiState(
     val collageAutoRotate: Boolean = false,
     val minSongDuration: Int = 10000,
     val minTracksPerAlbum: Int = 1,
+    val minTracksPerArtist: Int = 1,
     val replayGainEnabled: Boolean = false,
     val replayGainUseAlbumGain: Boolean = false
 )
@@ -267,6 +272,11 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             themePreferencesRepository.themePresetFlow.collect { preset ->
                 _uiState.update { it.copy(themePreset = preset) }
+            }
+        }
+        viewModelScope.launch {
+            themePreferencesRepository.interfaceAppearanceFlow.collect { appearance ->
+                _uiState.update { it.copy(interfaceAppearance = appearance) }
             }
         }
     }
@@ -509,6 +519,12 @@ class SettingsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
+            userPreferencesRepository.swipeToQueueActionFlow.collect { action ->
+                _uiState.update { it.copy(swipeToQueueAction = action) }
+            }
+        }
+
+        viewModelScope.launch {
             userPreferencesRepository.minSongDurationFlow.collect { duration ->
                 _uiState.update { it.copy(minSongDuration = duration) }
             }
@@ -517,6 +533,12 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             userPreferencesRepository.minTracksPerAlbumFlow.collect { minTracks ->
                 _uiState.update { it.copy(minTracksPerAlbum = minTracks) }
+            }
+        }
+
+        viewModelScope.launch {
+            userPreferencesRepository.minTracksPerArtistFlow.collect { minTracks ->
+                _uiState.update { it.copy(minTracksPerArtist = minTracks) }
             }
         }
 
@@ -625,6 +647,14 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             themePreferencesRepository.setThemePreset(preset)
         }
+    }
+
+    fun setUseSystemFont(enabled: Boolean) {
+        viewModelScope.launch { themePreferencesRepository.setUseSystemFont(enabled) }
+    }
+
+    fun setInterfaceScale(scalePercent: Int) {
+        viewModelScope.launch { themePreferencesRepository.setInterfaceScale(scalePercent) }
     }
 
     fun setAlbumArtPaletteStyle(style: AlbumArtPaletteStyle) {
@@ -965,6 +995,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setMinTracksPerArtist(minTracks: Int) {
+        viewModelScope.launch {
+            userPreferencesRepository.setMinTracksPerArtist(minTracks)
+        }
+    }
+
     fun setReplayGainEnabled(enabled: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.setReplayGainEnabled(enabled)
@@ -1075,6 +1111,12 @@ class SettingsViewModel @Inject constructor(
     fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
         viewModelScope.launch {
             userPreferencesRepository.setPreviousButtonBehavior(behavior)
+        }
+    }
+
+    fun setSwipeToQueueAction(action: SwipeToQueueAction) {
+        viewModelScope.launch {
+            userPreferencesRepository.setSwipeToQueueAction(action)
         }
     }
 

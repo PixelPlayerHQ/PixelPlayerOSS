@@ -2,6 +2,9 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.ui.theme.withInterfaceFont
+
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
 import com.lostf1sh.pixelplayeross.presentation.components.DetailHeroArtistChip
@@ -107,6 +110,8 @@ import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.EnhancedSongListItem
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.AlbumDetailViewModel
@@ -140,6 +145,7 @@ fun AlbumDetailScreen(
     }
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val completedOfflineUris by viewModel.completedOfflineUris.collectAsStateWithLifecycle()
     val allArtists by playerViewModel.artistsFlow.collectAsStateWithLifecycle()
     var showAlbumPlaylistSheet by remember { mutableStateOf(false) }
@@ -147,7 +153,9 @@ fun AlbumDetailScreen(
     var showSongInfoBottomSheet by remember { mutableStateOf(false) }
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
+    val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
     val isDarkTheme = LocalPixelPlayerDarkTheme.current
     val baseColorScheme = MaterialTheme.colorScheme
@@ -316,7 +324,7 @@ fun AlbumDetailScreen(
                 // Same per-album variable-font title as the album cards in the Library.
                 val heroTitleStyle = remember(album.id, album.title) {
                     GenreTypography.getGenreStyle(album.id.toString(), album.title)
-                }
+                }.withInterfaceFont()
                 val heroMetaLine = listOfNotNull(
                     albumGenre,
                     album.year.takeIf { it > 0 }?.toString()
@@ -523,6 +531,7 @@ fun AlbumDetailScreen(
                                     playerViewModel = playerViewModel,
                                     customShape = getSegmentedItemShape(index, discSongs.size),
                                     showAlbumArt = false,
+                                    onSwipeToQueue = swipeToQueue?.let { { it(song) } },
                                     onMoreOptionsClick = {
                                         playerViewModel.selectSongForInfo(song)
                                         showSongInfoBottomSheet = true

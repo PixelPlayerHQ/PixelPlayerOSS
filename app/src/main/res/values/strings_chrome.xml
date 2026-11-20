@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="setup_gate_preparing">Preparing setup…</string>
     <string name="song_info_label_provider">Provider</string>
     <string name="song_info_label_path">Path</string>
+    <string name="song_info_open_source" tools:ignore="MissingTranslation">Open source</string>
+    <string name="song_info_open_source_failed" tools:ignore="MissingTranslation">No app could open this link</string>
     <string name="cd_playlist_artwork">Playlist</string>
     <string name="home_your_mix_subtitle">Today\'s Mix for you</string>
     <string name="home_your_mix_queue_name">Your Mix</string>

@@ -6,6 +6,17 @@ import org.junit.jupiter.api.Test
 class ArtistParsingUtilsTest {
 
     @Test
+    fun `literal plus signs in artist names survive while spaced plus separates artists`() {
+        val result = collectArtistNames(
+            rawArtistNames = listOf("t+pazolite + Camellia", "+44", "C++"),
+            title = "Track (feat. XX+YY + Z)",
+            artistDelimiters = listOf("+", "&")
+        )
+
+        assertEquals(listOf("t+pazolite", "Camellia", "+44", "C++", "XX+YY", "Z"), result)
+    }
+
+    @Test
     fun `choosePreferredArtistName prefers media store when it contains more artists`() {
         val result =
             choosePreferredArtistName(

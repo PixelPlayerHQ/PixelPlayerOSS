@@ -7,6 +7,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.DragInteraction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.*
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -16,6 +19,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import coil.size.Size
+import com.lostf1sh.pixelplayeross.data.image.withNavidromeCoverSize
 import com.lostf1sh.pixelplayeross.data.model.Song
 import com.lostf1sh.pixelplayeross.data.preferences.CarouselStyle
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.PrefetchAlbumNeighbors
@@ -79,7 +83,8 @@ fun AlbumCarouselSection(
         queue = queue,
         radius = 1,
         targetSize = targetSize,
-        anchorIndex = effectiveTargetIndex
+        anchorIndex = effectiveTargetIndex,
+        navidromeCoverSizePx = albumArtQuality.maxSize
     )
     // Scrolls this section runs itself: skips, and the snap when the queue shifts around the
     // playing song. A counter rather than a flag, because a cancelled scroll's cleanup can run
@@ -160,7 +165,7 @@ fun AlbumCarouselSection(
             }
     }
 
-    val corner = 18.dp
+    val corner = 24.dp
 
     BoxWithConstraints(modifier = modifier) {
         val availableWidth = this.maxWidth
@@ -175,24 +180,32 @@ fun AlbumCarouselSection(
             itemKey = { index -> carouselItemKeys.getOrNull(index) ?: "queue_item_$index" },
             content = { index ->
                 val song = queue[index]
+                val coverUri = remember(song.albumArtUriString, albumArtQuality) {
+                    song.albumArtUriString?.withNavidromeCoverSize(albumArtQuality.maxSize)
+                }
                 val isFocusedItem = pagerState.currentPage == index
                 Box(
-                    Modifier
-                        .fillMaxSize()
-                        .aspectRatio(1f)
-                        .clickable(
-                            enabled = isFocusedItem && song.albumId != -1L,
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { onAlbumClick(song) }
-                        )
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    OptimizedAlbumArt(
-                        uri = song.albumArtUriString,
-                        title = song.title,
-                        modifier = Modifier.fillMaxSize(),
-                        targetSize = targetSize
-                    )
+                    Box(
+                        Modifier
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(corner))
+                            .clickable(
+                                enabled = isFocusedItem && song.albumId != -1L,
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                                onClick = { onAlbumClick(song) }
+                            )
+                    ) {
+                        OptimizedAlbumArt(
+                            uri = coverUri,
+                            title = song.title,
+                            modifier = Modifier.fillMaxSize(),
+                            targetSize = targetSize
+                        )
+                    }
                 }
             }
         )

@@ -156,6 +156,12 @@ interface MusicRepository {
     suspend fun getAllSongsOnce(): List<Song>
 
     /**
+     * The songs among [songIds] that [getAllSongsOnce] would return, under the same directory
+     * filter, in no particular order. Ids that are not library songs are skipped.
+     */
+    suspend fun getSongsByIdsOnce(songIds: Collection<String>): List<Song>
+
+    /**
      * Returns one representative song per unique album art URI for maintenance tools that
      * operate on artwork-derived palettes.
      */

@@ -53,6 +53,17 @@ internal fun computeQueueVisualOpenFraction(
     return dragFraction * (1f - predictiveBackProgress.coerceIn(0f, 1f))
 }
 
+/**
+ * Whether the queue and song info host stays composed. A keyboard opened elsewhere drops it, but
+ * one opened from inside the open queue (the custom speed field) must not: unmounting the host
+ * would dispose the dialog that owns the keyboard and drop the user back to the queue.
+ */
+internal fun computeShouldRenderQueueHost(
+    isKeyboardVisible: Boolean,
+    isQueueShown: Boolean,
+    isSongInfoShown: Boolean
+): Boolean = !isKeyboardVisible || isQueueShown || isSongInfoShown
+
 @Composable
 internal fun rememberSheetOverlayState(
     density: Density,

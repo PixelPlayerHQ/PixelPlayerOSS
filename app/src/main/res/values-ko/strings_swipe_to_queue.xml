@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">노래 목록</string>
+    <string name="setcat_swipe_to_queue_title">노래 스와이프</string>
+    <string name="setcat_swipe_to_queue_description">재생목록, 앨범, 아티스트, 장르, 믹스에서 노래 행을 화면 끝쪽으로 스와이프합니다.</string>
+    <string name="setcat_swipe_to_queue_add">대기열에 추가</string>
+    <string name="setcat_swipe_to_queue_add_description">노래를 대기열 끝에 추가합니다.</string>
+    <string name="setcat_swipe_to_queue_next">다음에 재생</string>
+    <string name="setcat_swipe_to_queue_next_description">재생 중인 노래 바로 다음에 추가합니다.</string>
+    <string name="setcat_swipe_to_queue_off">끄기</string>
+    <string name="setcat_swipe_to_queue_off_description">노래를 스와이프해도 아무 일도 일어나지 않습니다.</string>
+</resources>

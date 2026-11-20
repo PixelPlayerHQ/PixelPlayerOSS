@@ -158,12 +158,7 @@ class EqualizerViewModel @Inject constructor(
                  val customPresets = (values[13] as? List<*>)?.filterIsInstance<EqualizerPreset>() ?: emptyList()
                  val pinnedPresets = (values[14] as? List<*>)?.filterIsInstance<String>() ?: emptyList()
 
-                val currentPreset = if (presetName == "custom") {
-                    EqualizerPreset.custom(customBands)
-                } else {
-                     customPresets.find { it.name == presetName }
-                        ?: EqualizerPreset.fromName(presetName)
-                }
+                val currentPreset = EqualizerPreset.resolve(presetName, customBands, customPresets)
 
                 EqualizerUiState(
                     isEnabled = enabled,

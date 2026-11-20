@@ -6,6 +6,7 @@
     <string name="sort_method_artist">Artist</string>
     <string name="sort_method_album">Album</string>
     <string name="sort_method_date_added">Dato lagt til</string>
+    <string name="sort_method_date_modified">Dato endret</string>
     <string name="sort_method_duration">Varighet</string>
     <string name="sort_method_release_year">Utgivelsesår</string>
     <string name="sort_method_song_count">Antall sanger</string>

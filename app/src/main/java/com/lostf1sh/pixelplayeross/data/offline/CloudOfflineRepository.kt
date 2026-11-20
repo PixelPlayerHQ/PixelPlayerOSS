@@ -21,6 +21,7 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -74,57 +75,71 @@ class CloudOfflineRepository @Inject constructor(
     fun observeAll(): Flow<List<OfflineDownload>> =
         dao.observeAll().map { rows -> rows.map(OfflineTrackEntity::toModel) }
 
-    suspend fun enqueue(song: Song) = withContext(Dispatchers.IO) {
-        mutationMutex.withLock {
-            val provider = providerFor(song.contentUriString) ?: return@withLock
-            val downloadId = downloadId(song.contentUriString)
-            val existing = dao.getBySourceUri(song.contentUriString)
-            val completedFileAvailable = existing?.localPath
-                ?.let(::File)
-                ?.let { it.isFile && it.length() > 0L }
-                ?: false
-            if (!shouldStartNewAttempt(existing?.state, completedFileAvailable)) {
-                return@withLock
-            }
-            existing?.let {
-                it.localPath?.let(::File)?.delete()
-                deleteAttemptFiles(context, it.downloadId, it.attemptId)
-            }
-
-            val attemptId = UUID.randomUUID().toString()
-            val request = downloadRequest(
-                downloadId = downloadId,
-                attemptId = attemptId,
-                sourceUri = song.contentUriString
-            )
-
-            val now = System.currentTimeMillis()
-            dao.upsert(
-                OfflineTrackEntity(
-                    downloadId = downloadId,
-                    attemptId = attemptId,
-                    songId = song.id,
-                    sourceUri = song.contentUriString,
-                    provider = provider,
-                    title = song.title,
-                    mimeType = song.mimeType,
-                    localPath = null,
-                    state = OfflineDownloadStatus.QUEUED.storageValue,
-                    createdAt = existing?.createdAt ?: now,
-                    updatedAt = now
-                )
-            )
-
-            workManager.enqueueUniqueWork(
-                workName(downloadId),
-                ExistingWorkPolicy.REPLACE,
-                request
-            ).await()
-        }
+    suspend fun enqueue(song: Song) {
+        enqueueAll(listOf(song))
     }
 
-    suspend fun enqueueAll(songs: Collection<Song>) {
-        downloadCandidates(songs).forEach { enqueue(it) }
+    suspend fun enqueueAll(songs: Collection<Song>): Int = withContext(Dispatchers.IO) {
+        mutationMutex.withLock {
+            var queued = 0
+            for (batch in downloadCandidates(songs).chunked(QUEUE_BATCH_SIZE)) {
+                val existingByUri = dao.getBySourceUris(batch.map(Song::contentUriString))
+                    .associateBy(OfflineTrackEntity::sourceUri)
+                val now = System.currentTimeMillis()
+                val attempts = batch.mapNotNull { song ->
+                    val sourceUri = song.contentUriString
+                    val provider = providerFor(sourceUri) ?: return@mapNotNull null
+                    val existing = existingByUri[sourceUri]
+                    val completedFileAvailable = existing?.localPath?.let(::File)
+                        ?.let { it.isFile && it.length() > 0L } == true
+                    if (!shouldStartNewAttempt(existing?.state, completedFileAvailable)) {
+                        return@mapNotNull null
+                    }
+                    existing?.let {
+                        it.localPath?.let(::File)?.delete()
+                        deleteAttemptFiles(context, it.downloadId, it.attemptId)
+                    }
+                    OfflineTrackEntity(
+                        downloadId = existing?.downloadId ?: downloadId(sourceUri),
+                        attemptId = UUID.randomUUID().toString(),
+                        songId = song.id,
+                        sourceUri = sourceUri,
+                        provider = provider,
+                        title = song.title,
+                        mimeType = song.mimeType,
+                        localPath = null,
+                        state = OfflineDownloadStatus.QUEUED.storageValue,
+                        createdAt = existing?.createdAt ?: now,
+                        updatedAt = now
+                    )
+                }
+                if (attempts.isEmpty()) continue
+                withContext(NonCancellable) {
+                    dao.upsertAll(attempts)
+                    try {
+                        workManager.enqueue(attempts.map { attempt ->
+                            downloadRequest(attempt.downloadId, attempt.attemptId, attempt.sourceUri)
+                        }).await()
+                    } catch (error: Exception) {
+                        attempts.forEach { attempt ->
+                            dao.updateState(
+                                downloadId = attempt.downloadId,
+                                attemptId = attempt.attemptId,
+                                state = OfflineDownloadStatus.FAILED.storageValue,
+                                bytesDownloaded = 0L,
+                                totalBytes = null,
+                                localPath = null,
+                                errorMessage = null,
+                                updatedAt = System.currentTimeMillis()
+                            )
+                        }
+                        throw error
+                    }
+                }
+                queued += attempts.size
+            }
+            queued
+        }
     }
 
     suspend fun retry(sourceUri: String) = withContext(Dispatchers.IO) {
@@ -171,7 +186,7 @@ class CloudOfflineRepository @Inject constructor(
             }
 
             try {
-                workManager.cancelUniqueWork(workName(entity.downloadId)).await()
+                workManager.cancelAllWorkByTag(workName(entity.downloadId)).await()
             } finally {
                 entity.localPath?.let(::File)?.takeIf { it.exists() }?.delete()
                 deleteAttemptFiles(context, entity.downloadId, entity.attemptId)
@@ -193,6 +208,8 @@ class CloudOfflineRepository @Inject constructor(
     }
 
     companion object {
+        private const val QUEUE_BATCH_SIZE = 100
+
         fun isCloudSong(song: Song): Boolean = providerFor(song.contentUriString) != null
 
         fun downloadCandidates(songs: Iterable<Song>): List<Song> = songs.asSequence()

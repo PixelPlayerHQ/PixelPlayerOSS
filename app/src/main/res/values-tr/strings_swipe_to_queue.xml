@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Şarkı listeleri</string>
+    <string name="setcat_swipe_to_queue_title">Şarkıyı kaydır</string>
+    <string name="setcat_swipe_to_queue_description">Çalma listeleri, albümler, sanatçılar, türler ve mikslerde bir şarkı satırını ekranın sonuna doğru kaydırın.</string>
+    <string name="setcat_swipe_to_queue_add">Sıraya ekle</string>
+    <string name="setcat_swipe_to_queue_add_description">Şarkıyı sıranın sonuna ekler.</string>
+    <string name="setcat_swipe_to_queue_next">Sıradaki</string>
+    <string name="setcat_swipe_to_queue_next_description">Şarkıyı çalanın hemen arkasına ekler.</string>
+    <string name="setcat_swipe_to_queue_off">Kapalı</string>
+    <string name="setcat_swipe_to_queue_off_description">Şarkıyı kaydırmak hiçbir şey yapmaz.</string>
+</resources>

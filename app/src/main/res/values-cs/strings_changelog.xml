@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="presentation_batch_g_changelog_060_whats_new">
+        <item>Nedávno přehrané skladby a obnovení fronty vám umožní navázat na poslední poslech.</item>
+        <item>Přibylo zálohování a obnovení verze 3 i nástroje pro správu účtů.</item>
+        <item>Texty skladeb můžete ručně vyhledat, pokud je aplikace nenajde sama. Vylepšili jsme také jejich ukládání.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_060_improvements">
+        <item>Rozsáhlé zrychlení spuštění, knihovny, fronty i ovládání přehrávače.</item>
+        <item>Navigace a vyhledávání jsou spolehlivější díky bezpečnějšímu přechodu mezi obrazovkami.</item>
+        <item>Lepší kompatibilita přehrávání s více zařízeními a formáty.</item>
+        <item>Rozšířené možnosti hromadného výběru skladeb, alb i playlistů.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_060_fixes">
+        <item>Stabilnější a předvídatelnější chování fronty a náhodného přehrávání.</item>
+        <item>Opravy časovače vypnutí, navigace v souborech a pádů souvisejících s interpretem alba.</item>
+        <item>Spolehlivější načítání widgetů a běh služeb omezují přehřívání a problémy s pamětí.</item>
+        <item>Další opravy chyb a vylepšení rozhraní v celé aplikaci.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_050_highlights">
+        <item>Nový vzhled ve stylu Material 3 Expressive</item>
+        <item>Desetipásmový ekvalizér a efekty</item>
+        <item>Nový postup synchronizace knihovny</item>
+        <item>Import a export playlistů M3U</item>
+        <item>Fotky interpretů z Deezeru</item>
+        <item>Vlastní obaly playlistů</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_050_improvements">
+        <item>Přepracovaná struktura nastavení</item>
+        <item>Animace fronty a přehrávače</item>
+        <item>Profily Baseline Profile a vyšší výkon</item>
+        <item>Lepší práce s texty skladeb včetně posunu časování</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_050_fixes">
+        <item>Vyšší stabilita panelu přehrávače</item>
+        <item>Další opravy chyb a úklid kódu</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_040_highlights">
+        <item>Výrazně přepracovaná navigace</item>
+        <item>Nový průzkumník souborů pro výběr zdrojových složek</item>
+        <item>Plynulé navázání přehrávání mezi vzdálenými zařízeními</item>
+        <item>Přehrávání skladeb bez mezer</item>
+        <item>Ovládání plynulých přechodů</item>
+        <item>Nové vlastní přechody mezi skladbami (jen pro playlisty)</item>
+        <item>Možnost pokračovat v přehrávání po zavření aplikace</item>
+        <item>Optimalizace uživatelského rozhraní</item>
+        <item>Vylepšené statistiky</item>
+        <item>Přepracované ovládání fronty s dalšími možnostmi</item>
+        <item>Lepší podpora různých typů souborů při přehrávání a úpravách metadat</item>
+        <item>Lepší správa oprávnění</item>
+        <item>Drobné opravy chyb</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_030_whats_new">
+        <item>Podrobnější statistiky s lepším přehledem o vašem poslechu.</item>
+        <item>Plovoucí minipřehrávač pro okamžité otevření a přehrání místních souborů.</item>
+        <item>Nová karta složek se stromovou navigací a zobrazením pro práci s playlisty.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_030_improvements">
+        <item>Čistší a jednotnější vzhled Material 3 v celé aplikaci.</item>
+        <item>Při úpravách metadat můžete nově měnit obal.</item>
+        <item>Plynulejší animace a přechody usnadňují navigaci v celé aplikaci.</item>
+        <item>Přehlednější stránka interpreta s více podrobnostmi.</item>
+        <item>Chytřejší a pestřejší výběr skladeb pro denní mix a Váš mix.</item>
+        <item>Lepší výsledky a přehlednější vyhledávání pro rychlé objevování hudby.</item>
+        <item>Podpora širšího výběru zvukových formátů.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_030_fixes">
+        <item>Opravy metadat, aby se informace o skladbách všude zobrazovaly správně.</item>
+        <item>Zkratky v oznámení vás opět spolehlivě vrátí k přehrávání.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_020_added">
+        <item>Přehled změn přímo v aplikaci vás informuje o nových funkcích.</item>
+        <item>Podpora vložených i externích souborů .lrc.</item>
+        <item>Podpora textů skladeb offline.</item>
+        <item>Texty skladeb synchronizované s přehráváním.</item>
+        <item>Nová obrazovka s celou frontou přehrávání.</item>
+        <item>Změna pořadí a odebírání skladeb z fronty.</item>
+        <item>Gesta minipřehrávače (přejetím dolů ho zavřete).</item>
+        <item>Další animace ve stylu Material.</item>
+        <item>Nová nastavení vzhledu a chování.</item>
+        <item>Nové možnosti vymazání mezipaměti.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_020_changed">
+        <item>Kompletně přepracované uživatelské rozhraní.</item>
+        <item>Kompletně přepracovaný přehrávač.</item>
+        <item>Vyšší výkon knihovny.</item>
+        <item>Rychlejší spuštění aplikace.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_020_fixed">
+        <item>Opravy několika chyb v editoru metadat.</item>
+        <item>Oprava chyby, kvůli které se nezavřelo oznámení o přehrávání.</item>
+        <item>Opravy několika chyb, které způsobovaly pád aplikace.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_070_whats_new">
+        <item>První veřejné vydání PixelPlayerOSS jako svobodného softwaru.</item>
+        <item>Místní přehrávání, playlisty, oblíbené skladby, texty, statistiky poslechu, dynamické motivy Material 3, widgety a zálohování s obnovením.</item>
+        <item>Zůstává podpora vlastních serverů Navidrome, Subsonic a Jellyfin i volitelné hledání textů na LRCLIB a fotek interpretů na Deezeru.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_070_improvements">
+        <item>Odebrány závislosti na Telegramu, NetEase, QQ Music, Disku Google, Gemini, Cast, Wear OS, platbách Obchodu Play, Firebase, Crashlytics a Službách Google Play.</item>
+        <item>Odebráno zaznamenávání poslechu na veřejných službách Last.fm a ListenBrainz. Navidrome a Subsonic nadále zaznamenávají poslech jen na vlastním serveru uživatele.</item>
+        <item>Z prvního svobodného vydání jsme odebrali přibalené překlady i výběr jazyka v aplikaci. První vydání používá angličtinu.</item>
+        <item>Odebrány způsoby vydávání závislé na místních či neveřejných podpisových souborech, zástupných podpisových hodnotách nebo pravidlech konkrétního obchodu.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_070_fixes">
+        <item>Přibyla metadata pro F-Droid a Fastlane, informace o soukromí a zabezpečení, dokumentace závislostí a licencí i pokyny pro přispěvatele.</item>
+        <item>Bez místních podpisových klíčů zůstávají produkční sestavení nepodepsaná.</item>
+        <item>Přibyla volba pixelplayer.disableReleaseSigning=true pro reprodukovatelná nepodepsaná ověřovací sestavení.</item>
+        <item>Zdokumentovali jsme licence prostředků a závislostí včetně nativních a binárních artefaktů Maven a závislostí z JitPacku.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_070_added">
+        <item>Místní přenos cloudového zvuku teď vyžaduje jedinečný token pro každou relaci.</item>
+        <item>Při obnovení zálohy se přeskočí klíče předvoleb, které spravují samostatné moduly.</item>
+        <item>Přísnější protokolování v produkční verzi brání tomu, aby hlavičky požadavků HTTP a nezpracované protokoly Androidu obešly filtr Timberu.</item>
+        <item>Přibylo také ukládání chytrých playlistů, hledání duplicit, nastavení rychlosti přehrávání, srozumitelnější chybové zprávy a lepší přístupnost.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_v020_whats_new">
+        <item>Vylepšení stylu Material 3 Expressive: nové animace, vlnité ukazatele průběhu a plynulé změny tvarů v celé aplikaci.</item>
+        <item>K serverům Jellyfin se teď můžete v místní síti nebo přes VPN připojit i nešifrovaným protokolem HTTP.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_v020_improvements">
+        <item>Menší aplikace: úspornější pravidla optimalizace kódu zmenšila instalaci přibližně o 1,5 MB.</item>
+        <item>Rychlejší a plynulejší spuštění: nové profily Baseline Profile odpovídají novému rozhraní i změnám v kódu.</item>
+        <item>Svižnější seznamy, panely a ekvalizér díky rozsáhlým optimalizacím v Compose.</item>
+    </string-array>
+
+    <string-array name="presentation_batch_g_changelog_v020_under_the_hood">
+        <item>Spolehlivější přehrávání z cloudu: zrušené požadavky na Navidrome nebo Jellyfin už při rychlém přeskakování skladeb nevypadají jako chyby sítě.</item>
+        <item>Při otočení obrazovky se už neztrácejí události zálohování, obnovení ani úvodního nastavení.</item>
+        <item>Úklid kódu: odstranili jsme nepoužívaný kód, nahradili zastaralá rozhraní a aktualizovali závislosti.</item>
+    </string-array>
+</resources>

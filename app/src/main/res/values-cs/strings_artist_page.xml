@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="artist_page_settings_section">Stránka interpreta</string>
+    <string name="artist_page_albums_collapsed_by_default">Ve výchozím stavu sbalit alba</string>
+    <string name="artist_page_albums_collapsed_by_default_sub">Pokud má interpret více alb, zobrazí se nejprve jen jejich záhlaví. Klepnutím na album zobrazíte jeho skladby.</string>
+    <string name="artist_page_collapse_all_albums">Sbalit vše</string>
+    <string name="artist_page_expand_all_albums">Rozbalit vše</string>
+</resources>

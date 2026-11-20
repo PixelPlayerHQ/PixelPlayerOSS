@@ -45,6 +45,7 @@ import com.lostf1sh.pixelplayeross.MainActivity
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.diagnostics.AdvancedPerformanceDiagnostics
 import com.lostf1sh.pixelplayeross.data.model.PlayerInfo
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
@@ -911,7 +912,19 @@ class MusicService : MediaSessionService() {
                 }
             }
         }
-        val startCommandResult = super.onStartCommand(intent, flags, startId)
+        val startCommandResult = try {
+            super.onStartCommand(intent, flags, startId)
+        } catch (e: IllegalStateException) {
+            // Media3 promotes to foreground before stopping itself on a stale self-start
+            // intent (e.g. after the queue empties); Android may refuse that from background.
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+                e !is ForegroundServiceStartNotAllowedException
+            ) throw e
+            Timber.tag(TAG).w(e, "Media3 start command could not go foreground; stopping")
+            clearTemporaryForegroundNotification()
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (needsTemporaryForeground || startedTemporaryForegroundInOnCreate) {
             if (mediaSession?.player?.hasForegroundPlaybackIntent() != true) {
                 stopForeground(STOP_FOREGROUND_REMOVE)
@@ -987,7 +1000,7 @@ class MusicService : MediaSessionService() {
         return mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_NAVIDROME_ID)
             ?: mediaItem.mediaId.let { if (it.startsWith("navidrome_")) it.substringAfter("navidrome_") else null }
             ?: mediaItem.mediaMetadata.extras?.getString(MediaItemBuilder.EXTERNAL_EXTRA_CONTENT_URI)?.let {
-                if (it.startsWith("navidrome://")) it.substringAfter("navidrome://") else null
+                NavidromeSongUri.parseId(it)
             }
     }
 

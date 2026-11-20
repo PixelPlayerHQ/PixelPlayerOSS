@@ -69,7 +69,7 @@ class FolderNavigationStateHolder @Inject constructor() {
     ) {
         val state = getUiState()
         val currentFolder = state.currentFolder ?: return
-        val parentPath = File(currentFolder.path).parent
+        val parentPath = File(currentFolder.path).parent?.replace('\\', '/')
         val sourceRoot = state.folderSourceRootPath.ifBlank {
             Environment.getExternalStorageDirectory().path
         }

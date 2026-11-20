@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="collage_pattern_cosmic_swirl">Kosmický vír</string>
+    <string name="collage_pattern_honeycomb_groove">Rytmus včelí plástve</string>
+    <string name="collage_pattern_vinyl_stack">Hromádka vinylů</string>
+    <string name="collage_pattern_pixel_mosaic">Pixelová mozaika</string>
+    <string name="collage_pattern_stardust_scatter">Rozsypaný hvězdný prach</string>
+    <string name="collage_pattern_soft_orbit">Jemná oběžná dráha</string>
+    <string name="collage_pattern_arrow_fanfare">Fanfára šipek</string>
+    <string name="collage_pattern_sunny_bloom">Slunečný květ</string>
+    <string name="collage_pattern_pixel_cookie">Pixelová sušenka</string>
+    <string name="collage_pattern_heart_garden">Zahrada srdcí</string>
+</resources>

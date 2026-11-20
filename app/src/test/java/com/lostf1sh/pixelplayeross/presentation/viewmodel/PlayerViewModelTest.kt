@@ -120,6 +120,7 @@ class PlayerViewModelTest {
     private val _repeatModeFlow = MutableStateFlow(Player.REPEAT_MODE_OFF)
     private val _favoriteIdsFlow = MutableStateFlow<Set<String>>(emptySet())
     private val folderSongSortFlow = MutableStateFlow<SortOption>(SortOption.FolderSongTitleAZ)
+    private val isSyncingFlow = MutableStateFlow(true)
     private lateinit var stablePlayerStateFlow: MutableStateFlow<StablePlayerState>
     private lateinit var mockController: MediaController
     private val controllerRepeatModeWrites = mutableListOf<Int>()
@@ -135,6 +136,7 @@ class PlayerViewModelTest {
         every { ContextCompat.getMainExecutor(any()) } returns directExecutor
         coEvery { mockUserPreferencesRepository.favoriteSongIdsFlow } returns flowOf(emptySet())
         coEvery { mockUserPreferencesRepository.songsSortOptionFlow } returns flowOf("SongTitleAZ")
+        every { mockUserPreferencesRepository.songsSecondarySortOptionFlow } returns flowOf(null)
         coEvery { mockUserPreferencesRepository.albumsSortOptionFlow } returns flowOf("AlbumTitleAZ")
         coEvery { mockUserPreferencesRepository.artistsSortOptionFlow } returns flowOf("ArtistNameAZ")
         coEvery { mockUserPreferencesRepository.likedSongsSortOptionFlow } returns flowOf("LikedSongTitleAZ")
@@ -151,6 +153,7 @@ class PlayerViewModelTest {
         coEvery { mockUserPreferencesRepository.isShuffleOnFlow } returns flowOf(false)
         every { mockUserPreferencesRepository.repeatModeFlow } returns _repeatModeFlow
         coEvery { mockThemePreferencesRepository.playerThemePreferenceFlow } returns flowOf("Global")
+        every { mockSyncManager.isSyncing } returns isSyncingFlow
         every { mockLibraryStateHolder.allSongs } returns _allSongsFlow
         every { mockLibraryStateHolder.isLoadingLibrary } returns MutableStateFlow(false)
         every { mockLibraryStateHolder.isLoadingCategories } returns MutableStateFlow(false)
@@ -609,7 +612,7 @@ class PlayerViewModelTest {
         }
 
         @Test
-        fun `shuffleRandomAlbum calls prepareShuffledQueue with startAtZero`() = runTest {
+        fun `playRandomAlbum plays the album in track order without shuffling`() = runTest {
             val album = Album(
                 id = 77L,
                 title = "Album Roulette",
@@ -619,19 +622,20 @@ class PlayerViewModelTest {
                 albumArtUriString = null,
                 songCount = 3
             )
+            val track1 = song3.copy(trackNumber = 1)
+            val track2 = song1.copy(trackNumber = 2)
+            val track3 = song2.copy(trackNumber = 3)
             every { mockLibraryStateHolder.albums } returns MutableStateFlow(persistentListOf(album))
-            every { mockMusicRepository.getSongsForAlbum(album.id) } returns flowOf(listOf(song1, song2, song3))
-            stubShuffledPlayback(listOf(song1, song2, song3), startSong = song2)
+            every { mockMusicRepository.getSongsForAlbum(album.id) } returns flowOf(listOf(track2, track3, track1))
+            stubShuffledPlayback(listOf(track1, track2, track3))
 
-            playerViewModel.shuffleRandomAlbum()
+            playerViewModel.playRandomAlbum()
             advanceUntilIdle()
 
-            coVerify {
-                mockQueueStateHolder.prepareShuffledQueueSuspending(
-                    listOf(song1, song2, song3),
-                    true
-                )
+            verify {
+                mockQueueStateHolder.setOriginalQueueOrder(listOf(track1, track2, track3), listOf(null, null, null))
             }
+            coVerify(exactly = 0) { mockQueueStateHolder.prepareShuffledQueueSuspending(any(), any(), any()) }
         }
 
         @Test
@@ -843,6 +847,23 @@ class PlayerViewModelTest {
             }
             coVerify { mockMusicRepository.getSongIdsSorted(songSort, any()) }
             coVerify(exactly = 0) { mockMusicRepository.getFavoriteSongIdsSorted(any(), any()) }
+        }
+    }
+
+    @Nested
+    @DisplayName("Daily Mix refresh")
+    inner class DailyMixRefreshTests {
+
+        @Test
+        fun `a finished sync only regenerates the Daily Mix when it is due`() = runTest {
+            advanceUntilIdle()
+
+            isSyncingFlow.value = false
+            advanceUntilIdle()
+
+            // Generating reads the whole library; the holder decides whether today's mix is stale.
+            verify { mockDailyMixStateHolder.checkAndUpdateIfNeeded(any()) }
+            verify(exactly = 0) { mockDailyMixStateHolder.updateDailyMix(any()) }
         }
     }
 

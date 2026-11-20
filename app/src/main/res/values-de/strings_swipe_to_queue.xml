@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Titellisten</string>
+    <string name="setcat_swipe_to_queue_title">Titel wischen</string>
+    <string name="setcat_swipe_to_queue_description">Wische in Playlists, Alben, Künstlern, Genres und Mixes eine Titelzeile zum Bildschirmende.</string>
+    <string name="setcat_swipe_to_queue_add">Zur Warteschlange hinzufügen</string>
+    <string name="setcat_swipe_to_queue_add_description">Fügt den Titel am Ende der Warteschlange hinzu.</string>
+    <string name="setcat_swipe_to_queue_next">Als Nächstes abspielen</string>
+    <string name="setcat_swipe_to_queue_next_description">Fügt den Titel direkt nach dem aktuellen ein.</string>
+    <string name="setcat_swipe_to_queue_off">Aus</string>
+    <string name="setcat_swipe_to_queue_off_description">Wischen über einen Titel bewirkt nichts.</string>
+</resources>

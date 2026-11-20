@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
+import com.lostf1sh.pixelplayeross.ui.theme.rememberDisplayFont
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -179,7 +181,7 @@ private fun rememberRoundedFlexFontFamily(
     widthAxis: Float
 ): FontFamily {
     val sanitizedWidthAxis = widthAxis.coerceIn(1f, DefaultTopBarTitleWidthAxis).roundToInt().toFloat()
-    return remember(fontWeight, sanitizedWidthAxis) {
+    return rememberDisplayFont(fontWeight, sanitizedWidthAxis) {
         FontFamily(
             Font(
                 resId = R.font.gflex_variable,

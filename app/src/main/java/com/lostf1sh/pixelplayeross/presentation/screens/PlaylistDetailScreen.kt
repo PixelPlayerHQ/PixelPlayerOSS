@@ -1,5 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.SwipeToQueueBox
+import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import android.widget.Toast
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -66,7 +69,8 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.TwoRowsTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
@@ -103,6 +107,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
@@ -117,8 +122,13 @@ import androidx.navigation.NavController
 import coil.size.Size
 import com.lostf1sh.pixelplayeross.R
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.presentation.components.AutoScrollingText
+import com.lostf1sh.pixelplayeross.presentation.components.DetailSongSelectionControls
+import com.lostf1sh.pixelplayeross.presentation.components.DetailSongSelectionControlsHeight
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
 import com.lostf1sh.pixelplayeross.presentation.components.PlaylistBottomSheet
+import com.lostf1sh.pixelplayeross.presentation.components.PlaylistCover
+import com.lostf1sh.pixelplayeross.presentation.components.PlayerSheetAwareBackHandler
 import com.lostf1sh.pixelplayeross.presentation.components.QueuePlaylistSongItem
 import com.lostf1sh.pixelplayeross.presentation.components.SongPickerBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.ExpressiveScrollBar
@@ -128,7 +138,10 @@ import com.lostf1sh.pixelplayeross.presentation.components.SmartImage
 import com.lostf1sh.pixelplayeross.presentation.components.SongInfoBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.TightWrapText
 import com.lostf1sh.pixelplayeross.presentation.components.resolveNavBarOccupiedHeight
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.window.core.layout.WindowSizeClass
 import com.lostf1sh.pixelplayeross.presentation.navigation.Screen
+import com.lostf1sh.pixelplayeross.presentation.selection.DetailSongSelection
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlaylistViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.CloudDownloadsViewModel
@@ -153,6 +166,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import com.lostf1sh.pixelplayeross.presentation.components.rememberModalSheetState
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(
@@ -174,6 +188,13 @@ fun PlaylistDetailScreen(
     val hasCurrentSong by remember {
         derivedStateOf { playerStableState.currentSong != null }
     }
+    val selection = remember(playlistId) { DetailSongSelection<Pair<Int, String>>() }
+    val isSelectionMode = selection.isActive
+    PlayerSheetAwareBackHandler(
+        coordinator = playerViewModel.playerSheetBackCoordinator,
+        enabled = isSelectionMode,
+        onBack = selection::clear
+    )
     val context = LocalContext.current
     val fallbackPlaylistName = stringResource(R.string.shortcut_playlist_short)
     val sortSongsLabel = stringResource(R.string.presentation_batch_b_sort_songs)
@@ -235,6 +256,7 @@ fun PlaylistDetailScreen(
 
     val selectedSongForInfo by playerViewModel.selectedSongForInfo.collectAsStateWithLifecycle()
     val favoriteIds by playerViewModel.favoriteSongIds.collectAsStateWithLifecycle()
+    val swipeToQueue = rememberSwipeToQueue(playerViewModel)
     val stableOnMoreOptionsClick: (Song) -> Unit = remember {
         { song ->
             playerViewModel.selectSongForInfo(song)
@@ -242,8 +264,12 @@ fun PlaylistDetailScreen(
         }
     }
     val systemNavBarInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val listBottomPadding = MiniPlayerHeight + systemNavBarInset + 16.dp
+    val selectionBottomPadding = if (hasCurrentSong) listBottomPadding else systemNavBarInset + 16.dp
     val navBarCompactMode by playerViewModel.navBarCompactMode.collectAsStateWithLifecycle()
-    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode)
+    val useNavigationRail = currentWindowAdaptiveInfo().windowSizeClass
+        .isWidthAtLeastBreakpoint(WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND)
+    val bottomBarHeightDp = resolveNavBarOccupiedHeight(systemNavBarInset, navBarCompactMode, useNavigationRail)
     var showPlaylistBottomSheet by remember { mutableStateOf(false) }
     // The initial position identifies an occurrence, even when the same song appears twice.
     // Move the entry with its key so dragging never changes a row's identity.
@@ -252,6 +278,12 @@ fun PlaylistDetailScreen(
     }
     val localReorderableSongs = remember(localReorderableEntries) {
         localReorderableEntries.map { it.value }
+    }
+    val visibleSongs = remember(localReorderableEntries) {
+        derivedStateOf { localReorderableEntries.associate { (it.index to it.value.id) to it.value } }
+    }
+    LaunchedEffect(localReorderableEntries.isEmpty()) {
+        if (localReorderableEntries.isEmpty()) selection.clear()
     }
 
     val listState = rememberLazyListState()
@@ -288,28 +320,57 @@ fun PlaylistDetailScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
+    // The cover would leave no room for the songs on short (landscape phone) windows.
+    val hasRoomForCover = LocalWindowInfo.current.containerDpSize.height >= 560.dp
+    // The same first songs the library thumbnail uses, so the collage matches it.
+    val coverSongs = remember(currentPlaylist?.songIds, songsInPlaylist) {
+        currentPlaylist?.songIds.orEmpty().take(4)
+            .mapNotNull { id -> songsInPlaylist.firstOrNull { it.id == id } }
+            .toImmutableList()
+    }
 
     Scaffold(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = {
-                    Text(
-                        modifier = Modifier.padding(start = 8.dp),
-                        text = currentPlaylist?.name ?: fallbackPlaylistName,
-                        fontFamily = RoundedSans,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+            // TwoRowsTopAppBar styled like LargeFlexibleTopAppBar; it tells the title which row
+            // it is in, so the cover only shows above the expanded title.
+            TwoRowsTopAppBar(
+                title = { expanded ->
+                    Column(if (expanded) Modifier.fillMaxWidth() else Modifier) {
+                        if (expanded && hasRoomForCover && currentPlaylist != null) {
+                            PlaylistCover(
+                                playlist = currentPlaylist,
+                                playlistSongs = coverSongs,
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(bottom = 16.dp),
+                                size = 168.dp
+                            )
+                        }
+                        AutoScrollingText(
+                            modifier = Modifier.padding(start = 8.dp),
+                            text = currentPlaylist?.name ?: fallbackPlaylistName,
+                            style = if (expanded) {
+                                MaterialTheme.typography.displaySmall.copy(fontFamily = RoundedSans)
+                            } else {
+                                LocalTextStyle.current.copy(fontFamily = RoundedSans)
+                            },
+                            gradientEdgeColor = MaterialTheme.colorScheme.surface
+                        )
+                    }
                 },
+                collapsedHeight = TopAppBarDefaults.LargeAppBarCollapsedHeight,
+                expandedHeight = TopAppBarDefaults.LargeFlexibleAppBarWithSubtitleExpandedHeight,
                 colors = TopAppBarDefaults.topAppBarColors(
                     scrolledContainerColor = Color.Transparent,
                     containerColor = Color.Transparent
                 ),
-                subtitle = {
+                subtitle = { expanded ->
                     Text(
-                        modifier = Modifier.padding(start = 8.dp),
+                        modifier = Modifier
+                            .padding(start = 8.dp)
+                            .then(if (expanded) Modifier.paddingFromBaseline(bottom = 28.dp) else Modifier),
                         text = stringResource(
                             R.string.presentation_batch_f_status_bullet_step,
                             formatSongCount(songsInPlaylist.size),
@@ -326,13 +387,14 @@ fun PlaylistDetailScreen(
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
                             contentColor = MaterialTheme.colorScheme.onSurface
                         ),
-                        onClick = onBackClick
+                        onClick = { if (selection.isActive) selection.clear() else onBackClick() }
                     ) {
                         Icon(Icons.AutoMirrored.Rounded.ArrowBack, stringResource(R.string.auth_cd_back))
                     }
                 },
                 actions = {
                     IconButton(
+                        enabled = !isSelectionMode,
                         onClick = {
                             playerViewModel.showSortingSheet() 
                         }
@@ -344,6 +406,7 @@ fun PlaylistDetailScreen(
                     }
                     if (!isFolderPlaylist) {
                         FilledTonalIconButton(
+                            enabled = !isSelectionMode,
                             modifier = Modifier.padding(end = 10.dp),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -406,7 +469,7 @@ fun PlaylistDetailScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(76.dp),
-                        enabled = localReorderableSongs.isNotEmpty(),
+                        enabled = !isSelectionMode && localReorderableSongs.isNotEmpty(),
                         shape = AbsoluteSmoothCornerShape(
                             cornerRadiusTL = 60.dp,
                             smoothnessAsPercentTR = 60,
@@ -447,7 +510,7 @@ fun PlaylistDetailScreen(
                         modifier = Modifier
                             .weight(1f)
                             .height(76.dp),
-                        enabled = localReorderableSongs.isNotEmpty(),
+                        enabled = !isSelectionMode && localReorderableSongs.isNotEmpty(),
                         shape = AbsoluteSmoothCornerShape(
                             cornerRadiusTL = 14.dp,
                             smoothnessAsPercentTR = 60,
@@ -511,6 +574,7 @@ fun PlaylistDetailScreen(
                         )
 
                         Button(
+                            enabled = !isSelectionMode,
                             onClick = { showAddSongsSheet = true },
                             shape = CircleShape,
                             contentPadding = PaddingValues(horizontal = 12.dp),
@@ -580,6 +644,7 @@ fun PlaylistDetailScreen(
                                 modifier = Modifier.horizontalScroll(chipScrollState),
                                 content = {
                                     Button(
+                                        enabled = !isSelectionMode,
                                         onClick = { isRemoveModeEnabled = !isRemoveModeEnabled },
                                         shape = RoundedCornerShape(removeCornerRadius),
                                         contentPadding = PaddingValues(horizontal = 8.dp),
@@ -610,6 +675,7 @@ fun PlaylistDetailScreen(
                                     }
 
                                     Button(
+                                        enabled = !isSelectionMode,
                                         onClick = { isReorderModeEnabled = !isReorderModeEnabled },
                                         shape = RoundedCornerShape(reorderCornerRadius),
                                         contentPadding = PaddingValues(horizontal = 8.dp),
@@ -732,7 +798,8 @@ fun PlaylistDetailScreen(
                                 )
                                 PaddingValues(
                                     top = 12.dp,
-                                    bottom = MiniPlayerHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
+                                    bottom = listBottomPadding +
+                                        if (isSelectionMode) DetailSongSelectionControlsHeight else 0.dp,
                                     end = scrollbarEnd
                                 )
                             }
@@ -742,6 +809,7 @@ fun PlaylistDetailScreen(
                                 key = { it.index },
                                 contentType = { "playlist_song" }) { entry ->
                                 val song = entry.value
+                                val selectionKey = entry.index to song.id
                                 val playbackUiState by remember(song.id, playerViewModel) {
                                     playerViewModel.stablePlayerState
                                         .map { state ->
@@ -762,68 +830,84 @@ fun PlaylistDetailScreen(
                                         label = "scale"
                                     )
 
-                                    QueuePlaylistSongItem(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 0.dp)
-                                            .graphicsLayer {
-                                                scaleX = scale
-                                                scaleY = scale
+                                    SwipeToQueueBox(
+                                        // Swipes would fight reordering and removal.
+                                        onSwipe = swipeToQueue
+                                            ?.takeUnless { isSelectionMode || isReorderModeEnabled || isRemoveModeEnabled }
+                                            ?.let { { it(song) } },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { rowModifier ->
+                                        QueuePlaylistSongItem(
+                                            modifier = rowModifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 0.dp)
+                                                .graphicsLayer {
+                                                    scaleX = scale
+                                                    scaleY = scale
+                                                },
+                                            onClick = {
+                                                if (isSelectionMode) {
+                                                    selection.toggle(selectionKey)
+                                                } else {
+                                                    playerViewModel.playSongs(
+                                                        localReorderableSongs,
+                                                        song,
+                                                        currentPlaylist.name,
+                                                        currentPlaylist.id
+                                                    )
+                                                }
                                             },
-                                        onClick = {
-                                            playerViewModel.playSongs(
-                                                localReorderableSongs,
-                                                song,
-                                                currentPlaylist.name,
-                                                currentPlaylist.id
-                                            )
-                                        },
-                                        song = song,
-                                        isCurrentSong = playbackUiState.isCurrentSong,
-                                        isPlaying = playbackUiState.isPlaying,
-                                        isDragging = isDragging,
-                                        onRemoveClick = {
-                                            if (isEditablePlaylist) {
-                                                currentPlaylist.let {
-                                                    playlistViewModel.removeSongFromPlaylist(it.id, song.id)
+                                            onLongClick = if (!isReorderModeEnabled && !isRemoveModeEnabled) {
+                                                { selection.toggle(selectionKey) }
+                                            } else null,
+                                            song = song,
+                                            isCurrentSong = playbackUiState.isCurrentSong,
+                                            isPlaying = playbackUiState.isPlaying,
+                                            isDragging = isDragging,
+                                            onRemoveClick = {
+                                                if (isEditablePlaylist) {
+                                                    currentPlaylist.let {
+                                                        playlistViewModel.removeSongFromPlaylist(it.id, song.id)
+                                                    }
+                                                }
+                                            },
+                                            isFromPlaylist = true,
+                                            selectionChecked = if (isSelectionMode) selectionKey in selection.keys else null,
+                                            isReorderModeEnabled = isReorderModeEnabled,
+                                            isDragHandleVisible = isReorderModeEnabled && isEditablePlaylist,
+                                            isRemoveButtonVisible = isRemoveModeEnabled && isEditablePlaylist,
+                                            onMoreOptionsClick = stableOnMoreOptionsClick,
+                                            dragHandle = {
+                                                IconButton(
+                                                    onClick = {},
+                                                    modifier = Modifier
+                                                        .draggableHandle(
+                                                            onDragStarted = {
+                                                                performAppCompatHapticFeedback(
+                                                                    view,
+                                                                    appHapticsConfig,
+                                                                    HapticFeedbackConstantsCompat.GESTURE_START
+                                                                )
+                                                            },
+                                                            onDragStopped = {
+                                                                performAppCompatHapticFeedback(
+                                                                    view,
+                                                                    appHapticsConfig,
+                                                                    HapticFeedbackConstantsCompat.GESTURE_END
+                                                                )
+                                                            }
+                                                        )
+                                                        .size(40.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Rounded.DragIndicator,
+                                                        contentDescription = reorderSongCd,
+                                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                                    )
                                                 }
                                             }
-                                        },
-                                        isFromPlaylist = true,
-                                        isReorderModeEnabled = isReorderModeEnabled,
-                                        isDragHandleVisible = isReorderModeEnabled && isEditablePlaylist,
-                                        isRemoveButtonVisible = isRemoveModeEnabled && isEditablePlaylist,
-                                        onMoreOptionsClick = stableOnMoreOptionsClick,
-                                        dragHandle = {
-                                            IconButton(
-                                                onClick = {},
-                                                modifier = Modifier
-                                                    .draggableHandle(
-                                                        onDragStarted = {
-                                                            performAppCompatHapticFeedback(
-                                                                view,
-                                                                appHapticsConfig,
-                                                                HapticFeedbackConstantsCompat.GESTURE_START
-                                                            )
-                                                        },
-                                                        onDragStopped = {
-                                                            performAppCompatHapticFeedback(
-                                                                view,
-                                                                appHapticsConfig,
-                                                                HapticFeedbackConstantsCompat.GESTURE_END
-                                                            )
-                                                        }
-                                                    )
-                                                    .size(40.dp)
-                                            ) {
-                                                Icon(
-                                                    imageVector = Icons.Rounded.DragIndicator,
-                                                    contentDescription = reorderSongCd,
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
-                                    )
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -833,10 +917,24 @@ fun PlaylistDetailScreen(
                             modifier = Modifier
                                 .align(Alignment.CenterEnd)
                                 .padding(
-                                    bottom = if (hasCurrentSong) MiniPlayerHeight + WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 20.dp else WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 16.dp,
+                                    bottom = selectionBottomPadding +
+                                        if (isSelectionMode) DetailSongSelectionControlsHeight else if (hasCurrentSong) 4.dp else 0.dp,
                                     end = 14.dp,
                                     top = 18.dp
                                 )
+                        )
+                        DetailSongSelectionControls(
+                            selection = selection,
+                            visibleSongs = { visibleSongs.value },
+                            favoriteSongIds = favoriteIds,
+                            playerViewModel = playerViewModel,
+                            playlistViewModel = playlistViewModel,
+                            currentPlaylistId = currentPlaylist.id,
+                            cloudDownloadsViewModel = cloudDownloadsViewModel,
+                            bottomBarHeight = bottomBarHeightDp,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = selectionBottomPadding)
                         )
                     }
                 }
@@ -1157,6 +1255,8 @@ fun PlaylistDetailScreen(
             SortOption.SongAlbumDesc,
             SortOption.SongDateAdded,
             SortOption.SongDateAddedAsc,
+            SortOption.SongDateModified,
+            SortOption.SongDateModifiedAsc,
             SortOption.SongDuration,
             SortOption.SongDurationAsc
         )

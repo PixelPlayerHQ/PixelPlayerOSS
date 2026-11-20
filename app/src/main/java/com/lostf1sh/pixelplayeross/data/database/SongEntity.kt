@@ -7,12 +7,14 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.lostf1sh.pixelplayeross.data.model.ArtistRef
 import com.lostf1sh.pixelplayeross.data.model.Song
+import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.utils.GenreParser
 import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataText
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataTextOrEmpty
 import org.json.JSONArray
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
 /** Integer constants for the `source_type` column — faster than LIKE checks on URI scheme. */
 object SourceType {
@@ -125,10 +127,13 @@ private fun SongEntity.toSongInternal(artists: List<ArtistRef>): Song {
         trackNumber = this.trackNumber,
         discNumber = this.discNumber,
         dateAdded = this.dateAdded,
+        dateModified = if (this.mediaStoreDateModified > 0) {
+            TimeUnit.SECONDS.toMillis(this.mediaStoreDateModified)
+        } else {
+            this.dateAdded
+        },
         year = this.year,
-        navidromeId = if (this.contentUriString.startsWith("navidrome://")) {
-            this.contentUriString.removePrefix("navidrome://")
-        } else null,
+        navidromeId = NavidromeSongUri.parseId(this.contentUriString),
         jellyfinId = if (this.contentUriString.startsWith("jellyfin://")) {
             this.contentUriString.removePrefix("jellyfin://")
         } else null,

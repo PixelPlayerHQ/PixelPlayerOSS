@@ -6,6 +6,7 @@
     <string name="sort_method_artist">艺术家</string>
     <string name="sort_method_album">专辑</string>
     <string name="sort_method_date_added">添加时间</string>
+    <string name="sort_method_date_modified">修改时间</string>
     <string name="sort_method_duration">时长</string>
     <string name="sort_method_release_year">发行年份</string>
     <string name="sort_method_song_count">歌曲数量</string>

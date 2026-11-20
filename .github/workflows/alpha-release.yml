@@ -96,6 +96,19 @@ jobs:
             cp "$apk" "release-apks/PixelPlayerOSS-${{ steps.version.outputs.name }}-$abi.apk"
           done
 
+      # The R8 mapping is the only way to retrace crash reports from this build,
+      # so publish it next to the APKs. It is ~200 MB as plain text, hence gzip.
+      # The in-app updater only picks `.apk` assets, so this one is ignored there.
+      - name: Compress R8 mapping
+        run: |
+          mapping="app/build/outputs/mapping/release/mapping.txt"
+          if [ ! -s "$mapping" ]; then
+            echo "::error::R8 mapping not found at $mapping"
+            exit 1
+          fi
+          mkdir -p release-mapping
+          gzip -9 -c "$mapping" > "release-mapping/PixelPlayerOSS-${{ steps.version.outputs.name }}-mapping.txt.gz"
+
       - name: Create GitHub prerelease
         env:
           GH_TOKEN: ${{ github.token }}
@@ -105,3 +118,4 @@ jobs:
           --generate-notes
           --title "PixelPlayerOSS ${{ steps.version.outputs.name }}"
           release-apks/*.apk
+          release-mapping/*.txt.gz

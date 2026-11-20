@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="other">Đang chia sẻ %d danh sách phát</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="other">Đã xuất %1$d danh sách phát sang %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="other">Đã thêm %d bài hát vào hàng đợi</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="other">Sẽ phát tiếp %d bài hát</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="other">Đã thêm %d bài hát vào mục yêu thích</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="other">Đã xóa %d bài hát khỏi mục yêu thích</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="other">Đã xóa %d tệp</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="other">Xóa %d bài hát?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="other">%d lần</item>
+    </plurals>
+    <plurals name="stats_active_days_count">
+        <item quantity="other">%d ngày nghe</item>
+    </plurals>
+    <plurals name="stats_artists_count">
+        <item quantity="other">%d nghệ sĩ</item>
+    </plurals>
+    <plurals name="stats_days_count">
+        <item quantity="other">%d ngày</item>
+    </plurals>
+    <plurals name="stats_plays_count">
+        <item quantity="other">%d lượt phát</item>
+    </plurals>
+    <plurals name="stats_sessions_count">
+        <item quantity="other">%d phiên</item>
+    </plurals>
+    <plurals name="stats_tracks_count">
+        <item quantity="other">%d bài hát</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_title">
+        <item quantity="other">Xóa %d danh sách phát?</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_body">
+        <item quantity="other">Bạn có chắc chắn muốn xóa %d danh sách phát không?</item>
+    </plurals>
+    <plurals name="song_count">
+        <item quantity="other">%d Bài hát</item>
+    </plurals>
+    <plurals name="time_ago_minutes">
+        <item quantity="other">%d phút trước</item>
+    </plurals>
+    <plurals name="time_ago_hours">
+        <item quantity="other">%d giờ trước</item>
+    </plurals>
+    <plurals name="time_ago_days">
+        <item quantity="other">%d ngày trước</item>
+    </plurals>
+</resources>

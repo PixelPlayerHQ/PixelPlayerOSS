@@ -118,6 +118,15 @@ object SettingsRegistry {
                 keywordsStatic = listOf("tracks", "album", "filter", "singles")
             ),
             SettingSpec(
+                id = "library_min_artist_tracks",
+                itemKey = "item_library_min_artist_tracks",
+                titleRes = R.string.setcat_min_tracks_per_artist,
+                category = SettingsCategory.LIBRARY,
+                subscreenRoute = Screen.SettingsCategory.createRoute("library"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("tracks", "artist", "filter", "songs")
+            ),
+            SettingSpec(
                 id = "library_album_art_cache",
                 itemKey = "item_library_album_art_cache",
                 titleRes = R.string.setcat_album_art_cache_limit,
@@ -378,6 +387,28 @@ object SettingsRegistry {
                 subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf("amoled", "black", "oled", "true black", "dark", "theme", "preset")
+            ),
+            SettingSpec(
+                id = "appearance_system_font",
+                itemKey = "item_appearance_system_font",
+                titleRes = R.string.setcat_system_font_title,
+                subtitleRes = R.string.setcat_system_font_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.SWITCH,
+                keywordsStatic = listOf("font", "typeface", "text", "system"),
+                getValue = { it.interfaceAppearance.useSystemFont },
+                onToggle = { viewModel, checked -> viewModel.setUseSystemFont(checked) }
+            ),
+            SettingSpec(
+                id = "appearance_interface_scale",
+                itemKey = "item_appearance_interface_scale",
+                titleRes = R.string.setcat_interface_scale_title,
+                subtitleRes = R.string.setcat_interface_scale_subtitle,
+                category = SettingsCategory.APPEARANCE,
+                subscreenRoute = Screen.SettingsCategory.createRoute("appearance"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf("scale", "size", "display", "zoom")
             ),
             SettingSpec(
                 id = "appearance_global_now_playing_theme",
@@ -780,6 +811,18 @@ object SettingsRegistry {
                 keywordsStatic = listOf(
                     "previous", "previous song", "previous track", "rewind", "back", "skip back",
                     "restart", "replay", "button"
+                )
+            ),
+            SettingSpec(
+                id = "behavior_swipe_to_queue",
+                itemKey = "item_behavior_swipe_to_queue",
+                titleRes = R.string.setcat_swipe_to_queue_title,
+                subtitleRes = R.string.setcat_swipe_to_queue_description,
+                category = SettingsCategory.BEHAVIOR,
+                subscreenRoute = Screen.SettingsCategory.createRoute("behavior"),
+                type = SettingType.NAVIGABLE_CARD,
+                keywordsStatic = listOf(
+                    "swipe", "gesture", "queue", "add to queue", "play next", "song list", "playlist"
                 )
             ),
             SettingSpec(

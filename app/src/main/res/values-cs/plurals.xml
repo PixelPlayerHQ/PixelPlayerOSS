@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Sdílení %d playlistu</item>
+        <item quantity="few">Sdílení %d playlistů</item>
+        <item quantity="many">Sdílení %d playlistu</item>
+        <item quantity="other">Sdílení %d playlistů</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">Do %2$s byl exportován %1$d playlist</item>
+        <item quantity="few">Do %2$s byly exportovány %1$d playlisty</item>
+        <item quantity="many">Do %2$s bylo exportováno %1$d playlistu</item>
+        <item quantity="other">Do %2$s bylo exportováno %1$d playlistů</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">Do fronty byla přidána %d skladba</item>
+        <item quantity="few">Do fronty byly přidány %d skladby</item>
+        <item quantity="many">Do fronty bylo přidáno %d skladby</item>
+        <item quantity="other">Do fronty bylo přidáno %d skladeb</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">Jako další se přehraje %d skladba</item>
+        <item quantity="few">Jako další se přehrají %d skladby</item>
+        <item quantity="many">Jako další se přehraje %d skladby</item>
+        <item quantity="other">Jako další se přehraje %d skladeb</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">%d skladba byla přidána do oblíbených</item>
+        <item quantity="few">%d skladby byly přidány do oblíbených</item>
+        <item quantity="many">%d skladby bylo přidáno do oblíbených</item>
+        <item quantity="other">%d skladeb bylo přidáno do oblíbených</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">%d skladba byla odebrána z oblíbených</item>
+        <item quantity="few">%d skladby byly odebrány z oblíbených</item>
+        <item quantity="many">%d skladby bylo odebráno z oblíbených</item>
+        <item quantity="other">%d skladeb bylo odebráno z oblíbených</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">%d soubor byl smazán</item>
+        <item quantity="few">%d soubory byly smazány</item>
+        <item quantity="many">%d souboru bylo smazáno</item>
+        <item quantity="other">%d souborů bylo smazáno</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Smazat %d skladbu?</item>
+        <item quantity="few">Smazat %d skladby?</item>
+        <item quantity="many">Smazat %d skladby?</item>
+        <item quantity="other">Smazat %d skladeb?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d×</item>
+        <item quantity="few">%d×</item>
+        <item quantity="many">%d×</item>
+        <item quantity="other">%d×</item>
+    </plurals>
+    <plurals name="stats_active_days_count">
+        <item quantity="one">%d aktivní den</item>
+        <item quantity="few">%d aktivní dny</item>
+        <item quantity="many">%d aktivního dne</item>
+        <item quantity="other">%d aktivních dnů</item>
+    </plurals>
+    <plurals name="stats_artists_count">
+        <item quantity="one">%d interpret</item>
+        <item quantity="few">%d interpreti</item>
+        <item quantity="many">%d interpreta</item>
+        <item quantity="other">%d interpretů</item>
+    </plurals>
+    <plurals name="stats_days_count">
+        <item quantity="one">%d den</item>
+        <item quantity="few">%d dny</item>
+        <item quantity="many">%d dne</item>
+        <item quantity="other">%d dnů</item>
+    </plurals>
+    <plurals name="stats_plays_count">
+        <item quantity="one">%d přehrání</item>
+        <item quantity="few">%d přehrání</item>
+        <item quantity="many">%d přehrání</item>
+        <item quantity="other">%d přehrání</item>
+    </plurals>
+    <plurals name="stats_sessions_count">
+        <item quantity="one">%d relace</item>
+        <item quantity="few">%d relace</item>
+        <item quantity="many">%d relace</item>
+        <item quantity="other">%d relací</item>
+    </plurals>
+    <plurals name="stats_tracks_count">
+        <item quantity="one">%d skladba</item>
+        <item quantity="few">%d skladby</item>
+        <item quantity="many">%d skladby</item>
+        <item quantity="other">%d skladeb</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_title">
+        <item quantity="one">Smazat %d playlist?</item>
+        <item quantity="few">Smazat %d playlisty?</item>
+        <item quantity="many">Smazat %d playlistu?</item>
+        <item quantity="other">Smazat %d playlistů?</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_body">
+        <item quantity="one">Opravdu chcete smazat %d playlist?</item>
+        <item quantity="few">Opravdu chcete smazat %d playlisty?</item>
+        <item quantity="many">Opravdu chcete smazat %d playlistu?</item>
+        <item quantity="other">Opravdu chcete smazat %d playlistů?</item>
+    </plurals>
+    <plurals name="song_count">
+        <item quantity="one">%d skladba</item>
+        <item quantity="few">%d skladby</item>
+        <item quantity="many">%d skladby</item>
+        <item quantity="other">%d skladeb</item>
+    </plurals>
+    <plurals name="time_ago_minutes">
+        <item quantity="one">před %d minutou</item>
+        <item quantity="few">před %d minutami</item>
+        <item quantity="many">před %d min</item>
+        <item quantity="other">před %d minutami</item>
+    </plurals>
+    <plurals name="time_ago_hours">
+        <item quantity="one">před %d hodinou</item>
+        <item quantity="few">před %d hodinami</item>
+        <item quantity="many">před %d h</item>
+        <item quantity="other">před %d hodinami</item>
+    </plurals>
+    <plurals name="time_ago_days">
+        <item quantity="one">před %d dnem</item>
+        <item quantity="few">před %d dny</item>
+        <item quantity="many">před %d dny</item>
+        <item quantity="other">před %d dny</item>
+    </plurals>
+    <plurals name="cloud_download_selected_started">
+        <item quantity="one">Připravuje se %1$d skladba z cloudu k offline poslechu</item>
+        <item quantity="few">Připravují se %1$d skladby z cloudu k offline poslechu</item>
+        <item quantity="many">Připravuje se %1$d skladby z cloudu k offline poslechu</item>
+        <item quantity="other">Připravuje se %1$d skladeb z cloudu k offline poslechu</item>
+    </plurals>
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d skladba • %2$s</item>
+        <item quantity="few">%1$d skladby • %2$s</item>
+        <item quantity="many">%1$d skladby • %2$s</item>
+        <item quantity="other">%1$d skladeb • %2$s</item>
+    </plurals>
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="one">Ve frontě je jedna skladba.</item>
+        <item quantity="few">Ve frontě jsou %d skladby.</item>
+        <item quantity="many">Ve frontě je %d skladby.</item>
+        <item quantity="other">Ve frontě je %d skladeb.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="one">Vybrána %d skladba</item>
+        <item quantity="few">Vybrány %d skladby</item>
+        <item quantity="many">Vybráno %d skladby</item>
+        <item quantity="other">Vybráno %d skladeb</item>
+    </plurals>
+    <plurals name="recap_minutes_unit">
+        <item quantity="one">minuta</item>
+        <item quantity="few">minuty</item>
+        <item quantity="many">minuty</item>
+        <item quantity="other">minut</item>
+    </plurals>
+    <plurals name="recap_minutes_days_equivalent">
+        <item quantity="one">To je přibližně %d den hudby bez přestávky.</item>
+        <item quantity="few">To jsou přibližně %d dny hudby bez přestávky.</item>
+        <item quantity="many">To je přibližně %d dne hudby bez přestávky.</item>
+        <item quantity="other">To je přibližně %d dnů hudby bez přestávky.</item>
+    </plurals>
+    <plurals name="recap_minutes_hours_equivalent">
+        <item quantity="one">To je přibližně %d hodina hudby bez přestávky.</item>
+        <item quantity="few">To jsou přibližně %d hodiny hudby bez přestávky.</item>
+        <item quantity="many">To je přibližně %d hodiny hudby bez přestávky.</item>
+        <item quantity="other">To je přibližně %d hodin hudby bez přestávky.</item>
+    </plurals>
+    <plurals name="recap_streak_unit">
+        <item quantity="one">den v řadě</item>
+        <item quantity="few">dny v řadě</item>
+        <item quantity="many">dne v řadě</item>
+        <item quantity="other">dnů v řadě</item>
+    </plurals>
+    <plurals name="recap_unique_albums">
+        <item quantity="one">Poslechli jste si %d album</item>
+        <item quantity="few">Poslechli jste si %d alba</item>
+        <item quantity="many">Poslechli jste si %d alba</item>
+        <item quantity="other">Poslechli jste si %d alb</item>
+    </plurals>
+    <plurals name="recap_unique_artists">
+        <item quantity="one">Poslechli jste si %d interpreta</item>
+        <item quantity="few">Poslechli jste si %d různé interprety</item>
+        <item quantity="many">Poslechli jste si %d interpreta</item>
+        <item quantity="other">Poslechli jste si %d různých interpretů</item>
+    </plurals>
+    <plurals name="recap_unique_songs">
+        <item quantity="one">Přehráli jste %d skladbu</item>
+        <item quantity="few">Přehráli jste %d různé skladby</item>
+        <item quantity="many">Přehráli jste %d skladby</item>
+        <item quantity="other">Přehráli jste %d různých skladeb</item>
+    </plurals>
+    <plurals name="audio_bookmarks_delete_folders_title">
+        <item quantity="one">Smazat tuto složku?</item>
+        <item quantity="few">Smazat %1$d složky?</item>
+        <item quantity="many">Smazat %1$d složky?</item>
+        <item quantity="other">Smazat %1$d složek?</item>
+    </plurals>
+    <plurals name="audio_bookmarks_delete_folders_message">
+        <item quantity="one">%1$d záložka bude trvale smazána. Tuto akci nelze vrátit zpět.</item>
+        <item quantity="few">%1$d záložky budou trvale smazány. Tuto akci nelze vrátit zpět.</item>
+        <item quantity="many">%1$d záložky bude trvale smazáno. Tuto akci nelze vrátit zpět.</item>
+        <item quantity="other">%1$d záložek bude trvale smazáno. Tuto akci nelze vrátit zpět.</item>
+    </plurals>
+    <plurals name="audio_bookmarks_delete_moments_title">
+        <item quantity="one">Smazat tuto záložku?</item>
+        <item quantity="few">Smazat %1$d záložky?</item>
+        <item quantity="many">Smazat %1$d záložky?</item>
+        <item quantity="other">Smazat %1$d záložek?</item>
+    </plurals>
+    <plurals name="mix_matching_songs">
+        <item quantity="one">%1$d odpovídající skladba · %2$d min</item>
+        <item quantity="few">%1$d odpovídající skladby · %2$d min</item>
+        <item quantity="many">%1$d odpovídající skladby · %2$d min</item>
+        <item quantity="other">%1$d odpovídajících skladeb · %2$d min</item>
+    </plurals>
+</resources>

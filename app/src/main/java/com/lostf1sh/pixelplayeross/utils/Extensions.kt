@@ -89,7 +89,8 @@ val DEFAULT_WORD_DELIMITERS = listOf("featuring", "feat.", "feat", "ft.", "ft", 
  * Splits an artist string by the given character delimiters and word delimiters,
  * respecting escaped delimiters.
  *
- * @param delimiters List of character delimiter strings to split by (e.g., ["/", ";", ","])
+ * @param delimiters List of character delimiter strings to split by (e.g., ["/", ";", ","]).
+ *        A plus sign only splits when surrounded by whitespace.
  * @param wordDelimiters List of word-based delimiters to split by (e.g., ["feat.", "ft.", "vs."])
  *        These are matched case-insensitively with surrounding whitespace.
  *        The single-letter "x" is handled specially — only matched when surrounded by spaces.
@@ -135,7 +136,9 @@ fun String.splitArtistsByDelimiters(
     }
 
     if (sortedDelimiters.isNotEmpty()) {
-        val charPattern = sortedDelimiters.joinToString("|") { Regex.escape(it) }
+        val charPattern = sortedDelimiters.joinToString("|") {
+            if (it == "+") """(?<=\s)\+(?=\s)""" else Regex.escape(it)
+        }
         patternParts.add(charPattern)
     }
 

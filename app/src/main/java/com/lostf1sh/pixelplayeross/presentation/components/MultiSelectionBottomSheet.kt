@@ -110,7 +110,8 @@ fun MultiSelectionBottomSheet(
     onShareAll: () -> Unit,
     onDownloadAll: () -> Unit,
     onDeleteAll: (activity: Activity, onResult: (Boolean) -> Unit) -> Unit,
-    onBatchEdit: () -> Unit
+    onBatchEdit: () -> Unit,
+    onSelectBetween: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val sheetState = rememberModalSheetState(skipPartiallyExpanded = true)
@@ -243,6 +244,19 @@ fun MultiSelectionBottomSheet(
                     contentPadding = PaddingValues(bottom = 32.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    if (onSelectBetween != null) {
+                        item {
+                            FilledTonalButton(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    onSelectBetween()
+                                    onDismiss()
+                                }
+                            ) {
+                                Text(stringResource(R.string.selection_select_between))
+                            }
+                        }
+                    }
                     item {
                         Row(
                             modifier = Modifier

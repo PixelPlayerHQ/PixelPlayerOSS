@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -68,7 +69,9 @@ fun PlayingEqIcon(
     val speeds = remember(bars) { List(bars) { (it + 1).toFloat() } }
     val shifts = remember(bars) { List(bars) { i -> i * 0.9f } }
 
-    Canvas(modifier = modifier) {
+    Canvas(
+        modifier = modifier.graphicsLayer { alpha = activity }
+    ) {
         val phase = phaseAnim.value
         val wander = wanderAnim.value
         val w = size.width

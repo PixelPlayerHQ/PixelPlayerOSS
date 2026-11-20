@@ -266,12 +266,14 @@ private fun MixEditorContent(
                 // Where a lane has no waveform, say so (cloud songs, unsupported files).
                 Column(Modifier.fillMaxSize()) {
                     WaveformPlaceholder(
-                        loading = state.fromWaveformLoading && state.fromWaveform == null,
+                        loading = state.fromWaveformLoading,
+                        hasWaveform = state.fromWaveform != null,
                         unavailable = !state.fromWaveformLoading && state.fromWaveform == null,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                     )
                     WaveformPlaceholder(
-                        loading = state.toWaveformLoading && state.toWaveform == null,
+                        loading = state.toWaveformLoading,
+                        hasWaveform = state.toWaveform != null,
                         unavailable = !state.toWaveformLoading && state.toWaveform == null,
                         modifier = Modifier.weight(1f).fillMaxWidth(),
                     )
@@ -397,11 +399,20 @@ private fun SongHeader(song: Song, bpm: Float?, accent: Color) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun WaveformPlaceholder(loading: Boolean, unavailable: Boolean, modifier: Modifier = Modifier) {
+private fun WaveformPlaceholder(
+    loading: Boolean,
+    hasWaveform: Boolean,
+    unavailable: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Box(modifier, contentAlignment = Alignment.Center) {
-        if (loading) {
+        if (loading && !hasWaveform) {
             // The waveform is being decoded; say so instead of leaving the lane blank.
             LoadingIndicator(modifier = Modifier.size(32.dp))
+        } else if (loading) {
+            // A first look is drawn but the whole song is still decoding: parts of the lane may
+            // not be known yet, so keep a small indicator in the corner.
+            LoadingIndicator(modifier = Modifier.align(Alignment.TopEnd).padding(10.dp).size(20.dp))
         } else if (unavailable) {
             Surface(
                 shape = RoundedCornerShape(8.dp),
@@ -644,6 +655,12 @@ private fun DrawScope.drawWaveform(
     while (x < size.width) {
         val rel = g.relOf(x)
         val songMs = songTimeAtWindowStartMs + rel.toLong()
+        // A partly decoded waveform knows nothing about the rest of the song: draw nothing there
+        // rather than bars that read as silence.
+        if (waveform.isPartial && !waveform.covers(songMs)) {
+            x += step
+            continue
+        }
         val peak = if (songMs < 0) 0f else waveform.peakAtMs(songMs)
         // The outgoing song stops after the window, the incoming one hasn't started before it.
         val audible = if (outgoing) rel <= windowMs else rel >= 0f

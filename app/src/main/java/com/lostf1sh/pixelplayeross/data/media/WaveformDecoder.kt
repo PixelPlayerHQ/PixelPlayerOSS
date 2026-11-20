@@ -143,7 +143,11 @@ internal object WaveformDecoder {
                 }
             }
 
-            return accumulator?.finish(startMs = firstPtsUs.coerceAtLeast(0L) / 1000)
+            return accumulator?.finish(
+                startMs = firstPtsUs.coerceAtLeast(0L) / 1000,
+                // Anything but the whole song: what lies outside is unknown, not silent.
+                isPartial = startMs > 0L || endUs != Long.MAX_VALUE,
+            )
                 ?.takeIf { it.peaks.isNotEmpty() }
         } catch (e: Exception) {
             return null

@@ -11,7 +11,13 @@ import kotlin.math.abs
  * A waveform of only part of a song starts at [startMs] into it; [encode] keeps only whole-song
  * waveforms' data, so a partial one is not meant for the disk cache.
  */
-class WaveformData(val bucketMs: Int, val peaks: ByteArray, val startMs: Long = 0L) {
+class WaveformData(
+    val bucketMs: Int,
+    val peaks: ByteArray,
+    val startMs: Long = 0L,
+    /** True when only part of the song was decoded: times outside it are unknown, not silent. */
+    val isPartial: Boolean = false,
+) {
 
     /** Length of the audio covered, from [startMs]. */
     val durationMs: Long get() = peaks.size.toLong() * bucketMs
@@ -20,15 +26,19 @@ class WaveformData(val bucketMs: Int, val peaks: ByteArray, val startMs: Long = 
     fun peakAt(index: Int): Float =
         if (index in peaks.indices) (peaks[index].toInt() and 0xFF) / 255f else 0f
 
+    /** Whether [positionMs] falls inside the part of the song this waveform was decoded from. */
+    fun covers(positionMs: Long): Boolean = positionMs >= startMs && positionMs < startMs + durationMs
+
     /** Peak at a time in the song, 0..1; 0 outside the part covered. */
     fun peakAtMs(positionMs: Long): Float =
         if (positionMs < startMs) 0f else peakAt(((positionMs - startMs) / bucketMs).toInt())
 
     override fun equals(other: Any?): Boolean =
         other is WaveformData && bucketMs == other.bucketMs && startMs == other.startMs &&
-            peaks.contentEquals(other.peaks)
+            isPartial == other.isPartial && peaks.contentEquals(other.peaks)
 
-    override fun hashCode(): Int = 31 * (31 * bucketMs + startMs.hashCode()) + peaks.contentHashCode()
+    override fun hashCode(): Int =
+        31 * (31 * (31 * bucketMs + startMs.hashCode()) + isPartial.hashCode()) + peaks.contentHashCode()
 
     /** Compact binary form for the disk cache. */
     fun encode(): ByteArray =
@@ -89,9 +99,9 @@ class PeakAccumulator(
     }
 
     /** Ends the song; a final partial bucket still counts. [startMs] is where the first sample sits in the song. */
-    fun finish(startMs: Long = 0L): WaveformData {
+    fun finish(startMs: Long = 0L, isPartial: Boolean = false): WaveformData {
         if (framesInBucket > 0) flushBucket()
-        return WaveformData(bucketMs, peaks.toByteArray(), startMs)
+        return WaveformData(bucketMs, peaks.toByteArray(), startMs, isPartial)
     }
 
     private fun flushBucket() {

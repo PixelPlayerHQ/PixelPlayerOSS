@@ -82,4 +82,30 @@ class WaveformDataTest {
         assertNull(WaveformData.decode(good.copyOf().also { it[0] = 0 })) // wrong magic
         assertNotNull(WaveformData.decode(good))
     }
+
+    @Test
+    fun `a partial waveform covers only the part it was decoded from`() {
+        // 100 buckets of 50 ms = 5 s, decoded from 170 s into the song.
+        val tail = WaveformData(50, ByteArray(100) { 100 }, startMs = 170_000, isPartial = true)
+
+        assertEquals(false, tail.covers(169_999))
+        assertEquals(true, tail.covers(170_000))
+        assertEquals(true, tail.covers(174_949))
+        assertEquals(false, tail.covers(175_000))
+    }
+
+    @Test
+    fun `partial and whole waveforms with the same peaks are not equal`() {
+        val peaks = ByteArray(10) { 5 }
+        assertEquals(false, WaveformData(50, peaks, 0, isPartial = true) == WaveformData(50, peaks, 0, isPartial = false))
+    }
+
+    @Test
+    fun `the accumulator marks what it was told is partial`() {
+        val acc = PeakAccumulator(sampleRate = 1000, channels = 1, bucketMs = 50)
+        acc.add(ShortArray(100))
+        val data = acc.finish(startMs = 1_000, isPartial = true)
+        assertEquals(1_000L, data.startMs)
+        assertEquals(true, data.isPartial)
+    }
 }

@@ -46,6 +46,8 @@
     <string name="setcat_excluded_directories_subtitle">Tyto složky se při prohledávání knihovny přeskočí.</string>
     <string name="setcat_artists_title">Interpreti</string>
     <string name="setcat_artists_subtitle">Nastavení rozpoznávání a třídění více interpretů.</string>
+    <string name="setcat_group_local_albums_by_title">Seskupovat místní alba podle názvu</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Sloučí místní skladby se stejným názvem alba, i když se liší interpret alba. Může to sloučit i nesouvisející alba se stejným názvem.</string>
     <string name="setcat_filtering">Filtrování</string>
     <string name="setcat_min_song_duration">Minimální délka skladby</string>
     <string name="setcat_min_tracks_per_album">Minimální počet skladeb na album</string>

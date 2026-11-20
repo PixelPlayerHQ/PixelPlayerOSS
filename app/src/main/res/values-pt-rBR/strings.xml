@@ -326,5 +326,7 @@
     <string name="collage_pattern_pixel_cookie">Biscoito pixelado</string>
     <string name="collage_pattern_heart_garden">Jardim de corações</string>
 
+    <string name="setcat_group_local_albums_by_title">Agrupar álbuns locais por título</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Combina faixas locais com o mesmo título de álbum, mesmo quando os artistas do álbum são diferentes. Isso também pode combinar álbuns diferentes com o mesmo título.</string>
 </resources>
 

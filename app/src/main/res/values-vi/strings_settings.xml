@@ -46,6 +46,8 @@
     <string name="setcat_excluded_directories_subtitle">Quản lý danh sách thư mục bị bỏ qua khi quét</string>
     <string name="setcat_artists_title">Nghệ sĩ</string>
     <string name="setcat_artists_subtitle">Cách phân tách và hiển thị nghệ sĩ</string>
+    <string name="setcat_group_local_albums_by_title">Nhóm album cục bộ theo tên</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Gộp các bản nhạc cục bộ có cùng tên album, kể cả khi nghệ sĩ album khác nhau. Điều này cũng có thể gộp các album không liên quan có cùng tên.</string>
     <string name="setcat_filtering">Bộ lọc thư viện</string>
     <string name="setcat_min_song_duration">Thời lượng bài hát tối thiểu</string>
     <string name="setcat_min_tracks_per_album">Số bài hát tối thiểu cho mỗi album</string>

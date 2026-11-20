@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">Thème de l\'application</string>
     <string name="setcat_application">Application</string>
     <string name="setcat_artists_subtitle">Options d\'analyse et d\'organisation multi-artistes.</string>
+    <string name="setcat_group_local_albums_by_title">Regrouper les albums locaux par titre</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Fusionne les pistes locales ayant le même titre d\'album, même si leurs artistes d\'album diffèrent. Des albums sans rapport portant le même titre peuvent aussi être fusionnés.</string>
     <string name="setcat_artists_title">Artistes</string>
     <string name="setcat_auto_hide_delay_desc">Temps avant que les contrôles ne se masquent.</string>
     <string name="setcat_auto_hide_delay_label">Délai de masquage auto</string>

@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">App-tema</string>
     <string name="setcat_application">Applikasjon</string>
     <string name="setcat_artists_subtitle">Alternativer for flere artister og organisering.</string>
+    <string name="setcat_group_local_albums_by_title">Grupper lokale album etter tittel</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Slår sammen lokale spor med samme albumtittel, selv om albumartistene er forskjellige. Dette kan også slå sammen urelaterte album med samme tittel.</string>
     <string name="setcat_artists_title">Artister</string>
     <string name="setcat_auto_hide_delay_desc">Tid før kontrollene skjules.</string>
     <string name="setcat_auto_hide_delay_label">Forsinkelse for autoskjuling</string>

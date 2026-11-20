@@ -91,6 +91,8 @@
     <string name="setcat_global_now_playing_theme_subtitle">Tüm uygulamayı geçerli parçanın albüm kapağıyla renklendirir. Açık ve koyu mod korunur.</string>
     <string name="setcat_application">Uygulama</string>
     <string name="setcat_artists_subtitle">Çoklu sanatçı ayrıştırma ve düzenleme seçenekleri.</string>
+    <string name="setcat_group_local_albums_by_title">Yerel albümleri ada göre grupla</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Albüm sanatçıları farklı olsa bile aynı albüm adına sahip yerel parçaları birleştirir. Aynı ada sahip ilgisiz albümler de birleşebilir.</string>
     <string name="setcat_artists_title">Sanatçılar</string>
     <string name="setcat_auto_hide_delay_desc">Kontrollerin gizlenmesinden önceki süre.</string>
     <string name="setcat_auto_hide_delay_label">Otomatik Gizleme Gecikmesi</string>

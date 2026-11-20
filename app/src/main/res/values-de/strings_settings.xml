@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">App-Design</string>
     <string name="setcat_application">App</string>
     <string name="setcat_artists_subtitle">Mehrkünstler-Parsing und Sortierung</string>
+    <string name="setcat_group_local_albums_by_title">Lokale Alben nach Titel gruppieren</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Fasst lokale Titel mit demselben Albumtitel zusammen, auch wenn sich die Albumkünstler unterscheiden. Dabei können auch nicht zusammengehörige Alben mit demselben Titel zusammengefasst werden.</string>
     <string name="setcat_artists_title">Künstler</string>
     <string name="setcat_auto_hide_delay_desc">Wie lange die Steuerung sichtbar bleibt, bevor sie ausblendet.</string>
     <string name="setcat_auto_hide_delay_label">Ausblend-Verzögerung</string>

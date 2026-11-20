@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">Tema de la app</string>
     <string name="setcat_application">Aplicación</string>
     <string name="setcat_artists_subtitle">Análisis de varios artistas y organización.</string>
+    <string name="setcat_group_local_albums_by_title">Agrupar álbumes locales por título</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Combina las pistas locales con el mismo título de álbum, aunque sus artistas del álbum sean distintos. También puede combinar álbumes no relacionados que tengan el mismo título.</string>
     <string name="setcat_artists_title">Artistas</string>
     <string name="setcat_auto_hide_delay_desc">Tiempo antes de que se oculten los controles.</string>
     <string name="setcat_auto_hide_delay_label">Retraso de ocultación automática</string>

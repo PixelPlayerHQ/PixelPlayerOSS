@@ -42,6 +42,8 @@
     <string name="setcat_excluded_directories_subtitle">扫描曲库时将跳过此处的文件夹</string>
     <string name="setcat_artists_title">歌手</string>
     <string name="setcat_artists_subtitle">多歌手解析与整理相关选项</string>
+    <string name="setcat_group_local_albums_by_title">按标题归类本地专辑</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">将专辑标题相同的本地曲目合并为一张专辑，即使专辑艺术家不同。这也可能合并标题相同但无关的专辑。</string>
     <string name="setcat_filtering">过滤</string>
     <string name="setcat_min_song_duration">歌曲最小时长</string>
     <string name="setcat_min_tracks_per_album">专辑最少曲目数</string>

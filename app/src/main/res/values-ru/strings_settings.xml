@@ -81,6 +81,8 @@
     <string name="setcat_app_theme_label">Тема приложения</string>
     <string name="setcat_application">Приложение</string>
     <string name="setcat_artists_subtitle">Параметры обработки и организации нескольких исполнителей.</string>
+    <string name="setcat_group_local_albums_by_title">Группировать локальные альбомы по названию</string>
+    <string name="setcat_group_local_albums_by_title_subtitle">Объединяет локальные треки с одинаковым названием альбома, даже если исполнители альбома различаются. Это может объединить и разные альбомы с одинаковым названием.</string>
     <string name="setcat_artists_title">Исполнители</string>
     <string name="setcat_auto_hide_delay_desc">Время до скрытия элементов управления.</string>
     <string name="setcat_auto_hide_delay_label">Задержка скрытия</string>

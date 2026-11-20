@@ -362,7 +362,7 @@ constructor(
                             extractFromTitle = extractArtistsFromTitle,
                             groupByAlbumArtist = groupByAlbumArtist,
                             groupAlbumsByTitle = albumGrouping.byTitle,
-                            keepExistingAlbumMetadata = !syncPlan.forceProcessAll,
+                            includeUnchangedAlbumTracks = !syncPlan.forceProcessAll,
                             existingArtistMetadata = existingArtistMetadata,
                             existingAlbums = allExistingAlbums,
                             existingArtistIdMap = existingArtistIdMap,
@@ -581,21 +581,22 @@ constructor(
     private data class ScannedSong(
         val entity: SongEntity,
         val artistValues: List<String>,
-        val readEmbeddedTags: Boolean
+        val readEmbeddedTags: Boolean,
+        val previousAlbumId: Long? = null,
     )
 
     /**
      * Process songs with multi-artist support. Splits artist names by delimiters and creates proper
      * cross-references.
      */
-    private fun preProcessAndDeduplicateWithMultiArtist(
+    private suspend fun preProcessAndDeduplicateWithMultiArtist(
             songs: List<ScannedSong>,
             artistDelimiters: List<String>,
             wordDelimiters: List<String> = emptyList(),
             extractFromTitle: Boolean = true,
             groupByAlbumArtist: Boolean,
             groupAlbumsByTitle: Boolean,
-            keepExistingAlbumMetadata: Boolean,
+            includeUnchangedAlbumTracks: Boolean,
             existingArtistMetadata: Map<Long, Pair<String?, String?>>,
             existingAlbums: List<AlbumEntity>,
             existingArtistIdMap: MutableMap<String, Long>,
@@ -607,7 +608,13 @@ constructor(
         
         val allCrossRefs = mutableListOf<SongArtistCrossRef>()
         val artistTrackCounts = mutableMapOf<Long, Int>()
-        val albumIndex = LocalAlbumIndex(existingAlbums, groupAlbumsByTitle)
+        val fallbackSources = if (groupAlbumsByTitle && songs.any { buildTitleOnlyAlbumKey(it.entity.albumName) == null }) {
+            existingAlbums.filter { buildTitleOnlyAlbumKey(it.title) == null }.map { it.id }.chunked(500)
+                .flatMap { musicDao.getLocalAlbumGroupingSources(it) }
+        } else {
+            emptyList()
+        }
+        val albumIndex = LocalAlbumIndex(existingAlbums, groupAlbumsByTitle, fallbackSources)
         val artistSplitCache = mutableMapOf<String, List<String>>()
         val correctedSongs = ArrayList<SongEntity>(songs.size)
 
@@ -698,11 +705,20 @@ constructor(
             )
         }
         
-        val existingAlbumMetadata = if (groupAlbumsByTitle && keepExistingAlbumMetadata) {
-            existingAlbums.associateBy { it.id }
-        } else emptyMap()
-        val albumEntities = correctedSongs.groupBy { it.albumId }.map { (catAlbumId, songsInAlbum) ->
-             existingAlbumMetadata[catAlbumId]?.let { return@map it }
+        val songsByAlbum = correctedSongs.groupByTo(linkedMapOf(), SongEntity::albumId)
+        if (groupAlbumsByTitle && includeUnchangedAlbumTracks) {
+            val affectedAlbumIds = songs.mapNotNullTo(songsByAlbum.keys.toMutableSet()) { it.previousAlbumId }
+            val updatedSongIds = correctedSongs.mapTo(hashSetOf(), SongEntity::id)
+            affectedAlbumIds.chunked(500).forEach { albumIds ->
+                musicDao.getLocalSongsByAlbumIdsForSync(albumIds).forEach { storedSong ->
+                    if (storedSong.id !in updatedSongIds) {
+                        songsByAlbum.getOrPut(storedSong.albumId) { mutableListOf() }.add(storedSong)
+                    }
+                }
+            }
+        }
+        val albumEntities = songsByAlbum.map { (catAlbumId, members) ->
+             val songsInAlbum = if (groupAlbumsByTitle) members.sortedBy(SongEntity::id) else members
              val firstSong = songsInAlbum.first()
              val representativeAlbumArt = songsInAlbum.firstNotNullOfOrNull { it.albumArtUriString }
              val determinedAlbumArtist = chooseAlbumDisplayArtist(
@@ -1141,7 +1157,11 @@ constructor(
                             if (count % progressBatchSize == 0 || count == totalCount) {
                                 onProgress(count, totalCount, SyncProgress.SyncPhase.PROCESSING_FILES.ordinal)
                             }
-                            scannedMediaStoreSong.copy(entity = song, artistValues = artistValues)
+                            scannedMediaStoreSong.copy(
+                                entity = song,
+                                artistValues = artistValues,
+                                previousAlbumId = localSong?.albumId,
+                            )
                         }
                     }
                 }.awaitAll()

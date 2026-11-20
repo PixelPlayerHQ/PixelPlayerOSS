@@ -297,6 +297,81 @@ class SyncWorkerTest {
     }
 
     @Test
+    fun titleGroupedIncrementalSyncKeepsUnknownAlbumsAndRefreshesMetadataFromAllMembers() = runBlocking {
+        val preferences = createTestPreferencesRepository()
+        coEvery { preferences.getLocalAlbumGroupingSettings() } returns LocalAlbumGroupingSettings(
+            byTitle = true, indexVersion = "true:1"
+        )
+        var lastSyncTimestamp = 0L
+        coEvery { preferences.getLastSyncTimestamp() } answers { lastSyncTimestamp }
+        coEvery { preferences.setLastSyncTimestamp(any()) } answers { lastSyncTimestamp = firstArg() }
+        val years = mutableMapOf(1L to 2020, 2L to 2021, 3L to 2022)
+        var modifiedTracks = emptySet<Long>()
+        var revision = 0L
+        var incrementalQueries = 0
+
+        every { mockContentResolver.query(any(), any(), any(), any(), any()) } answers {
+            val projection = secondArg<Array<String>>()
+            val cursor = MatrixCursor(projection)
+            if (firstArg<Uri>() == MediaStore.Audio.Media.EXTERNAL_CONTENT_URI) {
+                val isIncremental = "${MediaStore.Audio.Media.DATE_MODIFIED} > ?" in thirdArg<String>()
+                if (isIncremental) incrementalQueries++
+                for ((id, year) in years) {
+                    if (isIncremental && id !in modifiedTracks) continue
+                    val unknown = id <= 2L
+                    val values = mapOf(
+                        MediaStore.Audio.Media._ID to id,
+                        MediaStore.Audio.Media.TITLE to "Track $id",
+                        MediaStore.Audio.Media.ARTIST to "Artist",
+                        MediaStore.Audio.Media.ARTIST_ID to 101L,
+                        MediaStore.Audio.Media.ALBUM to if (unknown) "Unknown Album" else "Named Album",
+                        MediaStore.Audio.Media.ALBUM_ID to if (unknown) 201L else 202L,
+                        MediaStore.Audio.Media.DURATION to 180_000L,
+                        MediaStore.Audio.Media.DATA to "/sdcard/Music/${if (unknown) "unfiled" else "named"}/$id.m4a",
+                        MediaStore.Audio.Media.MIME_TYPE to "audio/mp4",
+                        MediaStore.Audio.Media.TRACK to id.toInt(),
+                        MediaStore.Audio.Media.YEAR to year,
+                        MediaStore.Audio.Media.DATE_ADDED to 100L,
+                        MediaStore.Audio.Media.DATE_MODIFIED to 100L + revision,
+                    )
+                    cursor.addRow(projection.map { values[it] })
+                }
+            }
+            cursor
+        }
+
+        val testContext = object : ContextWrapper(context) {
+            override fun getContentResolver() = mockContentResolver
+        }
+        suspend fun sync() = TestListenableWorkerBuilder<SyncWorker>(testContext)
+            .setWorkerFactory(TestSyncWorkerFactory(musicDao, preferences))
+            .setInputData(workDataOf(SyncWorker.INPUT_RUN_MAINTENANCE to false))
+            .build()
+            .doWork()
+
+        assertSuccessfulSongCount(sync(), expectedCount = 3)
+        assertThat(musicDao.getSongsByAlbumId(201L).first().map { it.id }).containsExactly(1L, 2L)
+
+        revision++
+        modifiedTracks = setOf(1L, 3L)
+        years[1L] = 2024
+        years[3L] = 2025
+        assertSuccessfulSongCount(sync(), expectedCount = 3)
+        assertThat(musicDao.getSongsByAlbumId(201L).first().map { it.id }).containsExactly(1L, 2L)
+        assertThat(musicDao.getAlbumById(201L).first()?.year).isEqualTo(2024)
+        assertThat(musicDao.getAlbumById(202L).first()?.year).isEqualTo(2025)
+
+        revision++
+        modifiedTracks = setOf(2L)
+        years[2L] = 2026
+        assertSuccessfulSongCount(sync(), expectedCount = 3)
+        assertThat(incrementalQueries).isEqualTo(2)
+        assertThat(musicDao.getAlbumCount().first()).isEqualTo(2)
+        assertThat(musicDao.getSongByIdOnce(2L)?.year).isEqualTo(2026)
+        assertThat(musicDao.getAlbumById(201L).first()?.year).isEqualTo(2024)
+    }
+
+    @Test
     fun incrementalSync_recoversAlbumTracksIndexedWithOldTimestamps() = runBlocking {
         val preferences = createTestPreferencesRepository()
         var lastSyncTimestamp = 0L

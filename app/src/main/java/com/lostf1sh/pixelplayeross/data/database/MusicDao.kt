@@ -172,6 +172,13 @@ data class DeviceCapabilitySongRow(
 
 data class SongLyricSearchRow(val id: Long, val content: String)
 
+data class LocalAlbumGroupingSource(
+    val albumId: Long,
+    val albumName: String,
+    val albumArtist: String?,
+    val parentDirectoryPath: String?,
+)
+
 /**
  * Single-pass audio aggregates for the diagnostic performance report.
  * Computed in one SQL pass so it stays cheap even on large libraries —
@@ -1307,6 +1314,17 @@ interface MusicDao {
         )
     """)
     suspend fun getLocalAlbumsForSync(): List<AlbumEntity>
+
+    @Query("""
+        SELECT DISTINCT album_id AS albumId, album_name AS albumName,
+            album_artist AS albumArtist, parent_directory_path AS parentDirectoryPath
+        FROM songs
+        WHERE source_type = 0 AND album_id IN (:albumIds)
+    """)
+    suspend fun getLocalAlbumGroupingSources(albumIds: List<Long>): List<LocalAlbumGroupingSource>
+
+    @Query("SELECT " + SONG_LIST_PROJECTION + " FROM songs WHERE source_type = 0 AND album_id IN (:albumIds)")
+    suspend fun getLocalSongsByAlbumIdsForSync(albumIds: List<Long>): List<SongEntity>
 
     @Query("""
         SELECT

@@ -1,6 +1,7 @@
 package com.lostf1sh.pixelplayeross.data.worker
 
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
+import com.lostf1sh.pixelplayeross.data.database.LocalAlbumGroupingSource
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
 import com.lostf1sh.pixelplayeross.utils.LocalArtworkUri
 import com.lostf1sh.pixelplayeross.utils.normalizeMetadataText
@@ -12,15 +13,37 @@ internal data class AlbumGroupingKey(
     val identity: String
 )
 
-internal class LocalAlbumIndex(existingAlbums: List<AlbumEntity>, private val groupByTitle: Boolean) {
+internal class LocalAlbumIndex(
+    existingAlbums: List<AlbumEntity>,
+    private val groupByTitle: Boolean,
+    existingFallbackSources: List<LocalAlbumGroupingSource> = emptyList(),
+) {
     private val albumIds = mutableMapOf<AlbumGroupingKey, Long>()
     private val usedIds = if (groupByTitle) existingAlbums.mapTo(hashSetOf()) { it.id } else null
     private var nextAvailableId = Long.MAX_VALUE
 
     init {
         existingAlbums.sortedBy { it.id }.forEach { album ->
-            buildAlbumGroupingKeys(album, groupByTitle).forEach { key ->
+            val keys = if (groupByTitle) listOfNotNull(buildTitleOnlyAlbumKey(album.title))
+            else buildAlbumGroupingKeys(album)
+            keys.forEach { key ->
                 albumIds.putIfAbsent(key, album.id)
+            }
+        }
+        if (groupByTitle) {
+            existingFallbackSources.groupBy { it.albumId }.toSortedMap().forEach { (albumId, sources) ->
+                val key = sources.mapNotNull { source ->
+                    if (buildTitleOnlyAlbumKey(source.albumName) != null) return@mapNotNull null
+                    buildAlbumGroupingKey(
+                        albumName = source.albumName,
+                        albumArtist = source.albumArtist,
+                        albumArtUriString = null,
+                        parentDirectoryPath = source.parentDirectoryPath,
+                        fallbackAlbumId = albumId,
+                        preferStableLocalIdentity = true,
+                    )
+                }.distinct().singleOrNull()
+                if (key != null) albumIds.putIfAbsent(key, albumId)
             }
         }
     }
@@ -51,7 +74,7 @@ internal fun resolveAlbumArtist(
 internal fun buildAlbumGroupingKey(song: SongEntity, groupByTitle: Boolean = false): AlbumGroupingKey {
     val localMedia = LocalArtworkUri.isLikelyLocalMedia(song.contentUriString)
     if (groupByTitle && localMedia) {
-        titleOnlyKey(song.albumName)?.let { return it }
+        buildTitleOnlyAlbumKey(song.albumName)?.let { return it }
     }
     return buildAlbumGroupingKey(
         albumName = song.albumName,
@@ -63,18 +86,12 @@ internal fun buildAlbumGroupingKey(song: SongEntity, groupByTitle: Boolean = fal
     )
 }
 
-internal fun buildAlbumGroupingKeys(
-    album: AlbumEntity,
-    groupByTitle: Boolean = false
-): List<AlbumGroupingKey> {
-    if (groupByTitle) {
-        titleOnlyKey(album.title)?.let { return listOf(it) }
-    }
+internal fun buildAlbumGroupingKeys(album: AlbumEntity): List<AlbumGroupingKey> {
     val albumKeys = mutableListOf<AlbumGroupingKey>()
 
     albumKeys += buildAlbumGroupingKey(
         albumName = album.title,
-        albumArtist = if (groupByTitle) album.albumArtist ?: album.artistName else album.artistName,
+        albumArtist = album.artistName,
         albumArtUriString = album.albumArtUriString,
         parentDirectoryPath = null,
         fallbackAlbumId = album.id
@@ -99,7 +116,7 @@ internal fun buildAlbumGroupingKeys(
     return albumKeys.distinct()
 }
 
-private fun titleOnlyKey(albumName: String): AlbumGroupingKey? {
+internal fun buildTitleOnlyAlbumKey(albumName: String): AlbumGroupingKey? {
     val title = albumName.normalizeMetadataTextOrEmpty().lowercase()
     return when (title) {
         "", "<unknown>", "unknown", "unknown album" -> null

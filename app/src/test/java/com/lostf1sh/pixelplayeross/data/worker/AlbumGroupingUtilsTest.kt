@@ -2,8 +2,9 @@ package com.lostf1sh.pixelplayeross.data.worker
 
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
+import com.lostf1sh.pixelplayeross.data.database.LocalAlbumGroupingSource
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class AlbumGroupingUtilsTest {
 
@@ -43,6 +44,21 @@ class AlbumGroupingUtilsTest {
             .isNotEqualTo(buildAlbumGroupingKey(second.copy(albumName = "Unknown Album"), groupByTitle = true))
         assertThat(buildAlbumGroupingKey(first.copy(contentUriString = "navidrome://123"), groupByTitle = true))
             .isNotEqualTo(buildAlbumGroupingKey(second, groupByTitle = true))
+    }
+
+    @Test
+    fun `title grouping reuses a stored directory group without merging other unknown albums`() {
+        val track = testSong("Artist", null, parentDirectoryPath = "/music/first", albumName = "Unknown Album")
+        val album = AlbumEntity(77L, track.albumName, "Artist", 1L, null, 2, 0L, 0)
+        val index = LocalAlbumIndex(
+            existingAlbums = listOf(album),
+            groupByTitle = true,
+            existingFallbackSources = listOf(LocalAlbumGroupingSource(album.id, track.albumName, null, "/music/first")),
+        )
+
+        assertThat(index.idFor(track)).isEqualTo(album.id)
+        assertThat(index.idFor(track.copy(albumId = album.id, parentDirectoryPath = "/music/second")))
+            .isNotEqualTo(album.id)
     }
 
     @Test

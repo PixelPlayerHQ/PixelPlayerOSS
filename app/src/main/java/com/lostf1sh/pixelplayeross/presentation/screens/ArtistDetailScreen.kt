@@ -2,6 +2,7 @@
 
 package com.lostf1sh.pixelplayeross.presentation.screens
 
+import com.lostf1sh.pixelplayeross.presentation.components.albumTitleMarquee
 import com.lostf1sh.pixelplayeross.presentation.components.rememberSwipeToQueue
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafely
 import com.lostf1sh.pixelplayeross.presentation.navigation.navigateSafelyReplacing
@@ -908,8 +909,9 @@ private fun CollapsibleAlbumSectionHeader(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.albumTitleMarquee(),
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    softWrap = false
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(

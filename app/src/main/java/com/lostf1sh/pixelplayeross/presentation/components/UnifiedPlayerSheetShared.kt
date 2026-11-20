@@ -33,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -41,9 +42,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.size.Size
@@ -152,78 +155,83 @@ internal fun MiniPlayerContentInternal(
         }
         Spacer(modifier = Modifier.width(8.dp))
 
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(LocalMaterialTheme.current.onPrimary)
-                .clickable(
-                    interactionSource = previousInteraction,
-                    indication = miniPlayerIndication,
-                    enabled = controlsEnabled
+        // Media transport controls stay left-to-right in RTL locales.
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(LocalMaterialTheme.current.onPrimary)
+                        .clickable(
+                            interactionSource = previousInteraction,
+                            indication = miniPlayerIndication,
+                            enabled = controlsEnabled
+                        ) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onPrevious()
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onPrevious()
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.SkipPrevious,
-                contentDescription = stringResource(R.string.previous_track),
-                tint = LocalMaterialTheme.current.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+                    Icon(
+                        imageVector = Icons.Rounded.SkipPrevious,
+                        contentDescription = stringResource(R.string.previous_track),
+                        tint = LocalMaterialTheme.current.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
 
-        Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-        val playPauseCorner by animateDpAsState(
-            targetValue = if (isPlaying) 10.dp else 18.dp,
-            animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
-            label = "MiniPlayerPlayPauseCorner"
-        )
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(playPauseCorner))
-                .background(LocalMaterialTheme.current.primary)
-                .clickable(
-                    interactionSource = playPauseInteraction,
-                    indication = miniPlayerIndication,
-                    enabled = controlsEnabled
+                val playPauseCorner by animateDpAsState(
+                    targetValue = if (isPlaying) 10.dp else 18.dp,
+                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                    label = "MiniPlayerPlayPauseCorner"
+                )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(playPauseCorner))
+                        .background(LocalMaterialTheme.current.primary)
+                        .clickable(
+                            interactionSource = playPauseInteraction,
+                            indication = miniPlayerIndication,
+                            enabled = controlsEnabled
+                        ) {
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                            onPlayPause()
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    onPlayPause()
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            MorphingPlayPauseIcon(
-                isPlaying = isPlaying,
-                tint = LocalMaterialTheme.current.onPrimary,
-                size = 22.dp
-            )
-        }
+                    MorphingPlayPauseIcon(
+                        isPlaying = isPlaying,
+                        tint = LocalMaterialTheme.current.onPrimary,
+                        size = 22.dp
+                    )
+                }
 
-        Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-        Box(
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(LocalMaterialTheme.current.onPrimary)
-                .clickable(
-                    interactionSource = nextInteraction,
-                    indication = miniPlayerIndication,
-                    enabled = controlsEnabled
-                ) { onNext() },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.SkipNext,
-                contentDescription = stringResource(R.string.next_track),
-                tint = LocalMaterialTheme.current.primary,
-                modifier = Modifier.size(22.dp)
-            )
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(LocalMaterialTheme.current.onPrimary)
+                        .clickable(
+                            interactionSource = nextInteraction,
+                            indication = miniPlayerIndication,
+                            enabled = controlsEnabled
+                        ) { onNext() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SkipNext,
+                        contentDescription = stringResource(R.string.next_track),
+                        tint = LocalMaterialTheme.current.primary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
         }
     }
 }

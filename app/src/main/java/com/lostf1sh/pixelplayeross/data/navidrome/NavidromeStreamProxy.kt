@@ -39,7 +39,7 @@ class NavidromeStreamProxy @Inject constructor(
     override fun validateId(id: String): Boolean =
         CloudStreamSecurity.validateNavidromeSongId(id)
 
-    override fun formatIdForUrl(id: String): String = id
+    override fun formatIdForUrl(id: String): String = NavidromeSongUri.encodeId(id)
 
     override suspend fun resolveStreamUrl(id: String): String? {
         return try {
@@ -51,8 +51,7 @@ class NavidromeStreamProxy @Inject constructor(
         }
     }
 
-    override fun extractIdFromUri(uri: Uri): String? =
-        uri.host ?: uri.path?.removePrefix("/")
+    override fun extractIdFromUri(uri: Uri): String? = NavidromeSongUri.parseId(uri.toString())
 
     fun resolveNavidromeUri(uriString: String): String? = resolveUri(uriString)
 
@@ -61,9 +60,7 @@ class NavidromeStreamProxy @Inject constructor(
      * serve it instantly when ExoPlayer makes its HTTP request.
      */
     suspend fun warmUpStreamUrl(uriString: String) {
-        val uri = Uri.parse(uriString)
-        if (uri.scheme != "navidrome") return
-        val songId = uri.host ?: uri.path?.removePrefix("/") ?: return
+        val songId = NavidromeSongUri.parseId(uriString) ?: return
         if (!CloudStreamSecurity.validateNavidromeSongId(songId)) return
         try {
             getOrFetchStreamUrl(songId)

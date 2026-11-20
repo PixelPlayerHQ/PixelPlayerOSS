@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">歌曲列表</string>
+    <string name="setcat_swipe_to_queue_title">滑动歌曲</string>
+    <string name="setcat_swipe_to_queue_description">在播放列表、专辑、艺术家、流派和混音中，将歌曲行向屏幕末端滑动。</string>
+    <string name="setcat_swipe_to_queue_add">添加到队列</string>
+    <string name="setcat_swipe_to_queue_add_description">将歌曲添加到队列末尾。</string>
+    <string name="setcat_swipe_to_queue_next">下一首播放</string>
+    <string name="setcat_swipe_to_queue_next_description">将歌曲添加到当前歌曲之后。</string>
+    <string name="setcat_swipe_to_queue_off">关闭</string>
+    <string name="setcat_swipe_to_queue_off_description">滑动歌曲不执行任何操作。</string>
+</resources>

@@ -6,6 +6,7 @@
     <string name="sort_method_artist">아티스트</string>
     <string name="sort_method_album">앨범</string>
     <string name="sort_method_date_added">추가된 날짜</string>
+    <string name="sort_method_date_modified">수정된 날짜</string>
     <string name="sort_method_duration">재생 시간</string>
     <string name="sort_method_release_year">출시 연도</string>
     <string name="sort_method_song_count">곡 수</string>

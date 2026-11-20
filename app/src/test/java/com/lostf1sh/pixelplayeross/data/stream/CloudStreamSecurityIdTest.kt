@@ -12,14 +12,14 @@ import org.junit.jupiter.api.Test
 class CloudStreamSecurityIdTest {
 
     @Test
-    fun `navidrome song ids allow url-safe characters within length`() {
+    fun `navidrome song ids accept opaque subsonic ids within length`() {
         assertTrue(CloudStreamSecurity.validateNavidromeSongId("abc123_-XYZ"))
         assertTrue(CloudStreamSecurity.validateNavidromeSongId("a"))
+        assertTrue(CloudStreamSecurity.validateNavidromeSongId("song:abc%20def"))
         assertFalse(CloudStreamSecurity.validateNavidromeSongId(""))
-        assertFalse(CloudStreamSecurity.validateNavidromeSongId("a".repeat(101)))
-        assertFalse(CloudStreamSecurity.validateNavidromeSongId("has space"))
-        assertFalse(CloudStreamSecurity.validateNavidromeSongId("path/traversal"))
-        assertFalse(CloudStreamSecurity.validateNavidromeSongId("inject';--"))
+        assertFalse(CloudStreamSecurity.validateNavidromeSongId("   "))
+        assertFalse(CloudStreamSecurity.validateNavidromeSongId("a".repeat(1025)))
+        assertFalse(CloudStreamSecurity.validateNavidromeSongId("line\nbreak"))
     }
 
     @Test

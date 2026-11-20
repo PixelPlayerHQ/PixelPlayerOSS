@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Làm nổi bật từ</string>
+    <string name="lyrics_highlight_style_subtitle">Cách lời bài hát đồng bộ theo từng từ sáng lên khi được hát</string>
+    <string name="lyrics_highlight_style_wipe">Lướt chuyển màu</string>
+    <string name="lyrics_highlight_style_wipe_desc">Hiệu ứng mềm mại lướt qua từng từ khi được hát</string>
+    <string name="lyrics_highlight_style_fade">Mờ dần</string>
+    <string name="lyrics_highlight_style_fade_desc">Từng âm tiết hiện dần lên trong khi được hát</string>
+    <string name="lyrics_highlight_style_classic">Tức thì</string>
+    <string name="lyrics_highlight_style_classic_desc">Mỗi âm tiết sáng lên ngay khi bắt đầu</string>
+    <string name="lyrics_duet_layout_title">Bố cục song ca</string>
+    <string name="lyrics_duet_layout_subtitle">Hiển thị mỗi ca sĩ ở một phía riêng khi lời bài hát có đánh dấu giọng (v1:, v2:)</string>
+    <string name="lyrics_background_vocals_title">Hát bè / Hát nền</string>
+    <string name="lyrics_background_vocals_subtitle">Hiển thị phần hát bè với cỡ chữ nhỏ hơn bên dưới dòng chính</string>
+</resources>

@@ -98,6 +98,9 @@ constructor(
         // Describes which text repair this install's library database went through, not a user
         // choice — restoring another device's value could skip or repeat the repair here.
         PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION.name,
+        PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION.name,
+        "cloud_download_export_tree_uri",
+        "cloud_download_export_tree_name",
         "listenbrainz_token",
         "lastfm_session_key",
         // Update settings describe this install (F-Droid vs. GitHub signed), not user taste;
@@ -121,6 +124,7 @@ constructor(
         val PLAYLIST_SONG_ORDER_MODES = stringPreferencesKey("playlist_song_order_modes")
 
         val SONGS_SORT_OPTION = stringPreferencesKey("songs_sort_option")
+        val SONGS_SECONDARY_SORT_OPTION = stringPreferencesKey("songs_secondary_sort_option")
         val SONGS_SORT_OPTION_MIGRATED = booleanPreferencesKey("songs_sort_option_migrated_v2")
         val ALBUMS_SORT_OPTION = stringPreferencesKey("albums_sort_option")
         val ARTISTS_SORT_OPTION = stringPreferencesKey("artists_sort_option")
@@ -135,6 +139,7 @@ constructor(
         val LAST_STORAGE_FILTER = stringPreferencesKey("last_storage_filter")
         val MOCK_GENRES_ENABLED = booleanPreferencesKey("mock_genres_enabled")
         val LAST_DAILY_MIX_UPDATE = longPreferencesKey("last_daily_mix_update")
+        val DAILY_MIX_REPLACED_AT = longPreferencesKey("daily_mix_replaced_at")
         val DAILY_MIX_SONG_IDS = stringPreferencesKey("daily_mix_song_ids")
         val YOUR_MIX_SONG_IDS = stringPreferencesKey("your_mix_song_ids")
         val NAV_BAR_CORNER_RADIUS = intPreferencesKey("nav_bar_corner_radius")
@@ -223,6 +228,7 @@ constructor(
         val LAST_APPLIED_DIRECTORY_RULES_VERSION =
             intPreferencesKey("last_applied_directory_rules_version")
         val METADATA_CHARSET_REPAIR_VERSION = intPreferencesKey("metadata_charset_repair_version")
+        val EMBEDDED_TAG_SCAN_VERSION = intPreferencesKey("embedded_tag_scan_version")
 
         val LYRICS_SYNC_OFFSETS = stringPreferencesKey("lyrics_sync_offsets_json")
 
@@ -239,6 +245,7 @@ constructor(
         val MINI_PLAYER_SWIPE_TO_SKIP = booleanPreferencesKey("mini_player_swipe_to_skip")
         val AUTOPLAY_ON_SKIP = booleanPreferencesKey("autoplay_on_skip")
         val PREVIOUS_BUTTON_BEHAVIOR = stringPreferencesKey("previous_button_behavior")
+        val SWIPE_TO_QUEUE_ACTION = stringPreferencesKey("swipe_to_queue_action")
         val HAPTICS_ENABLED = booleanPreferencesKey("haptics_enabled")
         val ADVANCED_PERFORMANCE_DIAGNOSTICS_ENABLED =
             booleanPreferencesKey("advanced_performance_diagnostics_enabled")
@@ -268,6 +275,7 @@ constructor(
         val MIN_SONG_DURATION = intPreferencesKey("min_song_duration_ms")
 
         val MIN_TRACKS_PER_ALBUM = intPreferencesKey("min_tracks_per_album")
+        val MIN_TRACKS_PER_ARTIST = intPreferencesKey("min_tracks_per_artist")
 
         val REPLAYGAIN_ENABLED = booleanPreferencesKey("replaygain_enabled")
         val REPLAYGAIN_USE_ALBUM_GAIN = booleanPreferencesKey("replaygain_use_album_gain")
@@ -632,6 +640,13 @@ constructor(
         dataStore.edit { it[PreferencesKeys.METADATA_CHARSET_REPAIR_VERSION] = version }
     }
 
+    suspend fun getEmbeddedTagScanVersion(): Int =
+        dataStore.data.first()[PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION] ?: 0
+
+    suspend fun setEmbeddedTagScanVersion(version: Int) {
+        dataStore.edit { it[PreferencesKeys.EMBEDDED_TAG_SCAN_VERSION] = version }
+    }
+
     suspend fun setLastSyncTimestamp(timestamp: Long) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.LAST_SYNC_TIMESTAMP] = timestamp
@@ -888,6 +903,18 @@ constructor(
         }
     }
 
+    /** When the user last replaced the Daily Mix (e.g. with a Smart Mix), or 0 if never. */
+    val dailyMixReplacedAtFlow: Flow<Long> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.DAILY_MIX_REPLACED_AT] ?: 0L
+            }
+
+    suspend fun saveDailyMixReplacedAt(timestamp: Long) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DAILY_MIX_REPLACED_AT] = timestamp
+        }
+    }
+
     /** Minimum song duration in milliseconds. Default 10000ms (10 seconds). */
     val minSongDurationFlow: Flow<Int> =
         dataStore.data.map { preferences ->
@@ -912,6 +939,17 @@ constructor(
     suspend fun setMinTracksPerAlbum(minTracks: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.MIN_TRACKS_PER_ALBUM] = minTracks
+        }
+    }
+
+    val minTracksPerArtistFlow: Flow<Int> =
+        dataStore.data.map { preferences ->
+            (preferences[PreferencesKeys.MIN_TRACKS_PER_ARTIST] ?: 1).coerceIn(1, 5)
+        }.distinctUntilChanged()
+
+    suspend fun setMinTracksPerArtist(minTracks: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.MIN_TRACKS_PER_ARTIST] = minTracks.coerceIn(1, 5)
         }
     }
 
@@ -1161,6 +1199,22 @@ constructor(
                         )
                         .storageKey
             }
+
+    val songsSecondarySortOptionFlow: Flow<SortOption?> =
+        dataStore.data.map { preferences ->
+            val key = preferences[PreferencesKeys.SONGS_SECONDARY_SORT_OPTION]
+            SortOption.SONG_SECONDARY.firstOrNull { it.storageKey == key }
+        }.distinctUntilChanged()
+
+    suspend fun setSongsSecondarySortOption(option: SortOption?) {
+        dataStore.edit { preferences ->
+            if (option == null) {
+                preferences.remove(PreferencesKeys.SONGS_SECONDARY_SORT_OPTION)
+            } else {
+                preferences[PreferencesKeys.SONGS_SECONDARY_SORT_OPTION] = option.storageKey
+            }
+        }
+    }
 
     val albumsSortOptionFlow: Flow<String> =
             dataStore.data.map { preferences ->
@@ -1982,6 +2036,17 @@ constructor(
     suspend fun setPreviousButtonBehavior(behavior: PreviousButtonBehavior) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.PREVIOUS_BUTTON_BEHAVIOR] = behavior.storageKey
+        }
+    }
+
+    val swipeToQueueActionFlow: Flow<SwipeToQueueAction> =
+        dataStore.data.map { preferences ->
+            SwipeToQueueAction.fromStorageKey(preferences[PreferencesKeys.SWIPE_TO_QUEUE_ACTION])
+        }.distinctUntilChanged()
+
+    suspend fun setSwipeToQueueAction(action: SwipeToQueueAction) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_TO_QUEUE_ACTION] = action.storageKey
         }
     }
 

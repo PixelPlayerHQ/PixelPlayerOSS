@@ -5,9 +5,24 @@ import androidx.paging.PagingSource
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.lostf1sh.pixelplayeross.data.model.SearchFilterType
+import com.lostf1sh.pixelplayeross.data.model.SearchResultItem
+import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
+import com.lostf1sh.pixelplayeross.data.repository.FolderTreeBuilder
+import com.lostf1sh.pixelplayeross.data.repository.MusicRepositoryImpl
 import com.lostf1sh.pixelplayeross.utils.GenreParser
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.produceIn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -280,6 +295,87 @@ class MusicDaoTest {
     }
 
     @Test
+    fun searchSongsLimited_matchesPrimaryAndLinkedArtistNames() = runTest {
+        val primarySong = createSongEntity(1L, "Dawn", "Aurora Fields", "Album", "/p1/one.mp3")
+        val featuredSong = createSongEntity(
+            2L, "Dusk", "Different Artist", "Another Album", "/p2/two.mp3",
+            artistId = 102L, albumId = 202L
+        )
+        insertSongsWithParents(listOf(primarySong, featuredSong))
+        val guestArtist = createArtistEntity(103L, "t+pazolite")
+        musicDao.insertArtists(listOf(guestArtist))
+        musicDao.insertSongArtistCrossRefs(listOf(SongArtistCrossRef(featuredSong.id, guestArtist.id)))
+
+        assertEquals(listOf(1L), musicDao.searchSongsLimited("Aurora Fields", emptyList(), false, 10).first().map { it.id })
+        assertEquals(listOf(2L), musicDao.searchSongsLimited("t+pazolite", emptyList(), false, 10).first().map { it.id })
+        assertEquals(emptyList<Long>(), musicDao.searchSongsLimited("t+pazolite", listOf("/p1"), true, 10).first().map { it.id })
+    }
+
+    @Test
+    fun lyricSearchBatch_usesSavedLyricsBeforeEmbeddedAndRespectsDirectoryFilter() = runTest {
+        val songs = listOf(
+            createSongEntity(1L, "One", "Artist", "Album", "/p1/one.mp3").copy(lyrics = "Embedded override"),
+            createSongEntity(2L, "Two", "Artist", "Album", "/p1/two.mp3").copy(lyrics = "Embedded only"),
+            createSongEntity(3L, "Three", "Artist", "Album", "/p2/three.mp3").copy(lyrics = "Hidden"),
+            createSongEntity(4L, "Four", "Artist", "Album", "/p1/four.mp3")
+        )
+        insertSongsWithParents(songs)
+        db.lyricsDao().insert(LyricsEntity(songId = 1L, content = "Saved override"))
+
+        val first = musicDao.getSongLyricSearchBatch(Long.MIN_VALUE, listOf("/p1"), true, 1)
+        val next = musicDao.getSongLyricSearchBatch(first.single().id, listOf("/p1"), true, 10)
+
+        assertEquals(listOf(SongLyricSearchRow(1L, "Saved override")), first)
+        assertEquals(listOf(SongLyricSearchRow(2L, "Embedded only")), next)
+    }
+
+    @Test
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    fun lyricsSearch_updatesWhenSavedOrEmbeddedLyricsChangeWithoutANewQuery() = runBlocking {
+        val savedSong = createSongEntity(1L, "One", "Artist", "Album", "/music/one.mp3")
+        val embeddedSong = createSongEntity(2L, "Two", "Artist", "Album", "/music/two.mp3")
+        insertSongsWithParents(listOf(savedSong, embeddedSong))
+        val preferences = mockk<UserPreferencesRepository> {
+            every { allowedDirectoriesFlow } returns flowOf(emptySet())
+            every { blockedDirectoriesFlow } returns flowOf(emptySet())
+        }
+        val repository = MusicRepositoryImpl(
+            context = ApplicationProvider.getApplicationContext(),
+            userPreferencesRepository = preferences,
+            playlistPreferencesRepository = mockk(),
+            searchHistoryDao = db.searchHistoryDao(),
+            musicDao = musicDao,
+            database = db,
+            lyricsRepository = mockk(),
+            songRepository = mockk(),
+            favoritesDao = db.favoritesDao(),
+            artistImageRepository = mockk(),
+            folderTreeBuilder = FolderTreeBuilder()
+        )
+
+        val updates = repository.searchAll("the amber sky", SearchFilterType.LYRICS)
+            .map { results -> results.filterIsInstance<SearchResultItem.SongItem>().map { it.song.id } }
+            .distinctUntilChanged()
+            .produceIn(this)
+        try {
+            withTimeout(10_000) {
+                assertEquals(emptyList<String>(), updates.receive())
+
+                db.lyricsDao().insert(LyricsEntity(savedSong.id, "[00:01.00]The amber sky"))
+                assertEquals(listOf("1"), updates.receive())
+
+                db.lyricsDao().insert(LyricsEntity(savedSong.id, "Replaced with another verse"))
+                assertEquals(emptyList<String>(), updates.receive())
+
+                musicDao.updateLyrics(embeddedSong.id, "The amber sky")
+                assertEquals(listOf("2"), updates.receive())
+            }
+        } finally {
+            updates.cancel()
+        }
+    }
+
+    @Test
     fun albumSort_ordersEveryLibraryQueryByDiscAndTrackWithinAlbum() = runTest {
         val (ascending, descending) = insertAlbumSortFixture()
 
@@ -300,6 +396,58 @@ class MusicDaoTest {
                 musicDao.getSongsPaginated(emptyList(), false, sortOrder, 0).loadIds()
             )
         }
+    }
+
+    @Test
+    fun secondaryAlbumSort_groupsAlbumsWithinEachArtistInPageAndQueueOrder() = runTest {
+        insertSongsWithParents(
+            listOf(
+                createSongEntity(1, "Zulu", "Artist A", "Alpha", "/music/1.mp3", trackNumber = 1),
+                createSongEntity(2, "Bravo", "Artist A", "Alpha", "/music/2.mp3", trackNumber = 2),
+                createSongEntity(3, "Alpha", "Artist A", "Beta", "/music/3.mp3", albumId = 202),
+                createSongEntity(4, "Another", "Artist B", "Alpha", "/music/4.mp3", artistId = 102, albumId = 203)
+            )
+        )
+        val primary = "song_artist"
+        assertEquals(listOf(3L, 2L, 1L, 4L), musicDao.getSongIdsSorted(emptyList(), false, primary, 0))
+        listOf(
+            "song_album" to listOf(1L, 2L, 3L, 4L),
+            "song_album_desc" to listOf(3L, 1L, 2L, 4L)
+        ).forEach { (secondary, expected) ->
+            assertEquals(expected, musicDao.getSongIdsSorted(emptyList(), false, primary, 0, secondary))
+            assertEquals(expected, musicDao.getSongsPaginated(emptyList(), false, primary, 0, secondary).loadIds())
+            assertEquals(expected, musicDao.getSongsPage(emptyList(), false, primary, 0, 100, 0, secondary).map(SongEntity::id))
+        }
+    }
+
+    @Test
+    fun artistMinimum_countsOnlyVisibleSongsForTheActiveGrouping() = runTest {
+        val songs = listOf(
+            createSongEntity(1, "First", "Artist A", "Alpha", "/allowed/1.mp3").copy(albumArtistId = 101),
+            createSongEntity(2, "Second", "Artist A", "Alpha", "/allowed/2.mp3").copy(albumArtistId = 101),
+            createSongEntity(3, "Third", "Artist B", "Beta", "/allowed/3.mp3", artistId = 102, albumId = 202)
+                .copy(albumArtistId = 101),
+            createSongEntity(4, "Fourth", "Artist B", "Beta", "/hidden/4.mp3", artistId = 102, albumId = 202)
+                .copy(albumArtistId = 102)
+        )
+        insertSongsWithParents(songs)
+        musicDao.insertSongArtistCrossRefs(songs.map { SongArtistCrossRef(songId = it.id, artistId = it.artistId, isPrimary = true) })
+
+        val allowed = listOf("/allowed")
+        val sort = "artist_name_az"
+        val trackArtists = musicDao.getArtistsPaginated(allowed, true, 0, sort, minTracks = 2).loadArtists()
+        assertEquals(listOf(101L to 2), trackArtists.map { it.id to it.trackCount })
+        assertEquals(trackArtists, musicDao.getArtistsPage(allowed, true, 0, sort, 100, 0, minTracks = 2))
+        assertEquals(listOf(101L, 102L), musicDao.getArtistsPaginated(allowed, true, 0, sort).loadArtists().map(ArtistEntity::id))
+
+        val albumArtists = musicDao.getArtistsPaginatedByAlbumArtist(allowed, true, 0, sort, minTracks = 3).loadArtists()
+        assertEquals(listOf(101L to 3), albumArtists.map { it.id to it.trackCount })
+        assertEquals(albumArtists, musicDao.getArtistsPageByAlbumArtist(allowed, true, 0, sort, 100, 0, minTracks = 3))
+    }
+
+    private suspend fun PagingSource<Int, ArtistEntity>.loadArtists(): List<ArtistEntity> {
+        val result = load(PagingSource.LoadParams.Refresh(key = null, loadSize = 100, placeholdersEnabled = false))
+        return (result as PagingSource.LoadResult.Page<Int, ArtistEntity>).data
     }
 
     @Test

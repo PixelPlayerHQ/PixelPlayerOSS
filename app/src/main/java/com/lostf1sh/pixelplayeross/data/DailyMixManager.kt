@@ -326,7 +326,8 @@ class DailyMixManager @Inject constructor(
             val noveltyScore = computeNoveltyScore(song.dateAdded, now)
             val favoriteScore = if (favoriteSongIds.contains(song.id)) 1.0 else 0.0
             val baselineScore = if (stats == null) 0.1 else 0.0
-            val noise = random.nextDouble() * 0.005
+            // Large enough to rotate songs with similar scores day to day; the seed is per day.
+            val noise = random.nextDouble() * DAILY_VARIETY_NOISE
 
             val finalScore = (preferenceScore * 0.45) +
                 (affinityScore * 0.25) +
@@ -356,13 +357,13 @@ class DailyMixManager @Inject constructor(
     suspend fun generateDailyMix(
         allSongs: List<Song>,
         favoriteSongIds: Set<String> = emptySet(),
-        limit: Int = 30
+        limit: Int = 30,
+        calendar: Calendar = Calendar.getInstance()
     ): List<Song> {
         if (allSongs.isEmpty()) {
             return emptyList()
         }
 
-        val calendar = Calendar.getInstance()
         val seed = calendar.get(Calendar.YEAR) * 1000 + calendar.get(Calendar.DAY_OF_YEAR)
         val random = java.util.Random(seed.toLong())
 
@@ -605,5 +606,6 @@ class DailyMixManager @Inject constructor(
     companion object {
         private const val TAG = "DailyMixManager"
         private val SCORE_KEY_CANDIDATES = listOf("score", "count", "value")
+        private const val DAILY_VARIETY_NOISE = 0.25
     }
 }

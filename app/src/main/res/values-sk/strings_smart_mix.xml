@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mix_title">Inteligentný mix</string>
+    <string name="mix_tune_today">Doladiť dnešný mix</string>
+    <string name="mix_daily_subtitle">Pred použitím si zmenu vypočujte</string>
+    <string name="mix_library_subtitle">Vytvorte mix zo svojej hudobnej knižnice</string>
+    <string name="mix_close">Zavrieť mix</string>
+    <string name="mix_request_label">Čo chcete počúvať?</string>
+    <string name="mix_request_placeholder">Interpret, žáner alebo nálada či činnosť v angličtine</string>
+    <string name="mix_suggest_recent">Nedávna požiadavka: %1$s</string>
+    <string name="mix_suggest_rediscover">Objavte znova: %1$s</string>
+    <string name="mix_back">Späť k požiadavke</string>
+    <string name="mix_done">Hotovo</string>
+    <string name="mix_thinking">Pripravuje sa mix…</string>
+    <string name="mix_refine">Doladiť mix</string>
+    <string name="mix_length">Dĺžka zoznamu skladieb</string>
+    <string name="mix_auto">Automaticky</string>
+    <string name="mix_up_to">Najviac %1$d</string>
+    <string name="mix_energy">Energia</string>
+    <string name="mix_energy_calm">Pokojná</string>
+    <string name="mix_energy_steady">Mierna</string>
+    <string name="mix_energy_energetic">Energická</string>
+    <string name="mix_refine_hint">Automatický režim sa riadi vašou požiadavkou. Výber energie pridá podmienku a môže ubrať zhodné skladby.</string>
+    <string name="mix_selection_summary">Dĺžka: %1$s · Energia: %2$s</string>
+    <string name="mix_edit_request">Upraviť požiadavku</string>
+    <string name="mix_playlist_name">Názov zoznamu skladieb</string>
+    <string name="mix_short_result">V knižnici je menej zodpovedajúcich skladieb, než ste žiadali. Vaše podmienky sa zachovali.</string>
+    <string name="mix_preview_action">Vypočuť ukážku</string>
+    <string name="mix_play">Prehrať</string>
+    <string name="mix_use_today">Použiť na dnes</string>
+    <string name="mix_save">Uložiť zoznam skladieb</string>
+    <string name="mix_saved_action">Uložené</string>
+    <string name="mix_saved">Uložené ako %1$s</string>
+    <string name="mix_save_failed">Zoznam skladieb sa nepodarilo uložiť. Ukážka je stále k dispozícii; skúste to znova.</string>
+    <string name="mix_no_matches">Nenašli sa žiadne zodpovedajúce skladby. Upravte požiadavku alebo nastavte energiu na Automaticky.</string>
+    <string name="mix_daily_updated">Denný mix bol aktualizovaný</string>
+    <string name="mix_undo">Späť</string>
+
+    <plurals name="mix_matching_songs">
+        <item quantity="one">%1$d zodpovedajúca skladba · %2$d min</item>
+        <item quantity="few">%1$d zodpovedajúce skladby · %2$d min</item>
+        <item quantity="many">%1$d zodpovedajúcej skladby · %2$d min</item>
+        <item quantity="other">%1$d zodpovedajúcich skladieb · %2$d min</item>
+    </plurals>
+</resources>

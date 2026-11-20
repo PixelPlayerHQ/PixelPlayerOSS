@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="library_tab_genres">Thể loại</string>
+    <string name="lib_empty_genres_title">Không tìm thấy thể loại nào</string>
+    <string name="lib_empty_genres_subtitle">Thể loại từ thẻ của các bài hát sẽ xuất hiện ở đây.</string>
+</resources>

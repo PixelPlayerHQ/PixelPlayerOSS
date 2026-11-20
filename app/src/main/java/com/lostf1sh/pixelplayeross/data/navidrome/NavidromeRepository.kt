@@ -844,7 +844,7 @@ class NavidromeRepository @Inject constructor(
                     albumArtistId = albumArtistId,
                     albumName = albumName,
                     albumId = albumId,
-                    contentUriString = "navidrome://${navidromeSong.navidromeId}",
+                    contentUriString = NavidromeSongUri.build(navidromeSong.navidromeId),
                     albumArtUriString = navidromeSong.coverArtId?.takeIf { it.isNotBlank() }
                         ?.let { "navidrome_cover://$it" },
                     duration = navidromeSong.duration,
@@ -1045,7 +1045,7 @@ fun NavidromeSong.toSong(): Song {
         album = album,
         albumId = -1L,
         path = path,
-        contentUriString = "navidrome://$id",
+        contentUriString = NavidromeSongUri.build(id),
         albumArtUriString = coverArt?.let { "navidrome_cover://$it" },
         duration = duration,
         genre = genre,

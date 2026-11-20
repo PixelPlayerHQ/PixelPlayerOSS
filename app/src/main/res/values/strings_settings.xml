@@ -53,6 +53,7 @@
     <string name="setcat_filtering">Filtering</string>
     <string name="setcat_min_song_duration">Minimum Song Duration</string>
     <string name="setcat_min_tracks_per_album">Minimum Tracks per Album</string>
+    <string name="setcat_min_tracks_per_artist">Minimum Tracks per Artist</string>
     <string name="setcat_album_art_cache_limit">Album Art Cache Limit</string>
     <string name="setcat_sync_scanning">Sync and Scanning</string>
     <string name="setcat_sync_full_rescan_label">Running full rescan</string>
@@ -105,6 +106,10 @@
     <string name="setcat_language_russian" translatable="false">Русский</string>
     <string name="setcat_language_turkish" translatable="false">Türkçe</string>
     <string name="language_zh_rCN" translatable="false">简体中文</string>
+    <string name="setcat_language_vietnamese" translatable="false">Tiếng Việt</string>
+    <string name="setcat_language_portuguese_br" translatable="false">Português (Brasil)</string>
+    <string name="setcat_language_czech" translatable="false">Čeština</string>
+    <string name="setcat_language_slovak" translatable="false">Slovenčina</string>
     <string name="setcat_app_theme_label">App Theme</string>
     <string name="setcat_app_theme_desc">Switch between light, dark, or follow system appearance.</string>
     <string name="setcat_global_now_playing_theme_title">Use now playing colors across the app</string>
@@ -113,6 +118,11 @@
     <string name="setcat_theme_preset_desc">Default follows your wallpaper colors. AMOLED uses true black surfaces and always stays dark.</string>
     <string name="setcat_theme_preset_default">Default</string>
     <string name="setcat_theme_preset_amoled">AMOLED</string>
+    <string name="setcat_system_font_title">Use system font</string>
+    <string name="setcat_system_font_subtitle">Use Android’s default typeface instead of PixelPlayer’s rounded font.</string>
+    <string name="setcat_interface_scale_title">Interface size</string>
+    <string name="setcat_interface_scale_subtitle">Resize the app’s interface without changing Android’s display settings.</string>
+    <string name="setcat_interface_scale_percent">%1$d%%</string>
     <string name="setcat_theme_light">Light Theme</string>
     <string name="setcat_theme_dark">Dark Theme</string>
     <string name="setcat_theme_follow_system">Follow System</string>

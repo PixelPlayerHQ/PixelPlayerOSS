@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="sharing_playlists_message">
+        <item quantity="one">Zdieľa sa %d zoznam skladieb</item>
+        <item quantity="few">Zdieľajú sa %d zoznamy skladieb</item>
+        <item quantity="many">Zdieľa sa %d zoznamu skladieb</item>
+        <item quantity="other">Zdieľa sa %d zoznamov skladieb</item>
+    </plurals>
+    <plurals name="exported_playlists_message">
+        <item quantity="one">Exportoval sa %1$d zoznam skladieb do %2$s</item>
+        <item quantity="few">Exportovali sa %1$d zoznamy skladieb do %2$s</item>
+        <item quantity="many">Exportovalo sa %1$d zoznamu skladieb do %2$s</item>
+        <item quantity="other">Exportovalo sa %1$d zoznamov skladieb do %2$s</item>
+    </plurals>
+    <plurals name="n_songs_added_to_queue">
+        <item quantity="one">Do frontu sa pridala %d skladba</item>
+        <item quantity="few">Do frontu sa pridali %d skladby</item>
+        <item quantity="many">Do frontu sa pridalo %d skladby</item>
+        <item quantity="other">Do frontu sa pridalo %d skladieb</item>
+    </plurals>
+    <plurals name="n_songs_will_play_next">
+        <item quantity="one">Nasleduje %d skladba</item>
+        <item quantity="few">Nasledujú %d skladby</item>
+        <item quantity="many">Nasleduje %d skladby</item>
+        <item quantity="other">Nasleduje %d skladieb</item>
+    </plurals>
+    <plurals name="n_songs_added_to_favorites">
+        <item quantity="one">Do obľúbených sa pridala %d skladba</item>
+        <item quantity="few">Do obľúbených sa pridali %d skladby</item>
+        <item quantity="many">Do obľúbených sa pridalo %d skladby</item>
+        <item quantity="other">Do obľúbených sa pridalo %d skladieb</item>
+    </plurals>
+    <plurals name="n_songs_removed_from_favorites">
+        <item quantity="one">Z obľúbených sa odstránila %d skladba</item>
+        <item quantity="few">Z obľúbených sa odstránili %d skladby</item>
+        <item quantity="many">Z obľúbených sa odstránilo %d skladby</item>
+        <item quantity="other">Z obľúbených sa odstránilo %d skladieb</item>
+    </plurals>
+    <plurals name="n_files_deleted">
+        <item quantity="one">Odstránil sa %d súbor</item>
+        <item quantity="few">Odstránili sa %d súbory</item>
+        <item quantity="many">Odstránilo sa %d súboru</item>
+        <item quantity="other">Odstránilo sa %d súborov</item>
+    </plurals>
+    <plurals name="delete_songs_confirmation_title">
+        <item quantity="one">Odstrániť %d skladbu?</item>
+        <item quantity="few">Odstrániť %d skladby?</item>
+        <item quantity="many">Odstrániť %d skladby?</item>
+        <item quantity="other">Odstrániť %d skladieb?</item>
+    </plurals>
+    <plurals name="sleep_timer_play_count_times">
+        <item quantity="one">%d-krát</item>
+        <item quantity="few">%d-krát</item>
+        <item quantity="many">%d-krát</item>
+        <item quantity="other">%d-krát</item>
+    </plurals>
+    <plurals name="stats_active_days_count">
+        <item quantity="one">%d aktívny deň</item>
+        <item quantity="few">%d aktívne dni</item>
+        <item quantity="many">%d aktívneho dňa</item>
+        <item quantity="other">%d aktívnych dní</item>
+    </plurals>
+    <plurals name="stats_artists_count">
+        <item quantity="one">%d interpret</item>
+        <item quantity="few">%d interpreti</item>
+        <item quantity="many">%d interpreta</item>
+        <item quantity="other">%d interpretov</item>
+    </plurals>
+    <plurals name="stats_days_count">
+        <item quantity="one">%d deň</item>
+        <item quantity="few">%d dni</item>
+        <item quantity="many">%d dňa</item>
+        <item quantity="other">%d dní</item>
+    </plurals>
+    <plurals name="stats_plays_count">
+        <item quantity="one">%d prehratie</item>
+        <item quantity="few">%d prehratia</item>
+        <item quantity="many">%d prehratia</item>
+        <item quantity="other">%d prehratí</item>
+    </plurals>
+    <plurals name="stats_sessions_count">
+        <item quantity="one">%d relácia</item>
+        <item quantity="few">%d relácie</item>
+        <item quantity="many">%d relácie</item>
+        <item quantity="other">%d relácií</item>
+    </plurals>
+    <plurals name="stats_tracks_count">
+        <item quantity="one">%d skladba</item>
+        <item quantity="few">%d skladby</item>
+        <item quantity="many">%d skladby</item>
+        <item quantity="other">%d skladieb</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_title">
+        <item quantity="one">Odstrániť %d zoznam skladieb?</item>
+        <item quantity="few">Odstrániť %d zoznamy skladieb?</item>
+        <item quantity="many">Odstrániť %d zoznamu skladieb?</item>
+        <item quantity="other">Odstrániť %d zoznamov skladieb?</item>
+    </plurals>
+    <plurals name="delete_playlists_confirmation_body">
+        <item quantity="one">Naozaj chcete odstrániť %d zoznam skladieb?</item>
+        <item quantity="few">Naozaj chcete odstrániť %d zoznamy skladieb?</item>
+        <item quantity="many">Naozaj chcete odstrániť %d zoznamu skladieb?</item>
+        <item quantity="other">Naozaj chcete odstrániť %d zoznamov skladieb?</item>
+    </plurals>
+    <plurals name="song_count">
+        <item quantity="one">%d skladba</item>
+        <item quantity="few">%d skladby</item>
+        <item quantity="many">%d skladby</item>
+        <item quantity="other">%d skladieb</item>
+    </plurals>
+    <plurals name="time_ago_minutes">
+        <item quantity="one">pred %d minútou</item>
+        <item quantity="few">pred %d minútami</item>
+        <item quantity="many">pred %d minútami</item>
+        <item quantity="other">pred %d minútami</item>
+    </plurals>
+    <plurals name="time_ago_hours">
+        <item quantity="one">pred %d hodinou</item>
+        <item quantity="few">pred %d hodinami</item>
+        <item quantity="many">pred %d hodinami</item>
+        <item quantity="other">pred %d hodinami</item>
+    </plurals>
+    <plurals name="time_ago_days">
+        <item quantity="one">pred %d dňom</item>
+        <item quantity="few">pred %d dňami</item>
+        <item quantity="many">pred %d dňami</item>
+        <item quantity="other">pred %d dňami</item>
+    </plurals>
+</resources>

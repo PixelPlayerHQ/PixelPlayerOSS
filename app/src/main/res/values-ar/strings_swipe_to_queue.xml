@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">قوائم الأغاني</string>
+    <string name="setcat_swipe_to_queue_title">اسحب أغنية</string>
+    <string name="setcat_swipe_to_queue_description">اسحب صف الأغنية نحو نهاية الشاشة في قوائم التشغيل والألبومات والفنانين والأنواع والمزيج.</string>
+    <string name="setcat_swipe_to_queue_add">إضافة إلى قائمة الانتظار</string>
+    <string name="setcat_swipe_to_queue_add_description">يضيف الأغنية إلى نهاية قائمة الانتظار.</string>
+    <string name="setcat_swipe_to_queue_next">تشغيل التالي</string>
+    <string name="setcat_swipe_to_queue_next_description">يضيف الأغنية بعد الأغنية الحالية مباشرة.</string>
+    <string name="setcat_swipe_to_queue_off">إيقاف</string>
+    <string name="setcat_swipe_to_queue_off_description">سحب الأغنية لا يفعل شيئًا.</string>
+</resources>

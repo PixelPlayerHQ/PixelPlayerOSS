@@ -15,7 +15,7 @@ object CloudStreamSecurity {
     private const val MAX_RANGE_HEADER_LENGTH = 64
     private const val MAX_RANGE_VALUE_BYTES = 8L * 1024L * 1024L * 1024L
 
-    private val NAVIDROME_SONG_ID_REGEX = Regex("^[A-Za-z0-9_-]{1,100}$")
+    private const val MAX_NAVIDROME_SONG_ID_LENGTH = 1024
     private val JELLYFIN_ITEM_ID_REGEX = Regex("^[A-Za-z0-9]{1,100}$")
     private val FORBIDDEN_HOSTS = setOf("localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]")
     private val LOCAL_SERVER_DNS_SUFFIXES =
@@ -44,7 +44,12 @@ object CloudStreamSecurity {
         val isSuffixRange: Boolean = false
     )
 
-    fun validateNavidromeSongId(songId: String): Boolean = NAVIDROME_SONG_ID_REGEX.matches(songId)
+    // Subsonic ids are opaque (Aurral uses e.g. `song:a%20b`); they are always URL-encoded
+    // before use, so only reject blank, oversized or control-character ids.
+    fun validateNavidromeSongId(songId: String): Boolean =
+        songId.length <= MAX_NAVIDROME_SONG_ID_LENGTH &&
+            songId.isNotBlank() &&
+            songId.none { it.isISOControl() }
 
     fun validateJellyfinItemId(itemId: String): Boolean = JELLYFIN_ITEM_ID_REGEX.matches(itemId)
 

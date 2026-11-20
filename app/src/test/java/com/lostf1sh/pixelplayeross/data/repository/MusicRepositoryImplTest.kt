@@ -1,10 +1,13 @@
 package com.lostf1sh.pixelplayeross.data.repository
 
 import android.content.Context
+import androidx.room.InvalidationTracker
 import com.lostf1sh.pixelplayeross.data.database.GenreSongCountRow
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
+import com.lostf1sh.pixelplayeross.data.database.PixelPlayerDatabase
 import com.lostf1sh.pixelplayeross.data.database.SearchHistoryDao
 import com.lostf1sh.pixelplayeross.data.database.SongEntity
+import com.lostf1sh.pixelplayeross.data.database.SongLyricSearchRow
 import com.lostf1sh.pixelplayeross.data.database.AlbumEntity
 import com.lostf1sh.pixelplayeross.data.database.ArtistEntity
 import com.lostf1sh.pixelplayeross.data.model.Playlist
@@ -37,6 +40,7 @@ class MusicRepositoryImplTest {
 
     private lateinit var musicRepository: MusicRepositoryImpl
     private val mockMusicDao: MusicDao = mockk()
+    private val mockDatabase: PixelPlayerDatabase = mockk()
     private val mockSearchHistoryDao: SearchHistoryDao = mockk(relaxed = true)
     private val mockContext: Context = mockk(relaxed = true)
     private val mockUserPreferencesRepository: UserPreferencesRepository = mockk()
@@ -101,6 +105,7 @@ class MusicRepositoryImplTest {
             playlistPreferencesRepository = mockPlaylistPreferencesRepository,
             searchHistoryDao = mockSearchHistoryDao,
             musicDao = mockMusicDao,
+            database = mockDatabase,
             lyricsRepository = mockLyricsRepository,
             songRepository = mockSongRepository,
 
@@ -179,6 +184,37 @@ class MusicRepositoryImplTest {
         assertEquals(2, result.size)
         assertEquals(listOf("1", "3"), result.map { it.id })
         verify { mockMusicDao.getAllSongs(any<List<String>>(), any<Boolean>()) }
+    }
+
+    @Test
+    fun `getSongsByIdsOnce reads only the requested songs under the library's directory filter`() = runTest(testDispatcher) {
+        // Many allowed folders: binding them next to each batch of ids would pass SQLite's limit.
+        val allowedFolders = (1..600).map { "/music/folder$it" }
+        every { mockUserPreferencesRepository.blockedDirectoriesFlow } returns flowOf(setOf("/blocked"))
+        coEvery { mockMusicDao.getDistinctParentDirectories() } returns allowedFolders + "/blocked"
+        val boundVariables = mutableListOf<Int>()
+        every { mockMusicDao.getSongsByIds(any(), any(), any()) } answers {
+            val ids = firstArg<List<Long>>()
+            boundVariables += ids.size + secondArg<List<String>>().size + 1
+            flowOf(ids.map { id ->
+                val folder = when {
+                    id < 0 -> "/Cloud/Jellyfin"
+                    id == 7L -> "/blocked"
+                    else -> allowedFolders[(id % allowedFolders.size).toInt()]
+                }
+                createSongEntity(id, "Song $id", "Artist", null, "$folder/$id.mp3", folder)
+            })
+        }
+        val cloudId = -12_000_000_000_001L
+        val requested = (1L..1_200L).map { it.toString() } + cloudId.toString() + "not-a-library-id"
+
+        val result = musicRepository.getSongsByIdsOnce(requested)
+
+        // The song in the blocked folder is left out; cloud songs pass the folder filter.
+        val expected = ((1L..1_200L).filter { it != 7L } + cloudId).map { it.toString() }.toSet()
+        assertEquals(expected, result.map { it.id }.toSet())
+        assertTrue(boundVariables.size > 1 && boundVariables.all { it <= 999 })
+        verify(exactly = 0) { mockMusicDao.getAllSongs(any(), any()) }
     }
 
     @Test
@@ -452,6 +488,27 @@ class MusicRepositoryImplTest {
 
             assertEquals(all.filterIsInstance<SearchResultItem.SongItem>(), songs)
             assertEquals(listOf("1", "2"), songs.map { (it as SearchResultItem.SongItem).song.id })
+        }
+
+        @Test
+        fun `lyrics filter finds a phrase in a later batch without running metadata search`() = runTest {
+            val tracker = mockk<InvalidationTracker>()
+            every { mockDatabase.invalidationTracker } returns tracker
+            every { tracker.createFlow("songs", "lyrics", emitInitialState = true) } returns
+                flowOf(setOf("songs", "lyrics"))
+            val earlyBatch = (1L..32L).map { SongLyricSearchRow(it, "Another verse") }
+            coEvery { mockMusicDao.getSongLyricSearchBatch(Long.MIN_VALUE, any(), any(), 32) } returns earlyBatch
+            coEvery { mockMusicDao.getSongLyricSearchBatch(32L, any(), any(), 32) } returns listOf(
+                SongLyricSearchRow(33L, "[00:11.10]We'll meet—again")
+            )
+            coEvery { mockMusicDao.getSongsByIdsListSimple(listOf(33L)) } returns listOf(
+                auroraSongs.first().copy(id = 33L)
+            )
+
+            val results = musicRepository.searchAll("well meet again", SearchFilterType.LYRICS).first()
+
+            assertEquals(listOf("33"), results.filterIsInstance<SearchResultItem.SongItem>().map { it.song.id })
+            verify(exactly = 0) { mockMusicDao.searchSongsLimited(any(), any(), any(), any()) }
         }
 
         @Test

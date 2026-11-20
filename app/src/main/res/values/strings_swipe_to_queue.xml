@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Song lists</string>
+    <string name="setcat_swipe_to_queue_title">Swipe a song</string>
+    <string name="setcat_swipe_to_queue_description">Swipe a song row toward the end of the screen in playlists, albums, artists, genres and mixes.</string>
+    <string name="setcat_swipe_to_queue_add">Add to queue</string>
+    <string name="setcat_swipe_to_queue_add_description">Adds the song to the end of the queue.</string>
+    <string name="setcat_swipe_to_queue_next">Play next</string>
+    <string name="setcat_swipe_to_queue_next_description">Adds the song right after the one playing.</string>
+    <string name="setcat_swipe_to_queue_off">Off</string>
+    <string name="setcat_swipe_to_queue_off_description">Swiping a song does nothing.</string>
+</resources>

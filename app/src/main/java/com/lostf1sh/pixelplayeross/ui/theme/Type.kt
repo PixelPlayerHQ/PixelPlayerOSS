@@ -1,6 +1,9 @@
 package com.lostf1sh.pixelplayeross.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
@@ -52,9 +55,16 @@ val MontserratFamily = FontFamily(
     ),
 )
 
-val ExpTitleTypography = Typography(
+val ExpTitleTypography: Typography
+    @Composable @ReadOnlyComposable
+    get() = if (LocalUseSystemFont.current) SystemExpTitleTypography else BundledExpTitleTypography
+
+private val BundledExpTitleTypography = expressTitleTypography(MontserratFamily)
+private val SystemExpTitleTypography = expressTitleTypography(FontFamily.Default)
+
+private fun expressTitleTypography(fontFamily: FontFamily) = Typography(
     displayLarge = TextStyle(
-        fontFamily = MontserratFamily,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 60.sp,
         textGeometricTransform = TextGeometricTransform(scaleX = 1.5f),
@@ -63,7 +73,7 @@ val ExpTitleTypography = Typography(
         platformStyle = PlatformTextStyle(includeFontPadding = false)
     ),
     displayMedium = TextStyle(
-        fontFamily = MontserratFamily,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 50.sp,
         letterSpacing = (-0.02).em,
@@ -71,7 +81,7 @@ val ExpTitleTypography = Typography(
         platformStyle = PlatformTextStyle(includeFontPadding = false)
     ),
     titleMedium = TextStyle(
-        fontFamily = MontserratFamily,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 32.sp,
         textGeometricTransform = TextGeometricTransform(scaleX = 1.3f),
@@ -83,8 +93,20 @@ val ExpTitleTypography = Typography(
 
 private const val RoundedSansFlexRond = 100f
 
+val RoundedSans: FontFamily
+    @Composable @ReadOnlyComposable
+    get() = if (LocalUseSystemFont.current) FontFamily.Default else BundledRoundedSans
+
+@Composable
+internal fun rememberDisplayFont(vararg keys: Any, bundledFont: () -> FontFamily): FontFamily =
+    if (LocalUseSystemFont.current) FontFamily.Default else remember(*keys, calculation = bundledFont)
+
+@Composable
+internal fun TextStyle.withInterfaceFont(): TextStyle =
+    if (LocalUseSystemFont.current) remember(this) { copy(fontFamily = FontFamily.Default) } else this
+
 @OptIn(ExperimentalTextApi::class)
-val RoundedSans = FontFamily(
+private val BundledRoundedSans = FontFamily(
     androidx.compose.ui.text.font.Font(
         resId = R.font.gflex_variable,
         weight = FontWeight.Light,
@@ -127,107 +149,110 @@ val RoundedSans = FontFamily(
     ),
 )
 
-val Typography = Typography(
+val Typography = appTypography(BundledRoundedSans)
+internal val SystemTypography = appTypography(FontFamily.Default)
+
+private fun appTypography(fontFamily: FontFamily) = Typography(
     displayLarge = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 48.sp,
         lineHeight = 56.sp,
         letterSpacing = 0.sp
     ),
     displayMedium = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
         fontSize = 36.sp,
         lineHeight = 44.sp,
         letterSpacing = 0.sp
     ),
     displaySmall = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 30.sp,
         lineHeight = 38.sp,
         letterSpacing = 0.sp
     ),
     headlineLarge = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
     headlineSmall = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
     titleLarge = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 18.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = RoundedSans,
+        fontFamily = fontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp,

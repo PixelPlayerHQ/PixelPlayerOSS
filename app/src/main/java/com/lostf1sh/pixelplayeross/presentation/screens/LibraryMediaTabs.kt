@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -108,6 +109,14 @@ fun LibraryAlbumsTab(
     val listState = rememberRestoredLazyListState(albums)
     val dummyListState = rememberLazyListState()
     val dummyGridState = rememberLazyGridState()
+    val configuration = LocalConfiguration.current
+    val albumGridColumns = remember(configuration.screenWidthDp) {
+        when {
+            configuration.screenWidthDp >= 840 -> 4
+            configuration.screenWidthDp >= 600 -> 3
+            else -> 2
+        }
+    }
     val context = LocalContext.current
     val imageLoader = context.imageLoader
 
@@ -248,7 +257,7 @@ fun LibraryAlbumsTab(
                         .padding(start = 14.dp, end = 14.dp, bottom = 6.dp)
                         .clip(SegmentedItemShapeDefaults.LibraryContainerShape)
                         .fillMaxSize(),
-                    columns = GridCells.Fixed(AlbumGridColumns),
+                    columns = GridCells.Fixed(albumGridColumns),
                     contentPadding = PaddingValues(bottom = bottomBarHeight + MiniPlayerHeight + ListExtraBottomGap + 4.dp),
                     verticalArrangement = Arrangement.spacedBy(AlbumGridSpacing),
                     horizontalArrangement = Arrangement.spacedBy(AlbumGridSpacing)
@@ -258,7 +267,7 @@ fun LibraryAlbumsTab(
                             getSegmentedGridItemShape(
                                 index = index,
                                 count = 8,
-                                columns = AlbumGridColumns,
+                                columns = albumGridColumns,
                                 outerRadius = AlbumGridOuterCornerRadius
                             )
                         }
@@ -375,7 +384,7 @@ fun LibraryAlbumsTab(
                                     .padding(start = 14.dp, end = animatedScrollbarInset(LocalShowScrollbar.current && (activeGridState.canScrollForward || activeGridState.canScrollBackward), 24.dp, 14.dp), bottom = 6.dp)
                                     .clip(SegmentedItemShapeDefaults.LibraryContainerShape),
                                 state = activeGridState,
-                                columns = GridCells.Fixed(AlbumGridColumns),
+                                columns = GridCells.Fixed(albumGridColumns),
                                 contentPadding = PaddingValues(bottom = bottomBarHeight + MiniPlayerHeight + ListExtraBottomGap + 4.dp),
                                 verticalArrangement = Arrangement.spacedBy(AlbumGridSpacing),
                                 horizontalArrangement = Arrangement.spacedBy(AlbumGridSpacing)
@@ -391,7 +400,7 @@ fun LibraryAlbumsTab(
                                         getSegmentedGridItemShape(
                                             index = index,
                                             count = albumCount,
-                                            columns = AlbumGridColumns,
+                                            columns = albumGridColumns,
                                             outerRadius = AlbumGridOuterCornerRadius
                                         )
                                     }

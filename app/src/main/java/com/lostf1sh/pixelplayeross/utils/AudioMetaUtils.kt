@@ -78,6 +78,17 @@ object AudioMetaUtils {
 
     }
 
+    /**
+     * MediaStore and MediaMetadataRetriever report Ogg Opus files with the container MIME type
+     * (audio/ogg), which is indistinguishable from Ogg Vorbis; the .opus extension disambiguates.
+     */
+    fun resolveCodecMimeType(mimeType: String?, filePath: String?): String? {
+        val normalized = mimeType?.trim()?.lowercase(Locale.ROOT)?.substringBefore(';')
+        val isOggContainer = normalized == "audio/ogg" || normalized == "application/ogg"
+        val isOpusFile = filePath?.substringAfterLast('.', "")?.equals("opus", ignoreCase = true) == true
+        return if (isOggContainer && isOpusFile) "audio/opus" else mimeType
+    }
+
     fun mimeTypeToFormat(mimeType: String?): String {
         val normalized = mimeType
             ?.trim()

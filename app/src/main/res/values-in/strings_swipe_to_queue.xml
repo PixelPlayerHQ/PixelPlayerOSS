@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="setcat_song_lists">Daftar lagu</string>
+    <string name="setcat_swipe_to_queue_title">Geser lagu</string>
+    <string name="setcat_swipe_to_queue_description">Geser baris lagu ke arah ujung layar di playlist, album, artis, genre, dan mix.</string>
+    <string name="setcat_swipe_to_queue_add">Tambahkan ke antrean</string>
+    <string name="setcat_swipe_to_queue_add_description">Menambahkan lagu ke akhir antrean.</string>
+    <string name="setcat_swipe_to_queue_next">Putar berikutnya</string>
+    <string name="setcat_swipe_to_queue_next_description">Menambahkan lagu tepat setelah lagu yang diputar.</string>
+    <string name="setcat_swipe_to_queue_off">Nonaktif</string>
+    <string name="setcat_swipe_to_queue_off_description">Menggeser lagu tidak melakukan apa pun.</string>
+</resources>

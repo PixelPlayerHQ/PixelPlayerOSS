@@ -37,8 +37,27 @@ data class AudioMetadata(
     val replayGainTrackGainDb: Float? = null,
     val replayGainAlbumGainDb: Float? = null,
     val rating: Int? = null,
-    val customFields: List<CustomMetadataField> = emptyList()
+    val customFields: List<CustomMetadataField> = emptyList(),
+    val mbRecordingId: String? = null,
+    val mbReleaseId: String? = null,
+    val mbArtistId: String? = null
 )
+
+private val MBID_REGEX =
+    Regex("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", RegexOption.IGNORE_CASE)
+
+/**
+ * Returns the first well-formed MusicBrainz identifier among tag values. Some taggers join
+ * multiple artist IDs into one value ("id1; id2" or "id1/id2"), so each value is split first.
+ * Malformed IDs are dropped because ListenBrainz rejects listens carrying an invalid MBID.
+ */
+internal fun firstMusicBrainzId(values: Iterable<String?>?): String? =
+    values?.asSequence().orEmpty()
+        .filterNotNull()
+        .flatMap { it.split(';', '/', ',').asSequence() }
+        .map { it.trim() }
+        .firstOrNull { MBID_REGEX.matches(it) }
+        ?.lowercase()
 
 /**
  * Normalizes values read from repeated metadata fields without changing their source order.
@@ -79,6 +98,18 @@ object AudioMetadataReader {
      * tag parsing.
      */
     private const val VERBOSE_LOGGING = false
+
+    fun readSourceUrl(context: Context, uri: Uri): String? {
+        return try {
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { fd ->
+                TagLib.getMetadata(fd.detachFd(), readPictures = false)
+                    ?.propertyMap
+                    ?.let(::findEmbeddedSourceUrl)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     fun read(context: Context, uri: Uri): AudioMetadata? {
         val tempFile = createTempAudioFileFromUri(context, uri) ?: run {
@@ -128,8 +159,8 @@ object AudioMetadataReader {
                 val genre = GenreParser.joinValues(propertyMap["GENRE"]?.asIterable() ?: emptyList())
                 val composer = propertyMap["COMPOSER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TCOM"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                val lyrics = propertyMap["LYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
-                    ?: propertyMap["UNSYNCEDLYRICS"]?.firstOrNull()?.takeIf { it.isNotBlank() }
+                val lyrics = sequenceOf("LYRICS", "SYNCEDLYRICS", "TTML", "UNSYNCEDLYRICS")
+                    .firstNotNullOfOrNull { key -> propertyMap[key]?.firstOrNull { it.isNotBlank() } }
                 val trackString = propertyMap["TRACKNUMBER"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                     ?: propertyMap["TRACK"]?.firstOrNull()?.takeIf { it.isNotBlank() }
                 val trackNumber = trackString?.substringBefore('/')?.toIntOrNull()
@@ -146,6 +177,10 @@ object AudioMetadataReader {
                     propertyMap = propertyMap,
                     keys = listOf("REPLAYGAIN_ALBUM_GAIN", "REPLAYGAIN_ALBUM_GAIN_DB", "R128_ALBUM_GAIN")
                 )
+                // TagLib maps ID3 UFID/TXXX, MP4 freeform atoms and Vorbis comments to these keys.
+                val mbRecordingId = firstMusicBrainzId(propertyMap["MUSICBRAINZ_TRACKID"]?.asIterable())
+                val mbReleaseId = firstMusicBrainzId(propertyMap["MUSICBRAINZ_ALBUMID"]?.asIterable())
+                val mbArtistId = firstMusicBrainzId(propertyMap["MUSICBRAINZ_ARTISTID"]?.asIterable())
                 val tagFamily = metadataTagFamily(file.extension)
                 val propertyMapRating = if (readCustomMetadata) {
                     listOf("RATING", "POPULARIMETER")
@@ -216,7 +251,10 @@ object AudioMetadataReader {
                     replayGainTrackGainDb = replayGainTrackGainDb ?: fallback?.replayGainTrackGainDb,
                     replayGainAlbumGainDb = replayGainAlbumGainDb ?: fallback?.replayGainAlbumGainDb,
                     rating = fallback?.rating ?: propertyMapRating,
-                    customFields = customFields.ifEmpty { fallback?.customFields.orEmpty() }
+                    customFields = customFields.ifEmpty { fallback?.customFields.orEmpty() },
+                    mbRecordingId = mbRecordingId ?: fallback?.mbRecordingId,
+                    mbReleaseId = mbReleaseId ?: fallback?.mbReleaseId,
+                    mbArtistId = mbArtistId ?: fallback?.mbArtistId
                 )
             }
         } catch (error: Exception) {
@@ -296,6 +334,8 @@ object AudioMetadataReader {
                 null
             }
 
+            fun mbid(key: FieldKey) = firstMusicBrainzId(runCatching { tag?.getAll(key) }.getOrNull())
+
             val durationMs = header?.trackLength?.takeIf { it > 0 }?.let { it * 1000L }
             val bitrate = header?.bitRateAsNumber?.takeIf { it > 0 }?.toInt()?.let { it * 1000 }
             val sampleRate = header?.sampleRateAsNumber?.takeIf { it > 0 }
@@ -334,7 +374,10 @@ object AudioMetadataReader {
                 bitrate = bitrate,
                 sampleRate = sampleRate,
                 artwork = artwork,
-                rating = rating
+                rating = rating,
+                mbRecordingId = mbid(FieldKey.MUSICBRAINZ_TRACK_ID),
+                mbReleaseId = mbid(FieldKey.MUSICBRAINZ_RELEASEID),
+                mbArtistId = mbid(FieldKey.MUSICBRAINZ_ARTISTID)
             )
         } catch (e: Exception) {
             Timber.tag(TAG).e(e, "JAudioTagger fallback FAILED for: ${file.name}")

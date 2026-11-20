@@ -84,12 +84,17 @@ import com.lostf1sh.pixelplayeross.presentation.components.CloudLibraryPickerIte
 import com.lostf1sh.pixelplayeross.presentation.components.CloudLibraryPickerSheet
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
 import com.lostf1sh.pixelplayeross.ui.theme.PixelPlayerTheme
+import com.lostf1sh.pixelplayeross.data.preferences.InterfaceAppearance
+import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.collections.immutable.toImmutableList
 import racra.compose.smooth_corner_rect_library.AbsoluteSmoothCornerShape
 
 @AndroidEntryPoint
 class NavidromeLoginActivity : ComponentActivity() {
+    @Inject
+    lateinit var themePreferencesRepository: ThemePreferencesRepository
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(com.lostf1sh.pixelplayeross.utils.AppLocaleManager.wrapContext(newBase))
@@ -99,7 +104,8 @@ class NavidromeLoginActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            PixelPlayerTheme {
+            val appearance by themePreferencesRepository.interfaceAppearanceFlow.collectAsStateWithLifecycle(initialValue = InterfaceAppearance())
+            PixelPlayerTheme(interfaceAppearance = appearance) {
                 NavidromeLoginScreen(onClose = { finish() })
             }
         }

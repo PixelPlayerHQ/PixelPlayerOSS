@@ -12,6 +12,18 @@ import com.lostf1sh.pixelplayeross.data.model.Song
  */
 internal fun sortFolderSongs(songs: List<Song>, option: SortOption): List<Song> {
     if (songs.size < 2) return songs
+    if (option == SortOption.FolderSongFilenameAZ || option == SortOption.FolderSongFilenameZA) {
+        val order = if (option == SortOption.FolderSongFilenameAZ) {
+            compareBy<Pair<Song, String>> { it.second }
+        } else {
+            compareByDescending<Pair<Song, String>> { it.second }
+        }
+        return songs.map { song ->
+            val filename = song.path.substringAfterLast('/').substringAfterLast('\\')
+            song to filename.ifBlank { song.title }.lowercase()
+        }.sortedWith(order.then { a, b -> titleAscending.compare(a.first, b.first) })
+            .map { it.first }
+    }
     return songs.sortedWith(folderSongComparator(option))
 }
 
@@ -25,6 +37,8 @@ private fun folderSongComparator(option: SortOption): Comparator<Song> = when (o
     SortOption.FolderSongAlbumArtistDesc -> albumArtistDescending
     SortOption.FolderSongDateAdded -> newestFirst
     SortOption.FolderSongDateAddedAsc -> oldestFirst
+    SortOption.FolderSongDateModified -> newestModifiedFirst
+    SortOption.FolderSongDateModifiedAsc -> oldestModifiedFirst
     SortOption.FolderSongDuration -> longestFirst
     SortOption.FolderSongDurationAsc -> shortestFirst
     else -> titleAscending
@@ -70,6 +84,12 @@ private val newestFirst: Comparator<Song> = compareByDescending<Song> { it.dateA
     .then(titleAscending)
 
 private val oldestFirst: Comparator<Song> = compareBy<Song> { it.dateAdded }
+    .then(titleAscending)
+
+private val newestModifiedFirst: Comparator<Song> = compareByDescending<Song> { it.dateModified }
+    .then(titleAscending)
+
+private val oldestModifiedFirst: Comparator<Song> = compareBy<Song> { it.dateModified }
     .then(titleAscending)
 
 private val longestFirst: Comparator<Song> = compareByDescending<Song> { it.duration }

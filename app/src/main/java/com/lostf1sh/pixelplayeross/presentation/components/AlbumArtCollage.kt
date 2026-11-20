@@ -1,7 +1,7 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.request.ImageRequest
@@ -47,9 +48,11 @@ fun AlbumArtCollage(
     height: Dp = 400.dp,
     padding: Dp = 0.dp,
     pattern: CollagePattern = CollagePattern.default,
+    onSongLongClick: ((Song) -> Unit)? = null,
     onSongClick: (Song) -> Unit,
 ) {
     val context = LocalContext.current
+    val moreOptionsLabel = stringResource(R.string.presentation_batch_b_more_options)
     val songsToShow = remember(songs) {
         (songs.take(6) + List(6 - songs.size.coerceAtMost(6)) { null }).toImmutableList()
     }
@@ -97,10 +100,13 @@ fun AlbumArtCollage(
                                     .align(cfg.align)
                                     .offset(cfg.offsetX, cfg.offsetY)
                                     .graphicsLayer { rotationZ = cfg.rot }
-                                    .clickable(
+                                    .combinedClickable(
                                         interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { onSongClick(song) }
+                                        indication = null,
+                                        onLongClickLabel = moreOptionsLabel,
+                                        onLongClick = onSongLongClick?.let { { it(song) } },
+                                        onClick = { onSongClick(song) }
+                                    )
                                     .background(shape = cfg.shape, color = MaterialTheme.colorScheme.surfaceContainerHigh)
                                     .clip(cfg.shape)
                             )
@@ -119,10 +125,13 @@ fun AlbumArtCollage(
                                     .align(cfg.align)
                                     .offset(cfg.offsetX, cfg.offsetY)
                                     .graphicsLayer { rotationZ = cfg.rot }
-                                    .clickable(
+                                    .combinedClickable(
                                         interactionSource = remember { MutableInteractionSource() },
-                                        indication = null
-                                    ) { onSongClick(song) }
+                                        indication = null,
+                                        onLongClickLabel = moreOptionsLabel,
+                                        onLongClick = onSongLongClick?.let { { it(song) } },
+                                        onClick = { onSongClick(song) }
+                                    )
                                     .clip(cfg.shape)
                             )
                         }

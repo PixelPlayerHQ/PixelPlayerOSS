@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_b_accounts_linked_services">Prepojené služby</string>
+    <string name="presentation_batch_b_accounts_status_connected">Pripojené</string>
+    <string name="presentation_batch_b_accounts_open_service">Otvoriť službu</string>
+    <string name="presentation_batch_b_accounts_logging_out">Prebieha odhlasovanie…</string>
+    <string name="presentation_batch_b_accounts_no_linked_title">Zatiaľ nie sú prepojené žiadne účty</string>
+    <string name="presentation_batch_b_accounts_no_linked_body">Pripojte poskytovateľa a spravujte ho z tejto obrazovky.</string>
+    <string name="presentation_batch_b_accounts_connect_service">Pripojiť %1$s</string>
+    <string name="presentation_batch_b_sort_songs">Zoradiť skladby</string>
+    <string name="presentation_batch_b_more_options">Ďalšie možnosti</string>
+    <string name="presentation_batch_b_play_it">Prehrať</string>
+    <string name="presentation_batch_b_add_songs">Pridať skladby</string>
+    <string name="presentation_batch_b_add">Pridať</string>
+    <string name="presentation_batch_b_remove_songs">Odstrániť skladby</string>
+    <string name="presentation_batch_b_reorder_songs">Zmeniť poradie skladieb</string>
+    <string name="presentation_batch_b_reorder">Zmeniť poradie</string>
+    <string name="presentation_batch_b_reorder_song">Presunúť skladbu</string>
+    <string name="presentation_batch_b_playlist_empty_title">Tento zoznam skladieb je prázdny.</string>
+    <string name="presentation_batch_b_playlist_empty_folder_body">V tomto priečinku nie sú žiadne skladby.</string>
+    <string name="presentation_batch_b_playlist_empty_add_hint">Začnite ťuknutím na možnosť Pridať skladby.</string>
+    <string name="presentation_batch_b_playlist_empty_smart_body">Tomuto pravidlu zatiaľ nezodpovedajú žiadne skladby.</string>
+    <string name="presentation_batch_b_playlist_options_title">Možnosti zoznamu skladieb</string>
+    <string name="presentation_batch_b_edit_playlist">Upraviť zoznam skladieb</string>
+    <string name="presentation_batch_b_delete_playlist">Odstrániť zoznam skladieb</string>
+    <string name="presentation_batch_b_set_default_transition">Nastaviť predvolený prechod</string>
+    <string name="presentation_batch_b_export_playlist">Exportovať zoznam skladieb</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_title">Odstrániť zoznam skladieb?</string>
+    <string name="presentation_batch_b_delete_playlist_confirm_body">Naozaj chcete odstrániť tento zoznam skladieb?</string>
+    <string name="presentation_batch_b_rename_playlist_dialog_title">Premenovať zoznam skladieb</string>
+    <string name="presentation_batch_b_new_name">Nový názov</string>
+    <string name="presentation_batch_b_daily_mix_title">Denný mix</string>
+    <string name="presentation_batch_b_quick_fill_select_songs">Vybrať skladby</string>
+    <string name="presentation_batch_b_quick_fill_choose_genre">Vybrať žáner</string>
+    <string name="presentation_batch_b_search_songs_label">Hľadať skladby</string>
+    <string name="presentation_batch_b_select_all">Vybrať všetko</string>
+    <string name="presentation_batch_b_clear">Vymazať</string>
+    <string name="presentation_batch_b_genre_label_format">Žáner: %1$s</string>
+    <string name="presentation_batch_b_select_a_genre">Vyberte žáner</string>
+    <string name="presentation_batch_b_quick_fill">Rýchlo vyplniť</string>
+    <string name="presentation_batch_b_add_custom_genre">Pridať vlastný</string>
+    <string name="presentation_batch_b_new_genre">Nový žáner</string>
+    <string name="presentation_batch_b_add_custom_genre_title">Pridať vlastný žáner</string>
+    <string name="presentation_batch_b_genre_name_label">Názov žánru</string>
+    <string name="presentation_batch_b_select_icon">Vybrať ikonu</string>
+    <string name="presentation_batch_b_recently_played_title">Nedávno prehrané</string>
+    <string name="presentation_batch_b_play_latest">Prehrať najnovšie</string>
+    <string name="presentation_batch_b_recent_empty_title">Žiadne nedávne prehratia: %1$s</string>
+    <string name="presentation_batch_b_recent_empty_subtitle">Zmeňte časové obdobie alebo prehrajte ďalšie skladby, aby sa tu zobrazili.</string>
+    <string name="presentation_batch_b_queue_recently_played">Nedávno prehrané</string>
+    <string name="presentation_batch_b_date_today">Dnes</string>
+    <string name="presentation_batch_b_date_yesterday">Včera</string>
+    <string name="presentation_batch_b_navbar_adjust_title">Upraviť zaoblenie rohov</string>
+    <string name="presentation_batch_b_navbar_adjust_subtitle">Prispôsobte zaoblenie navigačnej lišty rohom zariadenia, aby spolu ladili.</string>
+    <string name="presentation_batch_b_corner_radius_label">Zaoblenie rohov</string>
+    <string name="presentation_batch_b_genre_shuffle_label">Náhodný výber: %1$s</string>
+
+    <plurals name="presentation_batch_b_songs_dot_duration">
+        <item quantity="one">%1$d skladba • %2$s</item>
+        <item quantity="few">%1$d skladby • %2$s</item>
+        <item quantity="many">%1$d skladby • %2$s</item>
+        <item quantity="other">%1$d skladieb • %2$s</item>
+    </plurals>
+</resources>

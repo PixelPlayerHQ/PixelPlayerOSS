@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="lyrics_highlight_style_title">Zvýrazňovanie slov</string>
+    <string name="lyrics_highlight_style_subtitle">Ako sa zvýrazňujú slová synchronizovaného textu pri speve</string>
+    <string name="lyrics_highlight_style_wipe">Plynulý prechod</string>
+    <string name="lyrics_highlight_style_wipe_desc">Cez každé spievané slovo plynule prejde zvýraznenie</string>
+    <string name="lyrics_highlight_style_fade">Postupné zobrazenie</string>
+    <string name="lyrics_highlight_style_fade_desc">Každá slabika sa počas spevu zvýrazní postupne</string>
+    <string name="lyrics_highlight_style_classic">Okamžité</string>
+    <string name="lyrics_highlight_style_classic_desc">Každá slabika sa zvýrazní hneď, ako zaznie</string>
+    <string name="lyrics_duet_layout_title">Rozloženie duetu</string>
+    <string name="lyrics_duet_layout_subtitle">Ak sú hlasy v texte označené (v1:, v2:), zobrazí každého speváka na inej strane</string>
+    <string name="lyrics_background_vocals_title">Sprievodné vokály</string>
+    <string name="lyrics_background_vocals_subtitle">Zobraziť sprievodné vokály menším písmom pod hlavným riadkom</string>
+</resources>

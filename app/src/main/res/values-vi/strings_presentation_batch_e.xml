@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="presentation_batch_e_queue_empty">Hàng đợi đang trống.</string>
+    <string name="presentation_batch_e_cd_queue_actions">Tác vụ hàng đợi</string>
+    <string name="presentation_batch_e_action_clear_queue">Xóa hàng đợi</string>
+    <string name="presentation_batch_e_action_save_as_playlist">Lưu thành danh sách phát</string>
+    <string name="presentation_batch_e_action_locate_current_song">Định vị bài hát hiện tại</string>
+    <string name="presentation_batch_e_queue_named_suffix">Hàng đợi %1$s</string>
+    <string name="presentation_batch_e_queue_current">Hàng đợi hiện tại</string>
+    <string name="presentation_batch_e_removed">đã xóa</string>
+    <string name="presentation_batch_e_clear_queue_dialog_title">Xóa hàng đợi</string>
+    <string name="presentation_batch_e_clear_queue_dialog_message">Bạn có chắc chắn muốn xóa tất cả các bài hát khỏi hàng đợi ngoại trừ bài đang phát?</string>
+    <string name="presentation_batch_e_next_up">Tiếp theo</string>
+    <string name="presentation_batch_e_queue_subtitle_empty">Hàng đợi hiện đang trống.</string>
+    <string name="presentation_batch_e_queue_source_fallback">Hàng đợi</string>
+    <string name="presentation_batch_e_cd_toggle_shuffle">Bật/tắt phát ngẫu nhiên</string>
+    <string name="presentation_batch_e_cd_toggle_repeat">Bật/tắt lặp lại</string>
+    <string name="presentation_batch_e_cd_sleep_timer">Hẹn giờ ngủ</string>
+    <string name="presentation_batch_e_save_as_playlist_sheet_title">Lưu thành danh sách phát</string>
+    <string name="presentation_batch_e_deselect_all">Bỏ chọn tất cả</string>
+    <string name="presentation_batch_e_playlist_name_label">Tên danh sách phát</string>
+    <string name="presentation_batch_e_search_songs_to_include_placeholder">Tìm bài hát để thêm vào…</string>
+    <string name="presentation_batch_e_save_as_format">Lưu dưới dạng: %1$s</string>
+    <string name="presentation_batch_e_enter_playlist_name">Nhập tên danh sách phát</string>
+    <string name="presentation_batch_e_no_songs_match_query">Không có bài hát nào khớp với \"%1$s\"</string>
+    <string name="presentation_batch_e_cd_dismiss_song">Bỏ qua bài hát</string>
+    <string name="presentation_batch_e_cd_remove_from_playlist">Xóa khỏi danh sách phát</string>
+    <string name="presentation_batch_e_more_options_for_song">Tùy chọn khác cho %1$s</string>
+
+    <plurals name="presentation_batch_e_queue_tracks_lined_up">
+        <item quantity="other">%d bài hát đang chờ.</item>
+    </plurals>
+    <plurals name="presentation_batch_e_n_songs_selected">
+        <item quantity="other">Đã chọn %d bài hát</item>
+    </plurals>
+
+    <string name="presentation_batch_e_no_playlist_created">Chưa có danh sách phát nào được tạo.</string>
+    <string name="presentation_batch_e_new_playlist_hint">Chạm vào nút \'Danh sách phát mới\' để bắt đầu.</string>
+
+    <string name="presentation_batch_e_create_playlist_title">Tạo danh sách phát</string>
+    <string name="presentation_batch_e_create_playlist_subtitle">Chọn cách tạo.</string>
+    <string name="presentation_batch_e_creation_mode_manual">Thủ công</string>
+    <string name="presentation_batch_e_creation_mode_manual_subtitle">Tự thiết kế ảnh bìa, biểu tượng, hình dạng và tự chọn bài hát.</string>
+
+    <string name="presentation_batch_e_reset_presets_title">Đặt lại cài đặt sẵn</string>
+    <string name="presentation_batch_e_reset_presets_message">Thao tác này sẽ khôi phục thứ tự và chế độ hiển thị mặc định của các cài đặt sẵn. Tiếp tục?</string>
+    <string name="presentation_batch_e_manage_presets_title">Quản lý cài đặt sẵn</string>
+    <string name="presentation_batch_e_presets_drag_hint">Kéo để sắp xếp lại • Nhấn vào biểu tượng mắt để ẩn hoặc hiện</string>
+    <string name="presentation_batch_e_cd_reset_presets_default">Đặt lại về mặc định</string>
+    <string name="presentation_batch_e_cd_visible">Hiển thị</string>
+    <string name="presentation_batch_e_cd_hidden">Đã ẩn</string>
+</resources>

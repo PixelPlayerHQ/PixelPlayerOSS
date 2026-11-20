@@ -35,6 +35,8 @@ internal data class SheetVisualState(
 internal fun rememberSheetVisualState(
     showPlayerContentArea: Boolean,
     collapsedStateHorizontalPadding: Dp,
+    collapsedStateHorizontalPaddingStart: Dp = collapsedStateHorizontalPadding,
+    collapsedStateHorizontalPaddingEnd: Dp = collapsedStateHorizontalPadding,
     predictiveBackCollapseProgress: Float,
     predictiveBackSwipeEdge: Int?,
     currentSheetContentState: PlayerSheetState,
@@ -192,40 +194,45 @@ internal fun rememberSheetVisualState(
         }
     }
 
-    val actualCollapsedStateHorizontalPadding =
-        if (navBarStyle == NavBarStyle.FULL_WIDTH) 14.dp else collapsedStateHorizontalPadding
-    val collapsedStateHorizontalPaddingPx = remember(actualCollapsedStateHorizontalPadding, density) {
-        with(density) { actualCollapsedStateHorizontalPadding.toPx() }
+    val actualCollapsedStateHorizontalPaddingStart =
+        if (navBarStyle == NavBarStyle.FULL_WIDTH) 14.dp else collapsedStateHorizontalPaddingStart
+    val collapsedStateHorizontalPaddingStartPx = remember(actualCollapsedStateHorizontalPaddingStart, density) {
+        with(density) { actualCollapsedStateHorizontalPaddingStart.toPx() }
+    }
+    val actualCollapsedStateHorizontalPaddingEnd =
+        if (navBarStyle == NavBarStyle.FULL_WIDTH) 14.dp else collapsedStateHorizontalPaddingEnd
+    val collapsedStateHorizontalPaddingEndPx = remember(actualCollapsedStateHorizontalPaddingEnd, density) {
+        with(density) { actualCollapsedStateHorizontalPaddingEnd.toPx() }
     }
 
     val currentHorizontalPaddingStartPxProvider: () -> Float = remember(
         showPlayerContentArea,
-        collapsedStateHorizontalPaddingPx,
+        collapsedStateHorizontalPaddingStartPx,
         playerContentExpansionFraction,
         predictiveBackCollapseProgress
     ) {
         {
             if (showPlayerContentArea) {
                 val effectiveFraction = playerContentExpansionFraction.value * (1f - predictiveBackCollapseProgress)
-                androidx.compose.ui.util.lerp(collapsedStateHorizontalPaddingPx, 0f, effectiveFraction)
+                androidx.compose.ui.util.lerp(collapsedStateHorizontalPaddingStartPx, 0f, effectiveFraction)
             } else {
-                collapsedStateHorizontalPaddingPx
+                collapsedStateHorizontalPaddingStartPx
             }
         }
     }
 
     val currentHorizontalPaddingEndPxProvider: () -> Float = remember(
         showPlayerContentArea,
-        collapsedStateHorizontalPaddingPx,
+        collapsedStateHorizontalPaddingEndPx,
         playerContentExpansionFraction,
         predictiveBackCollapseProgress
     ) {
         {
             if (showPlayerContentArea) {
                 val effectiveFraction = playerContentExpansionFraction.value * (1f - predictiveBackCollapseProgress)
-                androidx.compose.ui.util.lerp(collapsedStateHorizontalPaddingPx, 0f, effectiveFraction)
+                androidx.compose.ui.util.lerp(collapsedStateHorizontalPaddingEndPx, 0f, effectiveFraction)
             } else {
-                collapsedStateHorizontalPaddingPx
+                collapsedStateHorizontalPaddingEndPx
             }
         }
     }

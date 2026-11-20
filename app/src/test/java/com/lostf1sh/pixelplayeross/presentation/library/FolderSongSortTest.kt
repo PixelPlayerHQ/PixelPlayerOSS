@@ -32,6 +32,25 @@ class FolderSongSortTest {
     }
 
     @Test
+    fun `filename sorts numbered files rather than titles and compares only basenames`() {
+        val songs = listOf(
+            song(id = "second", title = "Alpha").copy(path = "/a/02-Alpha.mp3"),
+            song(id = "first", title = "Zulu").copy(path = "/z/01-Zulu.mp3"),
+            song(id = "sameFilename", title = "Bravo").copy(path = "C:\\Music\\01-zulu.MP3"),
+            song(id = "missing", title = "03-Unknown").copy(path = "")
+        )
+
+        assertEquals(
+            listOf("sameFilename", "first", "second", "missing"),
+            ids(songs, SortOption.FolderSongFilenameAZ)
+        )
+        assertEquals(
+            listOf("missing", "second", "sameFilename", "first"),
+            ids(songs, SortOption.FolderSongFilenameAZ.flipDirection())
+        )
+    }
+
+    @Test
     fun `artist sort groups by artist then album then disc and track`() {
         val songs = listOf(
             song(id = "1", title = "Zulu", artist = "Mira", album = "Second", trackNumber = 1),
@@ -110,6 +129,18 @@ class FolderSongSortTest {
     }
 
     @Test
+    fun `date modified defaults to newest first and ascending flips it`() {
+        val songs = listOf(
+            song(id = "old", title = "Old", dateModified = 100L),
+            song(id = "new", title = "New", dateModified = 300L),
+            song(id = "mid", title = "Mid", dateModified = 200L)
+        )
+
+        assertEquals(listOf("new", "mid", "old"), ids(songs, SortOption.FolderSongDateModified))
+        assertEquals(listOf("old", "mid", "new"), ids(songs, SortOption.FolderSongDateModifiedAsc))
+    }
+
+    @Test
     fun `duration defaults to longest first and ascending flips it`() {
         val songs = listOf(
             song(id = "short", title = "Short", duration = 5_000L),
@@ -132,13 +163,14 @@ class FolderSongSortTest {
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDuration))
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDurationAsc))
         assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDateAdded))
+        assertEquals(listOf("a", "b", "c"), ids(songs, SortOption.FolderSongDateModified))
     }
 
     @Test
     fun `equal titles and artists fall back to the id for a stable order`() {
         val songs = listOf(
-            song(id = "2", title = "Same", artist = "Same"),
-            song(id = "1", title = "Same", artist = "Same")
+            song(id = "2", title = "Same", artist = "Same").copy(path = "/music/same.mp3"),
+            song(id = "1", title = "Same", artist = "Same").copy(path = "/music/same.mp3")
         )
 
         SortOption.FOLDER_SONGS.forEach { option ->
@@ -177,6 +209,7 @@ class FolderSongSortTest {
         trackNumber: Int = 0,
         discNumber: Int? = null,
         dateAdded: Long = 0L,
+        dateModified: Long = 0L,
         duration: Long = 180_000L
     ) = Song(
         id = id,
@@ -193,6 +226,7 @@ class FolderSongSortTest {
         trackNumber = trackNumber,
         discNumber = discNumber,
         dateAdded = dateAdded,
+        dateModified = dateModified,
         mimeType = "audio/mpeg",
         bitrate = 320_000,
         sampleRate = 44_100

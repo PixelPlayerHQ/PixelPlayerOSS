@@ -241,55 +241,63 @@ private fun MixEditorContent(
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh),
         ) {
-            MixTimeline(
-                state = state,
-                mix = mix,
-                previewPositionMs = previewPosition,
-                outgoingColor = outgoingColor,
-                incomingColor = incomingColor,
-                onShiftOutgoing = viewModel::shiftOutgoing,
-                onShiftIncoming = viewModel::shiftIncoming,
-                onMoveKeyframe = viewModel::moveKeyframe,
-                onAddKeyframe = viewModel::addKeyframe,
-                onRemoveKeyframe = viewModel::removeKeyframe,
-                modifier = Modifier.fillMaxSize(),
-            )
-
-            // Where a lane has no waveform, say so (cloud songs, unsupported files).
-            Column(Modifier.fillMaxSize()) {
-                WaveformPlaceholder(
-                    show = !state.waveformsLoading && state.fromWaveform == null,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
+            if (state.isAnalyzing) {
+                // Choosing the automatic mix from the songs' audio takes a moment the first time:
+                // wait for it rather than show a stand-in graph that then changes by itself.
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    ContainedLoadingIndicator()
+                }
+            } else {
+                MixTimeline(
+                    state = state,
+                    mix = mix,
+                    previewPositionMs = previewPosition,
+                    outgoingColor = outgoingColor,
+                    incomingColor = incomingColor,
+                    onShiftOutgoing = viewModel::shiftOutgoing,
+                    onShiftIncoming = viewModel::shiftIncoming,
+                    onMoveKeyframe = viewModel::moveKeyframe,
+                    onAddKeyframe = viewModel::addKeyframe,
+                    onRemoveKeyframe = viewModel::removeKeyframe,
+                    modifier = Modifier.fillMaxSize(),
                 )
-                WaveformPlaceholder(
-                    show = !state.waveformsLoading && state.toWaveform == null,
-                    modifier = Modifier.weight(1f).fillMaxWidth(),
-                )
-            }
 
-            FilledIconButton(
-                onClick = viewModel::togglePreview,
-                enabled = state.canPreview,
-                modifier = Modifier.align(Alignment.Center).size(52.dp),
-                colors = IconButtonDefaults.filledIconButtonColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
-            ) {
-                Icon(
-                    imageVector = if (state.isPreviewPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
-                    contentDescription = stringResource(
-                        if (state.isPreviewPlaying) R.string.dj_mix_stop_preview_cd else R.string.dj_mix_play_preview_cd
+                // Where a lane has no waveform, say so (cloud songs, unsupported files).
+                Column(Modifier.fillMaxSize()) {
+                    WaveformPlaceholder(
+                        show = !state.waveformsLoading && state.fromWaveform == null,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                    )
+                    WaveformPlaceholder(
+                        show = !state.waveformsLoading && state.toWaveform == null,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                    )
+                }
+
+                FilledIconButton(
+                    onClick = viewModel::togglePreview,
+                    enabled = state.canPreview,
+                    modifier = Modifier.align(Alignment.Center).size(52.dp),
+                    colors = IconButtonDefaults.filledIconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     ),
+                ) {
+                    Icon(
+                        imageVector = if (state.isPreviewPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
+                        contentDescription = stringResource(
+                            if (state.isPreviewPlaying) R.string.dj_mix_stop_preview_cd else R.string.dj_mix_play_preview_cd
+                        ),
+                    )
+                }
+
+                WindowChip(
+                    mix = mix,
+                    options = windowOptions,
+                    onSelect = viewModel::selectWindow,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
                 )
             }
-
-            WindowChip(
-                mix = mix,
-                options = windowOptions,
-                onSelect = viewModel::selectWindow,
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 12.dp),
-            )
         }
 
         SongHeader(song = to, bpm = state.toBpm, accent = incomingColor)

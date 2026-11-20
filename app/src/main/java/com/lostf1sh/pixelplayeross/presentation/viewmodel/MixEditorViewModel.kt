@@ -25,6 +25,9 @@ import com.lostf1sh.pixelplayeross.data.service.player.TransitionAnalyzer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -52,6 +55,12 @@ data class MixEditorUiState(
     val isSaved: Boolean = false,
     val canPreview: Boolean = false,
     val isPreviewPlaying: Boolean = false,
+    /**
+     * True while the two songs are being listened to so the automatic mix can be chosen from how
+     * they start and end. The timeline waits (shows a loader) instead of showing a stand-in graph
+     * that would then change by itself. Only for pairs with no saved mix.
+     */
+    val isAnalyzing: Boolean = false,
 ) {
     val windowOptions: List<MixPlanner.WindowOption>
         get() = from?.let { MixPlanner.windowOptions(fromBpm, it.duration) }.orEmpty()
@@ -124,6 +133,8 @@ class MixEditorViewModel @Inject constructor(
                 (existingRule.mix == null || existingRule.mix.keepsPairSettings)
 
             val stored = existingRule?.mix
+            // Only an unsaved pair of local songs is analyzed; a saved mix is shown exactly as saved.
+            val analyze = stored == null && isLocal(from) && isLocal(to)
             val initial = MixPlanner.fit(
                 stored ?: MixPlanner.auto(from.duration, fromBpm, toBpm),
                 from.duration,
@@ -140,6 +151,7 @@ class MixEditorViewModel @Inject constructor(
                     toBpm = toBpm,
                     mix = initial,
                     canPreview = isLocal(from) && isLocal(to),
+                    isAnalyzing = analyze,
                 )
             }
 
@@ -207,29 +219,39 @@ class MixEditorViewModel @Inject constructor(
 
     /**
      * Listens to both songs so the automatic mix (and "Reset to Auto") can be chosen from how they
-     * start and end. When [replaceMix] is true (the pair has no saved mix) and the user hasn't
-     * touched anything, the plain automatic mix shown at first is swapped for the refined one;
-     * a saved mix is left exactly as saved.
+     * start and end. When [replaceMix] is true (the pair has no saved mix) the plain automatic mix
+     * held meanwhile is swapped for the refined one before the timeline is shown ([isAnalyzing]
+     * covers the wait); a saved mix is left exactly as saved. If the songs can't be analyzed in
+     * time, the plain automatic mix is kept.
      */
     private fun refineAutoMix(from: Song, to: Song, fromBpm: Float?, toBpm: Float?, replaceMix: Boolean) {
         viewModelScope.launch {
-            val outgoing = transitionAnalyzer.profileForFile(from.path) ?: return@launch
-            val incoming = transitionAnalyzer.profileForFile(to.path) ?: return@launch
-            profiles = outgoing to incoming
-            if (!replaceMix) return@launch
+            try {
+                val analyzed = withTimeoutOrNull(ANALYSIS_TIMEOUT_MS) {
+                    coroutineScope {
+                        val outgoingProfile = async { transitionAnalyzer.profileForFile(from.path) }
+                        val incomingProfile = async { transitionAnalyzer.profileForFile(to.path) }
+                        outgoingProfile.await() to incomingProfile.await()
+                    }
+                }
+                val outgoing = analyzed?.first ?: return@launch
+                val incoming = analyzed.second ?: return@launch
+                profiles = outgoing to incoming
+                if (!replaceMix) return@launch
 
-            val smart = MixPlanner.fit(autoMix(from, fromBpm, toBpm), from.duration, to.duration) ?: return@launch
-            val current = _uiState.value
-            if (current.isDirty || current.mix != baseline) return@launch
-            // A preview in progress plays the mix it was started with: end it, so what the timeline
-            // shows and what is heard can't differ.
-            stopPreview()
-            baseline = smart
-            _uiState.update { it.copy(mix = smart) }
+                val smart = MixPlanner.fit(autoMix(from, fromBpm, toBpm), from.duration, to.duration)
+                    ?: return@launch
+                baseline = smart
+                _uiState.update { it.copy(mix = smart) }
+            } finally {
+                _uiState.update { it.copy(isAnalyzing = false) }
+            }
         }
     }
 
     private fun editMix(markCustom: Boolean = true, transform: (MixTransition) -> MixTransition) {
+        // Not while the automatic mix is still being worked out: the edit would be replaced by it.
+        if (_uiState.value.isAnalyzing) return
         stopPreview()
         _uiState.update { state ->
             val current = state.mix ?: return@update state
@@ -274,7 +296,7 @@ class MixEditorViewModel @Inject constructor(
         val mix = state.mix ?: return
         val from = state.from ?: return
         val to = state.to ?: return
-        if (!state.canPreview) return
+        if (!state.canPreview || state.isAnalyzing) return
         // The main player would play over the preview.
         engine.masterPlayer.pause()
         preview.start(Uri.fromFile(File(from.path)), Uri.fromFile(File(to.path)), mix)
@@ -295,5 +317,10 @@ class MixEditorViewModel @Inject constructor(
 
     fun consumeSaved() {
         _uiState.update { it.copy(isSaved = false) }
+    }
+
+    private companion object {
+        /** Listening to a pair's ends takes a second or two; past this the plain automatic mix is used. */
+        const val ANALYSIS_TIMEOUT_MS = 5_000L
     }
 }

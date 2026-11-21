@@ -86,6 +86,8 @@ class EqualizerViewModel @Inject constructor(
     private var persistBassBoostJob: Job? = null
     private var persistVirtualizerJob: Job? = null
     private var persistLoudnessJob: Job? = null
+    @Volatile
+    private var hasLoadedPreferences = false
     
     init {
         initializeEqualizer()
@@ -182,6 +184,7 @@ class EqualizerViewModel @Inject constructor(
                     isLoudnessEnhancerSupported = _uiState.value.isLoudnessEnhancerSupported
                 )
             }.collect { newState ->
+                hasLoadedPreferences = true
                 _uiState.value = newState
             }
         }
@@ -407,6 +410,7 @@ class EqualizerViewModel @Inject constructor(
     }
     
     private fun persistLatestStateAsync() {
+        if (!hasLoadedPreferences) return
         val latest = _uiState.value
         appScope.launch {
             runCatching {

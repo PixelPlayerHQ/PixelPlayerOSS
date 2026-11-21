@@ -16,8 +16,18 @@ import androidx.media3.exoplayer.audio.AudioOutputProvider
 import androidx.media3.exoplayer.audio.AudioOutputProvider.FormatConfig
 import androidx.media3.exoplayer.audio.AudioOutputProvider.OutputConfig
 import androidx.media3.exoplayer.audio.AudioTrackAudioOutputProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import android.media.AudioAttributes as PlatformAudioAttributes
+
+data class BitPerfectUsbStatus(
+    val deviceName: String,
+    val sampleRateHz: Int,
+    val channelCount: Int,
+    val encoding: Int,
+)
 
 /** A mixer format offered by an output device, reduced to what format matching needs. */
 internal data class MixerFormat(
@@ -72,14 +82,18 @@ class BitPerfectUsbAudioOutputProvider(
     private val delegate: AudioOutputProvider = AudioTrackAudioOutputProvider.Builder(context).build(),
 ) : AudioOutputProvider {
 
-    private companion object {
-        const val TAG = "BitPerfectUsb"
-        const val MAX_PLANS = 8
-        val USB_TYPES = setOf(
+    companion object {
+        private const val TAG = "BitPerfectUsb"
+        private const val MAX_PLANS = 8
+        private val USB_TYPES = setOf(
             AudioDeviceInfo.TYPE_USB_DEVICE,
             AudioDeviceInfo.TYPE_USB_HEADSET,
             AudioDeviceInfo.TYPE_USB_ACCESSORY,
         )
+        private val mixerLock = Any()
+        private var currentOwner: BitPerfectUsbAudioOutputProvider? = null
+        private val _activeStatus = MutableStateFlow<BitPerfectUsbStatus?>(null)
+        val activeStatus: StateFlow<BitPerfectUsbStatus?> = _activeStatus.asStateFlow()
     }
 
     private class Plan(
@@ -115,8 +129,12 @@ class BitPerfectUsbAudioOutputProvider(
         if (config.isOffload || config.isTunneling || format.sampleMimeType != MimeTypes.AUDIO_RAW) return config
 
         val attributes = formatConfig.audioAttributes.platformAudioAttributes
-        val device = formatConfig.preferredDevice?.takeIf { it.type in USB_TYPES }
-            ?: audioManager.getAudioDevicesForAttributes(attributes).firstOrNull { it.type in USB_TYPES }
+        val preferredDevice = formatConfig.preferredDevice
+        val device = if (preferredDevice != null) {
+            preferredDevice.takeIf { it.type in USB_TYPES }
+        } else {
+            audioManager.getAudioDevicesForAttributes(attributes).firstOrNull { it.type in USB_TYPES }
+        }
         if (device == null) {
             Timber.tag(TAG).d("No USB output for media; using the normal path")
             return config
@@ -147,12 +165,13 @@ class BitPerfectUsbAudioOutputProvider(
         }
         // The AudioTrack runs in the DAC's integer format; DefaultAudioSink keeps seeing its own.
         val widened = delegate.getOutputConfig(formatConfig.withPcmEncoding(mixerEncoding))
+        val channelCount = format.channelCount.coerceAtLeast(1)
+        val widenedFrameBytes = channelCount * PcmWideningAudioOutput.bytesPerSample(mixerEncoding)
+        val sinkFrameBytes = channelCount * PcmWideningAudioOutput.bytesPerSample(format.pcmEncoding)
+        val sinkBufferSize = (widened.bufferSize / widenedFrameBytes) * sinkFrameBytes
         val forSink = widened.buildUpon()
             .setEncoding(format.pcmEncoding)
-            .setBufferSize(
-                widened.bufferSize / PcmWideningAudioOutput.bytesPerSample(mixerEncoding) *
-                    PcmWideningAudioOutput.bytesPerSample(format.pcmEncoding)
-            )
+            .setBufferSize(sinkBufferSize)
             .build()
         plans[forSink] = Plan(device, attributes, mixer, widened)
         return forSink
@@ -164,7 +183,10 @@ class BitPerfectUsbAudioOutputProvider(
             clearPreferredMixer()
             return delegate.getAudioOutput(config)
         }
-        applyPreferredMixer(plan)
+        if (!applyPreferredMixer(plan)) {
+            clearPreferredMixer()
+            return delegate.getAudioOutput(config)
+        }
         val output = delegate.getAudioOutput(plan.outputConfig)
         return if (plan.outputConfig.encoding == config.encoding) {
             output
@@ -185,29 +207,54 @@ class BitPerfectUsbAudioOutputProvider(
         delegate.release()
     }
 
-    private fun applyPreferredMixer(plan: Plan) {
-        try {
-            val current = audioManager.getPreferredMixerAttributes(plan.attributes, plan.device)
-            if (current != plan.mixer) {
-                val applied = audioManager.setPreferredMixerAttributes(plan.attributes, plan.device, plan.mixer)
-                Timber.tag(TAG).i(
-                    "Preferred mixer on %s -> %s: %s",
-                    plan.device.productName, plan.mixer.toMixerFormat(), if (applied) "applied" else "rejected"
+    private fun applyPreferredMixer(plan: Plan): Boolean {
+        synchronized(mixerLock) {
+            return try {
+                // If another DAC was previously configured, clear it before switching devices.
+                val previous = appliedMixer
+                if (previous != null && previous.device.id != plan.device.id && currentOwner === this) {
+                    runCatching { audioManager.clearPreferredMixerAttributes(previous.attributes, previous.device) }
+                        .onFailure { Timber.tag(TAG).w(it, "Failed to clear previous preferred mixer") }
+                    appliedMixer = null
+                }
+                val current = audioManager.getPreferredMixerAttributes(plan.attributes, plan.device)
+                if (current != plan.mixer) {
+                    val applied = audioManager.setPreferredMixerAttributes(plan.attributes, plan.device, plan.mixer)
+                    Timber.tag(TAG).i(
+                        "Preferred mixer on %s -> %s: %s",
+                        plan.device.productName, plan.mixer.toMixerFormat(), if (applied) "applied" else "rejected"
+                    )
+                    if (!applied) return false
+                }
+                appliedMixer = AppliedMixer(plan.device, plan.attributes)
+                currentOwner = this
+                _activeStatus.value = BitPerfectUsbStatus(
+                    deviceName = plan.device.productName?.toString().orEmpty(),
+                    sampleRateHz = plan.mixer.format.sampleRate,
+                    channelCount = plan.mixer.format.channelCount,
+                    encoding = plan.mixer.format.encoding,
                 )
-                if (!applied) return
+                true
+            } catch (e: Exception) {
+                Timber.tag(TAG).w(e, "Failed to set the preferred mixer")
+                false
             }
-            appliedMixer = AppliedMixer(plan.device, plan.attributes)
-        } catch (e: Exception) {
-            Timber.tag(TAG).w(e, "Failed to set the preferred mixer")
         }
     }
 
     private fun clearPreferredMixer() {
-        val applied = appliedMixer ?: return
-        appliedMixer = null
-        runCatching { audioManager.clearPreferredMixerAttributes(applied.attributes, applied.device) }
-            .onFailure { Timber.tag(TAG).w(it, "Failed to clear the preferred mixer") }
-        Timber.tag(TAG).i("Preferred mixer cleared on %s", applied.device.productName)
+        synchronized(mixerLock) {
+            val applied = appliedMixer ?: return
+            appliedMixer = null
+            // Only the active owner clears the process-wide preferred mixer; an outgoing
+            // crossfade player releasing must not wipe out the surviving live player's mixer.
+            if (currentOwner !== this) return
+            currentOwner = null
+            _activeStatus.value = null
+            runCatching { audioManager.clearPreferredMixerAttributes(applied.attributes, applied.device) }
+                .onFailure { Timber.tag(TAG).w(it, "Failed to clear the preferred mixer") }
+            Timber.tag(TAG).i("Preferred mixer cleared on %s", applied.device.productName)
+        }
     }
 
     private fun AudioMixerAttributes.toMixerFormat() = MixerFormat(

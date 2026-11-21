@@ -887,8 +887,9 @@ class MusicRepositoryImpl @Inject constructor(
             val jellyfinId = contentUri?.removePrefix("jellyfin://")
                 ?.takeIf { it.isNotBlank() && it != contentUri }
             if (jellyfinId != null) {
+                val mutationGen = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
                 repositoryScope.launch {
-                    repo.pushFavoriteChange(jellyfinId, isFavorite)
+                    repo.pushFavoriteChange(jellyfinId, isFavorite, mutationGen)
                 }
             }
         }

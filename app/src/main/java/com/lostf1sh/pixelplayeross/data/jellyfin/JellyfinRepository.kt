@@ -43,6 +43,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.absoluteValue
@@ -70,6 +72,7 @@ class JellyfinRepository @Inject constructor(
         private const val KEY_UNIFIED_LIBRARY_STATE = "unified_library_state"
         private const val KEY_LAST_SYNCED_FAVORITE_IDS = "last_synced_favorite_ids"
         private const val KEY_HAS_FAVORITE_SYNC_BASELINE = "has_favorite_sync_baseline"
+        private const val KEY_FAVORITE_SYNC_ACCOUNT = "favorite_sync_account"
         private const val KEY_PENDING_FAVORITE_ADDS = "pending_favorite_adds"
         private const val KEY_PENDING_FAVORITE_REMOVES = "pending_favorite_removes"
 
@@ -163,6 +166,31 @@ class JellyfinRepository @Inject constructor(
      */
     private val songCacheMutex = Mutex()
     private val favoritesSyncMutex = Mutex()
+    private val accountSessionGeneration = AtomicLong(0L)
+    private val favoriteMutationGeneration = AtomicLong(0L)
+    private val inFlightLocalFavoriteMutations = ConcurrentHashMap<String, Pair<Long, Boolean>>()
+
+    private fun currentAccountKey(): String? {
+        val server = prefs.getString(KEY_SERVER_URL, null)?.takeIf { it.isNotBlank() } ?: return null
+        val user = prefs.getString(KEY_USER_ID, null)?.takeIf { it.isNotBlank() } ?: return null
+        return "$server|$user"
+    }
+
+    private fun isFavoriteSessionCurrent(sessionGen: Long, accountKey: String): Boolean {
+        return isLoggedIn &&
+            accountSessionGeneration.get() == sessionGen &&
+            currentAccountKey() == accountKey
+    }
+
+    private fun clearFavoriteSyncPrefs() {
+        prefs.edit()
+            .remove(KEY_FAVORITE_SYNC_ACCOUNT)
+            .remove(KEY_HAS_FAVORITE_SYNC_BASELINE)
+            .remove(KEY_LAST_SYNCED_FAVORITE_IDS)
+            .remove(KEY_PENDING_FAVORITE_ADDS)
+            .remove(KEY_PENDING_FAVORITE_REMOVES)
+            .apply()
+    }
 
     /** Runs a write to the cached Jellyfin songs. Logout clears them along with this state. */
     private suspend fun <T> writeSongCache(write: suspend () -> T): T = songCacheMutex.withLock {
@@ -203,16 +231,25 @@ class JellyfinRepository @Inject constructor(
 
                 val (accessToken, userId) = authResult.getOrThrow()
                 val fullCredentials = credentials.copy(accessToken = accessToken, userId = userId)
-                api.setCredentials(fullCredentials)
+                favoritesSyncMutex.withLock {
+                    accountSessionGeneration.incrementAndGet()
+                    inFlightLocalFavoriteMutations.clear()
+                    api.setCredentials(fullCredentials)
 
-                prefs.edit()
-                    .putString(KEY_SERVER_URL, fullCredentials.normalizedServerUrl)
-                    .putString(KEY_USERNAME, username)
-                    .putString(KEY_ACCESS_TOKEN, accessToken)
-                    .putString(KEY_USER_ID, userId)
-                    .apply()
+                    prefs.edit()
+                        .putString(KEY_SERVER_URL, fullCredentials.normalizedServerUrl)
+                        .putString(KEY_USERNAME, username)
+                        .putString(KEY_ACCESS_TOKEN, accessToken)
+                        .putString(KEY_USER_ID, userId)
+                        .remove(KEY_FAVORITE_SYNC_ACCOUNT)
+                        .remove(KEY_HAS_FAVORITE_SYNC_BASELINE)
+                        .remove(KEY_LAST_SYNCED_FAVORITE_IDS)
+                        .remove(KEY_PENDING_FAVORITE_ADDS)
+                        .remove(KEY_PENDING_FAVORITE_REMOVES)
+                        .apply()
 
-                _isLoggedInFlow.value = true
+                    _isLoggedInFlow.value = true
+                }
                 Timber.d("$TAG: Login successful for $username@$serverUrl")
                 Result.success(username)
             } catch (e: Exception) {
@@ -227,10 +264,18 @@ class JellyfinRepository @Inject constructor(
 
     suspend fun logout() {
         Timber.d("$TAG: Logging out")
-        api.clearCredentials()
-        prefs.edit().clear().apply()
-        userPreferencesRepository.clearJellyfinSelectedLibraryIds()
-        userPreferencesRepository.clearJellyfinSyncFavorites()
+        // Invalidate the current session immediately so any in-flight favourite push or sync
+        // discards its result instead of persisting retries after credentials are cleared.
+        accountSessionGeneration.incrementAndGet()
+        inFlightLocalFavoriteMutations.clear()
+        _isLoggedInFlow.value = false
+
+        favoritesSyncMutex.withLock {
+            api.clearCredentials()
+            prefs.edit().clear().apply()
+            userPreferencesRepository.clearJellyfinSelectedLibraryIds()
+            userPreferencesRepository.clearJellyfinSyncFavorites()
+        }
 
         val playlistsToDelete = dao.getAllPlaylistsList()
         playlistsToDelete.forEach { playlist ->
@@ -240,7 +285,6 @@ class JellyfinRepository @Inject constructor(
         dao.clearAllSongs()
         musicDao.clearAllJellyfinSongs()
         dao.clearAllPlaylists()
-        _isLoggedInFlow.value = false
     }
 
     val selectedLibraryIdsFlow: Flow<Set<String>> =
@@ -252,78 +296,130 @@ class JellyfinRepository @Inject constructor(
     suspend fun setSyncFavoritesEnabled(enabled: Boolean) {
         userPreferencesRepository.setJellyfinSyncFavorites(enabled)
         if (!enabled) {
+            inFlightLocalFavoriteMutations.clear()
             favoritesSyncMutex.withLock {
-                prefs.edit()
-                    .remove(KEY_HAS_FAVORITE_SYNC_BASELINE)
-                    .remove(KEY_LAST_SYNCED_FAVORITE_IDS)
-                    .remove(KEY_PENDING_FAVORITE_ADDS)
-                    .remove(KEY_PENDING_FAVORITE_REMOVES)
-                    .apply()
+                clearFavoriteSyncPrefs()
             }
         }
     }
 
-    suspend fun pushFavoriteChange(jellyfinId: String, isFavorite: Boolean) {
-        if (!isLoggedIn || jellyfinId.isBlank()) return
-        val enabled = userPreferencesRepository.jellyfinSyncFavoritesFlow.first()
-        if (!enabled) return
+    /**
+     * Records a local favourite toggle synchronously before awaiting the network lock, so an
+     * in-flight [syncFavorites] pass will not overwrite the user's newer local intent.
+     */
+    fun recordLocalFavoriteMutation(jellyfinId: String, isFavorite: Boolean): Long? {
+        if (!isLoggedIn || jellyfinId.isBlank()) return null
+        val gen = favoriteMutationGeneration.incrementAndGet()
+        inFlightLocalFavoriteMutations[jellyfinId] = gen to isFavorite
+        return gen
+    }
 
-        favoritesSyncMutex.withLock {
-            withContext(Dispatchers.IO) {
-                val result = if (isFavorite) {
-                    api.markFavorite(jellyfinId)
-                } else {
-                    api.unmarkFavorite(jellyfinId)
-                }
+    suspend fun pushFavoriteChange(
+        jellyfinId: String,
+        isFavorite: Boolean,
+        recordedGeneration: Long? = null
+    ) {
+        val sessionGen = accountSessionGeneration.get()
+        val accountKey = currentAccountKey()
+        if (!isLoggedIn || accountKey == null || jellyfinId.isBlank()) {
+            if (recordedGeneration != null) {
+                inFlightLocalFavoriteMutations.remove(jellyfinId, recordedGeneration to isFavorite)
+            }
+            return
+        }
+        val mutationGen = recordedGeneration ?: recordLocalFavoriteMutation(jellyfinId, isFavorite)
+            ?: return
 
-                val pendingAdds = prefs.getStringSet(KEY_PENDING_FAVORITE_ADDS, null)
-                    .orEmpty().toMutableSet()
-                val pendingRemoves = prefs.getStringSet(KEY_PENDING_FAVORITE_REMOVES, null)
-                    .orEmpty().toMutableSet()
+        try {
+            val enabled = userPreferencesRepository.jellyfinSyncFavoritesFlow.first()
+            if (!enabled) return
 
-                if (result.isSuccess) {
-                    pendingAdds.remove(jellyfinId)
-                    pendingRemoves.remove(jellyfinId)
-                    val editor = prefs.edit()
-                        .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
-                        .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
-                    if (prefs.getBoolean(KEY_HAS_FAVORITE_SYNC_BASELINE, false)) {
-                        val baseline = prefs.getStringSet(KEY_LAST_SYNCED_FAVORITE_IDS, null)
-                            .orEmpty().toMutableSet()
-                        if (isFavorite) baseline.add(jellyfinId) else baseline.remove(jellyfinId)
-                        editor.putStringSet(KEY_LAST_SYNCED_FAVORITE_IDS, baseline)
-                    }
-                    editor.apply()
-                } else {
-                    Timber.w(
-                        result.exceptionOrNull(),
-                        "$TAG: Failed pushing favorite=$isFavorite for $jellyfinId; queueing retry"
-                    )
-                    if (isFavorite) {
-                        pendingAdds.add(jellyfinId)
-                        pendingRemoves.remove(jellyfinId)
+            favoritesSyncMutex.withLock {
+                withContext(Dispatchers.IO) {
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext
+                    if (!userPreferencesRepository.jellyfinSyncFavoritesFlow.first()) return@withContext
+                    // Skip superseded pushes when the user toggled the same song again while waiting.
+                    val latest = inFlightLocalFavoriteMutations[jellyfinId]
+                    if (latest != null && latest.first != mutationGen) return@withContext
+
+                    val result = if (isFavorite) {
+                        api.markFavorite(jellyfinId)
                     } else {
-                        pendingRemoves.add(jellyfinId)
-                        pendingAdds.remove(jellyfinId)
+                        api.unmarkFavorite(jellyfinId)
                     }
-                    prefs.edit()
-                        .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
-                        .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
-                        .apply()
+
+                    // Re-check session after network I/O so logout/account-switch never stores stale retries.
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext
+                    if (!userPreferencesRepository.jellyfinSyncFavoritesFlow.first()) return@withContext
+
+                    val storedAccount = prefs.getString(KEY_FAVORITE_SYNC_ACCOUNT, null)
+                    if (storedAccount != null && storedAccount != accountKey) {
+                        clearFavoriteSyncPrefs()
+                    }
+
+                    val pendingAdds = prefs.getStringSet(KEY_PENDING_FAVORITE_ADDS, null)
+                        .orEmpty().toMutableSet()
+                    val pendingRemoves = prefs.getStringSet(KEY_PENDING_FAVORITE_REMOVES, null)
+                        .orEmpty().toMutableSet()
+
+                    if (result.isSuccess) {
+                        pendingAdds.remove(jellyfinId)
+                        pendingRemoves.remove(jellyfinId)
+                        val editor = prefs.edit()
+                            .putString(KEY_FAVORITE_SYNC_ACCOUNT, accountKey)
+                            .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
+                            .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
+                        if (prefs.getBoolean(KEY_HAS_FAVORITE_SYNC_BASELINE, false)) {
+                            val baseline = prefs.getStringSet(KEY_LAST_SYNCED_FAVORITE_IDS, null)
+                                .orEmpty().toMutableSet()
+                            if (isFavorite) baseline.add(jellyfinId) else baseline.remove(jellyfinId)
+                            editor.putStringSet(KEY_LAST_SYNCED_FAVORITE_IDS, baseline)
+                        }
+                        editor.apply()
+                    } else {
+                        Timber.w(
+                            result.exceptionOrNull(),
+                            "$TAG: Failed pushing favorite=$isFavorite for $jellyfinId; queueing retry"
+                        )
+                        if (isFavorite) {
+                            pendingAdds.add(jellyfinId)
+                            pendingRemoves.remove(jellyfinId)
+                        } else {
+                            pendingRemoves.add(jellyfinId)
+                            pendingAdds.remove(jellyfinId)
+                        }
+                        prefs.edit()
+                            .putString(KEY_FAVORITE_SYNC_ACCOUNT, accountKey)
+                            .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
+                            .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
+                            .apply()
+                    }
                 }
             }
+        } finally {
+            inFlightLocalFavoriteMutations.remove(jellyfinId, mutationGen to isFavorite)
         }
     }
 
     suspend fun syncFavorites(): Result<Unit> {
-        if (!isLoggedIn) return Result.success(Unit)
+        val sessionGen = accountSessionGeneration.get()
+        val accountKey = currentAccountKey()
+        if (!isLoggedIn || accountKey == null) return Result.success(Unit)
         val enabled = userPreferencesRepository.jellyfinSyncFavoritesFlow.first()
         if (!enabled) return Result.success(Unit)
 
         return favoritesSyncMutex.withLock {
             withContext(Dispatchers.IO) {
                 try {
-                    // 1. Flush pending offline favorite mutations first.
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+                    if (!userPreferencesRepository.jellyfinSyncFavoritesFlow.first()) return@withContext Result.success(Unit)
+
+                    val storedAccount = prefs.getString(KEY_FAVORITE_SYNC_ACCOUNT, null)
+                    if (storedAccount != null && storedAccount != accountKey) {
+                        clearFavoriteSyncPrefs()
+                    }
+
+                    // 1. Flush pending offline favorite mutations first (only for this account).
                     val pendingAdds = prefs.getStringSet(KEY_PENDING_FAVORITE_ADDS, null)
                         .orEmpty().toMutableSet()
                     val pendingRemoves = prefs.getStringSet(KEY_PENDING_FAVORITE_REMOVES, null)
@@ -337,6 +433,11 @@ class JellyfinRepository @Inject constructor(
                     }
 
                     pendingAdds.toList().forEach { id ->
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+                        if (inFlightLocalFavoriteMutations.containsKey(id)) {
+                            stillPending.add(id)
+                            return@forEach
+                        }
                         if (api.markFavorite(id).isSuccess) {
                             pendingAdds.remove(id)
                             baselineSet?.add(id)
@@ -345,6 +446,11 @@ class JellyfinRepository @Inject constructor(
                         }
                     }
                     pendingRemoves.toList().forEach { id ->
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+                        if (inFlightLocalFavoriteMutations.containsKey(id)) {
+                            stillPending.add(id)
+                            return@forEach
+                        }
                         if (api.unmarkFavorite(id).isSuccess) {
                             pendingRemoves.remove(id)
                             baselineSet?.remove(id)
@@ -358,12 +464,16 @@ class JellyfinRepository @Inject constructor(
                     var startIndex = 0
                     val pageSize = 500
                     while (true) {
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
                         val page = api.getFavoriteAudioIds(startIndex = startIndex, limit = pageSize)
                         val (_, ids) = page.getOrElse { error ->
-                            prefs.edit()
-                                .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
-                                .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
-                                .apply()
+                            if (isFavoriteSessionCurrent(sessionGen, accountKey)) {
+                                prefs.edit()
+                                    .putString(KEY_FAVORITE_SYNC_ACCOUNT, accountKey)
+                                    .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)
+                                    .putStringSet(KEY_PENDING_FAVORITE_REMOVES, pendingRemoves)
+                                    .apply()
+                            }
                             Timber.w(error, "$TAG: Failed fetching Jellyfin favourites")
                             return@withContext Result.failure(error)
                         }
@@ -372,6 +482,8 @@ class JellyfinRepository @Inject constructor(
                         startIndex += ids.size
                         if (ids.size < pageSize) break
                     }
+
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
 
                     // 3. Map synced unified Jellyfin songs and read current local favourites.
                     val syncedMappings = musicDao.getAllJellyfinSongUriMappings()
@@ -389,28 +501,44 @@ class JellyfinRepository @Inject constructor(
                         .keys
                         .toSet()
 
+                    // Protect both failed offline retries and any local toggles that happened
+                    // while the network request was in flight so the merge never resurrects an unlike.
+                    val protectedIds = stillPending + inFlightLocalFavoriteMutations.keys
+
                     // 4. Compute 3-way diff scoped to known synced Jellyfin songs.
                     val diff = computeJellyfinFavoriteSyncDiff(
                         knownJellyfinIds = jellyfinIdToSongId.keys,
                         localFavorites = localJellyfinFavs,
                         remoteFavorites = remoteFavoriteIds,
                         baseline = baselineSet,
-                        protectedPendingIds = stillPending
+                        protectedPendingIds = protectedIds
                     )
 
-                    // 5. Apply local changes directly to FavoritesDao (no echo push).
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+
+                    // 5. Apply local changes directly to FavoritesDao (skipping anything mutated mid-flight).
+                    val agreedFavorites = diff.resultingFavorites.toMutableSet()
                     diff.addLocally.forEach { jellyfinId ->
+                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
+                            agreedFavorites.remove(jellyfinId)
+                            return@forEach
+                        }
                         val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
                         favoritesDao.setFavorite(FavoritesEntity(songId = songId, isFavorite = true))
                     }
                     diff.removeLocally.forEach { jellyfinId ->
+                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
+                            agreedFavorites.add(jellyfinId)
+                            return@forEach
+                        }
                         val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
                         favoritesDao.removeFavorite(songId)
                     }
 
                     // 6. Push local changes to Jellyfin; queue failures for retry.
-                    val agreedFavorites = diff.resultingFavorites.toMutableSet()
                     diff.addRemotely.forEach { jellyfinId ->
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) return@forEach
                         if (api.markFavorite(jellyfinId).isFailure) {
                             pendingAdds.add(jellyfinId)
                             pendingRemoves.remove(jellyfinId)
@@ -418,6 +546,8 @@ class JellyfinRepository @Inject constructor(
                         }
                     }
                     diff.removeRemotely.forEach { jellyfinId ->
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) return@forEach
                         if (api.unmarkFavorite(jellyfinId).isFailure) {
                             pendingRemoves.add(jellyfinId)
                             pendingAdds.remove(jellyfinId)
@@ -425,7 +555,10 @@ class JellyfinRepository @Inject constructor(
                         }
                     }
 
+                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
+
                     prefs.edit()
+                        .putString(KEY_FAVORITE_SYNC_ACCOUNT, accountKey)
                         .putBoolean(KEY_HAS_FAVORITE_SYNC_BASELINE, true)
                         .putStringSet(KEY_LAST_SYNCED_FAVORITE_IDS, agreedFavorites)
                         .putStringSet(KEY_PENDING_FAVORITE_ADDS, pendingAdds)

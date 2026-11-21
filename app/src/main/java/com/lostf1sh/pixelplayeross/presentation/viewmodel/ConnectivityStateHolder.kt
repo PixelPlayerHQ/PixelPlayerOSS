@@ -29,6 +29,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -100,10 +101,13 @@ class ConnectivityStateHolder @Inject constructor(
     private var bluetoothStateReceiver: BroadcastReceiver? = null
     private var audioDeviceCallback: android.media.AudioDeviceCallback? = null
 
+    @Volatile
     private var isInitialized = false
     private val owners = OwnerStack<CoroutineScope> { it }
     private val discoveredBluetoothAudioDevices = ConcurrentHashMap<String, BluetoothAudioDeviceState>()
     private val connectivityIoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val audioDevicesRefreshGeneration = AtomicLong(0L)
+    private val audioDevicesPublishLock = Any()
     private var updateAudioDevicesJob: Job? = null
 
     /**
@@ -257,24 +261,36 @@ class ConnectivityStateHolder @Inject constructor(
     }
 
     private fun updateAudioDevices() {
+        val generation = audioDevicesRefreshGeneration.incrementAndGet()
         updateAudioDevicesJob?.cancel()
         updateAudioDevicesJob = connectivityIoScope.launch {
-            updateAudioDevicesOnIo()
+            updateAudioDevicesOnIo(generation)
         }
     }
 
-    private fun updateAudioDevicesOnIo() {
-        updateBluetoothEnabledState()
-        if (!_isBluetoothEnabled.value) {
-            discoveredBluetoothAudioDevices.clear()
-            _bluetoothAudioDeviceStates.value = emptyList()
-            _bluetoothAudioDevices.value = emptyList()
-            updateBluetoothName(emptyList())
+    private fun isAudioDevicesRefreshCurrent(generation: Long): Boolean =
+        isInitialized && audioDevicesRefreshGeneration.get() == generation
+
+    private fun updateAudioDevicesOnIo(generation: Long) {
+        if (!isAudioDevicesRefreshCurrent(generation)) return
+        val bluetoothEnabled = safeBluetoothCall(false) { bluetoothAdapter?.isEnabled == true }
+        if (!isAudioDevicesRefreshCurrent(generation)) return
+        if (!bluetoothEnabled) {
+            synchronized(audioDevicesPublishLock) {
+                if (!isAudioDevicesRefreshCurrent(generation)) return
+                _isBluetoothEnabled.value = false
+                discoveredBluetoothAudioDevices.clear()
+                _bluetoothAudioDeviceStates.value = emptyList()
+                _bluetoothAudioDevices.value = emptyList()
+                updateBluetoothName(emptyList())
+            }
             return
         }
 
         val localDeviceNames = resolveLocalBluetoothDeviceNames()
         val connectedDevices = collectConnectedBluetoothDevices()
+        if (!isAudioDevicesRefreshCurrent(generation)) return
+
         val availableDevices = discoveredBluetoothAudioDevices.values
             .map { sanitizeBluetoothAudioDeviceState(it, localDeviceNames) }
             .filterNotNull()
@@ -297,9 +313,14 @@ class ConnectivityStateHolder @Inject constructor(
                 compareByDescending<BluetoothAudioDeviceState> { it.uniqueKey() in connectedDeviceKeys }
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
             )
-        _bluetoothAudioDeviceStates.value = bluetoothDevices
-        _bluetoothAudioDevices.value = bluetoothDevices.map(BluetoothAudioDeviceState::name)
-        updateBluetoothName(connectedDevices.map(BluetoothAudioDeviceState::name))
+        val connectedNames = connectedDevices.map(BluetoothAudioDeviceState::name)
+        synchronized(audioDevicesPublishLock) {
+            if (!isAudioDevicesRefreshCurrent(generation)) return
+            _isBluetoothEnabled.value = true
+            _bluetoothAudioDeviceStates.value = bluetoothDevices
+            _bluetoothAudioDevices.value = bluetoothDevices.map(BluetoothAudioDeviceState::name)
+            updateBluetoothName(connectedNames)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -547,16 +568,20 @@ class ConnectivityStateHolder @Inject constructor(
             runCatching { audioManager.unregisterAudioDeviceCallback(it) }
         }
         audioDeviceCallback = null
-        updateAudioDevicesJob?.cancel()
-        updateAudioDevicesJob = null
         if (hasBluetoothScanPermission()) {
             bluetoothAdapter?.takeIf { isBluetoothDiscoveryActive(it) }?.let {
                 cancelBluetoothDiscovery(it)
             }
         }
-        discoveredBluetoothAudioDevices.clear()
-        _bluetoothAudioDeviceStates.value = emptyList()
-        _bluetoothAudioDevices.value = emptyList()
-        isInitialized = false
+        synchronized(audioDevicesPublishLock) {
+            audioDevicesRefreshGeneration.incrementAndGet()
+            isInitialized = false
+            updateAudioDevicesJob?.cancel()
+            updateAudioDevicesJob = null
+            discoveredBluetoothAudioDevices.clear()
+            _bluetoothAudioDeviceStates.value = emptyList()
+            _bluetoothAudioDevices.value = emptyList()
+            _bluetoothName.value = null
+        }
     }
 }

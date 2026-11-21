@@ -682,6 +682,10 @@ interface MusicDao {
         applyDirectoryFilter: Boolean = false
     ): SongEntity?
 
+    // A whole-library read spans several CursorWindows. Outside a transaction every window
+    // refill re-runs the query on a fresh snapshot, so a sync deleting songs in between
+    // leaves the cursor short and crashes with "Couldn't read row N" (#272).
+    @Transaction
     @Query("""
         SELECT * FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))

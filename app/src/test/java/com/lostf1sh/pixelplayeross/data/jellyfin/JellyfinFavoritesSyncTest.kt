@@ -327,6 +327,54 @@ class JellyfinFavoritesSyncTest {
         assertThat(storedPrefs["pending_favorite_adds"]).isNull()
     }
 
+    @Test
+    fun `cleared local mutation after cancelled write allows subsequent sync to pull song`() = runTest {
+        val syncEnabled = MutableStateFlow(true)
+        val storedPrefs = mutableMapOf<String, Any?>(
+            "server_url" to "https://jellyfin.example.com",
+            "username" to "listener",
+            "access_token" to "token",
+            "user_id" to "user-1",
+        )
+        val prefs = mapBackedPrefs(storedPrefs)
+        val api = mockk<JellyfinApiService>(relaxed = true) {
+            coEvery { getFavoriteAudioIds(any(), any()) } returns Result.success(1 to listOf("jf-1"))
+        }
+        val favoritesDao = mockk<FavoritesDao>(relaxed = true)
+        val localFavorites = mutableSetOf<Long>()
+        coEvery { favoritesDao.getFavoriteSongIdsOnce() } answers { localFavorites.toList() }
+        coEvery { favoritesDao.setFavorite(any()) } answers {
+            localFavorites.add(firstArg<FavoritesEntity>().songId)
+        }
+        val musicDao = mockk<MusicDao>(relaxed = true) {
+            coEvery { getAllJellyfinSongUriMappings() } returns listOf(
+                SongIdUriMapping(-101L, "jellyfin://jf-1")
+            )
+        }
+        val userPrefs = mockk<UserPreferencesRepository>(relaxed = true) {
+            every { jellyfinSelectedLibraryIdsFlow } returns flowOf(emptySet())
+            every { jellyfinSyncFavoritesFlow } returns syncEnabled
+            every { groupByAlbumArtistFlow } returns flowOf(true)
+        }
+        val repo = JellyfinRepository(
+            api = api,
+            dao = mockk<JellyfinDao>(relaxed = true),
+            musicDao = musicDao,
+            favoritesDao = favoritesDao,
+            playlistPreferencesRepository = mockk(relaxed = true),
+            userPreferencesRepository = userPrefs,
+            context = mockk<Context>(relaxed = true) {
+                every { getSharedPreferences(any(), any()) } returns prefs
+            }
+        )
+
+        val token = repo.recordLocalFavoriteMutation("jf-1", isFavorite = false)!!
+        repo.clearLocalFavoriteMutation("jf-1", isFavorite = false, token = token)
+
+        assertThat(repo.syncFavorites().isSuccess).isTrue()
+        assertThat(localFavorites).containsExactly(-101L)
+    }
+
     private fun mapBackedPrefs(map: MutableMap<String, Any?>): SharedPreferences {
         val editor = mockk<SharedPreferences.Editor>(relaxed = true)
         every { editor.putString(any(), any()) } answers {

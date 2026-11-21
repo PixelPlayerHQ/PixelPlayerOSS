@@ -894,16 +894,24 @@ class MusicRepositoryImpl @Inject constructor(
         }
 
         if (jellyfinId != null && repo != null) {
-            // Record the account-bound mutation and update Room atomically under localFavoritesMutex
-            // so an in-flight Jellyfin sync cannot overwrite the local toggle before the push runs.
-            val token = repo.withLocalFavoriteLock {
-                val recorded = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
-                writeLocalFavorite()
-                recorded
-            }
-            if (token != null) {
-                repositoryScope.launch {
-                    repo.pushFavoriteChange(jellyfinId, isFavorite, token)
+            // Record the account-bound mutation, update Room, and launch the push atomically under
+            // localFavoritesMutex; if the Room write fails or is cancelled, clean up immediately so
+            // later sync passes are never blocked for this song.
+            repo.withLocalFavoriteLock {
+                val token = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
+                var pushLaunched = false
+                try {
+                    writeLocalFavorite()
+                    if (token != null) {
+                        repositoryScope.launch {
+                            repo.pushFavoriteChange(jellyfinId, isFavorite, token)
+                        }
+                        pushLaunched = true
+                    }
+                } finally {
+                    if (token != null && !pushLaunched) {
+                        repo.clearLocalFavoriteMutation(jellyfinId, isFavorite, token)
+                    }
                 }
             }
         } else {

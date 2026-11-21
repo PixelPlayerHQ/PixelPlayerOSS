@@ -331,6 +331,14 @@ class JellyfinRepository @Inject constructor(
         )
     }
 
+    fun clearLocalFavoriteMutation(
+        jellyfinId: String,
+        isFavorite: Boolean,
+        token: FavoriteMutationToken
+    ) {
+        inFlightLocalFavoriteMutations.remove(jellyfinId, token.mutationGen to isFavorite)
+    }
+
     suspend fun pushFavoriteChange(
         jellyfinId: String,
         isFavorite: Boolean,

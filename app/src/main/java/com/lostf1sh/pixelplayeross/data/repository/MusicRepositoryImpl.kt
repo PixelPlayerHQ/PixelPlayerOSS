@@ -871,27 +871,43 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun setFavoriteStatus(songId: String, isFavorite: Boolean) = withContext(Dispatchers.IO) {
         val id = songId.toLongOrNull() ?: return@withContext
-        if (isFavorite) {
-            favoritesDao.setFavorite(
-                com.lostf1sh.pixelplayeross.data.database.FavoritesEntity(
-                    songId = id,
-                    isFavorite = true
-                )
-            )
-        } else {
-            favoritesDao.removeFavorite(id)
-        }
         val repo = jellyfinRepository
-        if (id < 0L && repo != null) {
+        val jellyfinId = if (id < 0L && repo != null) {
             val contentUri = musicDao.getJellyfinContentUriBySongId(id)
-            val jellyfinId = contentUri?.removePrefix("jellyfin://")
+            contentUri?.removePrefix("jellyfin://")
                 ?.takeIf { it.isNotBlank() && it != contentUri }
-            if (jellyfinId != null) {
-                val mutationGen = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
+        } else {
+            null
+        }
+
+        val writeLocalFavorite: suspend () -> Unit = {
+            if (isFavorite) {
+                favoritesDao.setFavorite(
+                    com.lostf1sh.pixelplayeross.data.database.FavoritesEntity(
+                        songId = id,
+                        isFavorite = true
+                    )
+                )
+            } else {
+                favoritesDao.removeFavorite(id)
+            }
+        }
+
+        if (jellyfinId != null && repo != null) {
+            // Record the account-bound mutation and update Room atomically under localFavoritesMutex
+            // so an in-flight Jellyfin sync cannot overwrite the local toggle before the push runs.
+            val token = repo.withLocalFavoriteLock {
+                val recorded = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
+                writeLocalFavorite()
+                recorded
+            }
+            if (token != null) {
                 repositoryScope.launch {
-                    repo.pushFavoriteChange(jellyfinId, isFavorite, mutationGen)
+                    repo.pushFavoriteChange(jellyfinId, isFavorite, token)
                 }
             }
+        } else {
+            writeLocalFavorite()
         }
     }
 

@@ -198,10 +198,13 @@ class JellyfinFavoritesSyncTest {
         fetchStarted.await()
 
         // User unlikes jf-1 locally while the initial remote fetch is still in flight.
-        localFavorites.remove(-101L)
-        val gen = repo.recordLocalFavoriteMutation("jf-1", isFavorite = false)
+        val token = repo.withLocalFavoriteLock {
+            val recorded = repo.recordLocalFavoriteMutation("jf-1", isFavorite = false)
+            localFavorites.remove(-101L)
+            recorded
+        }
         val pushJob = launch(Dispatchers.Default) {
-            repo.pushFavoriteChange("jf-1", isFavorite = false, recordedGeneration = gen)
+            repo.pushFavoriteChange("jf-1", isFavorite = false, recordedToken = token)
         }
 
         allowFetchToFinish.complete(Unit)
@@ -278,6 +281,50 @@ class JellyfinFavoritesSyncTest {
         assertThat(repo.login("https://jellyfin.example.com", "account-b", "pw").isSuccess).isTrue()
         assertThat(repo.syncFavorites().isSuccess).isTrue()
         coVerify(exactly = 1) { api.markFavorite("old-track") }
+    }
+
+    @Test
+    fun `delayed push captured for account A is dropped after switching to account B`() = runTest {
+        val syncEnabled = MutableStateFlow(true)
+        val storedPrefs = mutableMapOf<String, Any?>(
+            "server_url" to "https://jellyfin.example.com",
+            "username" to "account-a",
+            "access_token" to "token-a",
+            "user_id" to "user-a",
+        )
+        val prefs = mapBackedPrefs(storedPrefs)
+        val api = mockk<JellyfinApiService>(relaxed = true) {
+            coEvery { authenticateByName(any(), any(), any()) } returns Result.success("token-b" to "user-b")
+        }
+        val userPrefs = mockk<UserPreferencesRepository>(relaxed = true) {
+            every { jellyfinSelectedLibraryIdsFlow } returns flowOf(emptySet())
+            every { jellyfinSyncFavoritesFlow } returns syncEnabled
+            every { groupByAlbumArtistFlow } returns flowOf(true)
+        }
+        val repo = JellyfinRepository(
+            api = api,
+            dao = mockk<JellyfinDao>(relaxed = true),
+            musicDao = mockk<MusicDao>(relaxed = true),
+            favoritesDao = mockk<FavoritesDao>(relaxed = true),
+            playlistPreferencesRepository = mockk(relaxed = true),
+            userPreferencesRepository = userPrefs,
+            context = mockk<Context>(relaxed = true) {
+                every { getSharedPreferences(any(), any()) } returns prefs
+            }
+        )
+
+        // Toggle happens under account A, before the coroutine runs pushFavoriteChange.
+        val tokenFromAccountA = repo.recordLocalFavoriteMutation("account-a-track", isFavorite = true)
+        assertThat(tokenFromAccountA).isNotNull()
+
+        // User logs out of account A and logs into account B before the delayed push executes.
+        repo.logout()
+        assertThat(repo.login("https://jellyfin.example.com", "account-b", "pw").isSuccess).isTrue()
+
+        // Delayed push must be ignored completely and never hit account B's server.
+        repo.pushFavoriteChange("account-a-track", isFavorite = true, recordedToken = tokenFromAccountA)
+        coVerify(exactly = 0) { api.markFavorite("account-a-track") }
+        assertThat(storedPrefs["pending_favorite_adds"]).isNull()
     }
 
     private fun mapBackedPrefs(map: MutableMap<String, Any?>): SharedPreferences {

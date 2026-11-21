@@ -166,9 +166,19 @@ class JellyfinRepository @Inject constructor(
      */
     private val songCacheMutex = Mutex()
     private val favoritesSyncMutex = Mutex()
+    private val localFavoritesMutex = Mutex()
     private val accountSessionGeneration = AtomicLong(0L)
     private val favoriteMutationGeneration = AtomicLong(0L)
     private val inFlightLocalFavoriteMutations = ConcurrentHashMap<String, Pair<Long, Boolean>>()
+
+    data class FavoriteMutationToken(
+        val sessionGen: Long,
+        val accountKey: String,
+        val mutationGen: Long
+    )
+
+    suspend fun <T> withLocalFavoriteLock(block: suspend () -> T): T =
+        localFavoritesMutex.withLock { block() }
 
     private fun currentAccountKey(): String? {
         val server = prefs.getString(KEY_SERVER_URL, null)?.takeIf { it.isNotBlank() } ?: return null
@@ -304,33 +314,35 @@ class JellyfinRepository @Inject constructor(
     }
 
     /**
-     * Records a local favourite toggle synchronously before awaiting the network lock, so an
-     * in-flight [syncFavorites] pass will not overwrite the user's newer local intent.
+     * Records a local favourite toggle synchronously before awaiting the network lock, binding
+     * the pending push to the currently logged-in account session so neither an in-flight
+     * [syncFavorites] pass nor a subsequent logout/account-switch can misapply it.
      */
-    fun recordLocalFavoriteMutation(jellyfinId: String, isFavorite: Boolean): Long? {
-        if (!isLoggedIn || jellyfinId.isBlank()) return null
+    fun recordLocalFavoriteMutation(jellyfinId: String, isFavorite: Boolean): FavoriteMutationToken? {
+        val sessionGen = accountSessionGeneration.get()
+        val accountKey = currentAccountKey()
+        if (!isLoggedIn || accountKey == null || jellyfinId.isBlank()) return null
         val gen = favoriteMutationGeneration.incrementAndGet()
         inFlightLocalFavoriteMutations[jellyfinId] = gen to isFavorite
-        return gen
+        return FavoriteMutationToken(
+            sessionGen = sessionGen,
+            accountKey = accountKey,
+            mutationGen = gen
+        )
     }
 
     suspend fun pushFavoriteChange(
         jellyfinId: String,
         isFavorite: Boolean,
-        recordedGeneration: Long? = null
+        recordedToken: FavoriteMutationToken? = null
     ) {
-        val sessionGen = accountSessionGeneration.get()
-        val accountKey = currentAccountKey()
-        if (!isLoggedIn || accountKey == null || jellyfinId.isBlank()) {
-            if (recordedGeneration != null) {
-                inFlightLocalFavoriteMutations.remove(jellyfinId, recordedGeneration to isFavorite)
-            }
-            return
-        }
-        val mutationGen = recordedGeneration ?: recordLocalFavoriteMutation(jellyfinId, isFavorite)
-            ?: return
+        val token = recordedToken ?: recordLocalFavoriteMutation(jellyfinId, isFavorite) ?: return
+        val sessionGen = token.sessionGen
+        val accountKey = token.accountKey
+        val mutationGen = token.mutationGen
 
         try {
+            if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return
             val enabled = userPreferencesRepository.jellyfinSyncFavoritesFlow.first()
             if (!enabled) return
 
@@ -495,44 +507,50 @@ class JellyfinRepository @Inject constructor(
                         }
                     }
 
-                    val allLocalFavIds = favoritesDao.getFavoriteSongIdsOnce().toHashSet()
-                    val localJellyfinFavs = jellyfinIdToSongId
-                        .filterValues { songId -> songId in allLocalFavIds }
-                        .keys
-                        .toSet()
-
-                    // Protect both failed offline retries and any local toggles that happened
-                    // while the network request was in flight so the merge never resurrects an unlike.
-                    val protectedIds = stillPending + inFlightLocalFavoriteMutations.keys
-
-                    // 4. Compute 3-way diff scoped to known synced Jellyfin songs.
-                    val diff = computeJellyfinFavoriteSyncDiff(
-                        knownJellyfinIds = jellyfinIdToSongId.keys,
-                        localFavorites = localJellyfinFavs,
-                        remoteFavorites = remoteFavoriteIds,
-                        baseline = baselineSet,
-                        protectedPendingIds = protectedIds
-                    )
-
-                    if (!isFavoriteSessionCurrent(sessionGen, accountKey)) return@withContext Result.success(Unit)
-
-                    // 5. Apply local changes directly to FavoritesDao (skipping anything mutated mid-flight).
-                    val agreedFavorites = diff.resultingFavorites.toMutableSet()
-                    diff.addLocally.forEach { jellyfinId ->
-                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
-                            agreedFavorites.remove(jellyfinId)
-                            return@forEach
+                    // 3–5. Atomically snapshot local favourites + in-flight toggles, compute the
+                    // diff, and apply local Room updates under localFavoritesMutex so concurrent
+                    // setFavoriteStatus calls cannot interleave between read and write.
+                    val (diff, agreedFavorites) = localFavoritesMutex.withLock {
+                        if (!isFavoriteSessionCurrent(sessionGen, accountKey)) {
+                            return@withContext Result.success(Unit)
                         }
-                        val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
-                        favoritesDao.setFavorite(FavoritesEntity(songId = songId, isFavorite = true))
-                    }
-                    diff.removeLocally.forEach { jellyfinId ->
-                        if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
-                            agreedFavorites.add(jellyfinId)
-                            return@forEach
+
+                        val allLocalFavIds = favoritesDao.getFavoriteSongIdsOnce().toHashSet()
+                        val localJellyfinFavs = jellyfinIdToSongId
+                            .filterValues { songId -> songId in allLocalFavIds }
+                            .keys
+                            .toSet()
+
+                        // Protect both failed offline retries and any local toggles that happened
+                        // while the network request was in flight so the merge never resurrects an unlike.
+                        val protectedIds = stillPending + inFlightLocalFavoriteMutations.keys
+
+                        val computedDiff = computeJellyfinFavoriteSyncDiff(
+                            knownJellyfinIds = jellyfinIdToSongId.keys,
+                            localFavorites = localJellyfinFavs,
+                            remoteFavorites = remoteFavoriteIds,
+                            baseline = baselineSet,
+                            protectedPendingIds = protectedIds
+                        )
+
+                        val agreed = computedDiff.resultingFavorites.toMutableSet()
+                        computedDiff.addLocally.forEach { jellyfinId ->
+                            if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
+                                agreed.remove(jellyfinId)
+                                return@forEach
+                            }
+                            val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
+                            favoritesDao.setFavorite(FavoritesEntity(songId = songId, isFavorite = true))
                         }
-                        val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
-                        favoritesDao.removeFavorite(songId)
+                        computedDiff.removeLocally.forEach { jellyfinId ->
+                            if (inFlightLocalFavoriteMutations.containsKey(jellyfinId)) {
+                                agreed.add(jellyfinId)
+                                return@forEach
+                            }
+                            val songId = jellyfinIdToSongId[jellyfinId] ?: return@forEach
+                            favoritesDao.removeFavorite(songId)
+                        }
+                        computedDiff to agreed
                     }
 
                     // 6. Push local changes to Jellyfin; queue failures for retry.

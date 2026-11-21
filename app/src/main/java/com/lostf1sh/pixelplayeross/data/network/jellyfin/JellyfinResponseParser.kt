@@ -49,6 +49,8 @@ object JellyfinResponseParser {
         val mediaSources = json.optJSONArray("MediaSources")
         val firstSource = mediaSources?.optJSONObject(0)
 
+        val userData = json.optJSONObject("UserData")
+
         return JellyfinSong(
             id = json.optString("Id", ""),
             title = json.optString("Name", "Unknown Title"),
@@ -66,7 +68,9 @@ object JellyfinResponseParser {
             contentType = firstSource?.optString("Container")?.let { containerToMimeType(it) },
             path = firstSource?.optString("Path", "") ?: json.optString("Path", ""),
             size = firstSource?.optLong("Size"),
-            playCount = json.optJSONObject("UserData")?.optInt("PlayCount", 0) ?: 0
+            playCount = userData?.optInt("PlayCount", 0) ?: 0,
+            isFavorite = userData?.optBoolean("IsFavorite", false) ?: false,
+            dateAdded = parseTimestamp(json.optString("DateCreated"))
         )
     }
 

@@ -83,6 +83,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
+import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import timber.log.Timber
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,7 +99,8 @@ class MusicRepositoryImpl @Inject constructor(
     private val songRepository: SongRepository,
     private val favoritesDao: FavoritesDao,
     private val artistImageRepository: ArtistImageRepository,
-    private val folderTreeBuilder: FolderTreeBuilder
+    private val folderTreeBuilder: FolderTreeBuilder,
+    private val jellyfinRepository: JellyfinRepository? = null
 ) : MusicRepository {
 
     companion object {
@@ -878,6 +880,17 @@ class MusicRepositoryImpl @Inject constructor(
             )
         } else {
             favoritesDao.removeFavorite(id)
+        }
+        val repo = jellyfinRepository
+        if (id < 0L && repo != null) {
+            val contentUri = musicDao.getJellyfinContentUriBySongId(id)
+            val jellyfinId = contentUri?.removePrefix("jellyfin://")
+                ?.takeIf { it.isNotBlank() && it != contentUri }
+            if (jellyfinId != null) {
+                repositoryScope.launch {
+                    repo.pushFavoriteChange(jellyfinId, isFavorite)
+                }
+            }
         }
     }
 

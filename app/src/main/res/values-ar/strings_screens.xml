@@ -300,4 +300,10 @@
     <string name="home_empty_placeholder_subtitle">سيظهر مزيجك الموسيقي هنا عندما يعثر PixelPlayerOSS على أغانٍ أو يزامن مصدراً.</string>
     <string name="crash_report_share_subject">تقرير تعطل PixelPlayerOSS</string>
     <string name="about_support_title">ادعم PixelPlayerOSS</string>
+    <string name="dash_jellyfin_sync_favorites_title">مزامنة المفضلة</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">مزامنة ثنائية الاتجاه للأغاني المعجب بها مع مفضلة Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">تمت مزامنة المفضلة مع Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">تعذرت مزامنة المفضلة مع Jellyfin</string>
+    <string name="home_recently_added_title">أُضيف مؤخراً</string>
+    <string name="home_recently_added_play_cd">تشغيل الأغاني المضافة مؤخراً</string>
 </resources>

@@ -100,4 +100,30 @@ class JellyfinResponseParserTest {
         assertEquals("Rap/Hip-Hop", JellyfinResponseParser.parseSong(withGenres("Rap/Hip-Hop")).genre)
         assertNull(JellyfinResponseParser.parseSong(withGenres()).genre)
     }
+
+    @Test
+    fun `parseSong extracts UserData IsFavorite and DateCreated`() {
+        val song = JellyfinResponseParser.parseSong(
+            JSONObject(
+                """
+                {
+                  "Id": "song-fav",
+                  "Name": "Liked Track",
+                  "DateCreated": "2026-11-19T12:00:00Z",
+                  "UserData": { "PlayCount": 7, "IsFavorite": true }
+                }
+                """.trimIndent()
+            )
+        )
+
+        assertTrue(song.isFavorite)
+        assertEquals(7, song.playCount)
+        assertThat(song.dateAdded).isGreaterThan(0L)
+
+        val plainSong = JellyfinResponseParser.parseSong(
+            JSONObject("""{"Id": "song-plain", "Name": "Plain Track"}""")
+        )
+        assertFalse(plainSong.isFavorite)
+        assertEquals(0L, plainSong.dateAdded)
+    }
 }

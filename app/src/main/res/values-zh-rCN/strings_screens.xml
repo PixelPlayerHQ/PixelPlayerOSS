@@ -298,4 +298,10 @@
     <string name="cd_toggle_grid_list">切换网格/列表视图</string>
     <string name="cd_genre_illustration">流派配图</string>
     <string name="dash_last_synced_format">上次同步：%1$s</string>
+    <string name="dash_jellyfin_sync_favorites_title">同步收藏</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">将喜欢的歌曲与 Jellyfin 收藏双向同步</string>
+    <string name="dash_jellyfin_sync_favorites_synced">已与 Jellyfin 同步收藏</string>
+    <string name="dash_jellyfin_sync_favorites_failed">无法与 Jellyfin 同步收藏</string>
+    <string name="home_recently_added_title">最近添加</string>
+    <string name="home_recently_added_play_cd">播放最近添加的歌曲</string>
 </resources>

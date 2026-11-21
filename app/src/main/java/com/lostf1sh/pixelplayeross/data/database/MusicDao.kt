@@ -368,6 +368,12 @@ interface MusicDao {
     @Query("SELECT id FROM songs WHERE source_type = 6")
     suspend fun getAllJellyfinSongIds(): List<Long>
 
+    @Query("SELECT id, content_uri_string AS contentUriString FROM songs WHERE source_type = 6")
+    suspend fun getAllJellyfinSongUriMappings(): List<SongIdUriMapping>
+
+    @Query("SELECT content_uri_string FROM songs WHERE id = :songId AND source_type = 6 LIMIT 1")
+    suspend fun getJellyfinContentUriBySongId(songId: Long): String?
+
     @Query("SELECT COUNT(*) FROM songs WHERE source_type = 6")
     suspend fun getJellyfinSongCount(): Int
 
@@ -652,7 +658,8 @@ interface MusicDao {
      * Uses SQLite RANDOM() for true randomness.
      */
     @Query("""
-        SELECT * FROM songs
+        SELECT """ + SONG_LIST_PROJECTION + """
+        FROM songs
         WHERE (:applyDirectoryFilter = 0 OR id < 0 OR parent_directory_path IN (:allowedParentDirs))
         ORDER BY RANDOM()
         LIMIT :limit
@@ -1978,3 +1985,8 @@ interface MusicDao {
         const val SONG_BATCH_SIZE = 500
     }
 }
+
+data class SongIdUriMapping(
+    val id: Long,
+    val contentUriString: String
+)

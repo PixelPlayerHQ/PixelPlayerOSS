@@ -285,4 +285,10 @@
     <string name="cd_toggle_grid_list">Chuyển đổi dạng lưới / danh sách</string>
     <string name="cd_genre_illustration">Hình minh họa thể loại</string>
     <string name="dash_last_synced_format">Đồng bộ lần cuối: %1$s</string>
+    <string name="dash_jellyfin_sync_favorites_title">Đồng bộ mục yêu thích</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Đồng bộ hai chiều bài hát đã thích với mục yêu thích trên Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Đã đồng bộ mục yêu thích với Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Không thể đồng bộ mục yêu thích với Jellyfin</string>
+    <string name="home_recently_added_title">Mới thêm gần đây</string>
+    <string name="home_recently_added_play_cd">Phát các bài hát mới thêm gần đây</string>
 </resources>

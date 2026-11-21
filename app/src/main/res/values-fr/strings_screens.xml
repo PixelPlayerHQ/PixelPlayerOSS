@@ -288,4 +288,10 @@
     <string name="home_empty_placeholder_subtitle">Votre mix apparaîtra ici lorsque PixelPlayerOSS trouvera des chansons ou synchronisera une source.</string>
     <string name="crash_report_share_subject">Rapport de plantage de PixelPlayerOSS</string>
     <string name="about_support_title">Soutenir PixelPlayerOSS</string>
+    <string name="dash_jellyfin_sync_favorites_title">Synchroniser les favoris</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Synchronisation bidirectionnelle des titres aimés avec les favoris Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Favoris synchronisés avec Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Impossible de synchroniser les favoris avec Jellyfin</string>
+    <string name="home_recently_added_title">Ajoutés récemment</string>
+    <string name="home_recently_added_play_cd">Lire les titres ajoutés récemment</string>
 </resources>

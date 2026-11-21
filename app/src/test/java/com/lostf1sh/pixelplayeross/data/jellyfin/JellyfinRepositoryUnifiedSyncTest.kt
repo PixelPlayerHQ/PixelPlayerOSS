@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.data.jellyfin
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.common.truth.Truth.assertThat
+import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.JellyfinDao
 import com.lostf1sh.pixelplayeross.data.database.JellyfinSongEntity
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
@@ -31,6 +32,7 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     private val jellyfinDao: JellyfinDao = mockk()
     private val musicDao: MusicDao = mockk()
+    private val favoritesDao: FavoritesDao = mockk(relaxed = true)
     private val userPreferencesRepository: UserPreferencesRepository = mockk(relaxed = true)
     private val syncedSongs = slot<List<SongEntity>>()
     private val groupByAlbumArtist = MutableStateFlow(true)
@@ -45,6 +47,8 @@ class JellyfinRepositoryUnifiedSyncTest {
 
     private fun repository(): JellyfinRepository {
         every { userPreferencesRepository.groupByAlbumArtistFlow } returns groupByAlbumArtist
+        every { userPreferencesRepository.jellyfinSyncFavoritesFlow } returns flowOf(false)
+        coEvery { favoritesDao.getFavoriteSongIdsOnce() } returns emptyList()
         coEvery { musicDao.getAllJellyfinSongIds() } returns emptyList()
         coEvery { musicDao.getJellyfinSongCount() } answers { unifiedSongCount }
         coEvery {
@@ -54,6 +58,7 @@ class JellyfinRepositoryUnifiedSyncTest {
             api = api,
             dao = jellyfinDao,
             musicDao = musicDao,
+            favoritesDao = favoritesDao,
             playlistPreferencesRepository = mockk(relaxed = true) {
                 every { userPlaylistsFlow } returns flowOf(emptyList())
             },

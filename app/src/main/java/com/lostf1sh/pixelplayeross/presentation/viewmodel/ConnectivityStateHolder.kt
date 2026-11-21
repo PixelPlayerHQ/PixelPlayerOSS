@@ -23,7 +23,12 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
+import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -97,7 +102,9 @@ class ConnectivityStateHolder @Inject constructor(
 
     private var isInitialized = false
     private val owners = OwnerStack<CoroutineScope> { it }
-    private val discoveredBluetoothAudioDevices = linkedMapOf<String, BluetoothAudioDeviceState>()
+    private val discoveredBluetoothAudioDevices = ConcurrentHashMap<String, BluetoothAudioDeviceState>()
+    private val connectivityIoScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var updateAudioDevicesJob: Job? = null
 
     /**
      * Initialize connectivity monitoring for the PlayerViewModel that owns [owner]. Monitoring
@@ -250,6 +257,13 @@ class ConnectivityStateHolder @Inject constructor(
     }
 
     private fun updateAudioDevices() {
+        updateAudioDevicesJob?.cancel()
+        updateAudioDevicesJob = connectivityIoScope.launch {
+            updateAudioDevicesOnIo()
+        }
+    }
+
+    private fun updateAudioDevicesOnIo() {
         updateBluetoothEnabledState()
         if (!_isBluetoothEnabled.value) {
             discoveredBluetoothAudioDevices.clear()
@@ -533,6 +547,8 @@ class ConnectivityStateHolder @Inject constructor(
             runCatching { audioManager.unregisterAudioDeviceCallback(it) }
         }
         audioDeviceCallback = null
+        updateAudioDevicesJob?.cancel()
+        updateAudioDevicesJob = null
         if (hasBluetoothScanPermission()) {
             bluetoothAdapter?.takeIf { isBluetoothDiscoveryActive(it) }?.let {
                 cancelBluetoothDiscovery(it)

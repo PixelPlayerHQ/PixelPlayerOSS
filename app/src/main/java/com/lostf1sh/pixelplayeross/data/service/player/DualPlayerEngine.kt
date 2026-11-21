@@ -169,15 +169,32 @@ internal fun isAudioOffloadMarkedBroken(
     currentBuildFingerprint: String
 ): Boolean = !storedBuildFingerprint.isNullOrBlank() && storedBuildFingerprint == currentBuildFingerprint
 
-/** Offloaded audio reaches the DSP still encoded, so any enabled audio effect needs the PCM path. */
+/**
+ * Offloaded audio reaches the DSP still encoded, so any enabled audio effect needs the PCM path.
+ * Offload is also disabled while routing to Bluetooth A2DP / BLE Audio because hardware offload
+ * reconfiguration across track transitions crashes the Bluetooth audio HAL on several devices.
+ */
 internal fun shouldEnableAudioOffloadForMode(
     audioOffloadAvailableForSession: Boolean,
     audioOutputMode: AudioOutputMode,
-    audioEffectsEnabled: Boolean
+    audioEffectsEnabled: Boolean,
+    bluetoothAudioOutputActive: Boolean = false
 ): Boolean {
     return audioOffloadAvailableForSession &&
         audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT &&
-        !audioEffectsEnabled
+        !audioEffectsEnabled &&
+        !bluetoothAudioOutputActive
+}
+
+internal fun isBluetoothAudioDeviceType(deviceType: Int): Boolean {
+    return deviceType == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+        deviceType == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (
+            deviceType == android.media.AudioDeviceInfo.TYPE_BLE_HEADSET ||
+                deviceType == android.media.AudioDeviceInfo.TYPE_BLE_SPEAKER
+            )) ||
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            deviceType == android.media.AudioDeviceInfo.TYPE_BLE_BROADCAST)
 }
 
 internal fun shouldTriggerAudioOffloadStallFallback(
@@ -271,13 +288,18 @@ class DualPlayerEngine @Inject constructor(
     private val offloadHealthPrefs by lazy {
         context.getSharedPreferences(OFFLOAD_HEALTH_PREFS, Context.MODE_PRIVATE)
     }
-    private var audioOffloadEnabled =
-        !shouldDisableAudioOffloadByDefault() && !isAudioOffloadKnownBrokenOnThisBuild()
+    @Volatile
+    private var audioOffloadEnabled = !shouldDisableAudioOffloadByDefault()
+    @Volatile
+    private var bluetoothAudioOutputActive = false
+    private var bluetoothOffloadDeviceCallback: android.media.AudioDeviceCallback? = null
+    private var bluetoothRouteCheckJob: Job? = null
     private val audioOffloadEnabledForCurrentMode: Boolean
         get() = shouldEnableAudioOffloadForMode(
             audioOffloadEnabled,
             audioOutputMode,
-            equalizerManager.settings.value.anyEnabled
+            equalizerManager.settings.value.anyEnabled,
+            bluetoothAudioOutputActive
         )
     private var audioEffectsOffloadJob: Job? = null
     private val transitionRunTracker = TransitionRunTracker()
@@ -728,6 +750,14 @@ class DualPlayerEngine @Inject constructor(
 
         audioEffectsOffloadJob?.cancel()
         audioEffectsOffloadJob = scope.launch {
+            // Load persisted offload-broken marker off the main thread so construction never stalls.
+            val knownBroken = withContext(Dispatchers.IO) { isAudioOffloadKnownBrokenOnThisBuild() }
+            if (knownBroken && audioOffloadEnabled) {
+                audioOffloadEnabled = false
+                cancelAudioOffloadFallback()
+                applyAudioOffloadPreferences(playerA)
+                playerB?.let(::applyAudioOffloadPreferences)
+            }
             // Switching an effect on moves the live players off offload (a short renderer reset).
             equalizerManager.settings
                 .map { it.anyEnabled }
@@ -738,6 +768,7 @@ class DualPlayerEngine @Inject constructor(
                     playerB?.let(::applyAudioOffloadPreferences)
                 }
         }
+        registerBluetoothOffloadMonitor()
 
         _activeAudioSessionId.value = playerA.audioSessionId
         isReleased = false
@@ -1283,6 +1314,59 @@ class DualPlayerEngine @Inject constructor(
         preferredAudioDevice = device
         if (::playerA.isInitialized) playerA.setPreferredAudioDevice(device)
         playerB?.setPreferredAudioDevice(device)
+        refreshBluetoothAudioOutputState()
+    }
+
+    private fun registerBluetoothOffloadMonitor() {
+        unregisterBluetoothOffloadMonitor()
+        val callback = object : android.media.AudioDeviceCallback() {
+            override fun onAudioDevicesAdded(addedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                refreshBluetoothAudioOutputState()
+            }
+
+            override fun onAudioDevicesRemoved(removedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                refreshBluetoothAudioOutputState()
+            }
+        }
+        bluetoothOffloadDeviceCallback = callback
+        runCatching { audioManager.registerAudioDeviceCallback(callback, null) }
+        refreshBluetoothAudioOutputState()
+    }
+
+    private fun unregisterBluetoothOffloadMonitor() {
+        bluetoothRouteCheckJob?.cancel()
+        bluetoothRouteCheckJob = null
+        bluetoothOffloadDeviceCallback?.let { callback ->
+            runCatching { audioManager.unregisterAudioDeviceCallback(callback) }
+        }
+        bluetoothOffloadDeviceCallback = null
+    }
+
+    private fun refreshBluetoothAudioOutputState() {
+        val explicitPreferred = preferredAudioDevice
+        bluetoothRouteCheckJob?.cancel()
+        bluetoothRouteCheckJob = scope.launch {
+            val isBluetoothActive = withContext(Dispatchers.IO) {
+                if (explicitPreferred != null) {
+                    isBluetoothAudioDeviceType(explicitPreferred.type)
+                } else {
+                    runCatching {
+                        audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                            .any { isBluetoothAudioDeviceType(it.type) }
+                    }.getOrDefault(false)
+                }
+            }
+            if (bluetoothAudioOutputActive != isBluetoothActive) {
+                bluetoothAudioOutputActive = isBluetoothActive
+                Timber.tag("DualPlayerEngine").d(
+                    "Bluetooth output active=%s; updating offload preferences",
+                    isBluetoothActive
+                )
+                if (!audioOffloadEnabledForCurrentMode) cancelAudioOffloadFallback()
+                if (::playerA.isInitialized) applyAudioOffloadPreferences(playerA)
+                playerB?.let(::applyAudioOffloadPreferences)
+            }
+        }
     }
 
     fun setPauseAtEndOfMediaItems(shouldPause: Boolean) {
@@ -1802,6 +1886,7 @@ class DualPlayerEngine @Inject constructor(
 
     fun release() {
         invalidateActiveTransition()
+        unregisterBluetoothOffloadMonitor()
         preResolutionJob?.cancel()
         cancelAudioOffloadFallback()
         scope.coroutineContext[Job]?.cancel()

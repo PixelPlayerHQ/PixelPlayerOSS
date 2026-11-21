@@ -282,4 +282,22 @@ class AudioOffloadPolicyTest {
         assertThat(isAudioOffloadMarkedBroken(null, "any/build")).isFalse()
         assertThat(isAudioOffloadMarkedBroken("", "any/build")).isFalse()
     }
+
+    @Test
+    fun outputModePolicy_disablesOffloadWhileBluetoothOutputIsActive() {
+        assertThat(
+            shouldEnableAudioOffloadForMode(
+                audioOffloadAvailableForSession = true,
+                audioOutputMode = AudioOutputMode.SYSTEM_DEFAULT,
+                audioEffectsEnabled = false,
+                bluetoothAudioOutputActive = true
+            )
+        ).isFalse()
+        assertThat(
+            isBluetoothAudioDeviceType(android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP)
+        ).isTrue()
+        assertThat(
+            isBluetoothAudioDeviceType(android.media.AudioDeviceInfo.TYPE_BUILTIN_SPEAKER)
+        ).isFalse()
+    }
 }

@@ -356,6 +356,7 @@ class MusicService : MediaSessionService() {
         val unwrappedOld = oldPlayer.unwrapSessionPlayer()
         if (unwrappedOld !== player) {
             oldPlayer.removeListener(playerListener)
+            unwrappedOld.removeListener(playerListener)
             val wrappedPlayer = wrapSessionPlayer(player)
             session.player = wrappedPlayer
             wrappedPlayer.addListener(playerListener)
@@ -438,8 +439,6 @@ class MusicService : MediaSessionService() {
         engine.initialize()
         replayGainProcessor.captureUserVolume(engine.masterPlayer.volume)
         syncLocalListeningStatsFromPlayer(engine.masterPlayer)
-
-        engine.masterPlayer.addListener(playerListener)
 
         engine.setOnPlayerAboutToBeReleasedListener { oldPlayer ->
             oldPlayer.removeListener(playerListener)
@@ -557,14 +556,29 @@ class MusicService : MediaSessionService() {
                     ).map { SessionCommand(it, Bundle.EMPTY) }
                     customCommands.forEach { sessionCommandsBuilder.add(it) }
                 }
-                grantArtworkUriPermissions(
-                    controller.packageName,
-                    listOfNotNull(session.player.currentMediaItem)
-                )
+                val currentItem = session.player.currentMediaItem
+                if (currentItem != null && controller.packageName != packageName) {
+                    val targetPkg = controller.packageName
+                    serviceScope.launch(Dispatchers.IO) {
+                        grantArtworkUriPermissions(targetPkg, listOf(currentItem))
+                    }
+                }
+
+                // Only expose the full timeline to our own in-app MediaController. External/legacy
+                // controllers (including Bluetooth AVRCP via MediaSessionLegacyStub) otherwise
+                // trigger unbounded MediaSessionCompat.setQueue ParceledListSlice IPC storms on
+                // every crossfade swap and large-queue attachment.
+                val availablePlayerCommands = if (controller.packageName == packageName) {
+                    defaultResult.availablePlayerCommands
+                } else {
+                    defaultResult.availablePlayerCommands.buildUpon()
+                        .remove(Player.COMMAND_GET_TIMELINE)
+                        .build()
+                }
 
                 return MediaSession.ConnectionResult.accept(
                     sessionCommandsBuilder.build(),
-                    defaultResult.availablePlayerCommands
+                    availablePlayerCommands
                 )
             }
 
@@ -718,7 +732,10 @@ class MusicService : MediaSessionService() {
             }
         }
 
-        mediaSession = MediaSession.Builder(this, wrapSessionPlayer(engine.masterPlayer))
+        val initialSessionPlayer = wrapSessionPlayer(engine.masterPlayer).also {
+            it.addListener(playerListener)
+        }
+        mediaSession = MediaSession.Builder(this, initialSessionPlayer)
             .setCallback(callback)
             .setSessionActivity(getOpenAppPendingIntent())
             .setBitmapLoader(CoilBitmapLoader(this, serviceScope))
@@ -1213,7 +1230,7 @@ class MusicService : MediaSessionService() {
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             requestWidgetFullUpdate(force = true)
-            mediaSession?.let { refreshMediaSessionUiWithFollowUp(it) }
+            mediaSession?.let { refreshMediaSessionUi(it) }
             val activePlayer = mediaSession?.player ?: engine.masterPlayer
             replayGainProcessor.onMediaMetadataChanged(activePlayer.currentMediaItem)
         }
@@ -2433,12 +2450,16 @@ class MusicService : MediaSessionService() {
      */
     private fun grantArtworkUriPermissionsToConnectedControllers(mediaItem: MediaItem) {
         val session = mediaSession ?: return
-        session.connectedControllers
+        val externalPackages = session.connectedControllers
             .asSequence()
             .map { it.packageName }
             .distinct()
             .filter { it.isNotBlank() && it != packageName }
-            .forEach { grantArtworkUriPermissions(it, listOf(mediaItem)) }
+            .toList()
+        if (externalPackages.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            externalPackages.forEach { grantArtworkUriPermissions(it, listOf(mediaItem)) }
+        }
     }
 
     private fun grantArtworkUriPermissions(

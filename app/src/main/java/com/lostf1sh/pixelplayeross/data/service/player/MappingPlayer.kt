@@ -25,16 +25,21 @@ class MappingPlayer(
 
     private fun mapMediaItem(mediaItem: MediaItem?, publishesToSession: Boolean = false): MediaItem? {
         if (mediaItem == null) return null
-        val artworkUri = mediaItem.mediaMetadata.artworkUri ?: return mediaItem
+        val metadata = mediaItem.mediaMetadata
+        val artworkUri = metadata.artworkUri ?: return mediaItem
         val exposedArtworkUri = MediaItemBuilder.externalControllerArtworkUri(
             context = context,
             rawArtworkUri = artworkUri.toString()
         ) ?: return mediaItem
         if (publishesToSession) publish(exposedArtworkUri)
-        if (exposedArtworkUri == artworkUri) return mediaItem
+        val hasRawArtworkBytes = metadata.artworkData != null
+        if (exposedArtworkUri == artworkUri && !hasRawArtworkBytes) return mediaItem
 
-        val mappedMetadata = mediaItem.mediaMetadata.buildUpon()
+        // Clear any embedded artworkData bytes once a shareable artworkUri is published so
+        // oversized raw ID3/MP4/Vorbis pictures are never pushed over Binder/Bluetooth AVRCP.
+        val mappedMetadata = metadata.buildUpon()
             .setArtworkUri(exposedArtworkUri)
+            .setArtworkData(null, null)
             .build()
         return mediaItem.buildUpon()
             .setMediaMetadata(mappedMetadata)
@@ -62,10 +67,12 @@ class MappingPlayer(
             rawArtworkUri = artworkUri.toString()
         ) ?: return metadata
         publish(exposedArtworkUri)
-        if (exposedArtworkUri == artworkUri) return metadata
+        val hasRawArtworkBytes = metadata.artworkData != null
+        if (exposedArtworkUri == artworkUri && !hasRawArtworkBytes) return metadata
 
         return metadata.buildUpon()
             .setArtworkUri(exposedArtworkUri)
+            .setArtworkData(null, null)
             .build()
     }
 

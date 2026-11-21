@@ -95,4 +95,5 @@
     <string name="presentation_batch_d_reset_to_default">Obnovit výchozí nastavení</string>
     <string name="presentation_batch_d_cd_shuffle_play_artist">Přehrát skladby interpreta náhodně</string>
     <string name="presentation_batch_d_cd_artist">Interpret</string>
+    <string name="presentation_batch_d_cd_open_album_title">Otevřít album %1$s</string>
 </resources>

@@ -97,4 +97,5 @@
     <string name="presentation_batch_d_view_list">Liste</string>
     <string name="presentation_batch_d_view_section_view">Affichage</string>
     <string name="presentation_batch_d_view_section_layout">Disposition</string>
+    <string name="presentation_batch_d_cd_open_album_title">Ouvrir l\'album %1$s</string>
 </resources>

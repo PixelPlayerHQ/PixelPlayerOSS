@@ -97,4 +97,5 @@
     <string name="presentation_batch_d_view_list">Список</string>
     <string name="presentation_batch_d_view_section_view">Вид</string>
     <string name="presentation_batch_d_view_section_layout">Макет</string>
+    <string name="presentation_batch_d_cd_open_album_title">Открыть альбом %1$s</string>
 </resources>

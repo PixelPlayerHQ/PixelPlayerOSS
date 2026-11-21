@@ -97,4 +97,5 @@
     <string name="presentation_batch_d_view_list">قائمة</string>
     <string name="presentation_batch_d_view_section_view">عرض</string>
     <string name="presentation_batch_d_view_section_layout">التخطيط</string>
+    <string name="presentation_batch_d_cd_open_album_title">فتح ألبوم %1$s</string>
 </resources>

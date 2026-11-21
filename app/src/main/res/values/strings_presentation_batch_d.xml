@@ -96,6 +96,7 @@
     <string name="presentation_batch_d_transition_fade_in">Fade In</string>
 
     <string name="presentation_batch_d_cd_play_title">Play %1$s</string>
+    <string name="presentation_batch_d_cd_open_album_title">Open album %1$s</string>
     <string name="presentation_batch_d_cd_collapse_title">Collapse %1$s</string>
     <string name="presentation_batch_d_cd_expand_title">Expand %1$s</string>
     <string name="presentation_batch_d_edit_artist_image_cd">Edit artist image</string>

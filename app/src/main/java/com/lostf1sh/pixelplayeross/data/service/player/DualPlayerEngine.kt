@@ -38,6 +38,7 @@ import androidx.media3.extractor.flac.FlacExtractor
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerAudioSink
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
+import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
 import com.lostf1sh.pixelplayeross.utils.MediaItemBuilder
@@ -270,6 +271,7 @@ class DualPlayerEngine @Inject constructor(
         private const val OFFLOAD_HEALTH_PREFS = "audio_offload_health"
         private const val KEY_OFFLOAD_STALLED_BUILD = "offload_stalled_build_fingerprint"
         private const val POST_TRANSITION_OFFLOAD_GUARD_MS = 2_000L
+        private const val MIX_VOLUME_LOG_INTERVAL_MS = 500L
         private const val MAX_AUXILIARY_TIMELINE_ITEMS = QueueWindowPolicy.MAX_AUXILIARY_TIMELINE_ITEMS
         private val LOCAL_MEDIA_SCHEMES = setOf("content", "file", "android.resource")
         private val REMOTE_MEDIA_SCHEMES = setOf("http", "https", "navidrome", "jellyfin")
@@ -1586,6 +1588,10 @@ class DualPlayerEngine @Inject constructor(
         }
     }
 
+    /** Duration of the song prepared for the next transition, or null while it isn't known yet. */
+    fun preparedNextDurationMs(): Long? =
+        playerB?.takeIf { it.mediaItemCount > 0 }?.duration?.takeIf { it != C.TIME_UNSET && it > 0 }
+
     fun cancelNext() {
         val shouldPublishMasterPlayer = auxiliaryPlayerPresented
         invalidateActiveTransition()
@@ -1616,7 +1622,12 @@ class DualPlayerEngine @Inject constructor(
         volumeBeforeTransition = null
     }
 
-    fun performTransition(settings: TransitionSettings) {
+    /**
+     * Runs the overlap. With [mix], the window length and both volume lines come from the mix's
+     * keyframes instead of [settings]' duration and curves (the caller passes [settings] with
+     * `durationMs = mix.windowMs`).
+     */
+    fun performTransition(settings: TransitionSettings, mix: MixTransition? = null) {
         transitionJob?.cancel()
         if (volumeBeforeTransition == null) volumeBeforeTransition = playerA.volume
         val transitionRunId = transitionRunTracker.start()
@@ -1624,7 +1635,7 @@ class DualPlayerEngine @Inject constructor(
         auxiliaryPlayerPresented = false
         transitionJob = scope.launch {
             try {
-                performOverlapTransition(settings)
+                performOverlapTransition(settings, mix)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1646,7 +1657,7 @@ class DualPlayerEngine @Inject constructor(
         }
     }
 
-    private suspend fun performOverlapTransition(settings: TransitionSettings) {
+    private suspend fun performOverlapTransition(settings: TransitionSettings, mix: MixTransition? = null) {
         val auxiliaryPlayer = playerB
         if (auxiliaryPlayer == null || auxiliaryPlayer.mediaItemCount == 0) {
             restoreVolumeBeforeTransition()
@@ -1681,15 +1692,34 @@ class DualPlayerEngine @Inject constructor(
         val duration = settings.durationMs.toLong().coerceAtLeast(500L)
         val stepMs = 32L
         val startedAtMs = SystemClock.elapsedRealtime()
+        var lastMixVolumeLogMs = -MIX_VOLUME_LOG_INTERVAL_MS
 
         while (true) {
             val elapsed = (SystemClock.elapsedRealtime() - startedAtMs).coerceAtMost(duration)
             val progress = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
-            val volIn = envelope(progress, settings.curveIn)
-            val volOut = 1f - envelope(progress, settings.curveOut)
+            val volIn = if (mix != null) {
+                MixEnvelope.volumeAt(mix.inVolume, progress)
+            } else {
+                envelope(progress, settings.curveIn)
+            }
+            val volOut = if (mix != null) {
+                MixEnvelope.volumeAt(mix.outVolume, progress)
+            } else {
+                1f - envelope(progress, settings.curveOut)
+            }
             val incomingTarget = incomingTrackReplayGainVolume ?: 1f
             incomingPlayer.volume = (volIn * incomingTarget).coerceIn(0f, 1f)
             outgoingPlayer.volume = (volOut * outgoingStartVolume).coerceIn(0f, 1f)
+
+            // Mix transitions log the volumes the players really report, a few times a second,
+            // so a transition can be checked against the saved curves without listening.
+            if (mix != null && (elapsed == duration || elapsed - lastMixVolumeLogMs >= MIX_VOLUME_LOG_INTERVAL_MS)) {
+                lastMixVolumeLogMs = elapsed
+                Timber.tag("TransitionDebug").d(
+                    "Mix volumes t=%dms progress=%.2f out=%.3f (player %.3f) in=%.3f (player %.3f)",
+                    elapsed, progress, volOut, outgoingPlayer.volume, volIn, incomingPlayer.volume
+                )
+            }
 
             if (elapsed >= duration) break
             delay(stepMs)

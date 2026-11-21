@@ -130,6 +130,7 @@ constructor(
         val FAVORITE_SONG_IDS = stringSetPreferencesKey("favorite_song_ids")
         val USER_PLAYLISTS = stringPreferencesKey("user_playlists_json_v1")
         val PLAYLIST_SONG_ORDER_MODES = stringPreferencesKey("playlist_song_order_modes")
+        val MIX_ENABLED_PLAYLIST_IDS = stringSetPreferencesKey("mix_enabled_playlist_ids")
 
         val SONGS_SORT_OPTION = stringPreferencesKey("songs_sort_option")
         val SONGS_SECONDARY_SORT_OPTION = stringPreferencesKey("songs_secondary_sort_option")
@@ -1114,6 +1115,35 @@ constructor(
                             .getOrDefault(emptyMap())
                 }
             }
+
+    /** Ids of the playlists the user turned into a DJ-style mix. */
+    val mixEnabledPlaylistIdsFlow: Flow<Set<String>> =
+            dataStore.data.map { preferences ->
+                preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] ?: emptySet()
+            }
+
+    /** Replaces the whole set (backup restore); empty clears it. */
+    suspend fun setMixEnabledPlaylistIds(ids: Set<String>) {
+        dataStore.edit { preferences ->
+            if (ids.isEmpty()) {
+                preferences.remove(PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS)
+            } else {
+                preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] = ids
+            }
+        }
+    }
+
+    suspend fun setPlaylistMixEnabled(playlistId: String, enabled: Boolean) {
+        dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] ?: emptySet()
+            val updated = if (enabled) current + playlistId else current - playlistId
+            if (updated.isEmpty()) {
+                preferences.remove(PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS)
+            } else {
+                preferences[PreferencesKeys.MIX_ENABLED_PLAYLIST_IDS] = updated
+            }
+        }
+    }
 
     val legacyUserPlaylistsFlow: Flow<List<Playlist>> =
             dataStore.data.map { preferences ->

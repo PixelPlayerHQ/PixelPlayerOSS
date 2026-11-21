@@ -134,7 +134,8 @@ class AppDataBackupManager @Inject constructor(
     private val playlistPreferenceKeys = setOf(
         "user_playlists_json_v1",
         "playlist_song_order_modes",
-        "playlists_sort_option"
+        "playlists_sort_option",
+        "mix_enabled_playlist_ids"
     )
     private val pxplMagic = byteArrayOf(
         'P'.code.toByte(),

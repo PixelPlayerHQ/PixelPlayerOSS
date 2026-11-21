@@ -31,6 +31,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
@@ -45,6 +46,11 @@ class PlaylistsModuleHandlerTest {
     private val musicDao = mockk<MusicDao>(relaxed = true)
     private val playlists = mockk<PlaylistPreferencesRepository>(relaxed = true)
     private val preferences = mockk<UserPreferencesRepository>(relaxed = true)
+
+    @BeforeEach
+    fun noMixPlaylistsByDefault() {
+        every { playlists.mixEnabledPlaylistIdsFlow } returns flowOf(emptySet())
+    }
 
     private fun summary(id: Long, title: String) = SongSummary(id, title, "Artist", "Album", 200_000)
 
@@ -123,6 +129,8 @@ class PlaylistsModuleHandlerTest {
         coEvery { playlists.getPlaylistsOnce() } returns listOf(local, smart)
         every { playlists.playlistSongOrderModesFlow } returns flowOf(mapOf("road" to "custom"))
         every { playlists.playlistsSortOptionFlow } returns flowOf("name_az")
+        // "road" is a mix; "elsewhere" is a mix whose playlist isn't part of this backup.
+        every { playlists.mixEnabledPlaylistIdsFlow } returns flowOf(setOf("road", "elsewhere"))
         coEvery { musicDao.getAllLocalSongSummaries() } returns listOf(summary(1, "One"), summary(2, "Two"))
         val payload = handler.export()
 
@@ -137,8 +145,15 @@ class PlaylistsModuleHandlerTest {
                 )
             )
             playlists.setPlaylistSongOrderModes(mapOf("road" to "custom"))
+            // Mix status travels with the playlists that are backed up, and only those.
+            playlists.setMixEnabledPlaylistIds(setOf("road"))
         }
         assertFalse(pendingFile.exists())
+    }
+
+    @Test
+    fun `mix status is kept out of global settings`() {
+        assertTrue(PlaylistsModuleHandler.MIX_ENABLED_PLAYLISTS_KEY in GlobalSettingsModuleHandler.EXCLUDED_KEYS)
     }
 
     @Test

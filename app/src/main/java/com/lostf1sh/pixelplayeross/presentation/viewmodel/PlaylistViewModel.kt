@@ -17,7 +17,10 @@ import com.lostf1sh.pixelplayeross.data.playlist.M3uManager
 import com.lostf1sh.pixelplayeross.data.playlist.SmartPlaylistBuilder
 import com.lostf1sh.pixelplayeross.data.preferences.PlaylistPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.MusicRepository
+import com.lostf1sh.pixelplayeross.data.repository.TransitionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -73,8 +76,26 @@ class PlaylistViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
     private val dailyMixManager: DailyMixManager,
     private val m3uManager: M3uManager,
+    private val transitionRepository: TransitionRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    /** Whether [playlistId] is a DJ-style mix. */
+    fun isMixEnabled(playlistId: String): Flow<Boolean> = transitionRepository.isMixEnabled(playlistId)
+
+    /** (from, to) song-id pairs of [playlistId] that have a hand-made mix transition. */
+    fun customMixPairs(playlistId: String): Flow<Set<Pair<String, String>>> =
+        transitionRepository.getAllRulesForPlaylist(playlistId).map { rules ->
+            rules.mapNotNull { rule ->
+                val from = rule.fromTrackId
+                val to = rule.toTrackId
+                if (rule.mix != null && from != null && to != null) from to to else null
+            }.toSet()
+        }
+
+    fun setMixEnabled(playlistId: String, enabled: Boolean) {
+        viewModelScope.launch { transitionRepository.setMixEnabled(playlistId, enabled) }
+    }
 
     private val _uiState = MutableStateFlow(PlaylistUiState())
     val uiState: StateFlow<PlaylistUiState> = _uiState.asStateFlow()

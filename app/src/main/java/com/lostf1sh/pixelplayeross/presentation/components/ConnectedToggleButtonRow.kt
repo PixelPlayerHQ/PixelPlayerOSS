@@ -1,11 +1,13 @@
 package com.lostf1sh.pixelplayeross.presentation.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +34,8 @@ fun ConnectedToggleButtonRow(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    showCheck: Boolean = true,
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
 ) {
     Row(
         modifier = modifier,
@@ -46,7 +50,8 @@ fun ConnectedToggleButtonRow(
                     .weight(1f)
                     .height(48.dp)
                     .semantics { role = Role.RadioButton },
-                icon = if (selected) {
+                contentPadding = contentPadding,
+                icon = if (selected && showCheck) {
                     { Icon(Icons.Rounded.Check, contentDescription = null, modifier = Modifier.size(18.dp)) }
                 } else {
                     null

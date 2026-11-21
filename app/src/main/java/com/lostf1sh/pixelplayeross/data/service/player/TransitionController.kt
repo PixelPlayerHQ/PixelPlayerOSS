@@ -7,8 +7,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import com.lostf1sh.pixelplayeross.data.media.TrackBpmRepository
+import com.lostf1sh.pixelplayeross.data.model.MixTransition
 import com.lostf1sh.pixelplayeross.data.model.TransitionMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionResolution
+import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.model.TransitionSource
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.repository.TransitionRepository
@@ -17,15 +19,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,12 +55,24 @@ class TransitionController @Inject constructor(
     private val transitionRepository: TransitionRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
     private val trackBpmRepository: TrackBpmRepository,
+    private val mixPlaybackState: MixPlaybackState,
+    private val transitionAnalyzer: TransitionAnalyzer,
 ) {
     private var scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     private var transitionListener: Player.Listener? = null
     private var transitionSchedulerJob: Job? = null
     private var currentObservedPlayer: Player? = null
     private var needsDurationReschedule = false
+    private var incomingMixJob: Job? = null
+
+    private companion object {
+        /** Tries to publish the incoming song's mix point while waiting for the mix to start. */
+        const val MAX_INCOMING_MIX_ATTEMPTS = 8
+        const val INCOMING_MIX_RETRY_MS = 1_000L
+
+        /** Listening to a pair's ends should take a second or two; past this the tempo-only mix is used. */
+        const val ANALYSIS_TIMEOUT_MS = 6_000L
+    }
 
     private val swapListener: (Player) -> Unit = { newPlayer ->
         Timber.tag("TransitionDebug").d("Controller detected player swap. Moving listener.")
@@ -160,15 +180,36 @@ class TransitionController @Inject constructor(
                     engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
                 }
         }
+
+        // Turning a playlist into a mix (or back) while it plays changes how the current song
+        // ends: rebuild its pending transition now instead of at the next song. A transition
+        // already running finishes as it is; the swap reschedules for the incoming song.
+        scope.launch {
+            transitionRepository.mixEnabledPlaylistIds()
+                .distinctUntilChanged()
+                .drop(1)
+                .collect {
+                    if (engine.isTransitionRunning()) return@collect
+                    mixPlaybackState.clear()
+                    engine.masterPlayer.currentMediaItem?.let { scheduleTransitionFor(it) }
+                }
+        }
     }
 
     private fun scheduleTransitionFor(currentMediaItem: MediaItem) {
         transitionSchedulerJob?.cancel()
+        incomingMixJob?.cancel()
+        // Mixes announced for other songs are done with. The entry for this song stays: it was
+        // published while the previous mix ran, so this song's seek bar is already the right
+        // length (the schedule below replaces it with the final values).
+        mixPlaybackState.retainOnly(currentMediaItem.mediaId)
         needsDurationReschedule = false
         engine.setPauseAtEndOfMediaItems(shouldPause = false)
 
         if (engine.sleepTimerHold.value.suppressCrossfade) {
             Timber.tag("TransitionDebug").d("Sleep timer holds playback at track end. No transition.")
+            // The song now plays to its real end: no mix point for its seek bar to stop at.
+            mixPlaybackState.clear()
             if (!engine.isTransitionRunning()) engine.cancelNext()
             return
         }
@@ -192,6 +233,8 @@ class TransitionController @Inject constructor(
                     player.mediaItemCount,
                     repeatMode,
                 )
+                // Nothing follows (queue emptied, last song): the song plays to its real end.
+                mixPlaybackState.clear()
                 engine.cancelNext()
                 return@launch
             }
@@ -214,6 +257,19 @@ class TransitionController @Inject constructor(
                 "Resolving settings for playlistId=%s, %s -> %s (pairFromPlaylist=%s)",
                 playlistId, fromTrackId, toTrackId, pairStillFromPlaylist
             )
+
+            // A playlist the user turned into a mix plays its own DJ-style transitions. This is
+            // deliberate opt-in, so it runs even when the global crossfade toggle is off.
+            if (playlistId != null && transitionRepository.isMixEnabled(playlistId).first()) {
+                scheduleMixTransition(
+                    currentMediaItem = currentMediaItem,
+                    transitionTarget = transitionTarget,
+                    playlistId = playlistId,
+                    pairStillFromPlaylist = pairStillFromPlaylist,
+                )
+                return@launch
+            }
+            mixPlaybackState.clear()
 
             val isCrossfadeEnabledFlow = userPreferencesRepository.isCrossfadeEnabledFlow
 
@@ -276,7 +332,7 @@ class TransitionController @Inject constructor(
                 }
 
                 // Smart crossfade: tag-embedded tempo for both sides of the transition
-                // (cached in-memory after the first read — never decodes audio).
+                // (cached in-memory after the first read â€” never decodes audio).
                 // A user-authored per-pair rule (PLAYLIST_SPECIFIC) is explicit intent and
                 // is never overridden by the automatic tempo logic.
                 val smartApplies = snapshot.isSmartEnabled &&
@@ -391,11 +447,209 @@ class TransitionController @Inject constructor(
     }
 
     /**
+     * Schedules the transition for a mix playlist: the pair's authored [MixTransition] when the
+     * queue still plays the pair as the playlist has it, otherwise an automatic one built from
+     * the songs' tempos. Re-runs when the stored mix changes.
+     */
+    private suspend fun scheduleMixTransition(
+        currentMediaItem: MediaItem,
+        transitionTarget: DualPlayerEngine.TransitionTarget,
+        playlistId: String,
+        pairStillFromPlaylist: Boolean,
+    ) {
+        val player = engine.masterPlayer
+        val nextMediaItem = transitionTarget.mediaItem
+
+        val storedFlow = if (pairStillFromPlaylist) {
+            transitionRepository.getMixTransition(playlistId, currentMediaItem.mediaId, nextMediaItem.mediaId)
+        } else {
+            flowOf(null)
+        }
+
+        storedFlow.distinctUntilChanged().collectLatest { stored ->
+            needsDurationReschedule = false
+
+            var duration = player.duration
+            var attempts = 0
+            while ((duration == C.TIME_UNSET || duration <= 0) && currentCoroutineContext().isActive) {
+                if (++attempts > 10) {
+                    Timber.tag("TransitionDebug").w("Mix: timed out waiting for duration.")
+                    mixPlaybackState.remove(currentMediaItem.mediaId)
+                    engine.cancelNext()
+                    needsDurationReschedule = true
+                    return@collectLatest
+                }
+                delay(500)
+                duration = player.duration
+            }
+            if (!currentCoroutineContext().isActive) return@collectLatest
+
+            // Fitted inside both songs: the incoming one must last the whole window from where it
+            // starts, or its player would run on into the song after it while the lines still play.
+            val mix = MixPlanner.fit(
+                stored ?: autoMixFor(currentMediaItem, nextMediaItem, duration),
+                duration,
+                durationHintOf(nextMediaItem),
+            )
+            if (mix == null) {
+                Timber.tag("TransitionDebug").w("Mix: track too short (duration=%d).", duration)
+                mixPlaybackState.remove(currentMediaItem.mediaId)
+                engine.cancelNext()
+                engine.setPauseAtEndOfMediaItems(shouldPause = false)
+                return@collectLatest
+            }
+
+            // The incoming song is positioned where the (fitted) mix starts it before it is prepared.
+            engine.prepareNext(transitionTarget, startPositionMs = mix.inStartMs)
+
+            Timber.tag("TransitionDebug").d(
+                "Mix scheduled: out=%d ms, in=%d ms, window=%d ms, preset=%s, authored=%s",
+                mix.outPointMs, mix.inStartMs, mix.windowMs, mix.preset, stored != null
+            )
+
+            mixPlaybackState.set(
+                ActiveMix(
+                    songId = currentMediaItem.mediaId,
+                    outPointMs = mix.outPointMs,
+                    windowMs = mix.windowMs,
+                    outVolume = mix.outVolume,
+                    inVolume = mix.inVolume,
+                )
+            )
+            engine.setPauseAtEndOfMediaItems(shouldPause = true)
+            val settings = TransitionSettings(
+                mode = TransitionMode.OVERLAP,
+                durationMs = mix.windowMs.toInt(),
+            )
+
+            // The incoming song's own mix point, for its seek bar, is worked out on its own job:
+            // it may need to listen to a song that isn't analyzed yet, and that must never hold
+            // up (or make the current mix miss) its saved point.
+            startIncomingMixLookahead(nextMediaItem, playlistId)
+
+            while (player.currentPosition < mix.outPointMs && currentCoroutineContext().isActive) {
+                val remaining = mix.outPointMs - player.currentPosition
+                val sleep = when {
+                    remaining > 5000 -> 1000L
+                    remaining > 1000 -> 250L
+                    else -> 50L
+                }.coerceAtMost(remaining).coerceAtLeast(1L)
+                delay(sleep)
+            }
+
+            if (!currentCoroutineContext().isActive) {
+                engine.setPauseAtEndOfMediaItems(shouldPause = false)
+                return@collectLatest
+            }
+
+            // Already past the planned start (seek, resume): shrink the window to what is left
+            // of the outgoing song rather than skipping the mix.
+            val remaining = (duration - player.currentPosition).coerceAtLeast(0L)
+            if (remaining < MixPlanner.MIN_WINDOW_MS) {
+                Timber.tag("TransitionDebug").w("Mix: too close to end (%d ms left). Skipping.", remaining)
+                engine.cancelNext()
+                engine.setPauseAtEndOfMediaItems(shouldPause = false)
+                return@collectLatest
+            }
+            val window = mix.windowMs.coerceAtMost(remaining)
+            engine.performTransition(settings.copy(durationMs = window.toInt()), mix)
+        }
+    }
+
+    /**
+     * The transition for a pair nobody has edited: chosen from how the two songs start and end
+     * (and their tempo tags). Falls back to the tempo-only automatic mix when a song can't be
+     * analyzed (cloud songs, undecodable files) or the analysis takes too long.
+     */
+    private suspend fun autoMixFor(outgoing: MediaItem, incoming: MediaItem, outgoingDurationMs: Long): MixTransition {
+        val outgoingBpm = trackBpmRepository.bpmFor(outgoing)
+        val incomingBpm = trackBpmRepository.bpmFor(incoming)
+        val profiles = withTimeoutOrNull(ANALYSIS_TIMEOUT_MS) {
+            coroutineScope {
+                val outgoingProfile = async { transitionAnalyzer.profileFor(outgoing) }
+                val incomingProfile = async { transitionAnalyzer.profileFor(incoming) }
+                outgoingProfile.await() to incomingProfile.await()
+            }
+        }
+        val outgoingProfile = profiles?.first
+        val incomingProfile = profiles?.second
+        if (outgoingProfile == null || incomingProfile == null) {
+            Timber.tag("TransitionDebug").d("Auto mix: no audio profile, using tempo only")
+            return MixPlanner.auto(outgoingDurationMs, outgoingBpm, incomingBpm)
+        }
+        val plan = MixPlanner.smart(outgoingProfile, incomingProfile, outgoingBpm, incomingBpm)
+        Timber.tag("TransitionDebug").d(
+            "Auto mix: reason=%s outro=%dms intro=%dms trail=%dms lead=%dms",
+            plan.reason, outgoingProfile.outroMs, incomingProfile.introMs,
+            outgoingProfile.trailSilenceMs, incomingProfile.leadSilenceMs,
+        )
+        return plan.mix
+    }
+
+    /**
+     * Publishes [incoming]'s own mix point in the background, retrying while its duration isn't
+     * known yet. Separate from the current song's countdown so it can never delay it; replaced
+     * (cancelled) whenever a schedule is rebuilt.
+     */
+    private fun startIncomingMixLookahead(incoming: MediaItem, playlistId: String) {
+        incomingMixJob?.cancel()
+        incomingMixJob = scope.launch {
+            repeat(MAX_INCOMING_MIX_ATTEMPTS) {
+                if (publishIncomingSongMix(incoming, playlistId)) return@launch
+                delay(INCOMING_MIX_RETRY_MS)
+            }
+        }
+    }
+
+    /** The song's length as the library knows it, or null when the item doesn't carry one. */
+    private fun durationHintOf(item: MediaItem): Long? =
+        item.mediaMetadata.extras?.getLong(MediaItemBuilder.EXTERNAL_EXTRA_DURATION)?.takeIf { it > 0L }
+
+    /**
+     * Works out where [incoming] will itself mix into the song after it and publishes that, so the
+     * player's seek bar for [incoming] is right from the moment the player switches to it
+     * instead of changing length once the current mix is over. Returns false when it couldn't
+     * yet (the prepared song's duration isn't known, or there is no following song).
+     */
+    private suspend fun publishIncomingSongMix(incoming: MediaItem, playlistId: String): Boolean {
+        val incomingDuration = engine.preparedNextDurationMs() ?: return false
+        val following = engine.getNextTransitionTarget(incoming, engine.masterPlayer.repeatMode)
+            ?: return true // nothing follows: the song plays to its end, no mix point to show
+        val followingItem = following.mediaItem
+
+        val pairFromPlaylist = MediaItemBuilder.playlistIdOf(incoming) == playlistId &&
+            MediaItemBuilder.playlistIdOf(followingItem) == playlistId
+        val stored = if (pairFromPlaylist) {
+            transitionRepository.getMixTransition(playlistId, incoming.mediaId, followingItem.mediaId).first()
+        } else {
+            null
+        }
+        val mix = MixPlanner.fit(
+            stored ?: autoMixFor(incoming, followingItem, incomingDuration),
+            incomingDuration,
+            durationHintOf(followingItem),
+        ) ?: return true
+
+        mixPlaybackState.set(
+            ActiveMix(
+                songId = incoming.mediaId,
+                outPointMs = mix.outPointMs,
+                windowMs = mix.windowMs,
+                outVolume = mix.outVolume,
+                inVolume = mix.inVolume,
+            )
+        )
+        return true
+    }
+
+    /**
      * Cleans up resources and listeners.
      */
     fun release() {
         Timber.tag("TransitionDebug").d("Releasing controller.")
         transitionSchedulerJob?.cancel()
+        incomingMixJob?.cancel()
+        mixPlaybackState.clear()
         engine.removePlayerSwapListener(swapListener)
         transitionListener?.let { currentObservedPlayer?.removeListener(it) }
         transitionListener = null

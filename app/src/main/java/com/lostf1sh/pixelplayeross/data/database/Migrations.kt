@@ -199,3 +199,13 @@ val MIGRATION_5_6 = object : Migration(5, 6) {
         )
     }
 }
+
+/**
+ * Mix playlists: a pair rule can carry an authored DJ-style transition (start point, window and
+ * volume keyframes) as JSON. Existing rules keep a NULL column and behave exactly as before.
+ */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `transition_rules` ADD COLUMN `mixJson` TEXT")
+    }
+}

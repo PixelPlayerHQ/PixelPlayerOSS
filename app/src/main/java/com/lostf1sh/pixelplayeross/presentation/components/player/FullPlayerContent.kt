@@ -140,6 +140,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.LyricsSheet
 import com.lostf1sh.pixelplayeross.presentation.components.scoped.rememberSmoothProgress
 import com.lostf1sh.pixelplayeross.presentation.components.subcomps.FetchLyricsDialog
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.LyricsSearchUiState
+import com.lostf1sh.pixelplayeross.presentation.viewmodel.MixPlaybackViewModel
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerSheetState
 import com.lostf1sh.pixelplayeross.presentation.viewmodel.PlayerViewModel
 import com.lostf1sh.pixelplayeross.ui.theme.RoundedSans
@@ -1899,12 +1900,21 @@ private fun PlayerProgressBarSection(
             displayAudioMetaLabel = null
         }
     }
-    val durationForCalc = displayDurationValue.coerceAtLeast(1L)
-    
+    // In a mix playlist the part of the song used for mixing isn't part of the bar: the bar is
+    // the song up to the mix point, and the next song's cover and bar take over from there.
+    val mixPlaybackViewModel: MixPlaybackViewModel = hiltViewModel()
+    val scheduledMixes by mixPlaybackViewModel.mixes.collectAsStateWithLifecycle()
+    val mixStartMs = scheduledMixes
+        .firstOrNull { it.songId == songId }
+        ?.takeIf { it.outPointMs in 1 until displayDurationValue }
+        ?.outPointMs
+    val barDurationValue = mixStartMs ?: displayDurationValue
+    val durationForCalc = barDurationValue.coerceAtLeast(1L)
+
     val (smoothProgressState, _) = rememberSmoothProgress(
         isPlayingProvider = isPlayingProvider,
         currentPositionProvider = currentPositionProvider,
-        totalDuration = displayDurationValue,
+        totalDuration = barDurationValue,
         sampleWhilePlayingMs = if (shouldRunRealtimeUpdates && isExpanded) 180L else 500L,
         sampleWhilePausedMs = 800L,
         isVisible = shouldSampleProgress
@@ -1948,10 +1958,10 @@ private fun PlayerProgressBarSection(
         }
     }
 
-    val effectivePositionState = remember(durationForCalc, animatedProgressState, isVisible, displayDurationValue) {
+    val effectivePositionState = remember(durationForCalc, animatedProgressState, isVisible, barDurationValue) {
         derivedStateOf {
              val progress = animatedProgressState.value
-             (progress * durationForCalc).roundToLong().coerceIn(0L, displayDurationValue)
+             (progress * durationForCalc).roundToLong().coerceIn(0L, barDurationValue)
         }
     }
 
@@ -2018,7 +2028,7 @@ private fun PlayerProgressBarSection(
 
             EfficientTimeLabels(
                 positionState = effectivePositionState,
-                duration = displayDurationValue,
+                duration = barDurationValue,
                 isVisible = isVisible,
                 textColor = timeTextColor,
                 audioMetaLabel = displayAudioMetaLabel,

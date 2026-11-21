@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Playlist screen -->
+    <string name="dj_mix_playlist_turn_on">Turn into a mix</string>
+    <string name="dj_mix_playlist_turn_off">Turn off mix</string>
+    <string name="dj_mix_chip_auto">Auto mix</string>
+    <string name="dj_mix_chip_custom">Custom mix</string>
+
+    <!-- Mix editor -->
+    <string name="dj_mix_editor_title">Edit mix</string>
+    <string name="dj_mix_beta">Beta</string>
+    <string name="dj_mix_save">Save</string>
+    <string name="dj_mix_close_cd">Close</string>
+    <string name="dj_mix_more_cd">More options</string>
+    <string name="dj_mix_reset_auto">Reset to Auto</string>
+    <string name="dj_mix_load_failed">Couldn\'t load these songs.</string>
+    <string name="dj_mix_play_preview_cd">Play transition</string>
+    <string name="dj_mix_stop_preview_cd">Stop preview</string>
+    <string name="dj_mix_preview_unavailable">Preview needs both songs to be stored on this device.</string>
+    <string name="dj_mix_waveform_unavailable">Can\'t display waveform</string>
+    <string name="dj_mix_bpm">%d bpm</string>
+    <string name="dj_mix_bars_option">%d bars</string>
+    <string name="dj_mix_seconds_option">%d sec</string>
+    <string name="dj_mix_presets">Presets</string>
+    <string name="dj_mix_preset_auto">Auto</string>
+    <string name="dj_mix_preset_custom">Custom</string>
+    <string name="dj_mix_preset_fade">Fade</string>
+    <string name="dj_mix_preset_rise">Rise</string>
+    <string name="dj_mix_preset_cut">Cut</string>
+    <string name="dj_mix_volume">Volume</string>
+    <string name="dj_mix_volume_hint">Drag the lines to shape each song. Long-press to add or remove a point. Drag a lane to slide the song.</string>
+</resources>

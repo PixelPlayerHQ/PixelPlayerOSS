@@ -42,6 +42,12 @@ class PlaylistPreferencesRepository @Inject constructor(
         userPreferencesRepository.playlistSongOrderModesFlow
     val playlistsSortOptionFlow: Flow<String> = userPreferencesRepository.playlistsSortOptionFlow
 
+    /** Ids of the playlists that are DJ-style mixes; backed up with the playlists themselves. */
+    val mixEnabledPlaylistIdsFlow: Flow<Set<String>> = userPreferencesRepository.mixEnabledPlaylistIdsFlow
+
+    suspend fun setMixEnabledPlaylistIds(ids: Set<String>) =
+        userPreferencesRepository.setMixEnabledPlaylistIds(ids)
+
     suspend fun createPlaylist(
         name: String,
         songIds: List<String> = emptyList(),
@@ -86,6 +92,7 @@ class PlaylistPreferencesRepository @Inject constructor(
         localPlaylistDao.deletePlaylist(playlistId)
         transitionDao.deleteRulesForPlaylist(playlistId)
         clearPlaylistSongOrderMode(playlistId)
+        userPreferencesRepository.setPlaylistMixEnabled(playlistId, false)
     }
 
     suspend fun renamePlaylist(playlistId: String, newName: String) {

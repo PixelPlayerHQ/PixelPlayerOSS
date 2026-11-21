@@ -54,6 +54,7 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DragIndicator
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.AlertDialog
@@ -216,6 +217,8 @@ fun PlaylistDetailScreen(
     val editPlaylistLabel = stringResource(R.string.presentation_batch_b_edit_playlist)
     val deletePlaylistLabel = stringResource(R.string.presentation_batch_b_delete_playlist)
     val setDefaultTransitionLabel = stringResource(R.string.presentation_batch_b_set_default_transition)
+    val mixToggleOnLabel = stringResource(R.string.dj_mix_playlist_turn_on)
+    val mixToggleOffLabel = stringResource(R.string.dj_mix_playlist_turn_off)
     val exportPlaylistLabel = stringResource(R.string.presentation_batch_b_export_playlist)
     val downloadPlaylistLabel = stringResource(R.string.cloud_playlist_download)
     val deletePlaylistConfirmTitle = stringResource(R.string.presentation_batch_b_delete_playlist_confirm_title)
@@ -235,6 +238,11 @@ fun PlaylistDetailScreen(
     LaunchedEffect(playlistId) {
         playlistViewModel.loadPlaylistDetails(playlistId)
     }
+
+    val isMixEnabled by remember(playlistId) { playlistViewModel.isMixEnabled(playlistId) }
+        .collectAsStateWithLifecycle(initialValue = false)
+    val customMixPairs by remember(playlistId) { playlistViewModel.customMixPairs(playlistId) }
+        .collectAsStateWithLifecycle(initialValue = emptySet())
 
     var showAddSongsSheet by remember { mutableStateOf(false) }
 
@@ -844,6 +852,15 @@ fun PlaylistDetailScreen(
                                         label = "scale"
                                     )
 
+                                    // In a mix, the transition into the next song sits under each row.
+                                    val position = if (isMixEnabled) {
+                                        localReorderableEntries.indexOfFirst { it.index == entry.index }
+                                    } else {
+                                        -1
+                                    }
+                                    val nextSong = localReorderableEntries.getOrNull(position + 1)?.value
+                                        ?.takeIf { position >= 0 }
+                                    Column {
                                     SwipeToQueueBox(
                                         // Swipes would fight reordering and removal.
                                         onSwipe = swipeToQueue
@@ -921,6 +938,19 @@ fun PlaylistDetailScreen(
                                                 }
                                             }
                                         )
+                                    }
+                                    if (nextSong != null && !isSelectionMode &&
+                                        !isReorderModeEnabled && !isRemoveModeEnabled
+                                    ) {
+                                        MixTransitionChip(
+                                            isCustom = (song.id to nextSong.id) in customMixPairs,
+                                            onClick = {
+                                                navController.navigateSafely(
+                                                    Screen.MixEditor.createRoute(playlistId, song.id, nextSong.id)
+                                                )
+                                            },
+                                        )
+                                    }
                                     }
                                 }
                             }
@@ -1003,7 +1033,7 @@ fun PlaylistDetailScreen(
                     }
                 }
                 // One segmented group: 4dp apart, only the group's outer corners round.
-                val optionCount = if (cloudSongsInPlaylist.isNotEmpty()) 5 else 4
+                val optionCount = if (cloudSongsInPlaylist.isNotEmpty()) 6 else 5
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1037,11 +1067,20 @@ fun PlaylistDetailScreen(
                             navController.navigateSafely(Screen.EditTransition.createRoute(playlistId))
                         }
                     )
+                    PlaylistActionItem(
+                        icon = rememberVectorPainter(Icons.Rounded.GraphicEq),
+                        label = if (isMixEnabled) mixToggleOffLabel else mixToggleOnLabel,
+                        shape = getSegmentedItemShape(3, optionCount),
+                        onClick = {
+                            showPlaylistOptionsSheet = false
+                            playlistViewModel.setMixEnabled(playlistId, !isMixEnabled)
+                        }
+                    )
                     if (cloudSongsInPlaylist.isNotEmpty()) {
                         PlaylistActionItem(
                             icon = rememberVectorPainter(Icons.Rounded.CloudDownload),
                             label = downloadPlaylistLabel,
-                            shape = getSegmentedItemShape(3, optionCount),
+                            shape = getSegmentedItemShape(4, optionCount),
                             onClick = {
                                 showPlaylistOptionsSheet = false
                                 cloudDownloadsViewModel.downloadSelected(cloudSongsInPlaylist)
@@ -1300,6 +1339,44 @@ fun PlaylistDetailScreen(
     }
 }
 
+
+/** The "Auto mix" / "Custom mix" pill between two songs of a mix playlist; opens the editor. */
+@Composable
+private fun MixTransitionChip(isCustom: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(
+                    if (isCustom) MaterialTheme.colorScheme.tertiaryContainer
+                    else MaterialTheme.colorScheme.secondaryContainer
+                )
+                .clickable(onClick = onClick)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.GraphicEq,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = if (isCustom) MaterialTheme.colorScheme.onTertiaryContainer
+                else MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Text(
+                text = stringResource(if (isCustom) R.string.dj_mix_chip_custom else R.string.dj_mix_chip_auto),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (isCustom) MaterialTheme.colorScheme.onTertiaryContainer
+                else MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        }
+    }
+}
 
 @Composable
 private fun PlaylistActionItem(

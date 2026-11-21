@@ -65,6 +65,13 @@ sealed class Screen(val route: String) {
             if (playlistId != null) "edit_transition?playlistId=$playlistId" else "edit_transition"
     }
 
+    object MixEditor : Screen("mix_editor?playlistId={playlistId}&fromId={fromId}&toId={toId}") {
+        fun createRoute(playlistId: String, fromId: String, toId: String): String {
+            fun enc(value: String) = android.net.Uri.encode(value)
+            return "mix_editor?playlistId=${enc(playlistId)}&fromId=${enc(fromId)}&toId=${enc(toId)}"
+        }
+    }
+
     object About : Screen("about")
     object Licenses : Screen("licenses")
     object EasterEgg : Screen("easter_egg")

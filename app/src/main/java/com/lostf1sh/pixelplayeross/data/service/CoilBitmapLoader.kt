@@ -21,7 +21,9 @@ import kotlinx.coroutines.launch
 class CoilBitmapLoader(private val context: Context, private val scope: CoroutineScope) : BitmapLoader {
 
     companion object {
-        private const val MAX_NOTIFICATION_ARTWORK_SIZE_PX = 1024
+        // Keep platform MediaSession / Bluetooth AVRCP bitmaps bounded (~1 MB ARGB_8888 max)
+        // so track transitions do not push oversized bitmaps over Binder/AVRCP.
+        private const val MAX_NOTIFICATION_ARTWORK_SIZE_PX = 512
     }
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {

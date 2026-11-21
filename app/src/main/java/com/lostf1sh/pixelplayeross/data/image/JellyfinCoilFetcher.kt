@@ -6,6 +6,7 @@ import coil.ImageLoader
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.request.Options
+import coil.size.Size
 import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import kotlinx.coroutines.CancellationException
 import okhttp3.OkHttpClient
@@ -23,7 +24,8 @@ class JellyfinCoilFetcher(
     private val uri: Uri,
     private val repository: JellyfinRepository,
     private val okHttpClient: OkHttpClient,
-    private val cacheDir: File
+    private val cacheDir: File,
+    private val requestedSize: Size? = null
 ) : Fetcher {
 
     companion object {
@@ -88,8 +90,10 @@ class JellyfinCoilFetcher(
             return null
         }
 
-        val sizeParam = uri.getQueryParameter("size")?.toIntOrNull()
-            ?: RemoteArtworkCache.DEFAULT_COVER_SIZE_PX
+        val sizeParam = resolveCloudCoverSize(
+            explicitSizeParam = uri.getQueryParameter("size")?.toIntOrNull(),
+            requestedSize = requestedSize
+        )
 
         val cachedFile = File(
             cacheDir,
@@ -151,7 +155,7 @@ class JellyfinCoilFetcher(
         override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
             return if (data.scheme == "jellyfin_cover") {
                 val cache = cacheDir ?: options.context.cacheDir.also { cacheDir = it }
-                JellyfinCoilFetcher(data, repository, okHttpClient, cache)
+                JellyfinCoilFetcher(data, repository, okHttpClient, cache, options.size)
             } else {
                 null
             }

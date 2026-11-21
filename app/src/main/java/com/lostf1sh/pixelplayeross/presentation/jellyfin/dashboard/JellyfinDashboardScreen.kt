@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.CloudSync
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
@@ -64,6 +65,7 @@ fun JellyfinDashboardScreen(
     val librariesLoadFailed by viewModel.librariesLoadFailed.collectAsStateWithLifecycle()
     val selectedLibraryIds by viewModel.selectedLibraryIds.collectAsStateWithLifecycle()
     val librarySelectionNeedsSync by viewModel.librarySelectionNeedsSync.collectAsStateWithLifecycle()
+    val syncFavorites by viewModel.syncFavorites.collectAsStateWithLifecycle()
 
     val cardShape = AbsoluteSmoothCornerShape(
         cornerRadiusTR = 20.dp, cornerRadiusTL = 20.dp,
@@ -112,6 +114,8 @@ fun JellyfinDashboardScreen(
             librariesLoadFailed = librariesLoadFailed,
             selectedLibraryIds = selectedLibraryIds,
             librarySelectionNeedsSync = librarySelectionNeedsSync,
+            syncFavorites = syncFavorites,
+            onToggleSyncFavorites = { viewModel.setSyncFavorites(it) },
             onSelectLibraries = { viewModel.setSelectedLibraryIds(it) },
             onSyncAll = { viewModel.syncAllPlaylistsAndSongs() },
             onSyncPlaylist = { viewModel.syncPlaylistSongs(it) },
@@ -138,6 +142,8 @@ private fun JellyfinDashboardContent(
     librariesLoadFailed: Boolean,
     selectedLibraryIds: Set<String>,
     librarySelectionNeedsSync: Boolean,
+    syncFavorites: Boolean,
+    onToggleSyncFavorites: (Boolean) -> Unit,
     onSelectLibraries: (Set<String>) -> Unit,
     onSyncAll: () -> Unit,
     onSyncPlaylist: (String) -> Unit,
@@ -248,6 +254,8 @@ private fun JellyfinDashboardContent(
             librariesLoadFailed = librariesLoadFailed,
             selectedLibraryIds = selectedLibraryIds,
             librarySelectionNeedsSync = librarySelectionNeedsSync,
+            syncFavorites = syncFavorites,
+            onToggleSyncFavorites = onToggleSyncFavorites,
             onSelectLibraries = onSelectLibraries,
             onSyncAll = onSyncAll,
             onLogout = onLogout,
@@ -345,6 +353,8 @@ private fun JellyfinMenuCard(
     librariesLoadFailed: Boolean,
     selectedLibraryIds: Set<String>,
     librarySelectionNeedsSync: Boolean,
+    syncFavorites: Boolean,
+    onToggleSyncFavorites: (Boolean) -> Unit,
     onSelectLibraries: (Set<String>) -> Unit,
     onSyncAll: () -> Unit,
     onLogout: () -> Unit,
@@ -415,6 +425,12 @@ private fun JellyfinMenuCard(
                 enabled = !isSyncing && musicLibraries.size > 1,
                 onClick = { showLibrarySelector = true }
             )
+            Spacer(modifier = Modifier.height(10.dp))
+            JellyfinFavoritesSyncPanel(
+                checked = syncFavorites,
+                enabled = !isSyncing,
+                onCheckedChange = onToggleSyncFavorites
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -464,6 +480,65 @@ private fun JellyfinMenuCard(
                     Text(stringResource(R.string.dash_action_disconnect), fontFamily = RoundedSans)
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun JellyfinFavoritesSyncPanel(
+    checked: Boolean,
+    enabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(enabled = enabled) { onCheckedChange(!checked) },
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.secondaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Favorite,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.dash_jellyfin_sync_favorites_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontFamily = RoundedSans,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.dash_jellyfin_sync_favorites_subtitle),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = RoundedSans,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                enabled = enabled
+            )
         }
     }
 }

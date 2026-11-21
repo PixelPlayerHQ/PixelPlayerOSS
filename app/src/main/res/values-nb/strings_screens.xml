@@ -288,4 +288,10 @@
     <string name="home_empty_placeholder_subtitle">Miksen din vises her når PixelPlayerOSS finner sanger eller synkroniserer en kilde.</string>
     <string name="crash_report_share_subject">Krasjrapport for PixelPlayerOSS</string>
     <string name="about_support_title">Støtt PixelPlayerOSS</string>
+    <string name="dash_jellyfin_sync_favorites_title">Synkroniser favoritter</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Toveis synkronisering av likte sanger med Jellyfin-favoritter</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Favoritter synkronisert med Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Kunne ikke synkronisere favoritter med Jellyfin</string>
+    <string name="home_recently_added_title">Nylig lagt til</string>
+    <string name="home_recently_added_play_cd">Spill av nylig tillagte sanger</string>
 </resources>

@@ -169,6 +169,7 @@ constructor(
                 stringSetPreferencesKey("navidrome_selected_music_folder_ids")
         val JELLYFIN_SELECTED_LIBRARY_IDS =
                 stringSetPreferencesKey("jellyfin_selected_library_ids")
+        val JELLYFIN_SYNC_FAVORITES = booleanPreferencesKey("jellyfin_sync_favorites")
         val FOLDER_BACK_GESTURE_NAVIGATION = booleanPreferencesKey("folder_back_gesture_navigation")
         val USE_SMOOTH_CORNERS = booleanPreferencesKey("use_smooth_corners")
         val KEEP_PLAYING_IN_BACKGROUND = booleanPreferencesKey("keep_playing_in_background")
@@ -1884,6 +1885,12 @@ constructor(
         }
         .distinctUntilChanged()
 
+    val jellyfinSyncFavoritesFlow: Flow<Boolean> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.JELLYFIN_SYNC_FAVORITES] ?: false
+        }
+        .distinctUntilChanged()
+
     val folderBackGestureNavigationFlow: Flow<Boolean> = dataStore.data
         .map { preferences ->
             preferences[PreferencesKeys.FOLDER_BACK_GESTURE_NAVIGATION] ?: true
@@ -1950,6 +1957,18 @@ constructor(
         }
     }
 
+    suspend fun setJellyfinSyncFavorites(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.JELLYFIN_SYNC_FAVORITES] = enabled
+        }
+    }
+
+    suspend fun clearJellyfinSyncFavorites() {
+        dataStore.edit { preferences ->
+            preferences.remove(PreferencesKeys.JELLYFIN_SYNC_FAVORITES)
+        }
+    }
+
     suspend fun setFolderBackGestureNavigation(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.FOLDER_BACK_GESTURE_NAVIGATION] = enabled
@@ -1966,9 +1985,9 @@ constructor(
             preferences[PreferencesKeys.ALBUM_ART_QUALITY]
                 ?.let {
                     try { AlbumArtQuality.valueOf(it) }
-                    catch (e: Exception) { AlbumArtQuality.MEDIUM }
+                    catch (e: Exception) { AlbumArtQuality.HIGH }
                 }
-                ?: AlbumArtQuality.MEDIUM
+                ?: AlbumArtQuality.HIGH
         }
 
     suspend fun setAlbumArtQuality(quality: AlbumArtQuality) {

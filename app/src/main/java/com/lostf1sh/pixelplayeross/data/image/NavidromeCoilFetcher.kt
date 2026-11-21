@@ -5,6 +5,8 @@ import coil.ImageLoader
 import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.request.Options
+import coil.size.Dimension
+import coil.size.Size
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import kotlinx.coroutines.CancellationException
 import okhttp3.OkHttpClient
@@ -15,11 +17,34 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 internal fun String.withNavidromeCoverSize(sizePx: Int): String {
-    if (!startsWith("navidrome_cover://")) return this
+    if (!startsWith("navidrome_cover://") && !startsWith("jellyfin_cover://")) return this
     val uri = substringBefore('#')
     val query = uri.substringAfter('?', "").split('&')
         .filter { it.isNotEmpty() && it.substringBefore('=') != "size" } + "size=$sizePx"
     return uri.substringBefore('?') + "?" + query.joinToString("&") + substring(uri.length)
+}
+
+/**
+ * Resolves the server cover size to request for cloud artwork.
+ *
+ * Explicit `?size=` parameters win (`0` requests the server's original image). Otherwise, Coil's
+ * requested [Size] is mapped into stable cache buckets (`500`, `800`, or `0` for original quality)
+ * so hero headers and high-DPI views do not upscale 500px server-recompressed thumbnails.
+ */
+internal fun resolveCloudCoverSize(explicitSizeParam: Int?, requestedSize: Size?): Int {
+    if (explicitSizeParam != null) return explicitSizeParam.coerceAtLeast(0)
+    if (requestedSize == null) return RemoteArtworkCache.DEFAULT_COVER_SIZE_PX
+    if (requestedSize == Size.ORIGINAL) return 0
+
+    val widthPx = (requestedSize.width as? Dimension.Pixels)?.px ?: 0
+    val heightPx = (requestedSize.height as? Dimension.Pixels)?.px ?: 0
+    val maxPx = maxOf(widthPx, heightPx)
+    if (maxPx <= 0) return 0
+    return when {
+        maxPx <= RemoteArtworkCache.DEFAULT_COVER_SIZE_PX -> RemoteArtworkCache.DEFAULT_COVER_SIZE_PX
+        maxPx <= 800 -> 800
+        else -> 0
+    }
 }
 
 /**
@@ -33,7 +58,8 @@ class NavidromeCoilFetcher(
     private val uri: Uri,
     private val repository: NavidromeRepository,
     private val okHttpClient: OkHttpClient,
-    private val cacheDir: File
+    private val cacheDir: File,
+    private val requestedSize: Size? = null
 ) : Fetcher {
 
     companion object {
@@ -70,8 +96,10 @@ class NavidromeCoilFetcher(
             return null
         }
 
-        val sizeParam = uri.getQueryParameter("size")?.toIntOrNull()
-            ?: RemoteArtworkCache.DEFAULT_COVER_SIZE_PX
+        val sizeParam = resolveCloudCoverSize(
+            explicitSizeParam = uri.getQueryParameter("size")?.toIntOrNull(),
+            requestedSize = requestedSize
+        )
 
         val cachedFile = File(
             cacheDir,
@@ -114,7 +142,7 @@ class NavidromeCoilFetcher(
         override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher? {
             return if (data.scheme == "navidrome_cover") {
                 val cache = cacheDir ?: options.context.cacheDir.also { cacheDir = it }
-                NavidromeCoilFetcher(data, repository, okHttpClient, cache)
+                NavidromeCoilFetcher(data, repository, okHttpClient, cache, options.size)
             } else {
                 null
             }

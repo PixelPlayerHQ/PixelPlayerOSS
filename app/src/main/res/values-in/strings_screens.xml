@@ -288,4 +288,10 @@
     <string name="home_empty_placeholder_subtitle">Mix Anda akan muncul di sini saat PixelPlayerOSS menemukan lagu atau menyinkronkan sumber.</string>
     <string name="crash_report_share_subject">Laporan crash PixelPlayerOSS</string>
     <string name="about_support_title">Dukung PixelPlayerOSS</string>
+    <string name="dash_jellyfin_sync_favorites_title">Sinkronkan favorit</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Sinkronisasi dua arah lagu yang disukai dengan favorit Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Favorit disinkronkan dengan Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Gagal menyinkronkan favorit dengan Jellyfin</string>
+    <string name="home_recently_added_title">Baru ditambahkan</string>
+    <string name="home_recently_added_play_cd">Putar lagu yang baru ditambahkan</string>
 </resources>

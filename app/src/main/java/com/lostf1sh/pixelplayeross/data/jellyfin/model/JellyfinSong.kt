@@ -23,7 +23,9 @@ data class JellyfinSong(
     val contentType: String? = null,
     val path: String = "",
     val size: Long? = null,
-    val playCount: Int = 0
+    val playCount: Int = 0,
+    val isFavorite: Boolean = false,
+    val dateAdded: Long = 0L
 ) : Parcelable {
     companion object {
         fun empty() = JellyfinSong(

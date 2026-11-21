@@ -294,4 +294,10 @@
     <string name="home_empty_placeholder_subtitle">Ваш микс появится здесь, когда PixelPlayerOSS найдёт треки или синхронизирует источник.</string>
     <string name="crash_report_share_subject">Отчёт о сбое PixelPlayerOSS</string>
     <string name="about_support_title">Поддержите PixelPlayerOSS</string>
+    <string name="dash_jellyfin_sync_favorites_title">Синхронизация избранного</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Двусторонняя синхронизация понравившихся треков с избранным Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Избранное синхронизировано с Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Не удалось синхронизировать избранное с Jellyfin</string>
+    <string name="home_recently_added_title">Недавно добавленные</string>
+    <string name="home_recently_added_play_cd">Воспроизвести недавно добавленные треки</string>
 </resources>

@@ -153,6 +153,75 @@ class JellyfinApiService @Inject constructor(
         return request(path, params).map { JSONObject(it) }
     }
 
+    private suspend fun sendMethod(method: String, path: String): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val cred = credentials ?: throw IllegalStateException("No credentials configured")
+                val url = "${cred.normalizedServerUrl}$path"
+                val requestBuilder = Request.Builder()
+                    .url(url)
+                    .header("Authorization", buildAuthorizationHeader())
+                    .header("Accept", "application/json")
+
+                when (method) {
+                    "POST" -> requestBuilder.post(ByteArray(0).toRequestBody(null))
+                    "DELETE" -> requestBuilder.delete()
+                    else -> throw IllegalArgumentException("Unsupported method: $method")
+                }
+
+                Timber.d("$TAG: >>> $method $path")
+
+                okHttpClient.newCall(requestBuilder.build()).execute().use { response ->
+                    val code = response.code
+                    val body = response.body.string()
+
+                    if (!response.isSuccessful) {
+                        Timber.w("$TAG: <<< HTTP $code for $method $path")
+                        return@withContext Result.failure(Exception("HTTP $code: ${response.message}"))
+                    }
+
+                    Timber.d("$TAG: <<< HTTP $code for $method $path")
+                    Result.success(body)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "$TAG: !!! FAILED $method $path")
+                Result.failure(e)
+            }
+        }
+    }
+
+    suspend fun getFavoriteAudioIds(
+        startIndex: Int = 0,
+        limit: Int = 500
+    ): Result<Pair<Int, List<String>>> {
+        val cred = credentials ?: return Result.failure(Exception("No credentials"))
+        val params = mapOf(
+            "IncludeItemTypes" to "Audio",
+            "Recursive" to "true",
+            "Filters" to "IsFavorite",
+            "StartIndex" to startIndex.toString(),
+            "Limit" to limit.toString()
+        )
+        return requestJson("/Users/${cred.userId}/Items", params).map { response ->
+            val totalCount = response.optInt("TotalRecordCount", 0)
+            val items = response.optJSONArray("Items")
+            val ids = (0 until (items?.length() ?: 0)).mapNotNull { idx ->
+                items?.optJSONObject(idx)?.optString("Id")?.takeIf { it.isNotBlank() }
+            }
+            Pair(totalCount, ids)
+        }
+    }
+
+    suspend fun markFavorite(itemId: String): Result<Unit> {
+        val cred = credentials ?: return Result.failure(Exception("No credentials"))
+        return sendMethod("POST", "/Users/${cred.userId}/FavoriteItems/$itemId").map { }
+    }
+
+    suspend fun unmarkFavorite(itemId: String): Result<Unit> {
+        val cred = credentials ?: return Result.failure(Exception("No credentials"))
+        return sendMethod("DELETE", "/Users/${cred.userId}/FavoriteItems/$itemId").map { }
+    }
+
     suspend fun ping(): Result<Boolean> {
         return request("/System/Ping").map { true }
     }
@@ -180,7 +249,7 @@ class JellyfinApiService @Inject constructor(
         val params = mutableMapOf(
             "IncludeItemTypes" to "Audio",
             "Recursive" to "true",
-            "Fields" to "MediaSources,Genres,Studios,Path",
+            "Fields" to "MediaSources,Genres,Studios,Path,DateCreated",
             "StartIndex" to startIndex.toString(),
             "Limit" to limit.toString(),
             "SortBy" to "SortName",
@@ -339,8 +408,8 @@ class JellyfinApiService @Inject constructor(
      */
     fun getImageUrl(itemId: String, imageType: String = "Primary", maxWidth: Int = 500): String {
         val cred = credentials ?: throw IllegalStateException("No credentials configured")
-        return "${cred.normalizedServerUrl}/Items/$itemId/Images/$imageType" +
-                "?maxWidth=$maxWidth&quality=90"
+        val baseUrl = "${cred.normalizedServerUrl}/Items/$itemId/Images/$imageType"
+        return if (maxWidth > 0) "$baseUrl?maxWidth=$maxWidth&quality=90" else baseUrl
     }
 
     suspend fun getLyrics(itemId: String): Result<String> {

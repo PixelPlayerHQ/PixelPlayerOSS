@@ -80,6 +80,6 @@ fun JellyfinSong.toEntity(playlistId: String): JellyfinSongEntity {
         bitRate = bitRate,
         mimeType = resolvedMimeType,
         path = path,
-        dateAdded = System.currentTimeMillis()
+        dateAdded = dateAdded.takeIf { it > 0L } ?: System.currentTimeMillis()
     )
 }

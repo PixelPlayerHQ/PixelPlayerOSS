@@ -285,4 +285,10 @@
     <string name="home_empty_placeholder_subtitle">PixelPlayerOSS가 곡을 찾거나 소스를 동기화하면 여기에 믹스가 표시됩니다.</string>
     <string name="crash_report_share_subject">PixelPlayerOSS 크래시 보고서</string>
     <string name="about_support_title">PixelPlayerOSS 후원하기</string>
+    <string name="dash_jellyfin_sync_favorites_title">즐겨찾기 동기화</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">좋아요한 곡을 Jellyfin 즐겨찾기와 양방향 동기화</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Jellyfin과 즐겨찾기를 동기화했습니다</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Jellyfin과 즐겨찾기를 동기화하지 못했습니다</string>
+    <string name="home_recently_added_title">최근 추가된 음악</string>
+    <string name="home_recently_added_play_cd">최근 추가된 곡 재생</string>
 </resources>

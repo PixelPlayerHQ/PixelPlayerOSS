@@ -268,4 +268,10 @@
     <string name="cd_toggle_grid_list">Přepnout zobrazení mřížky nebo seznamu</string>
     <string name="cd_genre_illustration">Ilustrace žánru</string>
     <string name="dash_last_synced_format">Poslední synchronizace: %1$s</string>
+    <string name="dash_jellyfin_sync_favorites_title">Synchronizovat oblíbené</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Obousměrná synchronizace oblíbených skladeb s Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Oblíbené synchronizovány s Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Nepodařilo se synchronizovat oblíbené s Jellyfin</string>
+    <string name="home_recently_added_title">Nedávno přidané</string>
+    <string name="home_recently_added_play_cd">Přehrát nedávno přidané skladby</string>
 </resources>

@@ -199,7 +199,6 @@ object AlbumArtUtils {
     ): File? {
         val file = getCachedAlbumArtFile(appContext, songId)
         if (file.isFile && file.canRead() && file.length() > 0L) {
-            file.setLastModified(System.currentTimeMillis())
             scheduleOversizedArtworkShrink(file)
             return file
         }

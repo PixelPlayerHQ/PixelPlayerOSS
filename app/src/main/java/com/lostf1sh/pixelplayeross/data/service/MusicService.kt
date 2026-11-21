@@ -49,7 +49,6 @@ import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.preferences.EqualizerPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
@@ -78,7 +77,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
-import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
 import com.lostf1sh.pixelplayeross.data.equalizer.ExternalAudioEffectSession
 import com.lostf1sh.pixelplayeross.data.model.WidgetThemeColors
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
@@ -191,8 +189,6 @@ class MusicService : MediaSessionService() {
     lateinit var musicRepository: MusicRepository
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
-    @Inject
-    lateinit var equalizerPreferencesRepository: EqualizerPreferencesRepository
     @Inject
     lateinit var themePreferencesRepository: ThemePreferencesRepository
     @Inject
@@ -360,6 +356,7 @@ class MusicService : MediaSessionService() {
         val unwrappedOld = oldPlayer.unwrapSessionPlayer()
         if (unwrappedOld !== player) {
             oldPlayer.removeListener(playerListener)
+            unwrappedOld.removeListener(playerListener)
             val wrappedPlayer = wrapSessionPlayer(player)
             session.player = wrappedPlayer
             wrappedPlayer.addListener(playerListener)
@@ -443,8 +440,6 @@ class MusicService : MediaSessionService() {
         replayGainProcessor.captureUserVolume(engine.masterPlayer.volume)
         syncLocalListeningStatsFromPlayer(engine.masterPlayer)
 
-        engine.masterPlayer.addListener(playerListener)
-
         engine.setOnPlayerAboutToBeReleasedListener { oldPlayer ->
             oldPlayer.removeListener(playerListener)
         }
@@ -456,36 +451,7 @@ class MusicService : MediaSessionService() {
         sleepTimerController.attach()
         registerHeadsetReconnectMonitor()
 
-        serviceScope.launch {
-            val eqEnabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
-            val presetName = equalizerPreferencesRepository.equalizerPresetFlow.first()
-            val customBands = equalizerPreferencesRepository.equalizerCustomBandsFlow.first()
-            val customPresets = equalizerPreferencesRepository.customPresetsFlow.first()
-            val bassBoostEnabled = equalizerPreferencesRepository.bassBoostEnabledFlow.first()
-            val bassBoostStrength = equalizerPreferencesRepository.bassBoostStrengthFlow.first()
-            val virtualizerEnabled = equalizerPreferencesRepository.virtualizerEnabledFlow.first()
-            val virtualizerStrength = equalizerPreferencesRepository.virtualizerStrengthFlow.first()
-            val loudnessEnabled = equalizerPreferencesRepository.loudnessEnhancerEnabledFlow.first()
-            val loudnessStrength = equalizerPreferencesRepository.loudnessEnhancerStrengthFlow.first()
-
-            equalizerManager.restoreState(
-                eqEnabled, EqualizerPreset.resolve(presetName, customBands, customPresets),
-                bassBoostEnabled, bassBoostStrength,
-                virtualizerEnabled, virtualizerStrength,
-                loudnessEnabled, loudnessStrength
-            )
-
-            val sessionId = engine.getAudioSessionId()
-            if (sessionId != 0) {
-                equalizerManager.attachToAudioSessionIfNeeded(sessionId)
-            }
-
-            engine.activeAudioSessionId.collect { newSessionId ->
-                if (newSessionId != 0) {
-                    equalizerManager.attachToAudioSessionIfNeeded(newSessionId)
-                }
-            }
-        }
+        serviceScope.launch { equalizerManager.restoreFromPreferences() }
 
         serviceScope.launch {
             engine.activeAudioSessionId.collect { sessionId ->
@@ -590,14 +556,29 @@ class MusicService : MediaSessionService() {
                     ).map { SessionCommand(it, Bundle.EMPTY) }
                     customCommands.forEach { sessionCommandsBuilder.add(it) }
                 }
-                grantArtworkUriPermissions(
-                    controller.packageName,
-                    listOfNotNull(session.player.currentMediaItem)
-                )
+                val currentItem = session.player.currentMediaItem
+                if (currentItem != null && controller.packageName != packageName) {
+                    val targetPkg = controller.packageName
+                    serviceScope.launch(Dispatchers.IO) {
+                        grantArtworkUriPermissions(targetPkg, listOf(currentItem))
+                    }
+                }
+
+                // Only expose the full timeline to our own in-app MediaController. External/legacy
+                // controllers (including Bluetooth AVRCP via MediaSessionLegacyStub) otherwise
+                // trigger unbounded MediaSessionCompat.setQueue ParceledListSlice IPC storms on
+                // every crossfade swap and large-queue attachment.
+                val availablePlayerCommands = if (controller.packageName == packageName) {
+                    defaultResult.availablePlayerCommands
+                } else {
+                    defaultResult.availablePlayerCommands.buildUpon()
+                        .remove(Player.COMMAND_GET_TIMELINE)
+                        .build()
+                }
 
                 return MediaSession.ConnectionResult.accept(
                     sessionCommandsBuilder.build(),
-                    defaultResult.availablePlayerCommands
+                    availablePlayerCommands
                 )
             }
 
@@ -751,7 +732,10 @@ class MusicService : MediaSessionService() {
             }
         }
 
-        mediaSession = MediaSession.Builder(this, wrapSessionPlayer(engine.masterPlayer))
+        val initialSessionPlayer = wrapSessionPlayer(engine.masterPlayer).also {
+            it.addListener(playerListener)
+        }
+        mediaSession = MediaSession.Builder(this, initialSessionPlayer)
             .setCallback(callback)
             .setSessionActivity(getOpenAppPendingIntent())
             .setBitmapLoader(CoilBitmapLoader(this, serviceScope))
@@ -1019,7 +1003,6 @@ class MusicService : MediaSessionService() {
             release()
             mediaSession = null
         }
-        equalizerManager.release()
         externalAudioEffectSession.close()
         engine.release()
         controller.release()
@@ -1247,7 +1230,7 @@ class MusicService : MediaSessionService() {
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
             requestWidgetFullUpdate(force = true)
-            mediaSession?.let { refreshMediaSessionUiWithFollowUp(it) }
+            mediaSession?.let { refreshMediaSessionUi(it) }
             val activePlayer = mediaSession?.player ?: engine.masterPlayer
             replayGainProcessor.onMediaMetadataChanged(activePlayer.currentMediaItem)
         }
@@ -2467,12 +2450,16 @@ class MusicService : MediaSessionService() {
      */
     private fun grantArtworkUriPermissionsToConnectedControllers(mediaItem: MediaItem) {
         val session = mediaSession ?: return
-        session.connectedControllers
+        val externalPackages = session.connectedControllers
             .asSequence()
             .map { it.packageName }
             .distinct()
             .filter { it.isNotBlank() && it != packageName }
-            .forEach { grantArtworkUriPermissions(it, listOf(mediaItem)) }
+            .toList()
+        if (externalPackages.isEmpty()) return
+        serviceScope.launch(Dispatchers.IO) {
+            externalPackages.forEach { grantArtworkUriPermissions(it, listOf(mediaItem)) }
+        }
     }
 
     private fun grantArtworkUriPermissions(

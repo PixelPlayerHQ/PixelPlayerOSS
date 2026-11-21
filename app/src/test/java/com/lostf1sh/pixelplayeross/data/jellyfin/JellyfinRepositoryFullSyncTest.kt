@@ -3,6 +3,7 @@ package com.lostf1sh.pixelplayeross.data.jellyfin
 import android.content.Context
 import android.content.SharedPreferences
 import com.google.common.truth.Truth.assertThat
+import com.lostf1sh.pixelplayeross.data.database.FavoritesDao
 import com.lostf1sh.pixelplayeross.data.database.JellyfinDao
 import com.lostf1sh.pixelplayeross.data.database.MusicDao
 import com.lostf1sh.pixelplayeross.data.network.jellyfin.JellyfinApiService
@@ -60,9 +61,13 @@ class JellyfinRepositoryFullSyncTest {
         api = api,
         dao = jellyfinDao,
         musicDao = musicDao,
+        favoritesDao = mockk<FavoritesDao>(relaxed = true) {
+            coEvery { getFavoriteSongIdsOnce() } returns emptyList()
+        },
         playlistPreferencesRepository = mockk(relaxed = true),
         userPreferencesRepository = mockk(relaxed = true) {
             every { jellyfinSelectedLibraryIdsFlow } returns flowOf(emptySet())
+            every { jellyfinSyncFavoritesFlow } returns flowOf(false)
             every { groupByAlbumArtistFlow } returns flowOf(true)
         },
         // Encrypted prefs are unavailable on the JVM, so the repository falls back to these.

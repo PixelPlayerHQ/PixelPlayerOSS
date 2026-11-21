@@ -83,6 +83,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.CoroutineScope
+import com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinRepository
 import timber.log.Timber
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -98,7 +99,8 @@ class MusicRepositoryImpl @Inject constructor(
     private val songRepository: SongRepository,
     private val favoritesDao: FavoritesDao,
     private val artistImageRepository: ArtistImageRepository,
-    private val folderTreeBuilder: FolderTreeBuilder
+    private val folderTreeBuilder: FolderTreeBuilder,
+    private val jellyfinRepository: JellyfinRepository? = null
 ) : MusicRepository {
 
     companion object {
@@ -869,15 +871,51 @@ class MusicRepositoryImpl @Inject constructor(
 
     override suspend fun setFavoriteStatus(songId: String, isFavorite: Boolean) = withContext(Dispatchers.IO) {
         val id = songId.toLongOrNull() ?: return@withContext
-        if (isFavorite) {
-            favoritesDao.setFavorite(
-                com.lostf1sh.pixelplayeross.data.database.FavoritesEntity(
-                    songId = id,
-                    isFavorite = true
-                )
-            )
+        val repo = jellyfinRepository
+        val jellyfinId = if (id < 0L && repo != null) {
+            val contentUri = musicDao.getJellyfinContentUriBySongId(id)
+            contentUri?.removePrefix("jellyfin://")
+                ?.takeIf { it.isNotBlank() && it != contentUri }
         } else {
-            favoritesDao.removeFavorite(id)
+            null
+        }
+
+        val writeLocalFavorite: suspend () -> Unit = {
+            if (isFavorite) {
+                favoritesDao.setFavorite(
+                    com.lostf1sh.pixelplayeross.data.database.FavoritesEntity(
+                        songId = id,
+                        isFavorite = true
+                    )
+                )
+            } else {
+                favoritesDao.removeFavorite(id)
+            }
+        }
+
+        if (jellyfinId != null && repo != null) {
+            // Record the account-bound mutation, update Room, and launch the push atomically under
+            // localFavoritesMutex; if the Room write fails or is cancelled, clean up immediately so
+            // later sync passes are never blocked for this song.
+            repo.withLocalFavoriteLock {
+                val token = repo.recordLocalFavoriteMutation(jellyfinId, isFavorite)
+                var pushLaunched = false
+                try {
+                    writeLocalFavorite()
+                    if (token != null) {
+                        repositoryScope.launch {
+                            repo.pushFavoriteChange(jellyfinId, isFavorite, token)
+                        }
+                        pushLaunched = true
+                    }
+                } finally {
+                    if (token != null && !pushLaunched) {
+                        repo.clearLocalFavoriteMutation(jellyfinId, isFavorite, token)
+                    }
+                }
+            }
+        } else {
+            writeLocalFavorite()
         }
     }
 

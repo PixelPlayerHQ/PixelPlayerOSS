@@ -346,7 +346,10 @@ object SettingsRegistry {
                 category = SettingsCategory.LIBRARY,
                 subscreenRoute = Screen.Accounts.createRoute(),
                 type = SettingType.NAVIGABLE_CARD,
-                keywordsStatic = listOf("accounts", "navidrome", "jellyfin", "subsonic", "streaming", "server", "login")
+                keywordsStatic = listOf(
+                    "accounts", "navidrome", "jellyfin", "subsonic", "streaming",
+                    "server", "login", "favorites", "favourites", "sync"
+                )
             ),
             SettingSpec(
                 id = "cloud_downloads",
@@ -730,7 +733,8 @@ object SettingsRegistry {
                 type = SettingType.NAVIGABLE_CARD,
                 keywordsStatic = listOf(
                     "audio", "output", "direct", "hifi", "high fidelity",
-                    "pcm", "float", "quality", "lossless"
+                    "pcm", "float", "quality", "lossless", "bit-perfect",
+                    "bitperfect", "usb", "dac"
                 )
             ),
             SettingSpec(

@@ -328,5 +328,15 @@
 
     <string name="setcat_group_local_albums_by_title">Agrupar álbuns locais por título</string>
     <string name="setcat_group_local_albums_by_title_subtitle">Combina faixas locais com o mesmo título de álbum, mesmo quando os artistas do álbum são diferentes. Isso também pode combinar álbuns diferentes com o mesmo título.</string>
+    <string name="presentation_batch_d_cd_open_album_title">Abrir álbum %1$s</string>
+    <string name="dash_jellyfin_sync_favorites_title">Sincronizar favoritos</string>
+    <string name="dash_jellyfin_sync_favorites_subtitle">Sincronização bidirecional de músicas curtidas com os favoritos do Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_synced">Favoritos sincronizados com o Jellyfin</string>
+    <string name="dash_jellyfin_sync_favorites_failed">Não foi possível sincronizar os favoritos com o Jellyfin</string>
+    <string name="home_recently_added_title">Adicionados recentemente</string>
+    <string name="home_recently_added_play_cd">Reproduzir músicas adicionadas recentemente</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb">USB bit-perfect (experimental)</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_description">Envia cada faixa sem alterações para um DAC USB em sua própria taxa de amostragem. Requer celular e DAC compatíveis com saída USB bit-perfect; caso contrário, usa o caminho normal. O volume passa a ser controlado pelo DAC e ativar o equalizador altera o sinal.</string>
+    <string name="setcat_audio_output_mode_bit_perfect_usb_unsupported">Requer Android 14 ou superior e suporte à saída PCM_FLOAT.</string>
 </resources>
 

@@ -3,6 +3,8 @@ package com.lostf1sh.pixelplayeross.data.image
 import android.net.Uri
 import coil.decode.DataSource
 import coil.fetch.SourceResult
+import coil.size.Dimension
+import coil.size.Size
 import com.google.common.truth.Truth.assertThat
 import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeRepository
 import io.mockk.every
@@ -88,12 +90,32 @@ class NavidromeCoilFetcherTest {
     }
 
     @Test
-    fun `size override preserves other options and leaves other sources alone`() {
+    fun `size override preserves other options and leaves non-cloud sources alone`() {
         val rawUri = "navidrome_cover://al-12?size=500&other=yes#fragment"
         assertThat(rawUri.withNavidromeCoverSize(800))
             .isEqualTo("navidrome_cover://al-12?other=yes&size=800#fragment")
         val jellyfinUri = "jellyfin_cover://al-12"
-        assertThat(jellyfinUri.withNavidromeCoverSize(800)).isEqualTo(jellyfinUri)
+        assertThat(jellyfinUri.withNavidromeCoverSize(800))
+            .isEqualTo("jellyfin_cover://al-12?size=800")
+        val localUri = "content://media/external/audio/albumart/1"
+        assertThat(localUri.withNavidromeCoverSize(800)).isEqualTo(localUri)
+    }
+
+    @Test
+    fun `resolveCloudCoverSize honors Coil requested size buckets and explicit query params`() {
+        assertThat(resolveCloudCoverSize(explicitSizeParam = 0, requestedSize = Size(256, 256))).isEqualTo(0)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = 800, requestedSize = Size(1200, 1200))).isEqualTo(800)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = null, requestedSize = null)).isEqualTo(500)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = null, requestedSize = Size(256, 256))).isEqualTo(500)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = null, requestedSize = Size(640, 640))).isEqualTo(800)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = null, requestedSize = Size(1200, 900))).isEqualTo(0)
+        assertThat(resolveCloudCoverSize(explicitSizeParam = null, requestedSize = Size.ORIGINAL)).isEqualTo(0)
+        assertThat(
+            resolveCloudCoverSize(
+                explicitSizeParam = null,
+                requestedSize = Size(Dimension.Undefined, Dimension.Pixels(1080))
+            )
+        ).isEqualTo(0)
     }
 
     @Test

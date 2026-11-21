@@ -35,6 +35,8 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.media3.extractor.mp3.Mp3Extractor
 import androidx.media3.extractor.flac.FlacExtractor
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerAudioSink
+import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
 import com.lostf1sh.pixelplayeross.data.model.AudioOutputMode
 import com.lostf1sh.pixelplayeross.data.model.TransitionSettings
 import com.lostf1sh.pixelplayeross.data.offline.CloudOfflineRepository
@@ -50,6 +52,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -165,11 +169,32 @@ internal fun isAudioOffloadMarkedBroken(
     currentBuildFingerprint: String
 ): Boolean = !storedBuildFingerprint.isNullOrBlank() && storedBuildFingerprint == currentBuildFingerprint
 
+/**
+ * Offloaded audio reaches the DSP still encoded, so any enabled audio effect needs the PCM path.
+ * Offload is also disabled while routing to Bluetooth A2DP / BLE Audio because hardware offload
+ * reconfiguration across track transitions crashes the Bluetooth audio HAL on several devices.
+ */
 internal fun shouldEnableAudioOffloadForMode(
     audioOffloadAvailableForSession: Boolean,
-    audioOutputMode: AudioOutputMode
+    audioOutputMode: AudioOutputMode,
+    audioEffectsEnabled: Boolean,
+    bluetoothAudioOutputActive: Boolean = false
 ): Boolean {
-    return audioOffloadAvailableForSession && audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT
+    return audioOffloadAvailableForSession &&
+        audioOutputMode == AudioOutputMode.SYSTEM_DEFAULT &&
+        !audioEffectsEnabled &&
+        !bluetoothAudioOutputActive
+}
+
+internal fun isBluetoothAudioDeviceType(deviceType: Int): Boolean {
+    return deviceType == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+        deviceType == android.media.AudioDeviceInfo.TYPE_BLUETOOTH_SCO ||
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && (
+            deviceType == android.media.AudioDeviceInfo.TYPE_BLE_HEADSET ||
+                deviceType == android.media.AudioDeviceInfo.TYPE_BLE_SPEAKER
+            )) ||
+        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            deviceType == android.media.AudioDeviceInfo.TYPE_BLE_BROADCAST)
 }
 
 internal fun shouldTriggerAudioOffloadStallFallback(
@@ -234,7 +259,8 @@ class DualPlayerEngine @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val navidromeStreamProxy: NavidromeStreamProxy,
     private val jellyfinStreamProxy: com.lostf1sh.pixelplayeross.data.jellyfin.JellyfinStreamProxy,
-    private val cloudOfflineRepository: CloudOfflineRepository
+    private val cloudOfflineRepository: CloudOfflineRepository,
+    private val equalizerManager: EqualizerManager
 ) {
     private companion object {
         // A local file reaches READY in ~100ms with a working output path, so 1.5s of
@@ -262,10 +288,20 @@ class DualPlayerEngine @Inject constructor(
     private val offloadHealthPrefs by lazy {
         context.getSharedPreferences(OFFLOAD_HEALTH_PREFS, Context.MODE_PRIVATE)
     }
-    private var audioOffloadEnabled =
-        !shouldDisableAudioOffloadByDefault() && !isAudioOffloadKnownBrokenOnThisBuild()
+    @Volatile
+    private var audioOffloadEnabled = !shouldDisableAudioOffloadByDefault()
+    @Volatile
+    private var bluetoothAudioOutputActive = false
+    private var bluetoothOffloadDeviceCallback: android.media.AudioDeviceCallback? = null
+    private var bluetoothRouteCheckJob: Job? = null
     private val audioOffloadEnabledForCurrentMode: Boolean
-        get() = shouldEnableAudioOffloadForMode(audioOffloadEnabled, audioOutputMode)
+        get() = shouldEnableAudioOffloadForMode(
+            audioOffloadEnabled,
+            audioOutputMode,
+            equalizerManager.settings.value.anyEnabled,
+            bluetoothAudioOutputActive
+        )
+    private var audioEffectsOffloadJob: Job? = null
     private val transitionRunTracker = TransitionRunTracker()
     private var transitionJob: Job? = null
     private var bufferingFallbackJob: Job? = null
@@ -712,6 +748,28 @@ class DualPlayerEngine @Inject constructor(
 
         addMasterPlayerListeners(playerA)
 
+        audioEffectsOffloadJob?.cancel()
+        audioEffectsOffloadJob = scope.launch {
+            // Load persisted offload-broken marker off the main thread so construction never stalls.
+            val knownBroken = withContext(Dispatchers.IO) { isAudioOffloadKnownBrokenOnThisBuild() }
+            if (knownBroken && audioOffloadEnabled) {
+                audioOffloadEnabled = false
+                cancelAudioOffloadFallback()
+                applyAudioOffloadPreferences(playerA)
+                playerB?.let(::applyAudioOffloadPreferences)
+            }
+            // Switching an effect on moves the live players off offload (a short renderer reset).
+            equalizerManager.settings
+                .map { it.anyEnabled }
+                .distinctUntilChanged()
+                .collect {
+                    if (!audioOffloadEnabledForCurrentMode) cancelAudioOffloadFallback()
+                    applyAudioOffloadPreferences(playerA)
+                    playerB?.let(::applyAudioOffloadPreferences)
+                }
+        }
+        registerBluetoothOffloadMonitor()
+
         _activeAudioSessionId.value = playerA.audioSessionId
         isReleased = false
         queueSnapshot = emptyList()
@@ -1056,28 +1114,42 @@ class DualPlayerEngine @Inject constructor(
                 enableFloatOutput: Boolean,
                 enableAudioOutputPlaybackParams: Boolean
             ): AudioSink {
-                if (outputMode.usesUnmodifiedMedia3AudioSink) {
+                val sink = if (outputMode.usesUnmodifiedMedia3AudioSink) {
                     // Android's audio policy may
                     // grant a DIRECT thread for a compatible device/format, or safely fall back
                     // to the mixed path. This deliberately does not promise exclusive output.
-                    return requireNotNull(
+                    requireNotNull(
                         super.buildAudioSink(
                             context,
                             false,
                             enableAudioOutputPlaybackParams
                         )
                     ) { "Media3 did not create its default AudioSink" }
-                }
-                return DefaultAudioSink.Builder(context)
-                    .setEnableFloatOutput(outputMode.usesFloatOutput)
-                    .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
-                    .setAudioProcessorChain(
-                        DefaultAudioSink.DefaultAudioProcessorChain(
-                            HiResSampleRateCapAudioProcessor(),
-                            SurroundDownmixProcessor()
+                } else if (
+                    outputMode == AudioOutputMode.BIT_PERFECT_USB &&
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                ) {
+                    // Stock processor chain: float hi-res input bypasses it, and nothing in it
+                    // changes samples at normal speed.
+                    DefaultAudioSink.Builder(context)
+                        .setEnableFloatOutput(true)
+                        .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
+                        .setAudioOutputProvider(BitPerfectUsbAudioOutputProvider(context))
+                        .build()
+                } else {
+                    DefaultAudioSink.Builder(context)
+                        .setEnableFloatOutput(outputMode.usesFloatOutput)
+                        .setEnableAudioOutputPlaybackParameters(enableAudioOutputPlaybackParams)
+                        .setAudioProcessorChain(
+                            DefaultAudioSink.DefaultAudioProcessorChain(
+                                HiResSampleRateCapAudioProcessor(),
+                                SurroundDownmixProcessor()
+                            )
                         )
-                    )
-                    .build()
+                        .build()
+                }
+                // Effects pass PCM through untouched while off, so DIRECT stays unmodified then.
+                return EqualizerAudioSink(sink, equalizerManager.settings)
             }
 
             override fun buildVideoRenderers(
@@ -1182,23 +1254,7 @@ class DualPlayerEngine @Inject constructor(
             }
             addListener(UnsupportedAudioListener(this))
             setAudioAttributes(audioAttributes, false)
-            // Gapless support is required, not optional: on a HAL that only advertises plain
-            // offload, the data written ahead for the next item is dropped at the automatic
-            // transition and the track starts seconds in. Devices without gapless offload fall
-            // back to the regular PCM path instead.
-            val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
-                .setAudioOffloadMode(
-                    if (audioOffloadEnabledForCurrentMode) {
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
-                    } else {
-                        TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
-                    }
-                )
-                .setIsGaplessSupportRequired(true)
-                .build()
-            trackSelectionParameters = trackSelectionParameters.buildUpon()
-                .setAudioOffloadPreferences(offloadPreferences)
-                .build()
+            applyAudioOffloadPreferences(this)
             setHandleAudioBecomingNoisy(true)
             setWakeMode(C.WAKE_MODE_LOCAL)
             // Rebuilt players (offload fallback, output-mode change, crossfade auxiliary)
@@ -1206,6 +1262,26 @@ class DualPlayerEngine @Inject constructor(
             setPreferredAudioDevice(preferredAudioDevice)
             playWhenReady = false
         }
+    }
+
+    private fun applyAudioOffloadPreferences(player: ExoPlayer) {
+        // Gapless support is required, not optional: on a HAL that only advertises plain
+        // offload, the data written ahead for the next item is dropped at the automatic
+        // transition and the track starts seconds in. Devices without gapless offload fall
+        // back to the regular PCM path instead.
+        val offloadPreferences = TrackSelectionParameters.AudioOffloadPreferences.Builder()
+            .setAudioOffloadMode(
+                if (audioOffloadEnabledForCurrentMode) {
+                    TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_ENABLED
+                } else {
+                    TrackSelectionParameters.AudioOffloadPreferences.AUDIO_OFFLOAD_MODE_DISABLED
+                }
+            )
+            .setIsGaplessSupportRequired(true)
+            .build()
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setAudioOffloadPreferences(offloadPreferences)
+            .build()
     }
 
     private fun resolveReadyCloudProxyUri(uri: Uri): Uri? {
@@ -1238,6 +1314,59 @@ class DualPlayerEngine @Inject constructor(
         preferredAudioDevice = device
         if (::playerA.isInitialized) playerA.setPreferredAudioDevice(device)
         playerB?.setPreferredAudioDevice(device)
+        refreshBluetoothAudioOutputState()
+    }
+
+    private fun registerBluetoothOffloadMonitor() {
+        unregisterBluetoothOffloadMonitor()
+        val callback = object : android.media.AudioDeviceCallback() {
+            override fun onAudioDevicesAdded(addedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                refreshBluetoothAudioOutputState()
+            }
+
+            override fun onAudioDevicesRemoved(removedDevices: Array<out android.media.AudioDeviceInfo>?) {
+                refreshBluetoothAudioOutputState()
+            }
+        }
+        bluetoothOffloadDeviceCallback = callback
+        runCatching { audioManager.registerAudioDeviceCallback(callback, null) }
+        refreshBluetoothAudioOutputState()
+    }
+
+    private fun unregisterBluetoothOffloadMonitor() {
+        bluetoothRouteCheckJob?.cancel()
+        bluetoothRouteCheckJob = null
+        bluetoothOffloadDeviceCallback?.let { callback ->
+            runCatching { audioManager.unregisterAudioDeviceCallback(callback) }
+        }
+        bluetoothOffloadDeviceCallback = null
+    }
+
+    private fun refreshBluetoothAudioOutputState() {
+        val explicitPreferred = preferredAudioDevice
+        bluetoothRouteCheckJob?.cancel()
+        bluetoothRouteCheckJob = scope.launch {
+            val isBluetoothActive = withContext(Dispatchers.IO) {
+                if (explicitPreferred != null) {
+                    isBluetoothAudioDeviceType(explicitPreferred.type)
+                } else {
+                    runCatching {
+                        audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                            .any { isBluetoothAudioDeviceType(it.type) }
+                    }.getOrDefault(false)
+                }
+            }
+            if (bluetoothAudioOutputActive != isBluetoothActive) {
+                bluetoothAudioOutputActive = isBluetoothActive
+                Timber.tag("DualPlayerEngine").d(
+                    "Bluetooth output active=%s; updating offload preferences",
+                    isBluetoothActive
+                )
+                if (!audioOffloadEnabledForCurrentMode) cancelAudioOffloadFallback()
+                if (::playerA.isInitialized) applyAudioOffloadPreferences(playerA)
+                playerB?.let(::applyAudioOffloadPreferences)
+            }
+        }
     }
 
     fun setPauseAtEndOfMediaItems(shouldPause: Boolean) {
@@ -1325,14 +1454,20 @@ class DualPlayerEngine @Inject constructor(
     }
 
     fun setAudioOutputMode(mode: AudioOutputMode) {
-        val resolvedMode = if (
-            mode == AudioOutputMode.PCM_FLOAT && !HiFiCapabilityChecker.isSupported()
-        ) {
-            Timber.tag("DualPlayerEngine")
-                .w("PCM float output requested but device does not support PCM_FLOAT; using system default")
-            AudioOutputMode.SYSTEM_DEFAULT
-        } else {
-            mode
+        val resolvedMode = when {
+            mode == AudioOutputMode.PCM_FLOAT && !HiFiCapabilityChecker.isSupported() -> {
+                Timber.tag("DualPlayerEngine")
+                    .w("PCM float output requested but device does not support PCM_FLOAT; using system default")
+                AudioOutputMode.SYSTEM_DEFAULT
+            }
+            mode == AudioOutputMode.BIT_PERFECT_USB && !AudioOutputMode.isBitPerfectUsbAvailable(
+                pcmFloatSupported = HiFiCapabilityChecker.isSupported()
+            ) -> {
+                Timber.tag("DualPlayerEngine")
+                    .w("Bit-perfect USB output needs Android 14 and PCM_FLOAT; using system default")
+                AudioOutputMode.SYSTEM_DEFAULT
+            }
+            else -> mode
         }
         if (audioOutputMode == resolvedMode) return
         audioOutputMode = resolvedMode
@@ -1751,6 +1886,7 @@ class DualPlayerEngine @Inject constructor(
 
     fun release() {
         invalidateActiveTransition()
+        unregisterBluetoothOffloadMonitor()
         preResolutionJob?.cancel()
         cancelAudioOffloadFallback()
         scope.coroutineContext[Job]?.cancel()

@@ -968,103 +968,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             ),
                 bottomBar = {
+                    // Reserves the bar's height for innerPadding; the bar itself is drawn above
+                    // the player sheet further down.
                     if (!useNavigationRail && shouldRenderNavigationBar) {
-                        val currentSongId by remember {
-                            playerViewModel.stablePlayerState
-                                .map { it.currentSong?.id }
-                                .distinctUntilChanged()
-                        }.collectAsStateWithLifecycle(initialValue = null)
-                        val showPlayerContentArea = currentSongId != null
-                        val navBarElevation = 3.dp
-
-                        val animatedNavBarCornerRadius = animateDpAsState(
-                            targetValue = navBarCornerRadius.dp,
-                            animationSpec = tween(400),
-                            label = "NavBarCornerRadius"
-                        )
-
-                        val animatedDefaultTopCornerRadius = animateDpAsState(
-                            targetValue = if (showPlayerContentArea && !isMiniPlayerDismissing) 10.dp else navBarCornerRadius.dp,
-                            animationSpec = tween(400),
-                            label = "NavBarDefaultTopCornerRadius"
-                        )
-
-                        var componentHeightPx by remember { mutableStateOf(0) }
-                        val density = LocalDensity.current
-                        val shadowOverflowPx = remember(navBarElevation, density) {
-                            with(density) { (navBarElevation * 8).toPx() }
-                        }
-                        val bottomBarPaddingPx = remember(bottomBarPadding, density) {
-                            with(density) { bottomBarPadding.toPx() }
-                        }
-                        val navBarElevationPx = remember(navBarElevation, density) {
-                            with(density) { navBarElevation.toPx() }
-                        }
-                        val navBarShapeCache = remember { NavBarShapeCache() }
-
-                        Box(
+                        Spacer(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(navBarOccupiedHeight)
-                                .clipToBounds()
-                        ) {
-                            val onSearchIconDoubleTap = remember(playerViewModel) {
-                                { playerViewModel.onSearchNavIconDoubleTapped() }
-                            }
-
-                            Surface(
-                                modifier = Modifier
-                                    .align(Alignment.BottomCenter)
-                                    .fillMaxWidth()
-                                    .padding(bottom = bottomBarPadding)
-                                    .onSizeChanged { componentHeightPx = it.height }
-                                    .graphicsLayer {
-                                        val expansionHide = if (showPlayerContentArea) {
-                                            playerViewModel.playerContentExpansionFraction.value.coerceIn(0f, 1f)
-                                        } else {
-                                            0f
-                                        }
-                                        val routeHide = (1f - navBarVisibilityProgressState.value).coerceIn(0f, 1f)
-                                        val hideFraction = maxOf(expansionHide, routeHide)
-                                        translationY = (componentHeightPx + shadowOverflowPx + bottomBarPaddingPx) * hideFraction
-                                        alpha = 1f
-                                    }
-                                    .height(navBarHeight)
-                                    .padding(horizontal = horizontalPadding)
-                                    .graphicsLayer {
-                                        val fraction = playerViewModel.playerContentExpansionFraction.value
-                                        val topDp = when {
-                                            navBarStyle == NavBarStyle.DEFAULT -> animatedDefaultTopCornerRadius.value
-                                            navBarStyle == NavBarStyle.FULL_WIDTH -> lerp(navBarCornerRadius.dp, 26.dp, fraction)
-                                            showPlayerContentArea -> if (fraction < 0.2f) {
-                                                lerp(navBarCornerRadius.dp, 26.dp, (fraction / 0.2f).coerceIn(0f, 1f))
-                                            } else {
-                                                26.dp
-                                            }
-                                            else -> navBarCornerRadius.dp
-                                        }
-                                        val bottomDp = when (navBarStyle) {
-                                            NavBarStyle.FULL_WIDTH -> 0.dp
-                                            else -> animatedNavBarCornerRadius.value
-                                        }
-                                        shape = navBarShapeCache.get(this, topDp.toPx(), bottomDp.toPx(), useSmoothCorners)
-                                        clip = true
-                                        shadowElevation = navBarElevationPx
-                                    },
-                                color = NavigationBarDefaults.containerColor
-                            ) {
-                                PlayerInternalNavigationBar(
-                                    navController = navController,
-                                    navItems = MainNavItems,
-                                    currentRoute = currentRoute,
-                                    navBarStyle = navBarStyle,
-                                    compactMode = navBarCompactMode,
-                                    bottomBarPadding = bottomBarPadding,
-                                    onSearchIconDoubleTap = onSearchIconDoubleTap,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
+                        )
                     }
                 }
                 ) { innerPadding ->
@@ -1193,6 +1104,113 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     isNavBarHidden = isNavBarEffectivelyHidden
                 )
+
+                // Phones draw the bottom bar here, above the player sheet. The sheet's container
+                // spans the strip below the mini player, so in the Scaffold's bottomBar slot the
+                // navigation items sat under it and never received taps (#272).
+                if (!useNavigationRail && shouldRenderNavigationBar) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                    ) {
+                        val currentSongId by remember {
+                            playerViewModel.stablePlayerState
+                                .map { it.currentSong?.id }
+                                .distinctUntilChanged()
+                        }.collectAsStateWithLifecycle(initialValue = null)
+                        val showPlayerContentArea = currentSongId != null
+                        val navBarElevation = 3.dp
+
+                        val animatedNavBarCornerRadius = animateDpAsState(
+                            targetValue = navBarCornerRadius.dp,
+                            animationSpec = tween(400),
+                            label = "NavBarCornerRadius"
+                        )
+
+                        val animatedDefaultTopCornerRadius = animateDpAsState(
+                            targetValue = if (showPlayerContentArea && !isMiniPlayerDismissing) 10.dp else navBarCornerRadius.dp,
+                            animationSpec = tween(400),
+                            label = "NavBarDefaultTopCornerRadius"
+                        )
+
+                        var componentHeightPx by remember { mutableStateOf(0) }
+                        val shadowOverflowPx = remember(navBarElevation, density) {
+                            with(density) { (navBarElevation * 8).toPx() }
+                        }
+                        val bottomBarPaddingPx = remember(bottomBarPadding, density) {
+                            with(density) { bottomBarPadding.toPx() }
+                        }
+                        val navBarElevationPx = remember(navBarElevation, density) {
+                            with(density) { navBarElevation.toPx() }
+                        }
+                        val navBarShapeCache = remember { NavBarShapeCache() }
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(navBarOccupiedHeight)
+                                .clipToBounds()
+                        ) {
+                            val onSearchIconDoubleTap = remember(playerViewModel) {
+                                { playerViewModel.onSearchNavIconDoubleTapped() }
+                            }
+
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .fillMaxWidth()
+                                    .padding(bottom = bottomBarPadding)
+                                    .onSizeChanged { componentHeightPx = it.height }
+                                    .graphicsLayer {
+                                        val expansionHide = if (showPlayerContentArea) {
+                                            playerViewModel.playerContentExpansionFraction.value.coerceIn(0f, 1f)
+                                        } else {
+                                            0f
+                                        }
+                                        val routeHide = (1f - navBarVisibilityProgressState.value).coerceIn(0f, 1f)
+                                        val hideFraction = maxOf(expansionHide, routeHide)
+                                        translationY = (componentHeightPx + shadowOverflowPx + bottomBarPaddingPx) * hideFraction
+                                        alpha = 1f
+                                    }
+                                    .height(navBarHeight)
+                                    .padding(horizontal = horizontalPadding)
+                                    .graphicsLayer {
+                                        val fraction = playerViewModel.playerContentExpansionFraction.value
+                                        val topDp = when {
+                                            navBarStyle == NavBarStyle.DEFAULT -> animatedDefaultTopCornerRadius.value
+                                            navBarStyle == NavBarStyle.FULL_WIDTH -> lerp(navBarCornerRadius.dp, 26.dp, fraction)
+                                            showPlayerContentArea -> if (fraction < 0.2f) {
+                                                lerp(navBarCornerRadius.dp, 26.dp, (fraction / 0.2f).coerceIn(0f, 1f))
+                                            } else {
+                                                26.dp
+                                            }
+                                            else -> navBarCornerRadius.dp
+                                        }
+                                        val bottomDp = when (navBarStyle) {
+                                            NavBarStyle.FULL_WIDTH -> 0.dp
+                                            else -> animatedNavBarCornerRadius.value
+                                        }
+                                        shape = navBarShapeCache.get(this, topDp.toPx(), bottomDp.toPx(), useSmoothCorners)
+                                        clip = true
+                                        shadowElevation = navBarElevationPx
+                                    },
+                                color = NavigationBarDefaults.containerColor
+                            ) {
+                                PlayerInternalNavigationBar(
+                                    navController = navController,
+                                    navItems = MainNavItems,
+                                    currentRoute = currentRoute,
+                                    navBarStyle = navBarStyle,
+                                    compactMode = navBarCompactMode,
+                                    bottomBarPadding = bottomBarPadding,
+                                    onSearchIconDoubleTap = onSearchIconDoubleTap,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
         }

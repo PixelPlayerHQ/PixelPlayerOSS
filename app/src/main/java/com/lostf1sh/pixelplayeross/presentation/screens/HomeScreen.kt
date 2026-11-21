@@ -94,6 +94,7 @@ import com.lostf1sh.pixelplayeross.presentation.components.DailyMixSection
 import com.lostf1sh.pixelplayeross.presentation.components.HomeGradientTopBar
 import com.lostf1sh.pixelplayeross.presentation.components.HomeOptionsBottomSheet
 import com.lostf1sh.pixelplayeross.presentation.components.MiniPlayerHeight
+import com.lostf1sh.pixelplayeross.presentation.components.RecentlyAddedSection
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSection
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSectionMinSongsToShow
 import com.lostf1sh.pixelplayeross.presentation.components.RecentlyPlayedSongOptionsSheet
@@ -248,6 +249,7 @@ fun HomeScreen(
     val yourMixSubtitle = stringResource(R.string.home_your_mix_subtitle)
     val yourMixQueueName = stringResource(R.string.home_your_mix_queue_name)
     val recentlyPlayedQueueName = stringResource(R.string.presentation_batch_b_queue_recently_played)
+    val recentlyAddedQueueName = stringResource(R.string.home_recently_added_title)
 
     // Seed with the live value: starting from null made the bottom padding grow one frame
     // after returning to Home, once the scroll position was already restored, which left the
@@ -323,6 +325,7 @@ fun HomeScreen(
         isHomeResumed,
         yourMixSongs.isNotEmpty(),
         dailyMixSongs.isNotEmpty(),
+        homeMixPreviewSongs.isNotEmpty(),
         recentlyPlayedSongs.size,
         homeStatsOverviewState,
         recapHomeCard,
@@ -435,15 +438,7 @@ fun HomeScreen(
                                     song = yourMixSubtitle,
                                     isShuffleEnabled = isShuffleEnabled,
                                     onPlayShuffled = {
-                                        if (usesFallbackHomeMix) {
-                                            playerViewModel.shuffleAllSongs(queueName = yourMixQueueName)
-                                        } else {
-                                            playerViewModel.playSongsShuffled(
-                                                songsToPlay = yourMixSongs,
-                                                queueName = yourMixQueueName,
-                                                startAtZero = true,
-                                            )
-                                        }
+                                        playerViewModel.shuffleAllSongs(queueName = yourMixQueueName)
                                     }
                                 )
                             }
@@ -479,15 +474,7 @@ fun HomeScreen(
                             song = yourMixSubtitle,
                             isShuffleEnabled = isShuffleEnabled,
                             onPlayShuffled = {
-                                if (usesFallbackHomeMix) {
-                                    playerViewModel.shuffleAllSongs(queueName = yourMixQueueName)
-                                } else {
-                                    playerViewModel.playSongsShuffled(
-                                        songsToPlay = yourMixSongs,
-                                        queueName = yourMixQueueName,
-                                        startAtZero = true,
-                                    )
-                                }
+                                playerViewModel.shuffleAllSongs(queueName = yourMixQueueName)
                             }
                         )
                     }
@@ -619,6 +606,42 @@ fun HomeScreen(
                             }
                         }
                     }
+
+                    if (homeMixPreviewSongs.isNotEmpty()) {
+                        item(
+                            key = "recently_added_section",
+                            contentType = "recently_added_section"
+                        ) {
+                            RecentlyAddedSection(
+                                songs = homeMixPreviewSongs,
+                                onSongClick = { song ->
+                                    playerViewModel.showAndPlaySong(
+                                        song = song,
+                                        contextSongs = homeMixPreviewSongs,
+                                        queueName = recentlyAddedQueueName
+                                    )
+                                },
+                                onSongLongClick = { song ->
+                                    songForOptions = HomeSongOptions(
+                                        song = song,
+                                        queueSongs = homeMixPreviewSongs,
+                                        queueName = recentlyAddedQueueName
+                                    )
+                                },
+                                onPlayAllClick = {
+                                    homeMixPreviewSongs.firstOrNull()?.let { firstSong ->
+                                        playerViewModel.showAndPlaySong(
+                                            song = firstSong,
+                                            contextSongs = homeMixPreviewSongs,
+                                            queueName = recentlyAddedQueueName
+                                        )
+                                    }
+                                },
+                                currentSongId = currentSong?.id,
+                                contentPadding = PaddingValues(start = 16.dp, end = 24.dp)
+                            )
+                        }
+                    }
                 } else {
                     if (dailyMixSongs.isNotEmpty()) {
                         item(
@@ -677,6 +700,42 @@ fun HomeScreen(
                                 themeStateHolder = playerViewModel.themeStateHolder,
                                 currentSongId = currentSong?.id,
                                 contentPadding = PaddingValues(start = 8.dp, end = 24.dp)
+                            )
+                        }
+                    }
+
+                    if (homeMixPreviewSongs.isNotEmpty()) {
+                        item(
+                            key = "recently_added_section",
+                            contentType = "recently_added_section"
+                        ) {
+                            RecentlyAddedSection(
+                                songs = homeMixPreviewSongs,
+                                onSongClick = { song ->
+                                    playerViewModel.showAndPlaySong(
+                                        song = song,
+                                        contextSongs = homeMixPreviewSongs,
+                                        queueName = recentlyAddedQueueName
+                                    )
+                                },
+                                onSongLongClick = { song ->
+                                    songForOptions = HomeSongOptions(
+                                        song = song,
+                                        queueSongs = homeMixPreviewSongs,
+                                        queueName = recentlyAddedQueueName
+                                    )
+                                },
+                                onPlayAllClick = {
+                                    homeMixPreviewSongs.firstOrNull()?.let { firstSong ->
+                                        playerViewModel.showAndPlaySong(
+                                            song = firstSong,
+                                            contextSongs = homeMixPreviewSongs,
+                                            queueName = recentlyAddedQueueName
+                                        )
+                                    }
+                                },
+                                currentSongId = currentSong?.id,
+                                contentPadding = PaddingValues(start = 16.dp, end = 24.dp)
                             )
                         }
                     }

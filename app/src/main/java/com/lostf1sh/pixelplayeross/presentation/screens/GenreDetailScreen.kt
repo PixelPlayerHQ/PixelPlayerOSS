@@ -537,8 +537,12 @@ fun GenreDetailScreen(
                         showSortSheet = false
                     },
                     onShuffle = {
-                        if (uiState.songs.isNotEmpty()) {
-                            playerViewModel.showAndPlaySong(uiState.sortedSongs.random(), uiState.sortedSongs, genreShuffleLabel)
+                        if (uiState.sortedSongs.isNotEmpty()) {
+                            playerViewModel.playSongsShuffled(
+                                songsToPlay = uiState.sortedSongs,
+                                queueName = genreShuffleLabel,
+                                startAtZero = true
+                            )
                             showSortSheet = false
                         }
                     },

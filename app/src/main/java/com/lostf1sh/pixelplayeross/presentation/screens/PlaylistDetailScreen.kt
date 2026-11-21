@@ -111,6 +111,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -349,13 +350,20 @@ fun PlaylistDetailScreen(
                             )
                         }
                         AutoScrollingText(
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = if (expanded) {
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp)
+                            } else {
+                                Modifier.padding(start = 8.dp)
+                            },
                             text = currentPlaylist?.name ?: fallbackPlaylistName,
                             style = if (expanded) {
                                 MaterialTheme.typography.displaySmall.copy(fontFamily = RoundedSans)
                             } else {
                                 LocalTextStyle.current.copy(fontFamily = RoundedSans)
                             },
+                            textAlign = if (expanded) TextAlign.Center else null,
                             gradientEdgeColor = MaterialTheme.colorScheme.surface
                         )
                     }
@@ -368,15 +376,21 @@ fun PlaylistDetailScreen(
                 ),
                 subtitle = { expanded ->
                     Text(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .then(if (expanded) Modifier.paddingFromBaseline(bottom = 28.dp) else Modifier),
+                        modifier = if (expanded) {
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .paddingFromBaseline(bottom = 28.dp)
+                        } else {
+                            Modifier.padding(start = 8.dp)
+                        },
                         text = stringResource(
                             R.string.presentation_batch_f_status_bullet_step,
                             formatSongCount(songsInPlaylist.size),
                             formatTotalDuration(songsInPlaylist)
                         ),
                         style = MaterialTheme.typography.labelMedium.copy(fontFamily = RoundedSans),
+                        textAlign = if (expanded) TextAlign.Center else null,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },

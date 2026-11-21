@@ -46,8 +46,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ColorScheme
@@ -252,8 +255,8 @@ fun FullPlayerContent(
 
     val song = currentSong ?: retainedSong ?: return
     var foldableRightPane by rememberSaveable { mutableStateOf<FoldableRightPane?>(null) }
-    var showSongInfoBottomSheet by remember { mutableStateOf(false) }
-    var showLyricsSheet by remember { mutableStateOf(false) }
+    var showSongInfoBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var showLyricsSheet by rememberSaveable { mutableStateOf(false) }
     var showArtistPicker by rememberSaveable { mutableStateOf(false) }
     var showSaveBookmarkDialog by rememberSaveable { mutableStateOf(false) }
     var showAudioOutputSheet by rememberSaveable { mutableStateOf(false) }
@@ -279,7 +282,7 @@ fun FullPlayerContent(
         queueGestureBottomExclusion.toPx()
     }
 
-    var showFetchLyricsDialog by remember { mutableStateOf(false) }
+    var showFetchLyricsDialog by rememberSaveable { mutableStateOf(false) }
     var totalDrag by remember { mutableStateOf(0f) }
 
     val context = LocalContext.current
@@ -670,6 +673,7 @@ fun FullPlayerContent(
 
     Scaffold(
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets.safeDrawing,
         modifier = Modifier.pointerInput(currentSheetState, queueGestureBottomExclusionPx) {
             val queueDragActivationThresholdPx = 4.dp.toPx()
             val quickFlickVelocityThreshold = -520f
@@ -1101,7 +1105,11 @@ private fun FullPlayerAlbumCoverSection(
         } else {
             baseCarouselHeight
         }
-        val carouselWidth = if (fitCarouselToHeight) carouselHeight / pageWidthFraction else maxWidth
+        val carouselWidth = if (fitCarouselToHeight || carouselHeight < baseCarouselHeight) {
+            minOf(maxWidth, carouselHeight / pageWidthFraction)
+        } else {
+            maxWidth
+        }
 
         DelayedContent(
             shouldDelay = shouldDelay,
@@ -1619,21 +1627,22 @@ private fun FullPlayerLandscapeContent(
                 .fillMaxHeight()
                 .weight(1f)
         )
-        Spacer(Modifier.width(28.dp))
+        Spacer(Modifier.width(20.dp))
         Column(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
+                .verticalScroll(rememberScrollState())
                 .padding(
                     horizontal = 4.dp,
-                    vertical = 0.dp
+                    vertical = 8.dp
                 ),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 songMetadataSection()
                 playerProgressSection()

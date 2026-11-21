@@ -49,7 +49,6 @@ import com.lostf1sh.pixelplayeross.data.navidrome.NavidromeSongUri
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueItemSnapshot
 import com.lostf1sh.pixelplayeross.data.model.PlaybackQueueSnapshot
 import com.lostf1sh.pixelplayeross.data.model.Song
-import com.lostf1sh.pixelplayeross.data.preferences.EqualizerPreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.PreviousButtonBehavior
 import com.lostf1sh.pixelplayeross.data.preferences.ThemePreferencesRepository
 import com.lostf1sh.pixelplayeross.data.preferences.UserPreferencesRepository
@@ -78,7 +77,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerManager
-import com.lostf1sh.pixelplayeross.data.equalizer.EqualizerPreset
 import com.lostf1sh.pixelplayeross.data.equalizer.ExternalAudioEffectSession
 import com.lostf1sh.pixelplayeross.data.model.WidgetThemeColors
 import com.lostf1sh.pixelplayeross.data.preferences.AlbumArtColorAccuracy
@@ -191,8 +189,6 @@ class MusicService : MediaSessionService() {
     lateinit var musicRepository: MusicRepository
     @Inject
     lateinit var userPreferencesRepository: UserPreferencesRepository
-    @Inject
-    lateinit var equalizerPreferencesRepository: EqualizerPreferencesRepository
     @Inject
     lateinit var themePreferencesRepository: ThemePreferencesRepository
     @Inject
@@ -456,36 +452,7 @@ class MusicService : MediaSessionService() {
         sleepTimerController.attach()
         registerHeadsetReconnectMonitor()
 
-        serviceScope.launch {
-            val eqEnabled = equalizerPreferencesRepository.equalizerEnabledFlow.first()
-            val presetName = equalizerPreferencesRepository.equalizerPresetFlow.first()
-            val customBands = equalizerPreferencesRepository.equalizerCustomBandsFlow.first()
-            val customPresets = equalizerPreferencesRepository.customPresetsFlow.first()
-            val bassBoostEnabled = equalizerPreferencesRepository.bassBoostEnabledFlow.first()
-            val bassBoostStrength = equalizerPreferencesRepository.bassBoostStrengthFlow.first()
-            val virtualizerEnabled = equalizerPreferencesRepository.virtualizerEnabledFlow.first()
-            val virtualizerStrength = equalizerPreferencesRepository.virtualizerStrengthFlow.first()
-            val loudnessEnabled = equalizerPreferencesRepository.loudnessEnhancerEnabledFlow.first()
-            val loudnessStrength = equalizerPreferencesRepository.loudnessEnhancerStrengthFlow.first()
-
-            equalizerManager.restoreState(
-                eqEnabled, EqualizerPreset.resolve(presetName, customBands, customPresets),
-                bassBoostEnabled, bassBoostStrength,
-                virtualizerEnabled, virtualizerStrength,
-                loudnessEnabled, loudnessStrength
-            )
-
-            val sessionId = engine.getAudioSessionId()
-            if (sessionId != 0) {
-                equalizerManager.attachToAudioSessionIfNeeded(sessionId)
-            }
-
-            engine.activeAudioSessionId.collect { newSessionId ->
-                if (newSessionId != 0) {
-                    equalizerManager.attachToAudioSessionIfNeeded(newSessionId)
-                }
-            }
-        }
+        serviceScope.launch { equalizerManager.restoreFromPreferences() }
 
         serviceScope.launch {
             engine.activeAudioSessionId.collect { sessionId ->
@@ -1019,7 +986,6 @@ class MusicService : MediaSessionService() {
             release()
             mediaSession = null
         }
-        equalizerManager.release()
         externalAudioEffectSession.close()
         engine.release()
         controller.release()

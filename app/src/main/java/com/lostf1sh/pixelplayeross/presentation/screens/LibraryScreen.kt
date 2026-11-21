@@ -3578,7 +3578,7 @@ fun AlbumGridItemRedesigned(
                             model = album.albumArtUriString,
                             contentDescription = stringResource(R.string.cd_album_art_for_title, album.title),
                             contentScale = ContentScale.Crop,
-                            targetSize = Size(256, 256),
+                            targetSize = Size(512, 512),
                             modifier = Modifier
                                 .aspectRatio(3f / 2f)
                                 .fillMaxSize(),
@@ -3918,7 +3918,7 @@ fun AlbumListItem(
                             model = album.albumArtUriString,
                             contentDescription = stringResource(R.string.cd_album_art_for_title, album.title),
                             contentScale = ContentScale.Crop,
-                            targetSize = Size(256, 256),
+                            targetSize = Size(512, 512),
                             modifier = Modifier.fillMaxSize(),
                             onState = { state ->
                                 isLoadingImage = state is AsyncImagePainter.State.Loading
